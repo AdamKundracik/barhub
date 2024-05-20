@@ -1,27 +1,35 @@
-import {SafeAreaView, StyleSheet, TouchableOpacity, View} from "react-native";
+import {
+    Animated,
+    KeyboardAvoidingView,
+    Platform,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from "react-native";
 import {ReactNode} from "react";
-import BottomBar from "./BottomBar";
+import BottomBar from "../user/BottomBar";
+import ScrollView = Animated.ScrollView;
 
 type LayoutProps = {
     children: ReactNode | ReactNode[];
     pageTitle: string;
 }
 
-export const Layout = ({ children, pageTitle }: LayoutProps) => {
-    // const navigation = useNavigation();
-
-    // const handleNavigateBack = () => {
-    //     navigation.dispatch(popAction);
-    // };
+export const AuthLayout = ({ children, pageTitle }: LayoutProps) => {
 
     return (
         <SafeAreaView style={styles.wrapper}>
-            <View>
-                {children}
+
+                <ScrollView contentContainerStyle={styles.scrollView}>
+                    <View style={styles.mainContent}>
+                        {children}
+                    </View>
+                </ScrollView>
+            <View style={styles.bottomBar}>
+                <BottomBar />
             </View>
-            {/*<View style={styles.bottomBar}>*/}
-            {/*    <BottomBar/>*/}
-            {/*</View>*/}
         </SafeAreaView>
     );
 }
@@ -53,7 +61,10 @@ const styles = StyleSheet.create({
     pageTitle: {
         fontSize: 24,
         fontWeight: 'bold',
-    }
+    },
+    scrollView: {
+        flexGrow: 1,
+    },
 });
 
-export default Layout;
+export default AuthLayout;

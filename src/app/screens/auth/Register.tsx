@@ -1,28 +1,59 @@
 import {StyleSheet, Text, TextInput, TouchableOpacity, View} from "react-native";
-import Layout from "../../components/Layout";
+import AuthLayout from "../../components/auth/AuthLayout";
 import {useState} from "react";
 import {authPageStyles, commonAppStyles, formStyles} from "../../utils/styles";
-import {InputWrapper} from "../../components/InputWrapper";
+import {InputWrapper} from "../../components/shared/InputWrapper";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
 export const Register = ({ navigation }: any) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('')
     const [repeatPassword, setRepeatPassword] = useState('')
     function handleRegister() {
-        if (isSamePassword()) console.log(email, password, repeatPassword)
+        if (isSamePassword()) {
+            const auth = getAuth();
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Signed up
+                    const user = userCredential.user;
+                    console.log(user)
+                    // ...
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    // ..
+
+                    console.log('error')
+                });
+        } else {
+            console.log('wrong password')
+        }
     }
 
     function isSamePassword(): boolean {
         return password === repeatPassword
     }
 
+    const auth = getAuth();
+    createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+            // Signed up
+            const user = userCredential.user;
+            console.log(user)
+            // ...
+        })
+        .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            // ..
+
+            console.log('error')
+        });
+
 
     return (
-        <Layout pageTitle={'Register'}>
-            <View style={authPageStyles.authPageContainer}>
-                <View style={{display: 'flex', alignSelf: 'center'}}>
-                    <Text style={[commonAppStyles.textPrimary, {fontSize: 50, fontFamily: 'Inter-Black'}]}>BARUJ</Text>
-                </View>
+        <AuthLayout pageTitle={'Register'}>
                 <InputWrapper inputLabel={'Email'}>
                     <TextInput
                         value={email}
@@ -68,8 +99,7 @@ export const Register = ({ navigation }: any) => {
                 >
                     <Text style={commonAppStyles.textPrimary}>Uz mas ucet? <Text style={{fontWeight: 'bold'}}>Prihlas sa!</Text></Text>
                 </TouchableOpacity>
-            </View>
-        </Layout>
+        </AuthLayout>
     );
 };
 

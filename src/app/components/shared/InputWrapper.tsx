@@ -1,6 +1,6 @@
 import {Text, View} from "react-native";
 import {ReactNode} from "react";
-import {commonAppStyles} from "../utils/styles";
+import {commonAppStyles} from "../../utils/styles";
 
 type LayoutProps = {
     children: ReactNode | ReactNode[];

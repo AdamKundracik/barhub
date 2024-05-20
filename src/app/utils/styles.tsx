@@ -13,14 +13,16 @@ export const formStyles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 10,
         borderRadius: 30,
-        height: 30,
+        height: 40,
         alignSelf: 'center',
         width: '80%',
         backgroundColor: 'white',
     },
     buttonText: {
         display: 'flex',
-        margin: 'auto'
+        margin: 'auto',
+        fontWeight: 'bold',
+        fontSize: 20,
     }
 })
 

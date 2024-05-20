@@ -1,8 +1,8 @@
 import {StyleSheet, Text, TextInput, TouchableOpacity, View} from "react-native";
 import * as React from "react";
 import {useState} from "react";
-import Layout from "../../components/Layout";
-import {InputWrapper} from "../../components/InputWrapper";
+import AuthLayout from "../../components/auth/AuthLayout";
+import {InputWrapper} from "../../components/shared/InputWrapper";
 import {authPageStyles, commonAppStyles, formStyles} from "../../utils/styles";
 
 export const LogIn = ({navigation}: any) => {
@@ -14,11 +14,7 @@ export const LogIn = ({navigation}: any) => {
     }
 
     return (
-        <Layout pageTitle={'Register'}>
-            <View style={authPageStyles.authPageContainer}>
-                <View style={{display: 'flex', alignSelf: 'center'}}>
-                    <Text style={[commonAppStyles.textPrimary, {fontSize: 50, fontFamily: 'Roboto'}]}>BARUJ</Text>
-                </View>
+        <AuthLayout pageTitle={'Register'}>
                 <InputWrapper inputLabel={'Email'}>
                     <TextInput
                         value={email}
@@ -50,8 +46,13 @@ export const LogIn = ({navigation}: any) => {
                 >
                     <Text style={commonAppStyles.textPrimary}>Este nemas ucet? <Text style={{fontWeight: 'bold'}}>Zaregistruj sa!</Text></Text>
                 </TouchableOpacity>
-            </View>
-        </Layout>
+                <TouchableOpacity
+                    style={styles.login}
+                    onPress={() => navigation.navigate('ForgotPassword')}
+                >
+                    <Text style={commonAppStyles.textPrimary}>Zabudol si heslo? <Text style={{fontWeight: 'bold'}}>Obnov si ho!</Text></Text>
+                </TouchableOpacity>
+        </AuthLayout>
 );
 }
 
