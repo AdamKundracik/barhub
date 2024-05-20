@@ -1,13 +1,4 @@
-import {
-    Animated,
-    KeyboardAvoidingView,
-    Platform,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
-} from "react-native";
+import {Animated, SafeAreaView, StyleSheet, View} from "react-native";
 import {ReactNode} from "react";
 import BottomBar from "../user/BottomBar";
 import ScrollView = Animated.ScrollView;
@@ -17,18 +8,18 @@ type LayoutProps = {
     pageTitle: string;
 }
 
-export const AuthLayout = ({ children, pageTitle }: LayoutProps) => {
+export const AuthLayout = ({children, pageTitle}: LayoutProps) => {
 
     return (
         <SafeAreaView style={styles.wrapper}>
 
-                <ScrollView contentContainerStyle={styles.scrollView}>
-                    <View style={styles.mainContent}>
-                        {children}
-                    </View>
-                </ScrollView>
+            <ScrollView contentContainerStyle={styles.scrollView}>
+                <View style={styles.mainContent}>
+                    {children}
+                </View>
+            </ScrollView>
             <View style={styles.bottomBar}>
-                <BottomBar />
+                <BottomBar/>
             </View>
         </SafeAreaView>
     );

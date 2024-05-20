@@ -5,7 +5,7 @@ import {commonAppStyles, formStyles} from "../../utils/styles";
 import {useState} from "react";
 import {getAuth, sendPasswordResetEmail} from 'firebase/auth'
 
-export const ForgotPassword = ({ navigation }: any) => {
+export const ForgotPassword = ({navigation}: any) => {
     const [email, setEmail] = useState('');
     const [newPassword, setNewPassword] = useState('')
     const [repeatNewPassword, setRepeatNewPassword] = useState('')

@@ -8,7 +8,7 @@ const UserStack = createNativeStackNavigator();
 const UserNav = () => {
     return (
         <UserStack.Navigator initialRouteName='Feed' screenOptions={{headerTintColor: 'black'}}>
-            <UserStack.Screen name='Feed' component={NewsFeed} />
+            <UserStack.Screen name='Feed' component={NewsFeed}/>
             {/*<UserStack.Screen*/}
             {/*    name='Register'*/}
             {/*    component={Register}*/}

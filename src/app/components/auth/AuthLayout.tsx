@@ -1,24 +1,14 @@
-import {
-    Animated,
-    KeyboardAvoidingView,
-    Platform,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
-} from "react-native";
+import {Animated, KeyboardAvoidingView, Platform, SafeAreaView, StyleSheet, Text, View} from "react-native";
 import {ReactNode} from "react";
-import BottomBar from "../user/BottomBar";
-import ScrollView = Animated.ScrollView;
 import {authPageStyles, commonAppStyles} from "../../utils/styles";
+import ScrollView = Animated.ScrollView;
 
 type LayoutProps = {
     children: ReactNode | ReactNode[];
     pageTitle: string;
 }
 
-export const AuthLayout = ({ children, pageTitle }: LayoutProps) => {
+export const AuthLayout = ({children, pageTitle}: LayoutProps) => {
 
     return (
         <SafeAreaView style={styles.wrapper}>
@@ -31,7 +21,10 @@ export const AuthLayout = ({ children, pageTitle }: LayoutProps) => {
                     <View style={styles.mainContent}>
                         <View style={authPageStyles.authPageContainer}>
                             <View style={{display: 'flex', alignSelf: 'center', marginBottom: 20}}>
-                                <Text style={[commonAppStyles.textPrimary, {fontSize: 50, fontFamily: 'Inter-Black'}]}>BARUJ</Text>
+                                <Text style={[commonAppStyles.textPrimary, {
+                                    fontSize: 50,
+                                    fontFamily: 'Inter-Black'
+                                }]}>BARUJ</Text>
                             </View>
                             {children}
                         </View>
