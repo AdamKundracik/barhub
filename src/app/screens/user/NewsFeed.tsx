@@ -1,7 +1,8 @@
 import Layout from "../../components/user/Layout";
-import {Alert, Text, TouchableOpacity, View} from "react-native";
+import {Alert, Text, TouchableOpacity} from "react-native";
 import {commonAppStyles} from "../../utils/styles";
 import {getAuth, signOut} from "firebase/auth";
+import UserPost from "../../components/user/UserPost";
 
 export const NewsFeed = ({navigation}: any) => {
     function triggerSignOut() {
@@ -24,9 +25,7 @@ export const NewsFeed = ({navigation}: any) => {
 
     return (
         <Layout pageTitle={"Feed"}>
-            <View>
-                <Text style={commonAppStyles.textPrimary}>Hello wrld!</Text>
-            </View>
+            <UserPost/>
             <TouchableOpacity onPress={triggerSignOut}>
                 <Text style={commonAppStyles.textPrimary}>Log out</Text>
             </TouchableOpacity>
