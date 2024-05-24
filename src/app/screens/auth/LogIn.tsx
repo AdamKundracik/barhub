@@ -1,4 +1,4 @@
-import {StyleSheet, Text, TextInput, TouchableOpacity} from "react-native";
+import {ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity} from "react-native";
 import {signInWithEmailAndPassword} from 'firebase/auth'
 import * as React from "react";
 import {useState} from "react";
@@ -11,16 +11,20 @@ export const LogIn = ({navigation}: any) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false)
+    const [loading, setLoading] = useState(false)
 
     function handleLogin() {
+        setLoading(true)
         signInWithEmailAndPassword(auth, email, password)
             .then(async (userCredential) => {
                 // Signed in
+                setLoading(false);
                 const user = userCredential.user;
             })
             .catch((error) => {
                 const errorCode = error.code;
                 const errorMessage = error.message;
+                setLoading(false);
             });
     };
 
@@ -46,8 +50,9 @@ export const LogIn = ({navigation}: any) => {
                     keyboardType={"visible-password"}
                 />
             </InputWrapper>
-            <TouchableOpacity onPress={handleLogin} style={formStyles.buttonPrimary}>
-                <Text style={formStyles.buttonText}>Log in</Text>
+            <TouchableOpacity onPress={handleLogin} style={[formStyles.buttonPrimary]} disabled={loading}>
+                {loading && <ActivityIndicator style={formStyles.buttonText} size='small' color='#000000'/>}
+                {!loading && <Text style={formStyles.buttonText}>Log in</Text>}
             </TouchableOpacity>
             <TouchableOpacity
                 style={styles.login}

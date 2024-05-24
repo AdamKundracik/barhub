@@ -30,7 +30,9 @@ export const NewsFeed = ({navigation}: any) => {
     return (
         <Layout pageTitle={"Feed"}>
             {loading ? (
-                <ActivityIndicator size="large" color="#0000ff"/>
+                <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+                    <ActivityIndicator size="large" color="#ffffff"/>
+                </View>
             ) : (
                 <FlatList
                     data={fileUrls}
