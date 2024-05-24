@@ -10,7 +10,7 @@ import {auth} from "../../../../firebaseConfig";
 export const LogIn = ({navigation}: any) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [showPassword, setShowPassword] = useState(false)
+    const [togglePassword, setTogglePassword] = useState(true)
     const [loading, setLoading] = useState(false)
 
     function handleLogin() {
@@ -28,7 +28,6 @@ export const LogIn = ({navigation}: any) => {
             });
     };
 
-
     return (
         <AuthLayout pageTitle={"Register"}>
             <InputWrapper inputLabel={"Email"}>
@@ -40,14 +39,18 @@ export const LogIn = ({navigation}: any) => {
                     keyboardType={"email-address"}
                 />
             </InputWrapper>
-            <InputWrapper inputLabel={"Password"} passwordInput>
+            <InputWrapper 
+                inputLabel={"Password"}
+                setTogglePassword={setTogglePassword}
+                 togglePassword={togglePassword}
+                 passwordInput
+            >
                 <TextInput
                     value={password}
                     onChangeText={setPassword}
-                    secureTextEntry={showPassword}
+                    secureTextEntry={togglePassword} 
                     style={formStyles.inputPrimary}
                     placeholder="Password"
-                    keyboardType={"visible-password"}
                 />
             </InputWrapper>
             <TouchableOpacity onPress={handleLogin} style={[formStyles.buttonPrimary]} disabled={loading}>
