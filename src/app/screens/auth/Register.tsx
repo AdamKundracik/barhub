@@ -9,6 +9,11 @@ export const Register = ({navigation}: any) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [repeatPassword, setRepeatPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+
+    const toggleShowPassword = () => {
+        setShowPassword(!showPassword);
+    };
 
     function handleRegister() {
         if (isSamePassword()) {
@@ -36,20 +41,6 @@ export const Register = ({navigation}: any) => {
         return password === repeatPassword;
     }
 
-    const auth = getAuth();
-    createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-            // Signed up
-            const user = userCredential.user;
-            // ...
-        })
-        .catch((error) => {
-            const errorCode = error.code;
-            const errorMessage = error.message;
-            // ..
-            console.log("error", errorMessage);
-        });
-
     return (
         <AuthLayout pageTitle={"Register"}>
             <InputWrapper inputLabel={"Email"}>
@@ -61,7 +52,7 @@ export const Register = ({navigation}: any) => {
                     keyboardType={"email-address"}
                 />
             </InputWrapper>
-            <InputWrapper inputLabel={"Password"}>
+            <InputWrapper inputLabel={"Password"} passwordInput>
                 <TextInput
                     secureTextEntry={true}
                     value={password}
@@ -71,7 +62,7 @@ export const Register = ({navigation}: any) => {
                     keyboardType={"visible-password"}
                 />
             </InputWrapper>
-            <InputWrapper inputLabel={"Repeat password"}>
+            <InputWrapper inputLabel={"Repeat password"} passwordInput>
                 <TextInput
                     secureTextEntry={true}
                     value={repeatPassword}

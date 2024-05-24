@@ -1,8 +1,7 @@
 import Layout from "../../components/user/Layout";
-import {ActivityIndicator, Alert, FlatList, StyleSheet, View} from "react-native";
-import {signOut} from "firebase/auth";
+import {ActivityIndicator, FlatList, StyleSheet, View} from "react-native";
 import {getDownloadURL, list, ref} from "firebase/storage";
-import {auth, storage} from "../../../../firebaseConfig";
+import {storage} from "../../../../firebaseConfig";
 import {useEffect, useState} from "react";
 import UserPost from "../../components/user/UserPost";
 
@@ -27,23 +26,6 @@ export const NewsFeed = ({navigation}: any) => {
 
         listFiles();
     }, []);
-
-    function triggerSignOut() {
-        signOut(auth)
-            .then(() => {
-                console.log("signed out");
-                triggerSignOutAlert();
-            })
-            .catch((error) => {
-                console.error(error);
-            });
-    }
-
-    const triggerSignOutAlert = () => {
-        Alert.alert("Signed out", "You have been signed out", [
-            {text: "Ok", onPress: () => navigation.navigate("Login")},
-        ]);
-    };
 
     return (
         <Layout pageTitle={"Feed"}>
