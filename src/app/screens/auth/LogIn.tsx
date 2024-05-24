@@ -6,8 +6,10 @@ import AuthLayout from "../../components/auth/AuthLayout";
 import {InputWrapper} from "../../components/shared/InputWrapper";
 import {commonAppStyles, formStyles} from "../../utils/styles";
 import {auth} from "../../../../firebaseConfig";
+import { useTranslation } from "react-i18next";
 
 export const LogIn = ({navigation}: any) => {
+    const { t } = useTranslation();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [togglePassword, setTogglePassword] = useState(true)
@@ -29,18 +31,18 @@ export const LogIn = ({navigation}: any) => {
     };
 
     return (
-        <AuthLayout pageTitle={"Register"}>
-            <InputWrapper inputLabel={"Email"}>
+        <AuthLayout pageTitle={t('register')}>
+            <InputWrapper inputLabel={t('welcome')}>
                 <TextInput
                     value={email}
                     onChangeText={setEmail}
                     style={formStyles.inputPrimary}
-                    placeholder="Email"
+                    placeholder={t('email')}
                     keyboardType={"email-address"}
                 />
             </InputWrapper>
             <InputWrapper 
-                inputLabel={"Password"}
+                inputLabel={t('password')}
                 setTogglePassword={setTogglePassword}
                  togglePassword={togglePassword}
                  passwordInput
@@ -50,12 +52,12 @@ export const LogIn = ({navigation}: any) => {
                     onChangeText={setPassword}
                     secureTextEntry={togglePassword} 
                     style={formStyles.inputPrimary}
-                    placeholder="Password"
+                    placeholder={t('password')}
                 />
             </InputWrapper>
             <TouchableOpacity onPress={handleLogin} style={[formStyles.buttonPrimary]} disabled={loading}>
                 {loading && <ActivityIndicator style={formStyles.buttonText} size='small' color='#000000'/>}
-                {!loading && <Text style={formStyles.buttonText}>Log in</Text>}
+                {!loading && <Text style={formStyles.buttonText}>{t('login')}</Text>}
             </TouchableOpacity>
             <TouchableOpacity
                 style={styles.login}
