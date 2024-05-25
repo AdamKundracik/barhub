@@ -6,10 +6,10 @@ import AuthLayout from "../../components/auth/AuthLayout";
 import {InputWrapper} from "../../components/shared/InputWrapper";
 import {commonAppStyles, formStyles} from "../../utils/styles";
 import {auth} from "../../../../firebaseConfig";
-import { useTranslation } from "react-i18next";
+import {useTranslation} from "react-i18next";
 
 export const LogIn = ({navigation}: any) => {
-    const { t } = useTranslation();
+    const {t} = useTranslation();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [togglePassword, setTogglePassword] = useState(true)
@@ -32,7 +32,7 @@ export const LogIn = ({navigation}: any) => {
 
     return (
         <AuthLayout pageTitle={t('register')}>
-            <InputWrapper inputLabel={t('welcome')}>
+            <InputWrapper inputLabel={t('email')}>
                 <TextInput
                     value={email}
                     onChangeText={setEmail}
@@ -41,16 +41,16 @@ export const LogIn = ({navigation}: any) => {
                     keyboardType={"email-address"}
                 />
             </InputWrapper>
-            <InputWrapper 
+            <InputWrapper
                 inputLabel={t('password')}
                 setTogglePassword={setTogglePassword}
-                 togglePassword={togglePassword}
-                 passwordInput
+                togglePassword={togglePassword}
+                passwordInput
             >
                 <TextInput
                     value={password}
                     onChangeText={setPassword}
-                    secureTextEntry={togglePassword} 
+                    secureTextEntry={togglePassword}
                     style={formStyles.inputPrimary}
                     placeholder={t('password')}
                 />
@@ -64,8 +64,8 @@ export const LogIn = ({navigation}: any) => {
                 onPress={() => navigation.navigate("Register")}
             >
                 <Text style={commonAppStyles.textPrimary}>
-                    Este nemas ucet?{" "}
-                    <Text style={{fontWeight: "bold"}}>Zaregistruj sa!</Text>
+                    {t('noAccount')}
+                    <Text style={{fontWeight: "bold"}}> {t('registerYourself')}</Text>
                 </Text>
             </TouchableOpacity>
 
@@ -74,8 +74,8 @@ export const LogIn = ({navigation}: any) => {
                 onPress={() => navigation.navigate("ForgotPassword")}
             >
                 <Text style={commonAppStyles.textPrimary}>
-                    Zabudol si heslo?{" "}
-                    <Text style={{fontWeight: "bold"}}>Obnov si ho!</Text>
+                    {t('forgotPassword')}
+                    <Text style={{fontWeight: "bold"}}> {t('resetIt')}</Text>
                 </Text>
             </TouchableOpacity>
         </AuthLayout>

@@ -4,8 +4,10 @@ import {Alert, Text, TextInput, TouchableOpacity} from "react-native";
 import {formStyles} from "../../utils/styles";
 import {useState} from "react";
 import {getAuth, sendPasswordResetEmail} from "firebase/auth";
+import {useTranslation} from "react-i18next";
 
 export const ForgotPassword = ({navigation}: any) => {
+    const {t} = useTranslation();
     const [email, setEmail] = useState("");
 
 
@@ -24,12 +26,12 @@ export const ForgotPassword = ({navigation}: any) => {
 
     return (
         <AuthLayout pageTitle={"Forgot password"}>
-            <InputWrapper inputLabel={"Email"}>
+            <InputWrapper inputLabel={t("email")}>
                 <TextInput
                     value={email}
                     onChangeText={setEmail}
                     style={formStyles.inputPrimary}
-                    placeholder="Email"
+                    placeholder={t('email')}
                     keyboardType={"email-address"}
                 />
             </InputWrapper>
@@ -37,7 +39,7 @@ export const ForgotPassword = ({navigation}: any) => {
                 onPress={triggerResetPassword}
                 style={formStyles.buttonPrimary}
             >
-                <Text style={formStyles.buttonText}>Reset password</Text>
+                <Text style={formStyles.buttonText}>{t('resetPassword')}</Text>
             </TouchableOpacity>
         </AuthLayout>
     );

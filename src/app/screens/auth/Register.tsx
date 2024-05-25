@@ -4,16 +4,15 @@ import {useState} from "react";
 import {commonAppStyles, formStyles} from "../../utils/styles";
 import {InputWrapper} from "../../components/shared/InputWrapper";
 import {createUserWithEmailAndPassword, getAuth} from "firebase/auth";
+import {useTranslation} from "react-i18next";
 
 export const Register = ({navigation}: any) => {
+    const {t} = useTranslation();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [repeatPassword, setRepeatPassword] = useState("");
-    const [showPassword, setShowPassword] = useState(false);
+    const [togglePassword, setTogglePassword] = useState(true)
 
-    const toggleShowPassword = () => {
-        setShowPassword(!showPassword);
-    };
 
     function handleRegister() {
         if (isSamePassword()) {
@@ -42,8 +41,8 @@ export const Register = ({navigation}: any) => {
     }
 
     return (
-        <AuthLayout pageTitle={"Register"}>
-            <InputWrapper inputLabel={"Email"}>
+        <AuthLayout pageTitle={t('Register')}>
+            <InputWrapper inputLabel={t("email")}>
                 <TextInput
                     value={email}
                     onChangeText={setEmail}
@@ -52,29 +51,35 @@ export const Register = ({navigation}: any) => {
                     keyboardType={"email-address"}
                 />
             </InputWrapper>
-            <InputWrapper inputLabel={"Password"} passwordInput>
+            <InputWrapper inputLabel={t("password")}
+                          setTogglePassword={setTogglePassword}
+                          togglePassword={togglePassword}
+                          passwordInput>
                 <TextInput
-                    secureTextEntry={true}
+                    secureTextEntry={togglePassword}
                     value={password}
                     onChangeText={setPassword}
                     style={formStyles.inputPrimary}
-                    placeholder="Password"
+                    placeholder={t('password')}
                     keyboardType={"visible-password"}
                 />
             </InputWrapper>
-            <InputWrapper inputLabel={"Repeat password"} passwordInput>
+            <InputWrapper inputLabel={t("repeatPassword")}
+                          setTogglePassword={setTogglePassword}
+                          togglePassword={togglePassword}
+                          passwordInput>
                 <TextInput
-                    secureTextEntry={true}
+                    secureTextEntry={togglePassword}
                     value={repeatPassword}
                     onChangeText={setRepeatPassword}
                     style={formStyles.inputPrimary}
-                    placeholder="Repeat password"
+                    placeholder={t('repeatPassword')}
                     keyboardType={"visible-password"}
                 />
                 {!isSamePassword() && (
                     <View>
                         <Text style={[commonAppStyles.textPrimary, {color: "#f80202"}]}>
-                            Hesla sa nezhoduju!
+                            {t('noMatchingPasswords')}
                         </Text>
                     </View>
                 )}
@@ -83,15 +88,16 @@ export const Register = ({navigation}: any) => {
             <TouchableOpacity
                 onPress={handleRegister}
                 style={formStyles.buttonPrimary}
+                disabled={!isSamePassword()}
             >
-                <Text style={formStyles.buttonText}>Register</Text>
+                <Text style={formStyles.buttonText}>{t('register')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
                 style={styles.login}
                 onPress={() => navigation.navigate("Login")}
             >
                 <Text style={commonAppStyles.textPrimary}>
-                    Uz mas ucet? <Text style={{fontWeight: "bold"}}>Prihlas sa!</Text>
+                    {t('haveAccount')} <Text style={{fontWeight: "bold"}}>{t('login')}!</Text>
                 </Text>
             </TouchableOpacity>
         </AuthLayout>
