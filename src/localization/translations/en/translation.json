@@ -1,0 +1,18 @@
+{
+  "email": "Email",
+  "resetPassword": "Reset password",
+  "register": "Register",
+  "password": "Password",
+  "login": "Log In",
+  "noAccount": "No account?",
+  "registerYourself": "Register",
+  "forgotPassword": "Forgot password?",
+  "resetIt": "Make new one!",
+  "Register": "Register",
+  "repeatPassword": "Repeat password",
+  "noMatchingPasswords": "Passwords are not matching",
+  "haveAccount": "Already have account?",
+  "Forgot password": "Forgot password",
+  "newPassword": "New password",
+  "repeatNewPassword": "repeatNewPassword"
+}
