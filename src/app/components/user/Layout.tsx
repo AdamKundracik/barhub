@@ -7,7 +7,7 @@ type LayoutProps = {
     pageTitle: string;
 };
 
-export const AuthLayout = ({children, pageTitle}: LayoutProps) => {
+export const AuthLayout = ({children}: LayoutProps) => {
     return (
         <SafeAreaView style={styles.wrapper}>
             <ScrollView contentContainerStyle={styles.scrollView}>
@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
     },
     mainContent: {
         flex: 1,
-        paddingHorizontal: 10,
+        paddingHorizontal: 5,
         paddingVertical: 20
     },
     scrollView: {
