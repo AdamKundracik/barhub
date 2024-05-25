@@ -1,6 +1,17 @@
 {
-    "welcome": "Welcome",
-    "password": "Password",
-    "test1": "IS IT WORKING ?",
-    "test2": "WORKING ?"
-  }
+  "email": "Email",
+  "password": "Password",
+  "register": "Register",
+  "repeatPassword": "Repeat password",
+  "newPassword": "New password",
+  "login": "Log In",
+  "noAccount": "No account?",
+  "registerYourself": "Register",
+  "forgotPassword": "Forgot password?",
+  "resetIt": "Make new one!",
+  "resetPassword": "Reset password",
+  "haveAccount": "Already have account?",
+  "noMatchingPasswords": "Passwords are not matching",
+  "test1": "IS IT WORKING ?",
+  "test2": "WORKING ?"
+}

@@ -1,6 +1,18 @@
 {
-    "welcome": "Vitajte",
-    "password": "Heslo",
-    "test1": "Test1",
-    "test2": "Test2"
-  }
+  "email": "Email",
+  "password": "Heslo",
+  "repeatPassword": "Zopakuj heslo",
+  "newPassword": "Nové heslo",
+  "repeatNewPassword": "Zopakuj nové heslo",
+  "register": "Registruj sa",
+  "login": "Prihlás sa",
+  "noAccount": "Ešte nemáš heslo?",
+  "registerYourself": "Zaregistruj sa!",
+  "forgotPassword": "Zabudol si heslo?",
+  "resetIt": "Obnov si ho!",
+  "resetPassword": "Obnoviť heslo",
+  "haveAccount": "Už máš účet?",
+  "noMatchingPasswords": "Heslá sa nezhodujú",
+  "test1": "Test1",
+  "test2": "Test2"
+}
