@@ -35,6 +35,7 @@ export const NewsFeed = ({navigation}: any) => {
                 </View>
             ) : (
                 <FlatList
+                    style={{zIndex: 1}}
                     data={fileUrls}
                     keyExtractor={(item) => item}
                     renderItem={({item}) => <>
