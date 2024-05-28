@@ -43,16 +43,9 @@ export type Settings = {
 
 export type User = {
     uid: string;
-    name?: string;
-    surname?: string;
-    email?: string;
-    phoneNumber: string;
+    email: string;
     createdAt: number;
-    location?: LocationType;
-    rides: Ride[];
-    status: UserStatusEnum;
-    accountType: AccountTypeEnum;
-    settings: UserSettings;
+    name: string;
 };
 
 export type UserSettings = {

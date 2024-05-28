@@ -5,6 +5,8 @@ import {commonAppStyles, formStyles} from "../../utils/styles";
 import {InputWrapper} from "../../components/shared/InputWrapper";
 import {createUserWithEmailAndPassword, getAuth} from "firebase/auth";
 import {useTranslation} from "react-i18next";
+import firebase from "firebase/compat";
+import functions = firebase.functions;
 
 export const Register = ({navigation}: any) => {
     const {t} = useTranslation();
@@ -14,14 +16,24 @@ export const Register = ({navigation}: any) => {
     const [togglePassword, setTogglePassword] = useState(true)
 
 
+    async function callFirebaseFunction(data: any) {
+        try {
+            const response = await functions().httpsCallable('createUser')(data);
+            console.log('Firebase function response:', response.data);
+        } catch (error) {
+            console.error('Error calling Firebase function:', error);
+        }
+    };
+
+
     function handleRegister() {
         if (isSamePassword()) {
             const auth = getAuth();
             createUserWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
+                .then(async (userCredential) => {
                     // Signed up
                     const user = userCredential.user;
-                    console.log(user);
+                    await callFirebaseFunction({email: user.email})
                     // ...
                 })
                 .catch((error) => {
