@@ -1,4 +1,4 @@
-import {Dimensions, Image, StyleSheet, Text, View} from "react-native";
+import {Image, StyleSheet, Text, View} from "react-native";
 import {commonAppStyles} from "../../utils/styles";
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from "react-native-reanimated";
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
@@ -7,10 +7,7 @@ interface PostInterface {
     link: string
     setZoomedPost: (link: string | null) => void;
     isZoomed: boolean;
-
 }
-
-const {width, height} = Dimensions.get('screen');
 
 const AnimatedImage = Animated.createAnimatedComponent(Image);
 
@@ -69,7 +66,7 @@ export const UserPost = (props: PostInterface) => {
                 </View>
             </View>
             <GestureDetector gesture={pinch}>
-                <AnimatedImage
+                <Animated.Image
                     style={[styles.photo, animatedStyle]}
                     source={{
                         uri: link,
