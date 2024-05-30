@@ -5,10 +5,11 @@ import {storage} from "../../../../firebaseConfig";
 import {useEffect, useState} from "react";
 import UserPost from "../../components/user/UserPost";
 
-export const NewsFeed = ({navigation}: any) => {
-
+export const NewsFeed = () => {
     const [fileUrls, setFileUrls] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
+    const [zoomedPost, setZoomedPost] = useState<string | null>(null);
+
 
     useEffect(() => {
         const listFiles = async () => {
@@ -34,7 +35,11 @@ export const NewsFeed = ({navigation}: any) => {
                     <ActivityIndicator size="large" color="#ffffff"/>
                 </View>
             ) : (
-                fileUrls.map((link) => <UserPost link={link}/>)
+                fileUrls.map((url) =>
+                    <View style={{marginVertical: 10, zIndex: zoomedPost === url ? 1 : 0}}>
+                        <UserPost key={url} link={url} setZoomedPost={setZoomedPost} isZoomed={zoomedPost === url}/>
+                    </View>
+                )
             )}
         </Layout>
     );

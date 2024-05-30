@@ -1,44 +1,69 @@
-import {Dimensions, StyleSheet, Text, View} from "react-native";
+import {Dimensions, Image, StyleSheet, Text, View} from "react-native";
 import {commonAppStyles} from "../../utils/styles";
-import Animated, {useAnimatedStyle, useSharedValue, withSpring, withTiming} from "react-native-reanimated";
+import Animated, {useAnimatedStyle, useSharedValue} from "react-native-reanimated";
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
 
 interface PostInterface {
     link: string
+    setZoomedPost: (link: string | null) => void;
+    isZoomed: boolean;
+
 }
 
 const {width, height} = Dimensions.get('screen');
 
+const AnimatedImage = Animated.createAnimatedComponent(Image);
+
+
 export const UserPost = (props: PostInterface) => {
-    const scale = useSharedValue(1);
+    const {link, setZoomedPost, isZoomed} = props;
     const focalX = useSharedValue(0);
     const focalY = useSharedValue(0);
+    const xCurrent = useSharedValue(0);
+    const yCurrent = useSharedValue(0);
+    const xPrevious = useSharedValue(0);
+    const yPrevious = useSharedValue(0);
+    const scaleCurrent = useSharedValue(1);
+    const scalePrevious = useSharedValue(1);
 
     const pinch = Gesture.Pinch()
-        .onUpdate((event) => {
-            scale.value = event.scale;
-            focalX.value = event.focalX;
-            focalY.value = event.focalY;
+        .onStart((g) => {
+            scaleCurrent.value = g.scale
+            if (g.numberOfPointers == 2) {
+                focalX.value = g.focalX;
+                focalY.value = g.focalY;
+            }
+            setZoomedPost(link);
+        })
+        .onUpdate((g) => {
+            scaleCurrent.value = g.scale;
+            xCurrent.value = (1 - scaleCurrent.value) * (focalX.value - width / 2);
+            yCurrent.value = (1 - scaleCurrent.value) * (focalY.value - height / 2);
         })
         .onEnd(() => {
-            scale.value = withSpring(1);
-            scale.value = withTiming(1);
+            scalePrevious.value = scalePrevious.value * scaleCurrent.value;
+
+            xPrevious.value = scaleCurrent.value * xPrevious.value + xCurrent.value;
+            yPrevious.value = scaleCurrent.value * yPrevious.value + yCurrent.value;
+            
+            xCurrent.value = 0;
+            yCurrent.value = 0;
+
+            scaleCurrent.value = 1;
+            setZoomedPost(null);
         })
-        .runOnJS(true);
+        .runOnJS(true)
 
 
-    const rStyle = useAnimatedStyle(() => {
+    const animatedStyle = useAnimatedStyle(() => {
         return {
             transform: [
-                {translateX: focalX.value},
-                {translateY: focalY.value},
-                {translateX: -width / 2},
-                {translateY: -height / 2},
-                {scale: scale.value},
-                {translateX: -focalX.value},
-                {translateY: -focalY.value},
-                {translateX: width / 2},
-                {translateY: height / 2},
+                {translateX: xCurrent.value},
+                {translateY: yCurrent.value},
+                {scale: scaleCurrent.value},
+                {translateX: xPrevious.value},
+                {translateY: yPrevious.value},
+                {scale: scalePrevious.value},
             ],
         };
     });
@@ -60,10 +85,10 @@ export const UserPost = (props: PostInterface) => {
                 </View>
             </View>
             <GestureDetector gesture={pinch}>
-                <Animated.Image
-                    style={[styles.photo, rStyle]}
+                <AnimatedImage
+                    style={[styles.photo, animatedStyle]}
                     source={{
-                        uri: props.link,
+                        uri: link,
                     }}
                 />
             </GestureDetector>
@@ -89,20 +114,21 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "space-between"
     },
-    photo: {
-        flex: 10,
-        width: '100%',
-        height: '100%',
-    },
-    photoActions: {
-        flex: 1
-    },
     focalPoint: {
         ...StyleSheet.absoluteFillObject,
         width: 20,
         height: 20,
         backgroundColor: 'blue',
         borderRadius: 10,
+    },
+    photo: {
+        flex: 10,
+        width: '100%',
+        height: '100%',
+        zIndex: 1000,
+    },
+    photoActions: {
+        flex: 1
     },
 })
 
