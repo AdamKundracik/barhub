@@ -1,6 +1,6 @@
 import {Dimensions, Image, StyleSheet, Text, View} from "react-native";
 import {commonAppStyles} from "../../utils/styles";
-import Animated, {useAnimatedStyle, useSharedValue} from "react-native-reanimated";
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from "react-native-reanimated";
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
 
 interface PostInterface {
@@ -23,12 +23,10 @@ export const UserPost = (props: PostInterface) => {
     const yCurrent = useSharedValue(0);
     const xPrevious = useSharedValue(0);
     const yPrevious = useSharedValue(0);
-    const scaleCurrent = useSharedValue(1);
-    const scalePrevious = useSharedValue(1);
+    const scale = useSharedValue(1);
 
     const pinch = Gesture.Pinch()
         .onStart((g) => {
-            scaleCurrent.value = g.scale
             if (g.numberOfPointers == 2) {
                 focalX.value = g.focalX;
                 focalY.value = g.focalY;
@@ -36,43 +34,29 @@ export const UserPost = (props: PostInterface) => {
             setZoomedPost(link);
         })
         .onUpdate((g) => {
-            scaleCurrent.value = g.scale;
-            xCurrent.value = (1 - scaleCurrent.value) * (focalX.value - width / 2);
-            yCurrent.value = (1 - scaleCurrent.value) * (focalY.value - height / 2);
+            scale.value = g.scale;
+            xCurrent.value = (1 - scale.value) * (focalX.value - width / 2);
+            yCurrent.value = (1 - scale.value) * (focalY.value - height / 2);
         })
         .onEnd(() => {
-            scalePrevious.value = scalePrevious.value * scaleCurrent.value;
-
-            xPrevious.value = scaleCurrent.value * xPrevious.value + xCurrent.value;
-            yPrevious.value = scaleCurrent.value * yPrevious.value + yCurrent.value;
-            
-            xCurrent.value = 0;
-            yCurrent.value = 0;
-
-            scaleCurrent.value = 1;
+            // Animate values back to original states
+            scale.value = withTiming(1);
+            xCurrent.value = withTiming(0);
+            yCurrent.value = withTiming(0);
             setZoomedPost(null);
         })
-        .runOnJS(true)
-
+        .runOnJS(true);
 
     const animatedStyle = useAnimatedStyle(() => {
         return {
             transform: [
                 {translateX: xCurrent.value},
                 {translateY: yCurrent.value},
-                {scale: scaleCurrent.value},
-                {translateX: xPrevious.value},
-                {translateY: yPrevious.value},
-                {scale: scalePrevious.value},
+                {scale: scale.value},
             ],
         };
     });
 
-    const focalPointStyle = useAnimatedStyle(() => {
-        return {
-            transform: [{translateX: focalX.value}, {translateY: focalY.value}],
-        };
-    });
 
     return (
         <View style={styles.postWrapper}>
