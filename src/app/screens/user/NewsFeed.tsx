@@ -1,5 +1,5 @@
 import Layout from "../../components/user/Layout";
-import {ActivityIndicator, FlatList, StyleSheet, View} from "react-native";
+import {ActivityIndicator, StyleSheet, View} from "react-native";
 import {getDownloadURL, list, ref} from "firebase/storage";
 import {storage} from "../../../../firebaseConfig";
 import {useEffect, useState} from "react";
@@ -34,16 +34,7 @@ export const NewsFeed = ({navigation}: any) => {
                     <ActivityIndicator size="large" color="#ffffff"/>
                 </View>
             ) : (
-                <FlatList
-                    style={{zIndex: 1}}
-                    data={fileUrls}
-                    keyExtractor={(item) => item}
-                    renderItem={({item}) => <>
-                        <View style={{marginVertical: 30}}>
-                            <UserPost link={item}/>
-                        </View>
-                    </>}
-                />
+                fileUrls.map((link) => <UserPost link={link}/>)
             )}
         </Layout>
     );
