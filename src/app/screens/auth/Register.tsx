@@ -18,10 +18,9 @@ export const Register = ({navigation}: any) => {
         if (isSamePassword()) {
             const auth = getAuth();
             createUserWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
+                .then(async (userCredential) => {
                     // Signed up
                     const user = userCredential.user;
-                    console.log(user);
                     // ...
                 })
                 .catch((error) => {

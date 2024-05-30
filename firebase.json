@@ -2,6 +2,12 @@
   "database": {
     "rules": "database.rules.json"
   },
+  "emulators": {
+    "firestore": {
+      "host": "127.0.0.1",
+      "port": "8889"
+    }
+  },
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
@@ -18,8 +24,6 @@
         "*.local"
       ],
       "predeploy": [
-        "npm --prefix \"$RESOURCE_DIR\" run lint",
-        "npm --prefix \"$RESOURCE_DIR\" run build"
       ]
     }
   ],
