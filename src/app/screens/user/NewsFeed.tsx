@@ -1,14 +1,15 @@
 import Layout from "../../components/user/Layout";
-import {ActivityIndicator, FlatList, StyleSheet, View} from "react-native";
+import {ActivityIndicator, StyleSheet, View} from "react-native";
 import {getDownloadURL, list, ref} from "firebase/storage";
 import {storage} from "../../../../firebaseConfig";
 import {useEffect, useState} from "react";
 import UserPost from "../../components/user/UserPost";
 
-export const NewsFeed = ({navigation}: any) => {
-
+export const NewsFeed = () => {
     const [fileUrls, setFileUrls] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
+    const [zoomedPost, setZoomedPost] = useState<string | null>(null);
+
 
     useEffect(() => {
         const listFiles = async () => {
@@ -34,15 +35,11 @@ export const NewsFeed = ({navigation}: any) => {
                     <ActivityIndicator size="large" color="#ffffff"/>
                 </View>
             ) : (
-                <FlatList
-                    data={fileUrls}
-                    keyExtractor={(item) => item}
-                    renderItem={({item}) => <>
-                        <View style={{marginVertical: 30}}>
-                            <UserPost link={item}/>
-                        </View>
-                    </>}
-                />
+                fileUrls.map((url) =>
+                    <View style={{marginVertical: 10, zIndex: zoomedPost === url ? 1 : 0}}>
+                        <UserPost key={url} link={url} setZoomedPost={setZoomedPost} isZoomed={zoomedPost === url}/>
+                    </View>
+                )
             )}
         </Layout>
     );
