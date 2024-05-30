@@ -21,8 +21,6 @@ export const UserPost = (props: PostInterface) => {
     const focalY = useSharedValue(0);
     const xCurrent = useSharedValue(0);
     const yCurrent = useSharedValue(0);
-    const xPrevious = useSharedValue(0);
-    const yPrevious = useSharedValue(0);
     const scale = useSharedValue(1);
 
     const pinch = Gesture.Pinch()
@@ -35,8 +33,10 @@ export const UserPost = (props: PostInterface) => {
         })
         .onUpdate((g) => {
             scale.value = g.scale;
-            xCurrent.value = (1 - scale.value) * (focalX.value - width / 2);
-            yCurrent.value = (1 - scale.value) * (focalY.value - height / 2);
+            const dx = g.focalX - focalX.value;
+            const dy = g.focalY - focalY.value;
+            xCurrent.value = dx * -(1 - g.scale);
+            yCurrent.value = dy * -(1 - g.scale);
         })
         .onEnd(() => {
             // Animate values back to original states
