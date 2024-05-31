@@ -7,7 +7,7 @@ type LayoutProps = {
     pageTitle: string;
 };
 
-export const Layout = ({children}: LayoutProps, {navigation}: any) => {
+export const Layout = ({children}: LayoutProps) => {
     return (
         <SafeAreaView style={styles.wrapper}>
             <View style={styles.mainContent}>{children}</View>
