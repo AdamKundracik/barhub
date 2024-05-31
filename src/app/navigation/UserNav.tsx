@@ -1,23 +1,22 @@
 import React from "react";
 import NewsFeed from "../screens/user/NewsFeed";
-import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
 import Account from "../screens/user/Account";
+import {createNativeStackNavigator} from "@react-navigation/native-stack";
 
-const Tab = createBottomTabNavigator();
+const UserStack = createNativeStackNavigator();
 
 const UserNav = () => {
     return (
 
-        <Tab.Navigator
+        <UserStack.Navigator
             initialRouteName="Feed"
             screenOptions={{
                 headerShown: false,
             }}
         >
-            <Tab.Screen name={'Feed'} component={NewsFeed}/>
-            {/*<Tab.Screen name={'Camera'}/>*/}
-            <Tab.Screen name={'Account'} component={Account}/>
-        </Tab.Navigator>
+            <UserStack.Screen name={'Feed'} component={NewsFeed}/>
+            <UserStack.Screen name={'Account'} component={Account}/>
+        </UserStack.Navigator>
     );
 };
 
