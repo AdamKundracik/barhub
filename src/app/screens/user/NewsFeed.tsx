@@ -1,9 +1,10 @@
 import Layout from "../../components/user/Layout";
-import {ActivityIndicator, StyleSheet, View} from "react-native";
+import {ActivityIndicator, ScrollView, StyleSheet, View} from "react-native";
 import {getDownloadURL, list, ref} from "firebase/storage";
 import {storage} from "../../../../firebaseConfig";
 import {useEffect, useState} from "react";
 import UserPost from "../../components/user/UserPost";
+import ActionsRow from "../../components/user/ActionsRow";
 
 export const NewsFeed = () => {
     const [fileUrls, setFileUrls] = useState<string[]>([]);
@@ -30,26 +31,40 @@ export const NewsFeed = () => {
 
     return (
         <Layout pageTitle={"Feed"}>
-            {loading ? (
-                <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-                    <ActivityIndicator size="large" color="#ffffff"/>
-                </View>
-            ) : (
-                fileUrls.map((url) =>
-                    <View style={{marginVertical: 10, zIndex: zoomedPost === url ? 1 : 0}}>
-                        <UserPost key={url} link={url} setZoomedPost={setZoomedPost} isZoomed={zoomedPost === url}/>
+            <ActionsRow/>
+            <ScrollView contentContainerStyle={styles.scrollView}>
+                {loading ? (
+                    <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+                        <ActivityIndicator size="large" color="#ffffff"/>
                     </View>
-                )
-            )}
+                ) : (
+                    fileUrls.map((url) =>
+                        <View style={{marginVertical: 10, zIndex: zoomedPost === url ? 1 : 0}}>
+                            <UserPost key={url} link={url} setZoomedPost={setZoomedPost} isZoomed={zoomedPost === url}/>
+                        </View>
+                    )
+                )}
+            </ScrollView>
         </Layout>
     );
 };
 
 const styles = StyleSheet.create({
+    container: {
+        display: "flex",
+        flexDirection: "column"
+    },
+    actionsRow: {
+        height: 30,
+        backgroundColor: "white"
+    },
     image: {
         width: '100%',
         height: 200,
         marginBottom: 10,
+    },
+    scrollView: {
+        flexGrow: 1,
     },
 });
 
