@@ -1,14 +1,17 @@
-import {Button, Dimensions, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Button, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {useRef, useState} from "react";
 import {CameraType, CameraView, FlashMode, useCameraPermissions} from 'expo-camera';
 import {FontAwesomeIcon} from "@fortawesome/react-native-fontawesome";
 import {faCircleCheck} from "@fortawesome/free-regular-svg-icons"
 import {commonAppStyles} from "../../utils/styles";
+import {getFunctions} from "firebase/functions";
+import {uploadImageAsync} from "../../utils/helperFunctions";
 
-const {width} = Dimensions.get('window')
 
+const functions = getFunctions();
 
 export const CameraScreen = () => {
+
     const [facing, setFacing] = useState<CameraType>('back');
     const [permission, requestPermission] = useCameraPermissions();
     const [flash, setFlash] = useState<FlashMode>('off');
@@ -16,7 +19,7 @@ export const CameraScreen = () => {
     const [image, setImage] = useState(null);
 
     const captureImage = async () => {
-        if (permission.granted && camera.current) {
+        if (permission?.granted && camera.current) {
             try {
                 const data = await camera.current.takePictureAsync();
                 console.log(data);
@@ -27,11 +30,14 @@ export const CameraScreen = () => {
         }
     }
 
-    function savePicture() {
+
+    async function savePicture() {
         if (image) {
             try {
-                alert('Picture saved! 🎉');
-                setImage(null);
+                await uploadImageAsync(image).then(() => {
+                    alert('Picture saved! 🎉');
+                    setImage(null);
+                })
             } catch (error) {
                 console.log(error);
             }
@@ -94,15 +100,15 @@ export const CameraScreen = () => {
                                 <TouchableOpacity style={styles.button} onPress={() => setImage(null)}>
                                     <Text style={[commonAppStyles.textPrimary, {
                                         fontWeight: 'bold',
-                                        fontSize: 24
+                                        fontSize: 30
                                     }]}>Retake</Text>
                                 </TouchableOpacity>
                             </View>
                             <View>
-                                <TouchableOpacity style={styles.button}>
+                                <TouchableOpacity style={styles.button} onPress={() => savePicture()}>
                                     <Text style={[commonAppStyles.textPrimary, {
                                         fontWeight: 'bold',
-                                        fontSize: 24
+                                        fontSize: 30
                                     }]}>Save</Text>
                                 </TouchableOpacity>
                             </View>
@@ -151,11 +157,13 @@ const styles = StyleSheet.create({
         resizeMode: 'cover',
     },
     overlay: {
+        backgroundColor: 'rgba(0,0,0,0.3)',
+        padding: 20,
         width: '100%',
         flexDirection: 'row',
         justifyContent: "space-evenly",
         position: 'absolute',
-        bottom: 40,
+        bottom: 0,
         flex: 1,
         alignItems: 'center',
     },

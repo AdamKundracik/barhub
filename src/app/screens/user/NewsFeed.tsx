@@ -1,31 +1,33 @@
 import Layout from "../../components/user/Layout";
 import {ActivityIndicator, ScrollView, StyleSheet, View} from "react-native";
-import {getDownloadURL, list, ref} from "firebase/storage";
-import {storage} from "../../../../firebaseConfig";
+import {getDownloadURL, getStorage, list, ref} from "firebase/storage";
 import {useEffect, useState} from "react";
 import UserPost from "../../components/user/UserPost";
 import ActionsRow from "../../components/user/ActionsRow";
+import {getAuth} from "firebase/auth";
 
 export const NewsFeed = () => {
+    const auth = getAuth()
     const [fileUrls, setFileUrls] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
     const [zoomedPost, setZoomedPost] = useState<string | null>(null);
 
+    const listFiles = async () => {
+        try {
+            const storage = getStorage();
+            const listRef = ref(storage, auth.currentUser?.uid);
+            const res = await list(listRef, {maxResults: 10});
+            const urls = await Promise.all(res.items.map((item) => getDownloadURL(item)));
+            setFileUrls(urls);
+        } catch (error) {
+            console.error('Error listing files: ', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
 
     useEffect(() => {
-        const listFiles = async () => {
-            try {
-                const storageRef = ref(storage); // Specify your directory path here
-                const res = await list(storageRef, {maxResults: 10});
-                const urls = await Promise.all(res.items.map((item) => getDownloadURL(item)));
-                setFileUrls(urls);
-            } catch (error) {
-                console.error('Error listing files: ', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         listFiles();
     }, []);
 

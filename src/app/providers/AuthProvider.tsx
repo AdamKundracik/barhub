@@ -1,11 +1,10 @@
 import React, {createContext, ReactNode, useContext, useEffect, useMemo, useState,} from "react";
 import {onAuthStateChanged} from "firebase/auth";
-import {AccountTypeEnum} from "../utils/types/types";
 import {auth} from "../../../firebaseConfig";
 
 type ContextProps = {
     authUser: null | boolean;
-    accountType: null | AccountTypeEnum;
+    accountType: null;
     isLoadingAuth: boolean;
 };
 

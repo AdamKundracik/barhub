@@ -1,13 +1,14 @@
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
-admin.initializeApp();
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
+const fetch = require('node-fetch');
 
+admin.initializeApp();
 
 //TODO: FINISH FUNCTION
 export const createUser = functions.auth.user().onCreate((user) => {
     return admin
         .firestore()
-        .collection('users')
+        .collection("users")
         .doc(user.uid)
         .set(JSON.parse(JSON.stringify(user)));
 });
