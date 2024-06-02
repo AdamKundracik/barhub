@@ -181,9 +181,9 @@ const styles = StyleSheet.create({
         right: 0,
         bottom: 0,
         backgroundColor: 'rgba(0,0,0,0.4)',
-        zIndex: 10, // Ensure this view is above other views
-        justifyContent: 'center', // Optional: align content in the center
-        alignItems: 'center', // Optional: align content in the center
+        zIndex: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
     }
 });
 export default CameraScreen;
