@@ -1,4 +1,4 @@
-import {Button, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {ActivityIndicator, Button, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {useRef, useState} from "react";
 import {CameraType, CameraView, FlashMode, useCameraPermissions} from 'expo-camera';
 import {FontAwesomeIcon} from "@fortawesome/react-native-fontawesome";
@@ -17,12 +17,12 @@ export const CameraScreen = () => {
     const [flash, setFlash] = useState<FlashMode>('off');
     const camera = useRef(null);
     const [image, setImage] = useState(null);
+    const [isSaving, setIsSaving] = useState(false)
 
     const captureImage = async () => {
         if (permission?.granted && camera.current) {
             try {
                 const data = await camera.current.takePictureAsync();
-                console.log(data);
                 setImage(data.uri);
             } catch (error) {
                 console.log(error);
@@ -34,7 +34,9 @@ export const CameraScreen = () => {
     async function savePicture() {
         if (image) {
             try {
+                setIsSaving(true)
                 await uploadImageAsync(image).then(() => {
+                    setIsSaving(false)
                     alert('Picture saved! 🎉');
                     setImage(null);
                 })
@@ -95,7 +97,7 @@ export const CameraScreen = () => {
                 <SafeAreaView style={{flex: 1, backgroundColor: 'black'}}>
                     <View style={styles.container}>
                         <Image source={{uri: image}} style={styles.image}/>
-                        <View style={styles.overlay}>
+                        {!isSaving && <View style={styles.overlay}>
                             <View>
                                 <TouchableOpacity style={styles.button} onPress={() => setImage(null)}>
                                     <Text style={[commonAppStyles.textPrimary, {
@@ -112,8 +114,13 @@ export const CameraScreen = () => {
                                     }]}>Save</Text>
                                 </TouchableOpacity>
                             </View>
-                        </View>
+                        </View>}
                     </View>
+                    {isSaving &&
+                        <View style={styles.savingOverlay}>
+                            <ActivityIndicator size="large" color="#ffffff"/>
+                        </View>
+                    }
                 </SafeAreaView>
             }
         </View>
@@ -167,5 +174,16 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
     },
+    savingOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.4)',
+        zIndex: 10, // Ensure this view is above other views
+        justifyContent: 'center', // Optional: align content in the center
+        alignItems: 'center', // Optional: align content in the center
+    }
 });
 export default CameraScreen;
