@@ -1,7 +1,7 @@
 import Layout from "../../components/user/Layout";
-import {ActivityIndicator, ScrollView, StyleSheet, View} from "react-native";
+import {ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View} from "react-native";
 import {getDownloadURL, getStorage, list, ref} from "firebase/storage";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import UserPost from "../../components/user/UserPost";
 import ActionsRow from "../../components/user/ActionsRow";
 import {getAuth} from "firebase/auth";
@@ -12,12 +12,13 @@ export const NewsFeed = () => {
     const [loading, setLoading] = useState(true);
     const [zoomedPost, setZoomedPost] = useState<string | null>(null);
 
+
     const listFiles = async () => {
         try {
             const storage = getStorage();
             const listRef = ref(storage, auth.currentUser?.uid);
-            const res = await list(listRef, {maxResults: 10});
-            const urls = await Promise.all(res.items.map((item) => getDownloadURL(item)));
+            const res = await list(listRef, {maxResults: 20});
+            const urls = await Promise.all(res.items.map((item) => getDownloadURL(item)).reverse());
             setFileUrls(urls);
         } catch (error) {
             console.error('Error listing files: ', error);
@@ -27,6 +28,15 @@ export const NewsFeed = () => {
     };
 
 
+    const onRefresh = React.useCallback(() => {
+        setLoading(true);
+        listFiles();
+        setTimeout(() => {
+            setLoading(false);
+        }, 2000);
+    }, []);
+
+
     useEffect(() => {
         listFiles();
     }, []);
@@ -34,7 +44,8 @@ export const NewsFeed = () => {
     return (
         <Layout pageTitle={"Feed"}>
             <ActionsRow/>
-            <ScrollView contentContainerStyle={styles.scrollView}>
+            <ScrollView contentContainerStyle={styles.scrollView} refreshControl={
+                <RefreshControl refreshing={loading} onRefresh={onRefresh}/>}>
                 {loading ? (
                     <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
                         <ActivityIndicator size="large" color="#ffffff"/>
