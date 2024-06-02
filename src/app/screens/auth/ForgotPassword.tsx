@@ -1,7 +1,7 @@
 import AuthLayout from "../../components/auth/AuthLayout";
 import {InputWrapper} from "../../components/shared/InputWrapper";
 import {Alert, Text, TextInput, TouchableOpacity} from "react-native";
-import {formStyles} from "../../utils/styles";
+import {formStyles} from "../../utils/styles/styles";
 import {useState} from "react";
 import {getAuth, sendPasswordResetEmail} from "firebase/auth";
 import {useTranslation} from "react-i18next";

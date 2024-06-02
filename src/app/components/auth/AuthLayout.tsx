@@ -1,6 +1,6 @@
 import {Animated, KeyboardAvoidingView, Platform, SafeAreaView, StyleSheet, Text, View,} from "react-native";
 import {ReactNode} from "react";
-import {authPageStyles, commonAppStyles} from "../../utils/styles";
+import {authPageStyles, commonAppStyles} from "../../utils/styles/styles";
 import LanguageSwitcher from "../shared/settings/LanguageSwitcher";
 import ScrollView = Animated.ScrollView;
 

@@ -22,6 +22,14 @@ export type User = {
     name: string;
 };
 
+export type Post = {
+    creationTime: Date;
+    fileId: string;
+    folderId: string;
+    name: string;
+    uid: string
+}
+
 
 export type LocationType = {
     latitude: number;

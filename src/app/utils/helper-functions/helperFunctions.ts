@@ -1,6 +1,9 @@
 import {getAuth} from "firebase/auth";
 import {ref, uploadBytes} from "firebase/storage";
-import {storage} from "../../../firebaseConfig";
+import {storage} from "../../../../firebaseConfig";
+import {savePost} from "../services/functions";
+import {Post} from "../types/types";
+import {generateId} from "./generate-hash";
 
 export const uploadImageAsync = async (uri: string): Promise<void> => {
     const auth = getAuth()
@@ -18,8 +21,18 @@ export const uploadImageAsync = async (uri: string): Promise<void> => {
             xhr.open('GET', uri, true);
             xhr.send(null);
         });
+
+        const fileId = `${auth.currentUser.uid}/${new Date().getTime().toString() + auth.currentUser?.uid}`
+        const newPost: Post = {
+            uid: generateId(),
+            name: 'Test test',
+            fileId: fileId,
+            folderId: auth.currentUser.uid,
+            creationTime: new Date()
+        }
+        savePost(newPost)
         const storageRef = ref(storage,
-            `${auth.currentUser.uid}/${new Date().getTime().toString() + auth.currentUser?.uid}`);
+            fileId);
         await uploadBytes(storageRef, blob);
     }
 };

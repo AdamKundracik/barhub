@@ -1,7 +1,7 @@
 import AuthLayout from "../../components/auth/AuthLayout";
 import {InputWrapper} from "../../components/shared/InputWrapper";
 import {Text, TextInput, TouchableOpacity, View} from "react-native";
-import {commonAppStyles, formStyles} from "../../utils/styles";
+import {commonAppStyles, formStyles} from "../../utils/styles/styles";
 import {useState} from "react";
 import {useTranslation} from "react-i18next";
 

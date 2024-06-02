@@ -3,9 +3,9 @@ import {useRef, useState} from "react";
 import {CameraType, CameraView, FlashMode, useCameraPermissions} from 'expo-camera';
 import {FontAwesomeIcon} from "@fortawesome/react-native-fontawesome";
 import {faCircleCheck} from "@fortawesome/free-regular-svg-icons"
-import {commonAppStyles} from "../../utils/styles";
+import {commonAppStyles} from "../../utils/styles/styles";
 import {getFunctions} from "firebase/functions";
-import {uploadImageAsync} from "../../utils/helperFunctions";
+import {uploadImageAsync} from "../../utils/helper-functions/helperFunctions";
 
 
 const functions = getFunctions();
