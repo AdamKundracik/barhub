@@ -10,7 +10,9 @@ export const ActionsRow = () => {
     return (
         <View style={styles.row}>
             <View style={{paddingVertical: 15}}>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => {
+                    navigation.navigate('Camera')
+                }}>
                     <FontAwesomeIcon style={styles.icon} icon={faImage} color={'white'} size={24}/>
                 </TouchableOpacity>
             </View>

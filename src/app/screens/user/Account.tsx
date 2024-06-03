@@ -1,6 +1,6 @@
 import {Alert, Text, TouchableOpacity, View} from "react-native";
 import Layout from "../../components/user/Layout";
-import {commonAppStyles} from "../../utils/styles";
+import {commonAppStyles} from "../../utils/styles/styles";
 import {signOut} from "firebase/auth";
 import {auth} from "../../../../firebaseConfig";
 

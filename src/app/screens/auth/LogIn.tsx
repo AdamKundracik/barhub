@@ -4,7 +4,7 @@ import * as React from "react";
 import {useState} from "react";
 import AuthLayout from "../../components/auth/AuthLayout";
 import {InputWrapper} from "../../components/shared/InputWrapper";
-import {commonAppStyles, formStyles} from "../../utils/styles";
+import {commonAppStyles, formStyles} from "../../utils/styles/styles";
 import {auth} from "../../../../firebaseConfig";
 import {useTranslation} from "react-i18next";
 

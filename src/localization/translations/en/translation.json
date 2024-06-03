@@ -14,5 +14,9 @@
   "haveAccount": "Already have account?",
   "Forgot password": "Forgot password",
   "newPassword": "New password",
-  "repeatNewPassword": "repeatNewPassword"
+  "repeatNewPassword": "repeatNewPassword",
+  "noPermission": "Permission not granted",
+  "permissionToCameraRequest": "We need your permission to show the camera",
+  "retake": "retake",
+  "save": "save"
 }
