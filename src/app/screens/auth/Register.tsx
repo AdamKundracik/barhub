@@ -1,9 +1,9 @@
-import {StyleSheet, Text, TextInput, TouchableOpacity, View,} from "react-native";
+import {Alert, StyleSheet, Text, TextInput, TouchableOpacity, View,} from "react-native";
 import AuthLayout from "../../components/auth/AuthLayout";
 import {useState} from "react";
 import {commonAppStyles, formStyles} from "../../utils/styles/styles";
 import {InputWrapper} from "../../components/shared/InputWrapper";
-import {createUserWithEmailAndPassword, getAuth} from "firebase/auth";
+import {createUserWithEmailAndPassword, getAuth, sendSignInLinkToEmail} from "firebase/auth";
 import {useTranslation} from "react-i18next";
 
 export const Register = ({navigation}: any) => {
@@ -14,22 +14,44 @@ export const Register = ({navigation}: any) => {
     const [togglePassword, setTogglePassword] = useState(true)
 
 
-    function handleRegister() {
+    const actionCodeSettings = {
+        // URL you want to redirect back to. The domain (www.example.com) for this
+        // URL must be in the authorized domains list in the Firebase Console.
+        url: 'https://www.example.com/finishSignUp?cartId=1234',
+        // This must be true.
+        handleCodeInApp: true,
+        iOS: {
+            bundleId: 'com.example.ios'
+        },
+        android: {
+            packageName: 'com.example.android',
+            installApp: true,
+            minimumVersion: '12'
+        },
+        dynamicLinkDomain: 'example.page.link'
+    };
+
+    async function handleRegister() {
         if (isSamePassword()) {
             const auth = getAuth();
             createUserWithEmailAndPassword(auth, email, password)
                 .then(async (userCredential) => {
-                    // Signed up
                     const user = userCredential.user;
-                    // ...
                 })
                 .catch((error) => {
                     const errorCode = error.code;
                     const errorMessage = error.message;
-                    // ..
-
                     console.log("error", errorMessage);
                 });
+            sendSignInLinkToEmail(auth, email, actionCodeSettings)
+                .then(() => {
+                    Alert.prompt('Email successfully sent')
+                    // The link was successfully sent. Inform the user.
+                    // Save the email locally so you don't need to ask the user for it again
+                    // if they open the link on the same device.
+                    window.localStorage.setItem('emailForSignIn', email);
+                    // ...
+                })
         } else {
             console.log("wrong password");
         }

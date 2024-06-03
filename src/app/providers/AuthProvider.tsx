@@ -1,6 +1,7 @@
 import React, {createContext, ReactNode, useContext, useEffect, useMemo, useState,} from "react";
-import {onAuthStateChanged} from "firebase/auth";
+import {getAuth, onAuthStateChanged} from "firebase/auth";
 import {auth} from "../../../firebaseConfig";
+import {Alert} from "react-native";
 
 type ContextProps = {
     authUser: null | boolean;
@@ -19,11 +20,19 @@ export const AuthProvider = (props: Props) => {
     const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
     useEffect(() => {
+        const auth = getAuth()
+
         onAuthStateChanged(auth, (u) => {
-            setAuthUser(!!u);
-            setIsLoadingAuth(false);
+            if (auth.currentUser?.emailVerified) {
+                setAuthUser(!!u);
+                setIsLoadingAuth(false);
+            } else {
+                Alert.alert("Email verification", "Please verify your email before log in");
+                setAuthUser(null);
+                setIsLoadingAuth(false);
+            }
         });
-    }, [auth.currentUser?.uid]);
+    }, [auth.currentUser?.uid, auth.currentUser?.emailVerified]);
 
     const ctx = useMemo(() => {
         return {
