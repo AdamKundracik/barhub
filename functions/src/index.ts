@@ -1,4 +1,6 @@
 import {CallableContext} from "firebase-functions/lib/common/providers/https";
+import {auth} from "firebase-admin";
+import UserRecord = auth.UserRecord;
 
 
 const admin = require("firebase-admin");
@@ -16,7 +18,13 @@ export const createUser = functions.auth.user().onCreate((user) => {
         .collection("users")
         .doc(user.uid)
         .set(JSON.parse(JSON.stringify(user)));
-});
+})
+
+export const setUser = functions.https.onCall(async (user: UserRecord, context: CallableContext) => {
+    await db.collection('users').doc(context.auth.uid).set(
+        user, {merge: true}
+    )
+})
 
 export const savePost = functions.https.onCall(async (post: {
     creationTime: Date;
@@ -25,8 +33,6 @@ export const savePost = functions.https.onCall(async (post: {
     name: string;
     uid: string
 }, context: CallableContext) => {
-    const functionName = "savePost"
-
     await db.collection('posts').doc(context.auth.uid).set(post, {merge: true});
 })
 

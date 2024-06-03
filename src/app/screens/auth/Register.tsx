@@ -3,7 +3,7 @@ import AuthLayout from "../../components/auth/AuthLayout";
 import {useState} from "react";
 import {commonAppStyles, formStyles} from "../../utils/styles/styles";
 import {InputWrapper} from "../../components/shared/InputWrapper";
-import {createUserWithEmailAndPassword, getAuth, sendSignInLinkToEmail} from "firebase/auth";
+import {createUserWithEmailAndPassword, getAuth, sendEmailVerification} from "firebase/auth";
 import {useTranslation} from "react-i18next";
 
 export const Register = ({navigation}: any) => {
@@ -12,12 +12,13 @@ export const Register = ({navigation}: any) => {
     const [password, setPassword] = useState("");
     const [repeatPassword, setRepeatPassword] = useState("");
     const [togglePassword, setTogglePassword] = useState(true)
+    const [loading, setLoading] = useState(false)
 
 
     const actionCodeSettings = {
         // URL you want to redirect back to. The domain (www.example.com) for this
         // URL must be in the authorized domains list in the Firebase Console.
-        url: 'https://www.example.com/finishSignUp?cartId=1234',
+        url: 'baruj-app-cb74c.firebaseapp.com',
         // This must be true.
         handleCodeInApp: true,
         iOS: {
@@ -32,26 +33,22 @@ export const Register = ({navigation}: any) => {
     };
 
     async function handleRegister() {
+        setLoading(true)
         if (isSamePassword()) {
             const auth = getAuth();
             createUserWithEmailAndPassword(auth, email, password)
                 .then(async (userCredential) => {
                     const user = userCredential.user;
+                    await sendEmailVerification(user).then(() => {
+                        Alert.alert('Verification email sent!')
+                        setLoading(false)
+                    })
                 })
                 .catch((error) => {
                     const errorCode = error.code;
                     const errorMessage = error.message;
                     console.log("error", errorMessage);
                 });
-            sendSignInLinkToEmail(auth, email, actionCodeSettings)
-                .then(() => {
-                    Alert.prompt('Email successfully sent')
-                    // The link was successfully sent. Inform the user.
-                    // Save the email locally so you don't need to ask the user for it again
-                    // if they open the link on the same device.
-                    window.localStorage.setItem('emailForSignIn', email);
-                    // ...
-                })
         } else {
             console.log("wrong password");
         }

@@ -1,4 +1,4 @@
-import {ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity} from "react-native";
+import {ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity} from "react-native";
 import {signInWithEmailAndPassword} from 'firebase/auth'
 import * as React from "react";
 import {useState} from "react";
@@ -19,9 +19,13 @@ export const LogIn = ({navigation}: any) => {
         setLoading(true)
         signInWithEmailAndPassword(auth, email, password)
             .then(async (userCredential) => {
-                // Signed in
-                setLoading(false);
-                const user = userCredential.user;
+                if (userCredential.user.emailVerified) {
+                    setLoading(false);
+                    const user = userCredential.user;
+                } else {
+                    Alert.alert('Verify your email!')
+                    setLoading(false)
+                }
             })
             .catch((error) => {
                 const errorCode = error.code;

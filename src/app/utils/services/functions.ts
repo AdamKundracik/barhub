@@ -1,5 +1,5 @@
 import {httpsCallable} from 'firebase/functions';
-import {Post} from "../types/types";
+import {Post, UserRecord} from "../types/types";
 import {functions} from "../../../../firebaseConfig";
 import {
     EmptyDataResponse,
@@ -16,3 +16,12 @@ export const savePost = async (data: Partial<Post>): Promise<EmptyDataResult> =>
     }) as unknown as EmptyDataResponse;
     return response;
 };
+
+export const setUser = async (data: Partial<UserRecord>): Promise<EmptyDataResult> => {
+    if (!data) return MISSING_REQUIRED_REQUEST_PARAMS;
+    const cloudFunction = httpsCallable<SetDocumentFromCollectionRequest['data']['data']>(functions, 'setUser');
+    const {data: response} = await cloudFunction({
+        ...data,
+    }) as unknown as EmptyDataResponse;
+    return response;
+}

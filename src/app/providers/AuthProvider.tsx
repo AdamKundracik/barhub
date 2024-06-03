@@ -1,15 +1,14 @@
 import React, {createContext, ReactNode, useContext, useEffect, useMemo, useState,} from "react";
-import {getAuth, onAuthStateChanged} from "firebase/auth";
+import {onAuthStateChanged} from "firebase/auth";
 import {auth} from "../../../firebaseConfig";
-import {Alert} from "react-native";
 
 type ContextProps = {
     authUser: null | boolean;
-    accountType: null;
+    emailVerified: boolean;
     isLoadingAuth: boolean;
 };
 
-const AuthContext = createContext<Partial<ContextProps>>({});
+const AuthContext = createContext<Partial<ContextProps>>({emailVerified: false, authUser: null, isLoadingAuth: false});
 
 interface Props {
     children: ReactNode;
@@ -18,28 +17,22 @@ interface Props {
 export const AuthProvider = (props: Props) => {
     const [authUser, setAuthUser] = useState<null | boolean>(null);
     const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+    const [emailVerified, setEmailVerified] = useState(false);
 
     useEffect(() => {
-        const auth = getAuth()
-
         onAuthStateChanged(auth, (u) => {
-            if (auth.currentUser?.emailVerified) {
-                setAuthUser(!!u);
-                setIsLoadingAuth(false);
-            } else {
-                Alert.alert("Email verification", "Please verify your email before log in");
-                setAuthUser(null);
-                setIsLoadingAuth(false);
-            }
+            setAuthUser(!!u);
+            setIsLoadingAuth(false);
         });
-    }, [auth.currentUser?.uid, auth.currentUser?.emailVerified]);
+    }, [auth.currentUser?.uid]);
 
     const ctx = useMemo(() => {
         return {
             authUser,
             isLoadingAuth,
+            emailVerified
         };
-    }, [authUser, isLoadingAuth]);
+    }, [authUser, isLoadingAuth, emailVerified]);
 
     return (
         <AuthContext.Provider value={ctx}>{props.children}</AuthContext.Provider>
