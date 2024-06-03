@@ -6,12 +6,13 @@ import {faCircleCheck} from "@fortawesome/free-regular-svg-icons"
 import {commonAppStyles} from "../../utils/styles/styles";
 import {getFunctions} from "firebase/functions";
 import {uploadImageAsync} from "../../utils/helper-functions/helperFunctions";
+import {useTranslation} from "react-i18next";
 
 
 const functions = getFunctions();
 
 export const CameraScreen = () => {
-
+    const {t} = useTranslation();
     const [facing, setFacing] = useState<CameraType>('back');
     const [permission, requestPermission] = useCameraPermissions();
     const [flash, setFlash] = useState<FlashMode>('off');
@@ -37,7 +38,6 @@ export const CameraScreen = () => {
                 setIsSaving(true)
                 await uploadImageAsync(image).then(() => {
                     setIsSaving(false)
-                    alert('Picture saved! 🎉');
                     setImage(null);
                 })
             } catch (error) {
@@ -54,14 +54,14 @@ export const CameraScreen = () => {
 
     if (!permission) {
         return <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-            <Text>Permission not granted</Text>
+            <Text>{t('noPermission')}</Text>
         </View>
     }
 
     if (!permission.granted) {
         return (
             <View style={styles.container}>
-                <Text style={{textAlign: 'center'}}>We need your permission to show the camera</Text>
+                <Text style={{textAlign: 'center'}}>{t('permissionToCameraRequest')}</Text>
                 <Button onPress={requestPermission} title="grant permission"/>
             </View>
         );
@@ -103,7 +103,7 @@ export const CameraScreen = () => {
                                     <Text style={[commonAppStyles.textPrimary, {
                                         fontWeight: 'bold',
                                         fontSize: 30
-                                    }]}>Retake</Text>
+                                    }]}>{t('retake')}</Text>
                                 </TouchableOpacity>
                             </View>
                             <View>
@@ -111,7 +111,7 @@ export const CameraScreen = () => {
                                     <Text style={[commonAppStyles.textPrimary, {
                                         fontWeight: 'bold',
                                         fontSize: 30
-                                    }]}>Save</Text>
+                                    }]}>{t('save')}</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>}
