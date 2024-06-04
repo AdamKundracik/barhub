@@ -21,8 +21,6 @@ const UserNav = () => {
             <UserStack.Screen name={'Account'} component={Account}/>
             <UserStack.Screen name={'Camera'} component={CameraScreen}/>
             <UserStack.Screen name={'SetUpProfile'} component={SetUpProfile}/>
-
-
         </UserStack.Navigator>
     );
 };
