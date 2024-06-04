@@ -4,7 +4,6 @@ import {functions} from "../../../../firebaseConfig";
 import {
     EmptyDataResponse,
     EmptyDataResult,
-    GetUserResponse,
     GetUserResult,
     SetDocumentFromCollectionRequest
 } from "../helper-functions/functions-types";
@@ -31,9 +30,9 @@ export const setUser = async (data: Partial<UserRecord>): Promise<EmptyDataResul
 export const getCurrentUser = async (userId: string): Promise<GetUserResult> => {
     if (!userId) return MISSING_REQUIRED_REQUEST_PARAMS;
     const cloudFunction = httpsCallable(functions, 'getCurrentUser');
-    const {data: response} = await cloudFunction(
+    const response = await cloudFunction(
         userId
-    ) as unknown as GetUserResponse;
+    ) as unknown as GetUserResult;
     return response
 }
 

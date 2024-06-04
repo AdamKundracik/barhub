@@ -5,13 +5,14 @@ import React, {useEffect, useState} from "react";
 import UserPost from "../../components/user/UserPost";
 import ActionsRow from "../../components/user/ActionsRow";
 import {getAuth} from "firebase/auth";
+import {useUserContext} from "../../providers/UserProvider";
 
 export const NewsFeed = () => {
-    const auth = getAuth()
+    const {userData} = useUserContext();
+    const auth = getAuth();
     const [fileUrls, setFileUrls] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
     const [zoomedPost, setZoomedPost] = useState<string | null>(null);
-
 
     const listFiles = async () => {
         try {
@@ -27,7 +28,6 @@ export const NewsFeed = () => {
         }
     };
 
-
     const onRefresh = React.useCallback(() => {
         setLoading(true);
         listFiles();
@@ -35,7 +35,6 @@ export const NewsFeed = () => {
             setLoading(false);
         }, 2000);
     }, []);
-
 
     useEffect(() => {
         listFiles();
@@ -45,15 +44,16 @@ export const NewsFeed = () => {
         <Layout pageTitle={"Feed"}>
             <ActionsRow/>
             <ScrollView contentContainerStyle={styles.scrollView} refreshControl={
-                <RefreshControl refreshing={loading} onRefresh={onRefresh}/>}>
+                <RefreshControl refreshing={loading} onRefresh={onRefresh}/>
+            }>
                 {loading ? (
                     <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
                         <ActivityIndicator size="large" color="#ffffff"/>
                     </View>
                 ) : (
                     fileUrls.map((url) =>
-                        <View style={{marginVertical: 10, zIndex: zoomedPost === url ? 1 : 0}}>
-                            <UserPost key={url} link={url} setZoomedPost={setZoomedPost} isZoomed={zoomedPost === url}/>
+                        <View key={url} style={{marginVertical: 10, zIndex: zoomedPost === url ? 1 : 0}}>
+                            <UserPost link={url} setZoomedPost={setZoomedPost} isZoomed={zoomedPost === url}/>
                         </View>
                     )
                 )}

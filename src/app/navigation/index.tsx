@@ -5,6 +5,7 @@ import {useAuthContext} from "../providers/AuthProvider";
 import {Loading} from "../screens/Loading";
 import UserNav from "./UserNav";
 import AuthNav from "./AuthNav";
+import {UserProvider} from "../providers/UserProvider";
 
 export const Navigation = () => {
     const {authUser, isLoadingAuth, emailVerified} = useAuthContext();
@@ -15,7 +16,12 @@ export const Navigation = () => {
 
     return (
         <NavigationContainer>
-            {authUser ? <UserNav/> : <AuthNav/>}
+            {authUser ?
+                <UserProvider>
+                    <UserNav/>
+                </UserProvider>
+                :
+                <AuthNav/>}
         </NavigationContainer>
     );
 };

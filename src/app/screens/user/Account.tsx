@@ -1,15 +1,16 @@
 import {Alert, Image, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import Layout from "../../components/user/Layout";
 import {signOut} from "firebase/auth";
-import {auth, functions} from "../../../../firebaseConfig";
+import {auth} from "../../../../firebaseConfig";
 import {useTranslation} from "react-i18next";
 import 'firebase/functions';
-import {useEffect, useState} from "react";
-import {httpsCallable} from "firebase/functions";
-import {UserRecord} from "../../utils/types/types";
+import {useState} from "react";
+import {useUserContext} from "../../providers/UserProvider";
 
 export const Account = ({navigation}: any) => {
+    const {userData} = useUserContext()
     const {t} = useTranslation();
+    const [loading, setLoading] = useState(true);
 
     function triggerSignOut() {
         signOut(auth)
@@ -23,33 +24,13 @@ export const Account = ({navigation}: any) => {
             });
     }
 
-    const [user, setUser] = useState<UserRecord | null>(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        async function fetchCurrentUser() {
-            const getUserFunction = httpsCallable(functions, 'getCurrentUser');
-
-            try {
-                const result = await getUserFunction();
-                const userData = result.data as UserRecord;
-                console.log("Current User: ", userData);
-                setUser(userData);
-            } catch (error) {
-                console.error("Error getting current user: ", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchCurrentUser();
-    }, []);
-
     return (
         <Layout pageTitle={'Account'}>
             <View style={styles.container}>
-                <Image source={{uri: 'rrr'}} style={styles.profilePicture}/>
-                <Text style={styles.userName}>{user?.email}</Text>
+                <Image
+                    source={userData?.photoURL ? {uri: userData.photoURL} : require('../../../../assets/userIcon.png')}
+                    style={styles.profilePicture}/>
+                <Text style={styles.userName}>{userData?.email}</Text>
                 <Text style={styles.picturesTaken}>Pictures taken: %PICTURES%</Text>
                 <TouchableOpacity style={styles.button}>
                     <Text style={styles.buttonText}>Settings</Text>

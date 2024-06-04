@@ -1,3 +1,5 @@
+import {UserRecord} from "../types/types";
+
 export const COLLECTION = {
     USERS: 'users',
     POSTS: 'posts'
@@ -104,7 +106,7 @@ export type GetUserResult = {
     status: ServiceStatusEnum;
     code: ServiceCodeEnum;
     message?: string;
-    data?: User;
+    data?: UserRecord;
 }
 
 
