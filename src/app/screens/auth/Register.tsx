@@ -45,23 +45,23 @@ export const Register = ({navigation}: any) => {
                         setLoading(false)
                     })
                 })
-                .catch(error => {
+                .catch((error) => {
                     setLoading(false)
                     switch (error.code) {
                         case 'auth/email-already-in-use':
-                            alert(`Email already in use.`);
+                            alert(t(`email-in-use`));
                             console.error(`Email already in use.`);
                             break;
                         case 'auth/invalid-email':
-                            alert(`Email is invalid.`);
+                            alert(t(`invalid-email`));
                             console.error(`Email is invalid.`);
                             break;
                         case 'auth/operation-not-allowed':
-                            alert(`Error during sign up.`);
+                            alert(t(`sing-up-error`));
                             console.error(`Error during sign up.`);
                             break;
                         case 'auth/weak-password':
-                            alert('Password is not strong enough. Add additional characters including special characters and numbers.');
+                            alert(t(`weak-password`));
                             console.error('Password is not strong enough. Add additional characters including special characters and numbers.');
                             break;
                         default:

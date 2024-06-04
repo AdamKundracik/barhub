@@ -18,5 +18,10 @@
   "noPermission": "Povolenie sa neudelilo",
   "permissionToCameraRequest": "Povoľte prístup k vašej kamere",
   "retake": "Odfotiť znova",
-  "save": "Uložiť"
+  "save": "Uložiť",
+  "wrong-password": "Nesprávne heslo",
+  "email-in-use": "Email už je použitý",
+  "invalid-email": "Nesprávny email",
+  "sing-up-error": "Chyba pri prihlasovaní",
+  "weak-password": "Heslo nie je dostatočne silné. Musí mať aspoň 6 znakov. Pridajte ďalšie znaky vrátane špeciálnych znakov a číslic."
 }
