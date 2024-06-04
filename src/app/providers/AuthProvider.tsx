@@ -4,7 +4,7 @@ import {auth} from "../../../firebaseConfig";
 
 type ContextProps = {
     authUser: null | boolean;
-    accountType: null;
+    emailVerified: boolean;
     isLoadingAuth: boolean;
 };
 
@@ -17,6 +17,7 @@ interface Props {
 export const AuthProvider = (props: Props) => {
     const [authUser, setAuthUser] = useState<null | boolean>(null);
     const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+    const [emailVerified, setEmailVerified] = useState(false);
 
     useEffect(() => {
         onAuthStateChanged(auth, (u) => {
@@ -29,8 +30,9 @@ export const AuthProvider = (props: Props) => {
         return {
             authUser,
             isLoadingAuth,
+            emailVerified
         };
-    }, [authUser, isLoadingAuth]);
+    }, [authUser, isLoadingAuth, emailVerified]);
 
     return (
         <AuthContext.Provider value={ctx}>{props.children}</AuthContext.Provider>

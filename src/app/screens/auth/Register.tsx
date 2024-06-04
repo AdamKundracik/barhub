@@ -1,9 +1,10 @@
-import {StyleSheet, Text, TextInput, TouchableOpacity, View,} from "react-native";
+import {ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, View,} from "react-native";
 import AuthLayout from "../../components/auth/AuthLayout";
+import * as React from "react";
 import {useState} from "react";
 import {commonAppStyles, formStyles} from "../../utils/styles/styles";
 import {InputWrapper} from "../../components/shared/InputWrapper";
-import {createUserWithEmailAndPassword, getAuth} from "firebase/auth";
+import {createUserWithEmailAndPassword, getAuth, sendEmailVerification} from "firebase/auth";
 import {useTranslation} from "react-i18next";
 
 export const Register = ({navigation}: any) => {
@@ -12,23 +13,45 @@ export const Register = ({navigation}: any) => {
     const [password, setPassword] = useState("");
     const [repeatPassword, setRepeatPassword] = useState("");
     const [togglePassword, setTogglePassword] = useState(true)
+    const [loading, setLoading] = useState(false)
 
 
-    function handleRegister() {
+    async function handleRegister() {
+        setLoading(true)
         if (isSamePassword()) {
             const auth = getAuth();
             createUserWithEmailAndPassword(auth, email, password)
                 .then(async (userCredential) => {
-                    // Signed up
                     const user = userCredential.user;
-                    // ...
+                    await sendEmailVerification(user).then(() => {
+                        Alert.alert('Verification email sent!')
+                        setLoading(false)
+                    })
                 })
                 .catch((error) => {
-                    const errorCode = error.code;
-                    const errorMessage = error.message;
-                    // ..
-
-                    console.log("error", errorMessage);
+                    setLoading(false)
+                    switch (error.code) {
+                        case 'auth/email-already-in-use':
+                            alert(t(`email-in-use`));
+                            console.error(`Email already in use.`);
+                            break;
+                        case 'auth/invalid-email':
+                            alert(t(`invalid-email`));
+                            console.error(`Email is invalid.`);
+                            break;
+                        case 'auth/operation-not-allowed':
+                            alert(t(`sing-up-error`));
+                            console.error(`Error during sign up.`);
+                            break;
+                        case 'auth/weak-password':
+                            alert(t(`weak-password`));
+                            console.error('Password is not strong enough. Add additional characters including special characters and numbers.');
+                            break;
+                        default:
+                            alert(error.message);
+                            console.error(error.message)
+                            break;
+                    }
                 });
         } else {
             console.log("wrong password");
@@ -89,7 +112,11 @@ export const Register = ({navigation}: any) => {
                 style={formStyles.buttonPrimary}
                 disabled={!isSamePassword()}
             >
-                <Text style={formStyles.buttonText}>{t('register')}</Text>
+                {!loading ?
+                    <Text style={formStyles.buttonText}>{t('register')}</Text>
+                    :
+                    <ActivityIndicator style={formStyles.buttonText} size='small' color='#000000'/>
+                }
             </TouchableOpacity>
             <TouchableOpacity
                 style={styles.login}

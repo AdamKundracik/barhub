@@ -3,11 +3,11 @@ import React from "react";
 import {NavigationContainer} from "@react-navigation/native";
 import {useAuthContext} from "../providers/AuthProvider";
 import {Loading} from "../screens/Loading";
-import AuthNav from "./AuthNav";
 import UserNav from "./UserNav";
+import AuthNav from "./AuthNav";
 
 export const Navigation = () => {
-    const {authUser, isLoadingAuth} = useAuthContext();
+    const {authUser, isLoadingAuth, emailVerified} = useAuthContext();
 
     if (isLoadingAuth) {
         return <Loading/>;
@@ -15,10 +15,7 @@ export const Navigation = () => {
 
     return (
         <NavigationContainer>
-            {!authUser && <AuthNav/>}
-            {authUser &&
-                <UserNav/>
-            }
+            {authUser ? <UserNav/> : <AuthNav/>}
         </NavigationContainer>
     );
 };

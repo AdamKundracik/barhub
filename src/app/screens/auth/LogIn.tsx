@@ -19,11 +19,19 @@ export const LogIn = ({navigation}: any) => {
         setLoading(true)
         signInWithEmailAndPassword(auth, email, password)
             .then(async (userCredential) => {
-                // Signed in
-                setLoading(false);
                 const user = userCredential.user;
+                setLoading(false)
             })
             .catch((error) => {
+                switch (error.code) {
+                    case "auth/invalid-credential":
+                        alert(t('wrong-password'));
+                        break;
+                    case 'auth/invalid-email':
+                        alert(t(`invalid-email`));
+                        console.error(`Invalid email`);
+                        break;
+                }
                 const errorCode = error.code;
                 const errorMessage = error.message;
                 setLoading(false);
