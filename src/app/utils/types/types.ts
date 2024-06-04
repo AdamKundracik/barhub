@@ -15,12 +15,13 @@ export type Settings = {
     // FOR ADDITIONAL SETTINGS
 }
 
-export type User = {
-    uid: string;
-    email: string;
-    createdAt: number;
+export type Post = {
+    creationTime: Date;
+    fileId: string;
+    folderId: string;
     name: string;
-};
+    uid: string
+}
 
 export interface UserRecord {
     customClaims: { [key: string]: any };
@@ -45,14 +46,9 @@ export interface UserRecord {
     uid: string;
 }
 
-
-export type Post = {
-    creationTime: Date;
-    fileId: string;
-    folderId: string;
+export interface User extends UserRecord {
     name: string;
-    uid: string
-}
+};
 
 
 export type LocationType = {

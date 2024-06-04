@@ -32,7 +32,6 @@ export type FindDocumentInCollectionRequest = {
 };
 
 export type FindDocumentInCollectionRequestData = {
-    collectionId: (typeof COLLECTION)[keyof typeof COLLECTION];
     field: string;
     isEqualTo: unknown;
 };
