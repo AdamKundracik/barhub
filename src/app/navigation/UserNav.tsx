@@ -12,7 +12,7 @@ const UserNav = () => {
     const {userData} = useUserContext()
     return (
         <UserStack.Navigator
-            initialRouteName={userData?.displayName && userData.photoURL ? 'Feed' : 'Feed'}
+            initialRouteName={userData?.displayName && userData.photoURL ? 'Feed' : 'SetUpProfile'}
             screenOptions={{
                 headerShown: false,
             }}
