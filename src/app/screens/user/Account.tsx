@@ -1,11 +1,12 @@
-import {Alert, Text, TouchableOpacity, View, StyleSheet, Image} from "react-native";
+import {Alert, Image, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import Layout from "../../components/user/Layout";
 import {signOut} from "firebase/auth";
 import {auth, functions} from "../../../../firebaseConfig";
-import { useTranslation } from "react-i18next";
+import {useTranslation} from "react-i18next";
 import 'firebase/functions';
-import { useEffect, useState } from "react";
-import { httpsCallable } from "firebase/functions";
+import {useEffect, useState} from "react";
+import {httpsCallable} from "firebase/functions";
+import {UserRecord} from "../../utils/types/types";
 
 export const Account = ({navigation}: any) => {
     const {t} = useTranslation();
@@ -22,33 +23,33 @@ export const Account = ({navigation}: any) => {
             });
     }
 
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<UserRecord | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // const fetchCurrentUser = async () => {
-        //     const getUserFunction = httpsCallable(functions, 'getCurrentUser');
-            
-        //     try {
-        //         const result = await getUserFunction();
-        //         const userData = result.data;
-        //         console.log("Current User: ", userData);
-        //         setUser(userData);
-        //     } catch (error) {
-        //         console.error("Error getting current user: ", error);
-        //     } finally {
-        //         setLoading(false);
-        //     }
-        // };
+        async function fetchCurrentUser() {
+            const getUserFunction = httpsCallable(functions, 'getCurrentUser');
 
-        // fetchCurrentUser();
+            try {
+                const result = await getUserFunction();
+                const userData = result.data as UserRecord;
+                console.log("Current User: ", userData);
+                setUser(userData);
+            } catch (error) {
+                console.error("Error getting current user: ", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCurrentUser();
     }, []);
 
     return (
         <Layout pageTitle={'Account'}>
             <View style={styles.container}>
-                <Image source={{ uri: 'rrr' }} style={styles.profilePicture} />
-                <Text style={styles.userName}>USERNAME</Text>
+                <Image source={{uri: 'rrr'}} style={styles.profilePicture}/>
+                <Text style={styles.userName}>{user?.email}</Text>
                 <Text style={styles.picturesTaken}>Pictures taken: %PICTURES%</Text>
                 <TouchableOpacity style={styles.button}>
                     <Text style={styles.buttonText}>Settings</Text>
@@ -63,37 +64,37 @@ export const Account = ({navigation}: any) => {
 
 const styles = StyleSheet.create({
     container: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: '#000',
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#000',
     },
     profilePicture: {
-      width: 100,
-      height: 100,
-      borderRadius: 50,
-      marginBottom: 20,
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        marginBottom: 20,
     },
     userName: {
-      fontSize: 24,
-      color: '#fff',
-      marginBottom: 10,
+        fontSize: 24,
+        color: '#fff',
+        marginBottom: 10,
     },
     picturesTaken: {
-      fontSize: 18,
-      color: '#fff',
-      marginBottom: 20,
+        fontSize: 18,
+        color: '#fff',
+        marginBottom: 20,
     },
     button: {
-      backgroundColor: '#333',
-      padding: 10,
-      borderRadius: 5,
-      marginVertical: 5,
+        backgroundColor: '#333',
+        padding: 10,
+        borderRadius: 5,
+        marginVertical: 5,
     },
     buttonText: {
-      color: '#fff',
-      fontSize: 18,
+        color: '#fff',
+        fontSize: 18,
     },
-  });
+});
 
 export default Account;
