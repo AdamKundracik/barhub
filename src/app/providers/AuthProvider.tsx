@@ -8,7 +8,7 @@ type ContextProps = {
     isLoadingAuth: boolean;
 };
 
-const AuthContext = createContext<Partial<ContextProps>>({emailVerified: false, authUser: null, isLoadingAuth: false});
+const AuthContext = createContext<Partial<ContextProps>>({});
 
 interface Props {
     children: ReactNode;
