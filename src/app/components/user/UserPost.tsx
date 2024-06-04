@@ -80,7 +80,7 @@ export const UserPost = (props: PostInterface) => {
 const styles = StyleSheet.create({
     postWrapper: {
         width: '100%',
-        height: 500,
+        height: 600,
         backgroundColor: 'white',
     },
     userLine: {

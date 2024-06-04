@@ -18,5 +18,10 @@
   "noPermission": "Permission not granted",
   "permissionToCameraRequest": "We need your permission to show the camera",
   "retake": "retake",
-  "save": "save"
+  "save": "save",
+  "wrong-password": "Wrong password",
+  "email-in-use": "Email already in use",
+  "invalid-email": "Invalid email",
+  "sing-up-error": "Error during sign up.",
+  "weak-password": "Password is not strong enough. Has to be atleast 6 characters long. Add additional characters including special characters and numbers."
 }
