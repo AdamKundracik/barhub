@@ -1,5 +1,6 @@
-import {Alert, StyleSheet, Text, TextInput, TouchableOpacity, View,} from "react-native";
+import {ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, View,} from "react-native";
 import AuthLayout from "../../components/auth/AuthLayout";
+import * as React from "react";
 import {useState} from "react";
 import {commonAppStyles, formStyles} from "../../utils/styles/styles";
 import {InputWrapper} from "../../components/shared/InputWrapper";
@@ -44,10 +45,30 @@ export const Register = ({navigation}: any) => {
                         setLoading(false)
                     })
                 })
-                .catch((error) => {
-                    const errorCode = error.code;
-                    const errorMessage = error.message;
-                    console.log("error", errorMessage);
+                .catch(error => {
+                    setLoading(false)
+                    switch (error.code) {
+                        case 'auth/email-already-in-use':
+                            alert(`Email already in use.`);
+                            console.error(`Email already in use.`);
+                            break;
+                        case 'auth/invalid-email':
+                            alert(`Email is invalid.`);
+                            console.error(`Email is invalid.`);
+                            break;
+                        case 'auth/operation-not-allowed':
+                            alert(`Error during sign up.`);
+                            console.error(`Error during sign up.`);
+                            break;
+                        case 'auth/weak-password':
+                            alert('Password is not strong enough. Add additional characters including special characters and numbers.');
+                            console.error('Password is not strong enough. Add additional characters including special characters and numbers.');
+                            break;
+                        default:
+                            alert(error.message);
+                            console.error(error.message)
+                            break;
+                    }
                 });
         } else {
             console.log("wrong password");
@@ -108,7 +129,11 @@ export const Register = ({navigation}: any) => {
                 style={formStyles.buttonPrimary}
                 disabled={!isSamePassword()}
             >
-                <Text style={formStyles.buttonText}>{t('register')}</Text>
+                {!loading ?
+                    <Text style={formStyles.buttonText}>{t('register')}</Text>
+                    :
+                    <ActivityIndicator style={formStyles.buttonText} size='small' color='#000000'/>
+                }
             </TouchableOpacity>
             <TouchableOpacity
                 style={styles.login}
