@@ -1,18 +1,19 @@
 import React, {useState} from "react";
 import * as ImagePicker from 'expo-image-picker';
 import Layout from "../../components/user/Layout";
-import {Image, KeyboardAvoidingView, Platform, StyleSheet, TextInput, TouchableOpacity, View} from "react-native";
-import {faSquarePlus} from "@fortawesome/free-regular-svg-icons";
+import {Image, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View} from "react-native";
 import {FontAwesomeIcon} from "@fortawesome/react-native-fontawesome";
+import {faPlusSquare} from "@fortawesome/free-regular-svg-icons";
 import {InputWrapper} from "../../components/shared/InputWrapper";
-import {formStyles} from "../../utils/styles/styles";
-import {useTranslation} from "react-i18next";
+import {t} from "i18next";
+import {commonAppStyles, formStyles} from "../../utils/styles/styles";
+import DatePicker from "expo-datepicker";
 
 
 export const SetUpProfile = () => {
-    const {t} = useTranslation();
     const [image, setImage] = useState<string | null>(null);
-    const [name, setName] = useState('')
+    const [username, setUserName] = useState('')
+    const [date, setDate] = useState(new Date().toString());
 
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
@@ -22,44 +23,63 @@ export const SetUpProfile = () => {
             quality: 1,
         });
 
+        console.log(result)
         if (!result.canceled) {
             setImage(result.assets[0].uri);
         }
     };
 
+    function validateForm() {
+
+    }
 
     return (
         <Layout pageTitle={'Set up profile'}>
-            <View style={{flex: 1}}>
-                <KeyboardAvoidingView
-                    style={styles.content}
-                    behavior={Platform.OS === "ios" ? "padding" : "height"}
-                    keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}>
-                    <View style={styles.container}>
-                        {image ? (
-                            <TouchableOpacity style={styles.profilePicture} onPress={pickImage}>
-                                <Image source={{uri: image}}/>
-                            </TouchableOpacity>
-                        ) : (
-                            <TouchableOpacity style={styles.addProfilePicture} onPress={pickImage}>
-                                <View>
-                                    <FontAwesomeIcon icon={faSquarePlus} color={"white"} size={30}/>
-                                </View>
-                            </TouchableOpacity>
-                        )}
-
+            <KeyboardAvoidingView
+                style={styles.content}
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}>
+                <View style={styles.container}>
+                    <View style={{marginBottom: 30}}>
+                        <Text style={[commonAppStyles.textPrimary, {fontSize: 30}]}>Set up your profile</Text>
                     </View>
-                    <InputWrapper inputLabel={'Name'}>
-                        <TextInput
-                            value={name}
-                            onChangeText={setName}
-                            style={formStyles.inputPrimary}
-                            placeholder={t('name')}
-                            keyboardType={"default"}
-                        />
-                    </InputWrapper>
-                </KeyboardAvoidingView>
-            </View>
+                    {image ? (
+                        <TouchableOpacity onPress={pickImage}>
+                            <Image source={{uri: image}} style={styles.profilePicture}/>
+                        </TouchableOpacity>
+                    ) : (
+                        <TouchableOpacity onPress={pickImage}>
+                            <View style={styles.addProfilePicture}>
+                                <FontAwesomeIcon icon={faPlusSquare} color={"white"} size={30}/>
+                            </View>
+                        </TouchableOpacity>
+                    )}
+                </View>
+                <InputWrapper inputLabel={t('user-name')}>
+                    <TextInput
+                        value={username}
+                        onChangeText={setUserName}
+                        style={formStyles.inputPrimary}
+                        placeholder={t('user-name')}
+                        keyboardType={"default"}
+                    />
+                </InputWrapper>
+                <InputWrapper inputLabel={t('date-of-birth')}>
+                    <DatePicker date={date}
+                                onChange={(date) => setDate(date)}
+                                selectedColor={'grey'}
+                                fontStyle={{color: 'white'}}
+                                backgroundColor={'black'}
+                                inputYearStyle={{backgroundColor: 'white'}}
+                    />
+                </InputWrapper>
+                <TouchableOpacity
+                    onPress={validateForm}
+                    style={formStyles.buttonPrimary}
+                >
+                    <Text style={formStyles.buttonText}>{t('submit')}</Text>
+                </TouchableOpacity>
+            </KeyboardAvoidingView>
         </Layout>
     );
 };
@@ -68,16 +88,17 @@ const styles = StyleSheet.create({
     profilePicture: {
         width: 150,
         height: 150,
-        borderRadius: 100,
+        borderRadius: 50,
         marginBottom: 20,
     },
     content: {
         flex: 1,
+        justifyContent: 'center'
     },
     addProfilePicture: {
         width: 150,
         height: 150,
-        borderRadius: 100,
+        borderRadius: 50,
         marginBottom: 20,
         borderWidth: 2,
         borderColor: 'grey',
@@ -88,7 +109,6 @@ const styles = StyleSheet.create({
     container: {
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#000',
     },
 });
 
