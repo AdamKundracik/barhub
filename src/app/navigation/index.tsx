@@ -1,14 +1,30 @@
-import React from "react";
-
-import {NavigationContainer} from "@react-navigation/native";
-import {useAuthContext} from "../providers/AuthProvider";
-import {Loading} from "../screens/Loading";
+import React, { useEffect, useState } from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { useAuthContext } from "../providers/AuthProvider";
+import { Loading } from "../screens/Loading";
 import UserNav from "./UserNav";
 import AuthNav from "./AuthNav";
-import {UserProvider} from "../providers/UserProvider";
+import { UserProvider, useUserContext } from "../providers/UserProvider";
+
+const UserNavWrapper = () => {
+    const { userData } = useUserContext();
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        if (userData !== null) {
+            setIsLoading(false);
+        }
+    }, [userData]);
+
+    if (isLoading) {
+        return <Loading />;
+    }
+
+    return <UserNav />;
+};
 
 export const Navigation = () => {
-    const {authUser, isLoadingAuth, emailVerified} = useAuthContext();
+    const { authUser, isLoadingAuth, emailVerified } = useAuthContext();
 
     if (isLoadingAuth) {
         return <Loading/>;
@@ -16,12 +32,14 @@ export const Navigation = () => {
 
     return (
         <NavigationContainer>
-            {authUser ?
+            {authUser ? 
                 <UserProvider>
-                    <UserNav/>
+                    <UserNavWrapper />
                 </UserProvider>
-                :
-                <AuthNav/>}
+             : 
+             <UserProvider>
+                <AuthNav/>
+            </UserProvider>}
         </NavigationContainer>
     );
 };

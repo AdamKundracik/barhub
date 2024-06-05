@@ -1,27 +1,28 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import NewsFeed from "../screens/user/NewsFeed";
 import Account from "../screens/user/Account";
 import {createNativeStackNavigator} from "@react-navigation/native-stack";
 import CameraScreen from "../screens/user/Camera";
 import {useUserContext} from "../providers/UserProvider";
 import SetUpProfile from "../screens/user/SetUpProfile";
-import {User} from "../utils/types/types";
 
 const UserStack = createNativeStackNavigator();
 
 const UserNav = () => {
-    const {userData} = useUserContext()
-    const [isLoading, setIsLoading] = useState(true)
-    const [user, setUser] = useState<User | undefined | null>(null)
+    const {userData, isLoading} = useUserContext();
+    const [loading, setLoading] = useState<boolean | undefined>(false)
 
     useEffect(() => {
-        setUser(userData)
-    }, [userData]);
+        setLoading(isLoading)
+    },[isLoading])
 
-    console.log('user', userData, user)
+    if (loading) {
+        return ''
+    }
+
     return (
         <>
-            {user?.displayName && user.photoURL ?
+            {userData ?
                 <UserStack.Navigator
                     initialRouteName={'Feed'}
                     screenOptions={{

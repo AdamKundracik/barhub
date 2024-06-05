@@ -5,11 +5,13 @@ import {auth} from "../../../firebaseConfig";
 import {GetUserResult} from "../utils/helper-functions/functions-types";
 
 type ContextProps = {
-    userData: User | null
+    userData: User | null,
+    isLoading: boolean
 };
 
 const initialContext: ContextProps = {
-    userData: null
+    userData: null,
+    isLoading: true
 };
 
 interface Props {
@@ -18,26 +20,28 @@ interface Props {
 
 const UserContext = createContext<Partial<ContextProps>>(initialContext);
 
-
 export const UserProvider = (props: Props) => {
     const [userData, setUserData] = useState<GetUserResult['data'] | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchUserData = async () => {
             const uid = auth.currentUser?.uid;
             if (uid) {
-                const user = await getCurrentUser(uid)
-                setUserData(user.data)
+                const user = await getCurrentUser(uid);
+                setUserData(user.data);
             }
+            setIsLoading(false);
         };
         fetchUserData();
     }, []);
 
     const ctx = useMemo(() => {
         return {
-            userData
+            userData,
+            isLoading
         };
-    }, [userData]);
+    }, [userData, isLoading]);
 
     return (
         <UserContext.Provider value={ctx}>{props.children}</UserContext.Provider>

@@ -4,7 +4,7 @@ import * as React from "react";
 import {useState} from "react";
 import {commonAppStyles, formStyles} from "../../utils/styles/styles";
 import {InputWrapper} from "../../components/shared/InputWrapper";
-import {createUserWithEmailAndPassword, getAuth, sendEmailVerification} from "firebase/auth";
+import {createUserWithEmailAndPassword, getAuth} from "firebase/auth";
 import {useTranslation} from "react-i18next";
 
 export const Register = ({navigation}: any) => {
@@ -21,12 +21,9 @@ export const Register = ({navigation}: any) => {
         if (isSamePassword()) {
             const auth = getAuth();
             createUserWithEmailAndPassword(auth, email, password)
-                .then(async (userCredential) => {
-                    const user = userCredential.user;
-                    await sendEmailVerification(user).then(() => {
-                        Alert.alert('Verification email sent!')
+                .then(async () => {
+
                         setLoading(false)
-                    })
                 })
                 .catch((error) => {
                     setLoading(false)
