@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import NewsFeed from "../screens/user/NewsFeed";
 import Account from "../screens/user/Account";
 import {createNativeStackNavigator} from "@react-navigation/native-stack";
@@ -10,18 +10,38 @@ const UserStack = createNativeStackNavigator();
 
 const UserNav = () => {
     const {userData} = useUserContext()
+    const [isLoading, setIsLoading] = useState(true)
+
+    console.log('user', userData)
     return (
-        <UserStack.Navigator
-            initialRouteName={userData?.displayName && userData.photoURL ? 'Feed' : 'SetUpProfile'}
-            screenOptions={{
-                headerShown: false,
-            }}
-        >
-            <UserStack.Screen name={'Feed'} component={NewsFeed}/>
-            <UserStack.Screen name={'Account'} component={Account}/>
-            <UserStack.Screen name={'Camera'} component={CameraScreen}/>
-            <UserStack.Screen name={'SetUpProfile'} component={SetUpProfile}/>
-        </UserStack.Navigator>
+        <>
+            {userData?.displayName && userData.photoURL ?
+                <UserStack.Navigator
+                    initialRouteName={'Feed'}
+                    screenOptions={{
+                        headerShown: false,
+                    }}
+                >
+                    <UserStack.Screen name={'Feed'} component={NewsFeed}/>
+                    <UserStack.Screen name={'Account'} component={Account}/>
+                    <UserStack.Screen name={'Camera'} component={CameraScreen}/>
+                    <UserStack.Screen name={'SetUpProfile'} component={SetUpProfile}/>
+                </UserStack.Navigator>
+                :
+                <UserStack.Navigator
+                    initialRouteName={'SetUpProfile'}
+                    screenOptions={{
+                        headerShown: false,
+                    }}
+                >
+                    <UserStack.Screen name={'SetUpProfile'} component={SetUpProfile}/>
+                    <UserStack.Screen name={'Feed'} component={NewsFeed}/>
+                    <UserStack.Screen name={'Account'} component={Account}/>
+                    <UserStack.Screen name={'Camera'} component={CameraScreen}/>
+                </UserStack.Navigator>
+            }
+        </>
+
     );
 };
 

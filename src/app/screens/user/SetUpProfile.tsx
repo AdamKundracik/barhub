@@ -8,12 +8,15 @@ import {InputWrapper} from "../../components/shared/InputWrapper";
 import {t} from "i18next";
 import {commonAppStyles, formStyles} from "../../utils/styles/styles";
 import DatePicker from "expo-datepicker";
+import {getAge} from "../../utils/helper-functions/getAge";
+import {setUser} from "../../utils/services/functions";
+import {createDateFromCustomString} from "../../utils/helper-functions/createDateFromString";
 
 
 export const SetUpProfile = () => {
     const [image, setImage] = useState<string | null>(null);
     const [username, setUserName] = useState('')
-    const [date, setDate] = useState(new Date().toString());
+    const [date, setDate] = useState(new Date().toISOString());
 
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
@@ -23,14 +26,23 @@ export const SetUpProfile = () => {
             quality: 1,
         });
 
-        console.log(result)
         if (!result.canceled) {
             setImage(result.assets[0].uri);
         }
     };
 
-    function validateForm() {
+    function isFormValid(): boolean {
+        const age = getAge(date)
+        return age > 16 && !!image && !!username
+    }
 
+    async function submitForm() {
+        const dateOfBirth = createDateFromCustomString(date)
+        await setUser({
+            photoURL: image,
+            displayName: username,
+            dateOfBirth: dateOfBirth
+        })
     }
 
     return (
@@ -74,8 +86,9 @@ export const SetUpProfile = () => {
                     />
                 </InputWrapper>
                 <TouchableOpacity
-                    onPress={validateForm}
-                    style={formStyles.buttonPrimary}
+                    onPress={submitForm}
+                    style={!isFormValid() ? formStyles.buttonPrimaryDisabled : formStyles.buttonPrimary}
+                    disabled={!isFormValid()}
                 >
                     <Text style={formStyles.buttonText}>{t('submit')}</Text>
                 </TouchableOpacity>

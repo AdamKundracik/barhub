@@ -1,11 +1,11 @@
 import React, {createContext, ReactNode, useContext, useEffect, useMemo, useState} from "react";
-import {UserRecord} from "../utils/types/types";
+import {User} from "../utils/types/types";
 import {getCurrentUser} from "../utils/services/functions";
 import {auth} from "../../../firebaseConfig";
 import {GetUserResult} from "../utils/helper-functions/functions-types";
 
 type ContextProps = {
-    userData: UserRecord | null
+    userData: User | null
 };
 
 const initialContext: ContextProps = {

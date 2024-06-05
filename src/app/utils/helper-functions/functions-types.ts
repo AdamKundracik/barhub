@@ -1,4 +1,4 @@
-import {UserRecord} from "../types/types";
+import {User} from "../types/types";
 
 export const COLLECTION = {
     USERS: 'users',
@@ -95,18 +95,12 @@ export type GetUserResponse = {
     data: GetUserResult;
 }
 
-export type User = {
-    uid: string;
-    email: string;
-    createdAt: number;
-    name: string;
-};
 
 export type GetUserResult = {
     status: ServiceStatusEnum;
     code: ServiceCodeEnum;
     message?: string;
-    data?: UserRecord;
+    data?: User;
 }
 
 

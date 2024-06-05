@@ -47,7 +47,7 @@ export interface UserRecord {
 }
 
 export interface User extends UserRecord {
-    name: string;
+    dateOfBirth: Date
 };
 
 
