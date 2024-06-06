@@ -5,10 +5,20 @@ import {auth} from "../../../../firebaseConfig";
 import {useTranslation} from "react-i18next";
 import 'firebase/functions';
 import {useState} from "react";
-import {useUserContext} from "../../providers/UserProvider";
+import {useAuthUser} from "@react-query-firebase/auth";
 
 export const Account = ({navigation}: any) => {
-    const {userData} = useUserContext()
+    const user = useAuthUser(["user"], auth, {
+            onSuccess(user) {
+                if (user) {
+                    console.log("User is authenticated!", user.email, user.displayName);
+                }
+            },
+            onError(error) {
+                console.error("Failed to subscribe to users authentication state!");
+            }
+        }
+    );
     const {t} = useTranslation();
     const [loading, setLoading] = useState(true);
 
@@ -28,10 +38,10 @@ export const Account = ({navigation}: any) => {
         <Layout pageTitle={'Account'}>
             <View style={styles.container}>
                 <Image
-                    source={userData?.photoURL ? {uri: userData.photoURL} : require('../../../../assets/userIcon.png')}
+                    source={user.data?.photoURL ? {uri: user.data?.photoURL} : require('../../../../assets/userIcon.png')}
                     style={styles.profilePicture}/>
-                <Text style={styles.userName}>{userData?.displayName}</Text>
-                <Text style={styles.userName}>{userData?.email}</Text>
+                <Text style={styles.userName}>{user.data?.displayName}</Text>
+                <Text style={styles.userName}>{user.data?.email}</Text>
                 <Text style={styles.picturesTaken}>Pictures taken: %PICTURES%</Text>
                 <TouchableOpacity style={styles.button}>
                     <Text style={styles.buttonText}>Settings</Text>
