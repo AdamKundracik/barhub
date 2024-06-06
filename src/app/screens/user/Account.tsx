@@ -30,6 +30,7 @@ export const Account = ({navigation}: any) => {
                 <Image
                     source={userData?.photoURL ? {uri: userData.photoURL} : require('../../../../assets/userIcon.png')}
                     style={styles.profilePicture}/>
+                <Text style={styles.userName}>{userData?.displayName}</Text>
                 <Text style={styles.userName}>{userData?.email}</Text>
                 <Text style={styles.picturesTaken}>Pictures taken: %PICTURES%</Text>
                 <TouchableOpacity style={styles.button}>
@@ -51,9 +52,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#000',
     },
     profilePicture: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
+        width: 150,
+        height: 150,
+        borderRadius: 75,
         marginBottom: 20,
     },
     userName: {

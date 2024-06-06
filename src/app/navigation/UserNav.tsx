@@ -1,28 +1,33 @@
-import React, { useEffect, useState } from "react";
+import React, {useState} from "react";
 import NewsFeed from "../screens/user/NewsFeed";
 import Account from "../screens/user/Account";
 import {createNativeStackNavigator} from "@react-navigation/native-stack";
 import CameraScreen from "../screens/user/Camera";
-import {useUserContext} from "../providers/UserProvider";
 import SetUpProfile from "../screens/user/SetUpProfile";
+import {useAuthUser} from "@react-query-firebase/auth";
+import {auth} from "../../../firebaseConfig";
 
 const UserStack = createNativeStackNavigator();
 
 const UserNav = () => {
-    const {userData, isLoading} = useUserContext();
     const [loading, setLoading] = useState<boolean | undefined>(false)
 
-    useEffect(() => {
-        setLoading(isLoading)
-    },[isLoading])
+    const user = useAuthUser(["user"], auth, {
+            onSuccess(user) {
+                if (user) {
+                    console.log("User is authenticated!", user);
+                }
+            },
 
-    if (loading) {
-        return ''
-    }
+            onError(error) {
+                console.error("Failed to subscribe to users authentication state!");
+            }
+        }
+    );
 
     return (
         <>
-            {userData ?
+            {user.data?.displayName ?
                 <UserStack.Navigator
                     initialRouteName={'Feed'}
                     screenOptions={{

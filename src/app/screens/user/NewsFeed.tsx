@@ -4,12 +4,10 @@ import {getDownloadURL, getStorage, list, ref} from "firebase/storage";
 import React, {useEffect, useState} from "react";
 import UserPost from "../../components/user/UserPost";
 import ActionsRow from "../../components/user/ActionsRow";
-import {getAuth} from "firebase/auth";
-import {useUserContext} from "../../providers/UserProvider";
+import {auth} from "../../../../firebaseConfig";
+
 
 export const NewsFeed = () => {
-    const {userData} = useUserContext();
-    const auth = getAuth();
     const [fileUrls, setFileUrls] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
     const [zoomedPost, setZoomedPost] = useState<string | null>(null);

@@ -1,45 +1,48 @@
-import React, { useEffect, useState } from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import { useAuthContext } from "../providers/AuthProvider";
-import { Loading } from "../screens/Loading";
-import UserNav from "./UserNav";
+import React from "react";
+import {NavigationContainer} from "@react-navigation/native";
+import {Loading} from "../screens/Loading";
 import AuthNav from "./AuthNav";
-import { UserProvider, useUserContext } from "../providers/UserProvider";
-
-const UserNavWrapper = () => {
-    const { userData } = useUserContext();
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        if (userData !== null) {
-            setIsLoading(false);
-        }
-    }, [userData]);
-
-    if (isLoading) {
-        return <Loading />;
-    }
-
-    return <UserNav />;
-};
+import {UserProvider} from "../providers/UserProvider";
+import {useAuthIdToken, useAuthUser} from "@react-query-firebase/auth";
+import {auth} from "../../../firebaseConfig";
+import UserNav from "./UserNav";
+import SetuProfileNav from "./SetuProfileNav";
 
 export const Navigation = () => {
-    const { authUser, isLoadingAuth, emailVerified } = useAuthContext();
+    const tokenResult = useAuthIdToken(["token"], auth, {
+        onSuccess(result) {
 
-    if (isLoadingAuth) {
+        }
+    },);
+    const user = useAuthUser(["user"], auth, {
+            onSuccess(user) {
+                if (user) {
+                    console.log("User is authenticated!", user.email, user.displayName);
+                }
+            },
+            onError(error) {
+                console.error("Failed to subscribe to users authentication state!");
+            }
+        }
+    );
+
+    if (user.isLoading) {
         return <Loading/>;
     }
 
     return (
         <NavigationContainer>
-            {authUser ? 
-                <UserProvider>
-                    <UserNavWrapper />
-                </UserProvider>
-             : 
-             <UserProvider>
-                <AuthNav/>
-            </UserProvider>}
+            <UserProvider>
+                {user.data ?
+                    user.data.displayName ?
+                        <UserNav/>
+                        :
+                        <SetuProfileNav/>
+                    :
+                    <AuthNav/>
+                }
+            </UserProvider>
+
         </NavigationContainer>
     );
 };

@@ -1,7 +1,17 @@
 import React, {useState} from "react";
 import * as ImagePicker from 'expo-image-picker';
 import Layout from "../../components/user/Layout";
-import {Image, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View} from "react-native";
+import {
+    ActivityIndicator,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
+} from "react-native";
 import {FontAwesomeIcon} from "@fortawesome/react-native-fontawesome";
 import {faPlusSquare} from "@fortawesome/free-regular-svg-icons";
 import {InputWrapper} from "../../components/shared/InputWrapper";
@@ -11,12 +21,23 @@ import DatePicker from "expo-datepicker";
 import {getAge} from "../../utils/helper-functions/getAge";
 import {setUser} from "../../utils/services/functions";
 import {createDateFromCustomString} from "../../utils/helper-functions/createDateFromString";
+import {updateProfile} from "firebase/auth";
+import {auth} from "../../../../firebaseConfig";
+import {useAuthReload} from "@react-query-firebase/auth";
 
 
 export const SetUpProfile = () => {
     const [image, setImage] = useState<string | null>(null);
     const [username, setUserName] = useState('')
     const [date, setDate] = useState(new Date().toISOString());
+    const [uploading, setUploading] = useState(false);
+
+    const mutation = useAuthReload();
+
+    function reloadUser() {
+        mutation.mutate(auth.currentUser!);
+    }
+
 
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
@@ -34,16 +55,24 @@ export const SetUpProfile = () => {
     function isFormValid(): boolean {
         const age = getAge(date)
         return age > 16 && !!image && !!username
-    }
+    };
 
     async function submitForm() {
-        const dateOfBirth = createDateFromCustomString(date)
+        setUploading(true);
+        const dateOfBirth = createDateFromCustomString(date);
         await setUser({
             photoURL: image,
             displayName: username,
             dateOfBirth: dateOfBirth
-        })
-    }
+        });
+        updateProfile(auth.currentUser!, {
+            displayName: username,
+            photoURL: image
+        }).then(async () => {
+            setUploading(false);
+            reloadUser();
+        });
+    };
 
     return (
         <Layout pageTitle={'Set up profile'}>
@@ -90,7 +119,8 @@ export const SetUpProfile = () => {
                     style={!isFormValid() ? formStyles.buttonPrimaryDisabled : formStyles.buttonPrimary}
                     disabled={!isFormValid()}
                 >
-                    <Text style={formStyles.buttonText}>{t('submit')}</Text>
+                    {uploading ? <ActivityIndicator style={formStyles.buttonText} size='small' color='#000000'/> :
+                        <Text style={formStyles.buttonText}>{t('submit')}</Text>}
                 </TouchableOpacity>
             </KeyboardAvoidingView>
         </Layout>
