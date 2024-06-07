@@ -82,7 +82,7 @@ export const SetUpProfile = () => {
                 keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}>
                 <View style={styles.container}>
                     <View style={{marginBottom: 30}}>
-                        <Text style={[commonAppStyles.textPrimary, {fontSize: 30}]}>Set up your profile</Text>
+                        <Text style={[commonAppStyles.textPrimary, {fontSize: 30}]}>{t('setup-profile')}</Text>
                     </View>
                     {image ? (
                         <TouchableOpacity onPress={pickImage}>

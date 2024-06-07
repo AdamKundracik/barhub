@@ -1,0 +1,9 @@
+{
+  "name": "shared",
+  "version": "0.0.0",
+  "description": "shared",
+  "main": "src/index",
+  "author": " <> ()",
+  "license": "UNLICENSED",
+  "homepage": "#readme"
+}

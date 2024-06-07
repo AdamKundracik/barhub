@@ -1,4 +1,4 @@
-import {User} from "../types/types";
+import {User} from "../../../../shared";
 
 export const COLLECTION = {
     USERS: 'users',

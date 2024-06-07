@@ -1,8 +1,8 @@
 import React, {createContext, ReactNode, useContext, useEffect, useMemo, useState} from "react";
-import {User} from "../utils/types/types";
 import {getCurrentUser} from "../utils/services/functions";
 import {auth} from "../../../firebaseConfig";
 import {GetUserResult} from "../utils/helper-functions/functions-types";
+import {User} from "../../../shared";
 
 type ContextProps = {
     userData: User | null,
