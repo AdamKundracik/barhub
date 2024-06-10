@@ -1,21 +1,48 @@
 import React from "react";
-
 import {NavigationContainer} from "@react-navigation/native";
-import {useAuthContext} from "../providers/AuthProvider";
 import {Loading} from "../screens/Loading";
-import UserNav from "./UserNav";
 import AuthNav from "./AuthNav";
+import {UserProvider} from "../providers/UserProvider";
+import {useAuthIdToken, useAuthUser} from "@react-query-firebase/auth";
+import {auth} from "../../../firebaseConfig";
+import UserNav from "./UserNav";
+import SetuProfileNav from "./SetuProfileNav";
 
 export const Navigation = () => {
-    const {authUser, isLoadingAuth, emailVerified} = useAuthContext();
+    const tokenResult = useAuthIdToken(["token"], auth, {
+        onSuccess(result) {
 
-    if (isLoadingAuth) {
+        }
+    },);
+    const user = useAuthUser(["user"], auth, {
+            onSuccess(user) {
+                if (user) {
+                    console.log("User is authenticated!", user.email, user.displayName);
+                }
+            },
+            onError(error) {
+                console.error("Failed to subscribe to users authentication state!");
+            }
+        }
+    );
+
+    if (user.isLoading) {
         return <Loading/>;
     }
 
     return (
         <NavigationContainer>
-            {authUser ? <UserNav/> : <AuthNav/>}
+            <UserProvider>
+                {user.data ?
+                    user.data.displayName ?
+                        <UserNav/>
+                        :
+                        <SetuProfileNav/>
+                    :
+                    <AuthNav/>
+                }
+            </UserProvider>
+
         </NavigationContainer>
     );
 };

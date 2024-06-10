@@ -7,6 +7,7 @@ import {InputWrapper} from "../../components/shared/InputWrapper";
 import {commonAppStyles, formStyles} from "../../utils/styles/styles";
 import {auth} from "../../../../firebaseConfig";
 import {useTranslation} from "react-i18next";
+import {useAuthSignInWithEmailAndPassword} from "@react-query-firebase/auth";
 
 export const LogIn = ({navigation}: any) => {
     const {t} = useTranslation();
@@ -14,6 +15,25 @@ export const LogIn = ({navigation}: any) => {
     const [password, setPassword] = useState("");
     const [togglePassword, setTogglePassword] = useState(true)
     const [loading, setLoading] = useState(false)
+
+    const mutation = useAuthSignInWithEmailAndPassword(auth, {
+        onError(error) {
+            switch (error.code) {
+                case "auth/invalid-credential":
+                    alert(t('wrong-password'));
+                    break;
+                case 'auth/invalid-email':
+                    alert(t(`invalid-email`));
+                    console.error(`Invalid email`);
+                    break;
+            }
+            console.error("Could not sign you in!");
+        },
+    });
+
+    function onSignIn() {
+        mutation.mutate({email, password});
+    }
 
     function handleLogin() {
         setLoading(true)
@@ -63,7 +83,7 @@ export const LogIn = ({navigation}: any) => {
                     placeholder={t('password')}
                 />
             </InputWrapper>
-            <TouchableOpacity onPress={handleLogin} style={[formStyles.buttonPrimary]} disabled={loading}>
+            <TouchableOpacity onPress={onSignIn} style={[formStyles.buttonPrimary]} disabled={loading}>
                 {loading && <ActivityIndicator style={formStyles.buttonText} size='small' color='#000000'/>}
                 {!loading && <Text style={formStyles.buttonText}>{t('login')}</Text>}
             </TouchableOpacity>

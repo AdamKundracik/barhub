@@ -1,3 +1,5 @@
+import {User} from "../../../../shared";
+
 export const COLLECTION = {
     USERS: 'users',
     POSTS: 'posts'
@@ -93,12 +95,6 @@ export type GetUserResponse = {
     data: GetUserResult;
 }
 
-export type User = {
-    uid: string;
-    email: string;
-    createdAt: number;
-    name: string;
-};
 
 export type GetUserResult = {
     status: ServiceStatusEnum;

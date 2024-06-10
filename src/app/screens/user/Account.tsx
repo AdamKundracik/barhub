@@ -1,15 +1,26 @@
 import {Alert, Image, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import Layout from "../../components/user/Layout";
 import {signOut} from "firebase/auth";
-import {auth, functions} from "../../../../firebaseConfig";
+import {auth} from "../../../../firebaseConfig";
 import {useTranslation} from "react-i18next";
 import 'firebase/functions';
-import {useEffect, useState} from "react";
-import {httpsCallable} from "firebase/functions";
-import {UserRecord} from "../../utils/types/types";
+import {useState} from "react";
+import {useAuthUser} from "@react-query-firebase/auth";
 
 export const Account = ({navigation}: any) => {
+    const user = useAuthUser(["user"], auth, {
+            onSuccess(user) {
+                if (user) {
+                    console.log("User is authenticated!", user.email, user.displayName);
+                }
+            },
+            onError(error) {
+                console.error("Failed to subscribe to users authentication state!");
+            }
+        }
+    );
     const {t} = useTranslation();
+    const [loading, setLoading] = useState(true);
 
     function triggerSignOut() {
         signOut(auth)
@@ -23,33 +34,14 @@ export const Account = ({navigation}: any) => {
             });
     }
 
-    const [user, setUser] = useState<UserRecord | null>(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        async function fetchCurrentUser() {
-            const getUserFunction = httpsCallable(functions, 'getCurrentUser');
-
-            try {
-                const result = await getUserFunction();
-                const userData = result.data as UserRecord;
-                console.log("Current User: ", userData);
-                setUser(userData);
-            } catch (error) {
-                console.error("Error getting current user: ", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchCurrentUser();
-    }, []);
-
     return (
         <Layout pageTitle={'Account'}>
             <View style={styles.container}>
-                <Image source={{uri: 'rrr'}} style={styles.profilePicture}/>
-                <Text style={styles.userName}>{user?.email}</Text>
+                <Image
+                    source={user.data?.photoURL ? {uri: user.data?.photoURL} : require('../../../../assets/userIcon.png')}
+                    style={styles.profilePicture}/>
+                <Text style={styles.userName}>{user.data?.displayName}</Text>
+                <Text style={styles.userName}>{user.data?.email}</Text>
                 <Text style={styles.picturesTaken}>Pictures taken: %PICTURES%</Text>
                 <TouchableOpacity style={styles.button}>
                     <Text style={styles.buttonText}>Settings</Text>
@@ -70,9 +62,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#000',
     },
     profilePicture: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
+        width: 150,
+        height: 150,
+        borderRadius: 75,
         marginBottom: 20,
     },
     userName: {

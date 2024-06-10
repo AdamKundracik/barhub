@@ -25,7 +25,7 @@ export const uploadImageAsync = async (uri: string): Promise<void> => {
         const fileId = `${auth.currentUser.uid}/${new Date().getTime().toString() + auth.currentUser?.uid}`
         const newPost: Post = {
             uid: generateId(),
-            name: 'Test test',
+            name: auth.currentUser.displayName ?? '',
             fileId: fileId,
             folderId: auth.currentUser.uid,
             creationTime: new Date()

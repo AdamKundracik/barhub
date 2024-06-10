@@ -23,5 +23,11 @@
   "email-in-use": "Email už je použitý",
   "invalid-email": "Nesprávny email",
   "sing-up-error": "Chyba pri prihlasovaní",
-  "weak-password": "Heslo nie je dostatočne silné. Musí mať aspoň 6 znakov. Pridajte ďalšie znaky vrátane špeciálnych znakov a číslic."
+  "weak-password": "Heslo nie je dostatočne silné. Musí mať aspoň 6 znakov. Pridajte ďalšie znaky vrátane špeciálnych znakov a číslic.",
+  "Signed out": "Signed out",
+  "You have been signed out": "You have been signed out",
+  "user-name": "Používateľské meno",
+  "date-of-birth": "Dátum narodenia",
+  "submit": "Potvrdiť",
+  "setup-profile": "Nastav svoj profil"
 }
