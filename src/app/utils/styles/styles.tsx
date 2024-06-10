@@ -18,6 +18,15 @@ export const formStyles = StyleSheet.create({
         width: "80%",
         backgroundColor: "white",
     },
+    buttonSecondary: {
+        alignItems: "center",
+        marginTop: 10,
+        borderRadius: 30,
+        height: 40,
+        alignSelf: "center",
+        width: "80%",
+        backgroundColor: "black",
+    },
     buttonPrimaryDisabled: {
         alignItems: "center",
         marginTop: 10,
@@ -46,6 +55,9 @@ export const commonAppStyles = StyleSheet.create({
     textPrimary: {
         color: "white",
     },
+    textSecondary: {
+        color: "black"
+    }
 });
 
 export const authPageStyles = StyleSheet.create({
