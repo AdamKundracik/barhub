@@ -25,7 +25,7 @@ export const Navigation = () => {
             }
         }
     );
-
+    
     if (user.isLoading) {
         return <Loading/>;
     }

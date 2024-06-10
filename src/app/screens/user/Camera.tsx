@@ -1,24 +1,25 @@
-import {ActivityIndicator, Button, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Button, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {useRef, useState} from "react";
 import {CameraType, CameraView, FlashMode, useCameraPermissions} from 'expo-camera';
 import {FontAwesomeIcon} from "@fortawesome/react-native-fontawesome";
 import {faCircleCheck} from "@fortawesome/free-regular-svg-icons"
 import {commonAppStyles} from "../../utils/styles/styles";
 import {getFunctions} from "firebase/functions";
-import {uploadImageAsync} from "../../utils/helper-functions/helperFunctions";
 import {useTranslation} from "react-i18next";
+import {NavigationProp, useNavigation} from "@react-navigation/native";
+import {UserStackList} from "../../utils/types/screen-types";
 
 
 const functions = getFunctions();
 
 export const CameraScreen = () => {
     const {t} = useTranslation();
+    const navigation = useNavigation<NavigationProp<UserStackList>>()
     const [facing, setFacing] = useState<CameraType>('back');
     const [permission, requestPermission] = useCameraPermissions();
     const [flash, setFlash] = useState<FlashMode>('off');
     const camera = useRef(null);
     const [image, setImage] = useState(null);
-    const [isSaving, setIsSaving] = useState(false)
 
     const captureImage = async () => {
         if (permission?.granted && camera.current) {
@@ -32,19 +33,19 @@ export const CameraScreen = () => {
     }
 
 
-    async function savePicture() {
-        if (image) {
-            try {
-                setIsSaving(true)
-                await uploadImageAsync(image).then(() => {
-                    setIsSaving(false)
-                    setImage(null);
-                })
-            } catch (error) {
-                console.log(error);
-            }
-        }
-    };
+    // async function savePicture() {
+    //     if (image) {
+    //         try {
+    //             setIsSaving(true)
+    //             await uploadImageAsync(image).then(() => {
+    //                 setIsSaving(false)
+    //                 setImage(null);
+    //             })
+    //         } catch (error) {
+    //             console.log(error);
+    //         }
+    //     }
+    // };
 
 
     function toggleCameraFacing() {
@@ -97,7 +98,7 @@ export const CameraScreen = () => {
                 <SafeAreaView style={{flex: 1, backgroundColor: 'black'}}>
                     <View style={styles.container}>
                         <Image source={{uri: image}} style={styles.image}/>
-                        {!isSaving && <View style={styles.overlay}>
+                        <View style={styles.overlay}>
                             <View>
                                 <TouchableOpacity style={styles.button} onPress={() => setImage(null)}>
                                     <Text style={[commonAppStyles.textPrimary, {
@@ -107,20 +108,18 @@ export const CameraScreen = () => {
                                 </TouchableOpacity>
                             </View>
                             <View>
-                                <TouchableOpacity style={styles.button} onPress={() => savePicture()}>
+                                <TouchableOpacity style={styles.button}
+                                                  onPress={() => {
+                                                      navigation.navigate('PhotoResolver', {image: image}), console.log('nav', image)
+                                                  }}>
                                     <Text style={[commonAppStyles.textPrimary, {
                                         fontWeight: 'bold',
                                         fontSize: 30
                                     }]}>{t('save')}</Text>
                                 </TouchableOpacity>
                             </View>
-                        </View>}
-                    </View>
-                    {isSaving &&
-                        <View style={styles.savingOverlay}>
-                            <ActivityIndicator size="large" color="#ffffff"/>
                         </View>
-                    }
+                    </View>
                 </SafeAreaView>
             }
         </View>

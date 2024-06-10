@@ -6,12 +6,16 @@ export type UserStackList = {
 
     Account: undefined;
 
-    Camera: undefined
+    Camera: undefined;
+
+    PhotoResolver: { image: string };
 
 };
 
 export type FeedsScreenProps = NativeStackScreenProps<
-
     UserStackList, "Account", "Camera"
-
 >;
+
+export type CameraScreenProps = NativeStackScreenProps<
+    UserStackList, "PhotoResolver"
+>
