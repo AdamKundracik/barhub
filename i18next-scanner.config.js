@@ -9,22 +9,23 @@ module.exports = {
     debug: true,
     func: {
       list: ['t', 'i18next.t'],
-      extensions: ['.js', '.jsx', '.ts', '.tsx']
+      extensions: ['.js', '.jsx', '.ts', '.tsx'],
     },
     lngs: ['en', 'sk'], // List all your supported languages here
     defaultLng: 'en',
     defaultNs: 'translation',
     resource: {
-      loadPath: path.join(__dirname, 'src/localization/translations/{{lng}}/{{ns}}.json'),
+      loadPath: path.join(
+        __dirname,
+        'src/localization/translations/{{lng}}/{{ns}}.json'
+      ),
       savePath: 'src/localization/translations/{{lng}}/{{ns}}.json',
       jsonIndent: 2,
-      lineEnding: '\n'
+      lineEnding: '\n',
     },
-    ns: [
-      'translation'
-    ],
+    ns: ['translation'],
     defaultValue: (lng, ns, key) => key,
     keySeparator: false,
-    nsSeparator: false
-  }
+    nsSeparator: false,
+  },
 };

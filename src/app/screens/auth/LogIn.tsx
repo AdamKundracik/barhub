@@ -1,133 +1,149 @@
-import {ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity} from "react-native";
-import {signInWithEmailAndPassword} from 'firebase/auth'
-import * as React from "react";
-import {useState} from "react";
-import AuthLayout from "../../components/auth/AuthLayout";
-import {InputWrapper} from "../../components/shared/InputWrapper";
-import {commonAppStyles, formStyles} from "../../utils/styles/styles";
-import {auth} from "../../../../firebaseConfig";
-import {useTranslation} from "react-i18next";
-import {useAuthSignInWithEmailAndPassword} from "@react-query-firebase/auth";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+} from 'react-native';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import * as React from 'react';
+import { useState } from 'react';
+import AuthLayout from '../../components/auth/AuthLayout';
+import { InputWrapper } from '../../components/shared/InputWrapper';
+import { commonAppStyles, formStyles } from '../../utils/styles/styles';
+import { auth } from '../../../../firebaseConfig';
+import { useTranslation } from 'react-i18next';
+import { useAuthSignInWithEmailAndPassword } from '@react-query-firebase/auth';
 
-export const LogIn = ({navigation}: any) => {
-    const {t} = useTranslation();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [togglePassword, setTogglePassword] = useState(true)
-    const [loading, setLoading] = useState(false)
+export const LogIn = ({ navigation }: any) => {
+  const { t } = useTranslation();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [togglePassword, setTogglePassword] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-    const mutation = useAuthSignInWithEmailAndPassword(auth, {
-        onError(error) {
-            switch (error.code) {
-                case "auth/invalid-credential":
-                    alert(t('wrong-password'));
-                    break;
-                case 'auth/invalid-email':
-                    alert(t(`invalid-email`));
-                    console.error(`Invalid email`);
-                    break;
-            }
-            console.error("Could not sign you in!");
-        },
-    });
+  const mutation = useAuthSignInWithEmailAndPassword(auth, {
+    onError(error) {
+      switch (error.code) {
+        case 'auth/invalid-credential':
+          alert(t('wrong-password'));
+          break;
+        case 'auth/invalid-email':
+          alert(t(`invalid-email`));
+          console.error(`Invalid email`);
+          break;
+      }
+      console.error('Could not sign you in!');
+    },
+  });
 
-    function onSignIn() {
-        mutation.mutate({email, password});
-    }
+  function onSignIn() {
+    mutation.mutate({ email, password });
+  }
 
-    function handleLogin() {
-        setLoading(true)
-        signInWithEmailAndPassword(auth, email, password)
-            .then(async (userCredential) => {
-                const user = userCredential.user;
-                setLoading(false)
-            })
-            .catch((error) => {
-                switch (error.code) {
-                    case "auth/invalid-credential":
-                        alert(t('wrong-password'));
-                        break;
-                    case 'auth/invalid-email':
-                        alert(t(`invalid-email`));
-                        console.error(`Invalid email`);
-                        break;
-                }
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                setLoading(false);
-            });
-    };
+  function handleLogin() {
+    setLoading(true);
+    signInWithEmailAndPassword(auth, email, password)
+      .then(async userCredential => {
+        const user = userCredential.user;
+        setLoading(false);
+      })
+      .catch(error => {
+        switch (error.code) {
+          case 'auth/invalid-credential':
+            alert(t('wrong-password'));
+            break;
+          case 'auth/invalid-email':
+            alert(t(`invalid-email`));
+            console.error(`Invalid email`);
+            break;
+        }
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        setLoading(false);
+      });
+  }
 
-    return (
-        <AuthLayout pageTitle={t('register')}>
-            <InputWrapper inputLabel={t('email')}>
-                <TextInput
-                    value={email}
-                    onChangeText={setEmail}
-                    style={formStyles.inputPrimary}
-                    placeholder={t('email')}
-                    keyboardType={"email-address"}
-                />
-            </InputWrapper>
-            <InputWrapper
-                inputLabel={t('password')}
-                setTogglePassword={setTogglePassword}
-                togglePassword={togglePassword}
-                passwordInput
-            >
-                <TextInput
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry={togglePassword}
-                    style={formStyles.inputPrimary}
-                    placeholder={t('password')}
-                />
-            </InputWrapper>
-            <TouchableOpacity onPress={onSignIn} style={[formStyles.buttonPrimary]} disabled={loading}>
-                {loading && <ActivityIndicator style={formStyles.buttonText} size='small' color='#000000'/>}
-                {!loading && <Text style={formStyles.buttonText}>{t('login')}</Text>}
-            </TouchableOpacity>
-            <TouchableOpacity
-                style={styles.login}
-                onPress={() => navigation.navigate("Register")}
-            >
-                <Text style={commonAppStyles.textPrimary}>
-                    {t('noAccount')}
-                    <Text style={{fontWeight: "bold"}}> {t('registerYourself')}</Text>
-                </Text>
-            </TouchableOpacity>
+  return (
+    <AuthLayout pageTitle={t('register')}>
+      <InputWrapper inputLabel={t('email')}>
+        <TextInput
+          value={email}
+          onChangeText={setEmail}
+          style={formStyles.inputPrimary}
+          placeholder={t('email')}
+          keyboardType={'email-address'}
+        />
+      </InputWrapper>
+      <InputWrapper
+        inputLabel={t('password')}
+        setTogglePassword={setTogglePassword}
+        togglePassword={togglePassword}
+        passwordInput
+      >
+        <TextInput
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry={togglePassword}
+          style={formStyles.inputPrimary}
+          placeholder={t('password')}
+        />
+      </InputWrapper>
+      <TouchableOpacity
+        onPress={onSignIn}
+        style={[formStyles.buttonPrimary]}
+        disabled={loading}
+      >
+        {loading && (
+          <ActivityIndicator
+            style={formStyles.buttonText}
+            size="small"
+            color="#000000"
+          />
+        )}
+        {!loading && <Text style={formStyles.buttonText}>{t('login')}</Text>}
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.login}
+        onPress={() => navigation.navigate('Register')}
+      >
+        <Text style={commonAppStyles.textPrimary}>
+          {t('noAccount')}
+          <Text style={{ fontWeight: 'bold' }}> {t('registerYourself')}</Text>
+        </Text>
+      </TouchableOpacity>
 
-            <TouchableOpacity
-                style={styles.login}
-                onPress={() => navigation.navigate("ForgotPassword")}
-            >
-                <Text style={commonAppStyles.textPrimary}>
-                    {t('forgotPassword')}
-                    <Text style={{fontWeight: "bold"}}> {t('resetIt')}</Text>
-                </Text>
-            </TouchableOpacity>
-        </AuthLayout>
-    );
+      <TouchableOpacity
+        style={styles.login}
+        onPress={() => navigation.navigate('ForgotPassword')}
+      >
+        <Text style={commonAppStyles.textPrimary}>
+          {t('forgotPassword')}
+          <Text style={{ fontWeight: 'bold' }}> {t('resetIt')}</Text>
+        </Text>
+      </TouchableOpacity>
+    </AuthLayout>
+  );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: "center",
-        paddingHorizontal: 20,
-    },
-    input: {
-        marginBottom: 10,
-        backgroundColor: "white",
-    },
-    button: {
-        marginTop: 10,
-    },
-    login: {
-        justifyContent: "center",
-        alignItems: "center",
-        padding: 15,
-    },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  input: {
+    marginBottom: 10,
+    backgroundColor: 'white',
+  },
+  button: {
+    marginTop: 10,
+  },
+  login: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 15,
+  },
 });
 
 export default LogIn;

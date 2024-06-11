@@ -1,4 +1,4 @@
-import React, { StyleSheet, Text, View } from "react-native";
+import React, { StyleSheet, Text, View } from 'react-native';
 
 export const Loading = () => {
   return (
@@ -11,13 +11,13 @@ export const Loading = () => {
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#000000",
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000000',
   },
   text: {
     fontSize: 72,
-    textAlign: "center",
-    color: "#fff",
+    textAlign: 'center',
+    color: '#fff',
   },
 });
