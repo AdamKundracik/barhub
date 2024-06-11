@@ -1,7 +1,7 @@
 import {uploadImageAsync} from "../../utils/helper-functions/helperFunctions";
 import {useEffect, useMemo, useRef, useState} from "react";
-import MapView, {Callout, Marker, PROVIDER_DEFAULT, PROVIDER_GOOGLE} from 'react-native-maps';
-import {ActivityIndicator, Keyboard, Platform, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import MapView, {Callout, Marker, PROVIDER_DEFAULT} from 'react-native-maps';
+import {ActivityIndicator, Keyboard, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import Layout from "../../components/user/Layout";
 import {useAuthContext} from "../../providers/AuthProvider";
 import {fetchNearbyPlaces} from "../../utils/helper-functions/fetchNearByPlaces";
@@ -39,8 +39,8 @@ export const PhotoResolver = ({route, navigation}: any) => {
         return {
             latitude: location?.latitude ?? 0,
             longitude: location?.longitude ?? 0,
-            latitudeDelta: 0.05 * (2 * 0.66),
-            longitudeDelta: 0.05 * (2 * 0.66),
+            latitudeDelta: 0.05 * (3 * 0.66),
+            longitudeDelta: 0.05 * (3 * 0.66),
         }
 
     }, []);
@@ -74,12 +74,14 @@ export const PhotoResolver = ({route, navigation}: any) => {
                 style={styles.map}
                 region={region}
                 initialRegion={region}
-                provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : PROVIDER_DEFAULT}
+                provider={PROVIDER_DEFAULT}
                 ref={mapRef}
                 showsUserLocation={true}
                 showsMyLocationButton={true}
                 onPress={Keyboard.dismiss}
                 showsCompass={true}
+                user
+
             >
                 {places?.map((place: any, index: number) =>
                     <Marker
