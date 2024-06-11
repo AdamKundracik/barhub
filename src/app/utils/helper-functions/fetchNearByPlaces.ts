@@ -1,5 +1,5 @@
-import {googleAPIKey, radius} from "../../screens/user/PhotoResolver";
 import {LocationType} from "../types/types";
+import {googleAPIKey, radius} from "./constants";
 
 export const fetchNearbyPlaces = async (location: LocationType) => {
 
@@ -30,7 +30,6 @@ export const fetchNearbyPlaces = async (location: LocationType) => {
         });
 
         const data = await response.json();
-        console.log(data.places)
         return data
     } catch (error) {
         console.error('Error fetching nearby places:', error);

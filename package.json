@@ -25,6 +25,7 @@
     "@react-navigation/native-stack": "^6.9.26",
     "@react-query-firebase/auth": "^1.0.0-dev.2",
     "expo": "~51.0.8",
+    "expo-blur": "^13.0.2",
     "expo-camera": "~15.0.10",
     "expo-datepicker": "^1.0.23",
     "expo-font": "~12.0.5",
@@ -52,7 +53,8 @@
     "react-native-screens": "3.31.1",
     "react-native-svg": "^15.3.0",
     "react-query": "^3.39.3",
-    "shared": "file:./modules/shared"
+    "shared": "file:./modules/shared",
+    "expo-dev-client": "~4.0.16"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

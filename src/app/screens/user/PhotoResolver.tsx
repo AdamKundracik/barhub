@@ -1,15 +1,13 @@
 import {uploadImageAsync} from "../../utils/helper-functions/helperFunctions";
 import {useEffect, useMemo, useRef, useState} from "react";
-import MapView, {Callout, Marker, PROVIDER_DEFAULT} from 'react-native-maps';
-import {ActivityIndicator, Keyboard, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import MapView, {Circle, Marker, PROVIDER_DEFAULT} from 'react-native-maps';
+import {ActivityIndicator, Keyboard, StyleSheet, View} from "react-native";
 import Layout from "../../components/user/Layout";
 import {useAuthContext} from "../../providers/AuthProvider";
 import {fetchNearbyPlaces} from "../../utils/helper-functions/fetchNearByPlaces";
-import {truncate} from "../../utils/helper-functions/truncate";
-import {commonAppStyles, formStyles} from "../../utils/styles/styles";
-
-export const googleAPIKey = "AIzaSyAMoNX-aQzrjpnZ0KjYegeyhV47C8rRBVU";
-export const radius = 70
+import {Place} from "../../utils/types/types";
+import {PlaceDetail} from "../../components/user/PlaceDetail";
+import {radius} from "../../utils/helper-functions/constants";
 
 
 export const PhotoResolver = ({route, navigation}: any) => {
@@ -18,9 +16,9 @@ export const PhotoResolver = ({route, navigation}: any) => {
     const mapRef = useRef<MapView>(null);
     const [isSaving, setIsSaving] = useState(false)
     const [loading, setLoading] = useState(true)
-    const [places, setPlaces] = useState<any>();
-    const [nextPageToken, setNextPageToken] = useState(null);
-
+    const [places, setPlaces] = useState<Place[]>();
+    const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
+    const [detailOpened, setDetailOpened] = useState(false)
 
     useEffect(() => {
 
@@ -39,8 +37,8 @@ export const PhotoResolver = ({route, navigation}: any) => {
         return {
             latitude: location?.latitude ?? 0,
             longitude: location?.longitude ?? 0,
-            latitudeDelta: 0.05 * (3 * 0.66),
-            longitudeDelta: 0.05 * (3 * 0.66),
+            latitudeDelta: 0.003 * (radius / 80 * 0.66),
+            longitudeDelta: 0.003 * (radius / 80 * 0.66),
         }
 
     }, []);
@@ -63,7 +61,9 @@ export const PhotoResolver = ({route, navigation}: any) => {
     if (loading) {
         return (
             <Layout pageTitle={'izi'}>
-                <ActivityIndicator></ActivityIndicator>
+                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+                    <ActivityIndicator size={32}/>
+                </View>
             </Layout>
         )
     }
@@ -80,29 +80,25 @@ export const PhotoResolver = ({route, navigation}: any) => {
                 showsMyLocationButton={true}
                 onPress={Keyboard.dismiss}
                 showsCompass={true}
-                user
-
             >
-                {places?.map((place: any, index: number) =>
+                <Circle center={location!} radius={radius} strokeColor={'rgb(1,82,133)'}
+                        fillColor={'rgba(117,141,166,0.49)'}
+                        strokeWidth={2}/>
+                {places?.map((place: Place, index: number) =>
                     <Marker
                         key={index}
                         coordinate={place.location}
                         focusable={true}
+                        onPress={() => {
+                            setSelectedPlace(place);
+                            setDetailOpened(true)
+                        }}
                     >
-                        <Callout>
-                            <View style={{padding: 10}}>
-                                <Text>{place.displayName.text}</Text>
-                                <Text>{truncate(place.formattedAddress, 40)}</Text>
-                                <Text>{place.id}</Text>
-                                <TouchableOpacity style={formStyles.buttonSecondary}>
-                                    <Text style={commonAppStyles.textPrimary}>Choose</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </Callout>
                     </Marker>
                 )}
-
             </MapView>
+            <PlaceDetail isOpen={detailOpened} onClose={() => setDetailOpened(false)}
+                         place={selectedPlace}/>
         </Layout>
     )
 }

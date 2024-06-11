@@ -20,6 +20,7 @@ export const formStyles = StyleSheet.create({
     },
     buttonSecondary: {
         alignItems: "center",
+        justifyContent: "center",
         marginTop: 10,
         borderRadius: 30,
         height: 40,
