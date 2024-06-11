@@ -1,17 +1,15 @@
-import {NativeStackScreenProps} from "@react-navigation/native-stack";
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 export type UserStackList = {
+  Feed: undefined;
 
-    Feed: undefined;
+  Account: undefined;
 
-    Account: undefined;
-
-    Camera: undefined
-
+  Camera: undefined;
 };
 
 export type FeedsScreenProps = NativeStackScreenProps<
-
-    UserStackList, "Account", "Camera"
-
+  UserStackList,
+  'Account',
+  'Camera'
 >;
