@@ -2,7 +2,7 @@ import {Text, TouchableOpacity, View} from "react-native";
 import {ReactNode} from "react";
 import {commonAppStyles} from "../../utils/styles/styles";
 import {FontAwesomeIcon} from "@fortawesome/react-native-fontawesome";
-import {faEye, faEyeSlash} from "@fortawesome/free-regular-svg-icons";
+import { Icons } from "../../utils/icons/icons";
 
 type LayoutProps = {
     children: ReactNode | ReactNode[];
@@ -30,7 +30,7 @@ export const InputWrapper = ({
                     <View style={{position: 'absolute', right: 10, top: 7}}>
                         <TouchableOpacity onPress={() => setTogglePassword && setTogglePassword(!togglePassword)}>
                             <FontAwesomeIcon
-                                icon={togglePassword ? faEyeSlash : faEye}
+                                icon={togglePassword ? Icons.EyeSlash : Icons.Eye}
                                 size={24}
                                 color="#aaa"
                             />
