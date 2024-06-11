@@ -2,11 +2,11 @@ import {ActivityIndicator, Button, Image, SafeAreaView, StyleSheet, Text, Toucha
 import {useRef, useState} from "react";
 import {CameraType, CameraView, FlashMode, useCameraPermissions} from 'expo-camera';
 import {FontAwesomeIcon} from "@fortawesome/react-native-fontawesome";
-import {faCircleCheck} from "@fortawesome/free-regular-svg-icons"
 import {commonAppStyles} from "../../utils/styles/styles";
 import {getFunctions} from "firebase/functions";
 import {uploadImageAsync} from "../../utils/helper-functions/helperFunctions";
 import {useTranslation} from "react-i18next";
+import { Icons } from "../../utils/icons/icons";
 
 
 const functions = getFunctions();
@@ -79,7 +79,7 @@ export const CameraScreen = () => {
                                 onPress={() =>
                                     setFlash(flash === 'off' ? 'on' : 'off')}
                             >
-                                <FontAwesomeIcon icon={faCircleCheck} size={24}
+                                <FontAwesomeIcon icon={Icons.CircleCheck} size={24}
                                                  color={flash === 'on' ? 'white' : 'grey'}/>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={toggleCameraFacing}>

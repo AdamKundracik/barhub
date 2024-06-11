@@ -2,6 +2,8 @@ import {StyleSheet, Text, View} from "react-native";
 import {commonAppStyles} from "../../utils/styles/styles";
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from "react-native-reanimated";
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import { Icons } from "../../utils/icons/icons";
 
 interface PostInterface {
     link: string
@@ -71,7 +73,9 @@ export const UserPost = (props: PostInterface) => {
                 />
             </GestureDetector>
             <View style={styles.photoActions}>
-                <Text>icon</Text>
+                <FontAwesomeIcon color="white" icon={Icons.Heart}></FontAwesomeIcon>
+                <FontAwesomeIcon color="white" icon={Icons.Comment}></FontAwesomeIcon>
+                <FontAwesomeIcon color="white" icon={Icons.ShareAlt}></FontAwesomeIcon>
             </View>
         </View>
     );

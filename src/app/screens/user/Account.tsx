@@ -6,6 +6,8 @@ import {useTranslation} from "react-i18next";
 import 'firebase/functions';
 import {useState} from "react";
 import {useAuthUser} from "@react-query-firebase/auth";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import { Icons } from "../../utils/icons/icons";
 
 export const Account = ({navigation}: any) => {
     const user = useAuthUser(["user"], auth, {
@@ -44,7 +46,7 @@ export const Account = ({navigation}: any) => {
                 <Text style={styles.userName}>{user.data?.email}</Text>
                 <Text style={styles.picturesTaken}>Pictures taken: %PICTURES%</Text>
                 <TouchableOpacity style={styles.button}>
-                    <Text style={styles.buttonText}>Settings</Text>
+                    <Text style={styles.buttonText}>Settings <FontAwesomeIcon icon={Icons.Gear} color={'white'}></FontAwesomeIcon></Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.button} onPress={triggerSignOut}>
                     <Text style={styles.buttonText}>Logout</Text>

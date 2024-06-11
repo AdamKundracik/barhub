@@ -13,7 +13,6 @@ import {
     View
 } from "react-native";
 import {FontAwesomeIcon} from "@fortawesome/react-native-fontawesome";
-import {faPlusSquare} from "@fortawesome/free-regular-svg-icons";
 import {InputWrapper} from "../../components/shared/InputWrapper";
 import {t} from "i18next";
 import {commonAppStyles, formStyles} from "../../utils/styles/styles";
@@ -24,6 +23,7 @@ import {createDateFromCustomString} from "../../utils/helper-functions/createDat
 import {updateProfile} from "firebase/auth";
 import {auth} from "../../../../firebaseConfig";
 import {useAuthReload} from "@react-query-firebase/auth";
+import { Icons } from "../../utils/icons/icons";
 
 
 export const SetUpProfile = () => {
@@ -91,7 +91,7 @@ export const SetUpProfile = () => {
                     ) : (
                         <TouchableOpacity onPress={pickImage}>
                             <View style={styles.addProfilePicture}>
-                                <FontAwesomeIcon icon={faPlusSquare} color={"white"} size={30}/>
+                                <FontAwesomeIcon icon={Icons.PlusSquare} color={"white"} size={30}/>
                             </View>
                         </TouchableOpacity>
                     )}
