@@ -1,8 +1,15 @@
-import React, {createContext, ReactNode, useContext, useEffect, useMemo, useState,} from "react";
-import {onAuthStateChanged} from "firebase/auth";
-import {auth} from "../../../firebaseConfig";
 import {LocationType} from "../utils/types/types";
 import {getCoords} from "../utils/helper-functions/get-coords";
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../../../firebaseConfig';
 
 type ContextProps = {
     authUser: null | boolean;

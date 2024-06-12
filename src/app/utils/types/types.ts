@@ -1,19 +1,18 @@
 export type AuthStackParamList = {
-    LoginDriver: undefined;
-    RegisterDriver: { id: string };
-    NumberVerificationDriver: {
-        verification: string;
-        phoneNumber: string;
-        name?: string;
-        email?: string;
-        invitationId?: string;
-    };
+  LoginDriver: undefined;
+  RegisterDriver: { id: string };
+  NumberVerificationDriver: {
+    verification: string;
+    phoneNumber: string;
+    name?: string;
+    email?: string;
+    invitationId?: string;
+  };
 }; // EXAMPLE FOR NAVIGATION
 
-
 export type Settings = {
-    // FOR ADDITIONAL SETTINGS
-}
+  // FOR ADDITIONAL SETTINGS
+};
 
 export type Post = {
     creationTime: Date;
@@ -126,9 +125,6 @@ export interface PlaceDetailsResponse {
 
 
 export type LocationType = {
-    latitude: number;
-    longitude: number;
+  latitude: number;
+  longitude: number;
 };
-
-
-
