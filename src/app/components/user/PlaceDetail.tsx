@@ -45,7 +45,7 @@ export const PlaceDetail = memo(
     const [isSaving, setIsSaving] = useState(false);
 
     const image = queryClient.getQueryData<string>('capturedImage');
-    const { saveImage, deleteImage } = useImageManagement();
+    const { deleteImage } = useImageManagement();
 
     useEffect(() => {
       setIsFetching(true);
@@ -100,8 +100,8 @@ export const PlaceDetail = memo(
           }
         } else {
           Alert.alert(
-            t('distance_warning_title'),
-            t('distance_warning_message')
+            t('distance-warning-title'),
+            t('distance-warning-message')
           );
         }
       } catch (errors) {
@@ -136,7 +136,7 @@ export const PlaceDetail = memo(
                       (text, index) => <Text key={index}>{text}</Text>
                     )
                   ) : (
-                    <Text>No opening hours available</Text>
+                    <Text>{t('no-opening-hours')}</Text>
                   )}
                 </View>
                 <ScrollView horizontal={true}>
@@ -152,7 +152,13 @@ export const PlaceDetail = memo(
                   style={formStyles.buttonSecondary}
                   onPress={savePost}
                 >
-                  <Text style={commonAppStyles.textPrimary}>Choose</Text>
+                  {isSaving ? (
+                    <ActivityIndicator />
+                  ) : (
+                    <Text style={commonAppStyles.textPrimary}>
+                      {t('choose')}
+                    </Text>
+                  )}
                 </TouchableOpacity>
               </View>
             )}
