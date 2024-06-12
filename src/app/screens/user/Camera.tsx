@@ -1,3 +1,4 @@
+import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Button,
@@ -8,7 +9,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useRef, useState } from 'react';
 import {
   CameraType,
   CameraView,
@@ -17,47 +17,34 @@ import {
 } from 'expo-camera';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { commonAppStyles } from '../../utils/styles/styles';
-import { getFunctions } from 'firebase/functions';
-import { uploadImageAsync } from '../../utils/helper-functions/helperFunctions';
 import { useTranslation } from 'react-i18next';
 import { Icons } from '../../utils/icons/icons';
-
-const functions = getFunctions();
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { UserStackList } from '../../utils/types/screen-types';
+import { useQueryClient } from 'react-query';
+import { useImageManagement } from '../../utils/hooks/useImageManagement';
 
 export const CameraScreen = () => {
+  const queryClient = useQueryClient();
   const [isSaving, setIsSaving] = useState(false);
-    const {t} = useTranslation();
-    const navigation = useNavigation<NavigationProp<UserStackList>>()
-    const [facing, setFacing] = useState<CameraType>('back');
-    const [permission, requestPermission] = useCameraPermissions();
-    const [flash, setFlash] = useState<FlashMode>('off');
-    const camera = useRef(null);
-    const [image, setImage] = useState(null);
-
+  const { t } = useTranslation();
+  const navigation = useNavigation<NavigationProp<UserStackList>>();
+  const [facing, setFacing] = useState<CameraType>('back');
+  const [permission, requestPermission] = useCameraPermissions();
+  const [flash, setFlash] = useState<FlashMode>('off');
+  const camera = useRef(null);
+  const image = queryClient.getQueryData<string>('capturedImage');
+  const { saveImage, deleteImage } = useImageManagement();
   const captureImage = async () => {
     if (permission?.granted && camera.current) {
       try {
         const data = await camera.current.takePictureAsync();
-        setImage(data.uri);
+        saveImage.mutate(data.uri);
       } catch (error) {
         console.log(error);
       }
     }
   };
-
-  async function savePicture() {
-    if (image) {
-      try {
-        setIsSaving(true);
-        await uploadImageAsync(image).then(() => {
-          setIsSaving(false);
-          setImage(null);
-        });
-      } catch (error) {
-        console.log(error);
-      }
-    }
-  }
 
   function toggleCameraFacing() {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
@@ -104,13 +91,17 @@ export const CameraScreen = () => {
                 onPress={() => setFlash(flash === 'off' ? 'on' : 'off')}
               >
                 <FontAwesomeIcon
-                  icon={Icons.CircleCheck}
+                  icon={Icons.Bolt}
                   size={24}
                   color={flash === 'on' ? 'white' : 'grey'}
                 />
               </TouchableOpacity>
               <TouchableOpacity onPress={toggleCameraFacing}>
-                <Text style={commonAppStyles.textPrimary}>Flip Camera</Text>
+                <FontAwesomeIcon
+                  icon={Icons.Rotate}
+                  size={24}
+                  color={'white'}
+                />
               </TouchableOpacity>
             </View>
           </SafeAreaView>
@@ -129,7 +120,7 @@ export const CameraScreen = () => {
                 <View>
                   <TouchableOpacity
                     style={styles.button}
-                    onPress={() => setImage(null)}
+                    onPress={() => deleteImage.mutate()}
                   >
                     <Text
                       style={[
@@ -148,7 +139,7 @@ export const CameraScreen = () => {
                   <TouchableOpacity
                     style={styles.button}
                     onPress={() => {
-                        navigation.navigate('PhotoResolver', {image: image}), console.log('nav', image)
+                      navigation.navigate('PhotoResolver');
                     }}
                   >
                     <Text

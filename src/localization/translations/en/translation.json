@@ -29,5 +29,7 @@
   "user-name": "User name",
   "date-of-birth": "Date of birth",
   "submit": "Submit",
-  "setup-profile": "Set up your profile"
+  "setup-profile": "Set up your profile",
+  "distance_warning_title": "Distance does not match",
+  "distance_warning_message": "Your location does not match the location of the selected place. Have you selected the correct place?"
 }

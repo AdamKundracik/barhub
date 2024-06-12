@@ -6,5 +6,10 @@ export const MISSING_REQUIRED_REQUEST_PARAMS = {
   message: 'Invalid or missing required request parameters!',
 };
 
-export const googleAPIKey = "AIzaSyAMoNX-aQzrjpnZ0KjYegeyhV47C8rRBVU";
-export const radius = 80
+export const googleAPIKey = 'AIzaSyAMoNX-aQzrjpnZ0KjYegeyhV47C8rRBVU';
+
+export const distanceMatrixGoogleApiKey =
+  'AIzaSyCr_ipzTlBlh7qocZlJzfEfQuLmZQt-Xw8';
+export const radius = 80;
+
+export const max_distance = 20;

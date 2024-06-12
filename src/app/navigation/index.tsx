@@ -18,6 +18,7 @@ export const Navigation = () => {
         console.log('User is authenticated!', user.email, user.displayName);
       }
     },
+    refetchOnReconnect: true,
     onError(error) {
       console.error('Failed to subscribe to users authentication state!');
     },

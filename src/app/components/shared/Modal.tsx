@@ -23,11 +23,11 @@ const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 const screenHeight = Dimensions.get('window').height;
 
 export const Modal = ({
-                        isOpen,
-                        onClose,
-                        children,
-                        showCloseButton = true,
-                      }: ModalProps) => {
+  isOpen,
+  onClose,
+  children,
+  showCloseButton = true,
+}: ModalProps) => {
   const [isWrapperModalOpen, setIsWrapperModalOpen] = useState(false);
   const [height, setHeight] = useState(0);
   const opacityValue = useRef(new Animated.Value(0)).current;
@@ -73,19 +73,19 @@ export const Modal = ({
           <Animated.View
             style={[{ opacity: opacityValue }, StyleSheet.absoluteFill]}
           >
-            <AnimatedBlurView intensity={10} style={StyleSheet.absoluteFill}/>
+            <AnimatedBlurView intensity={10} style={StyleSheet.absoluteFill} />
           </Animated.View>
-          <TouchableOpacity style={styles.backdrop} onPress={onClose}/>
+          <TouchableOpacity style={styles.backdrop} onPress={onClose} />
           <View
             style={[
               styles.content,
               { transform: [{ translateY: height * -0.5 }] },
             ]}
             onLayout={({
-                         nativeEvent: {
-                           layout: { height },
-                         },
-                       }) => setHeight(height)}
+              nativeEvent: {
+                layout: { height },
+              },
+            }) => setHeight(height)}
           >
             {showCloseButton && (
               <EvilIcons
