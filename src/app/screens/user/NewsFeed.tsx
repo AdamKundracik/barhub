@@ -88,6 +88,7 @@ export const NewsFeed = () => {
             {imageUploading ? (
               <View>
                 <Text style={commonAppStyles.textPrimary}>
+                  {/*docasne*/}
                   Uploading photo...
                 </Text>
               </View>
