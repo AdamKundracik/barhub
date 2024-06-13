@@ -75,6 +75,8 @@ export const PlaceDetail = memo(
             setIsFetching(false);
             console.error(error);
           }
+        } else {
+          setPhotouUls([]);
         }
       }
 
@@ -83,9 +85,6 @@ export const PlaceDetail = memo(
           fetchPhotos(placeData).then(() => {
             setIsFetching(false);
           });
-        } else {
-          console.error('No place data retrieved');
-          setIsFetching(false);
         }
       });
     }, [place]);
