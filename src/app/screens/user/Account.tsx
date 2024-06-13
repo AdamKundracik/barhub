@@ -19,7 +19,6 @@ import { User } from '../../../../shared';
 
 export const Account = ({ navigation }: any) => {
   const user: User = useQueryClient().getQueryData('user')!;
-  console.log('USER', user);
 
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
