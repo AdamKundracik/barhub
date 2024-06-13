@@ -1,27 +1,21 @@
-import { getAuth } from 'firebase/auth';
 import { ref, uploadBytes } from 'firebase/storage';
-import { storage } from '../../../../firebaseConfig';
+import { auth, storage } from '../../../../firebaseConfig';
 import { savePost } from '../services/functions';
 import { Post } from '../types/types';
 import { generateId } from './generate-hash';
+import { UseMutationResult } from 'react-query';
 
-export const uploadImageAsync = async (uri: string): Promise<void> => {
-  const auth = getAuth();
-  if (auth.currentUser) {
-    const blob: Blob = await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.onload = function () {
-        resolve(xhr.response);
-      };
-      xhr.onerror = function (e) {
-        console.error(e);
-        reject(new TypeError('Network request failed'));
-      };
-      xhr.responseType = 'blob';
-      xhr.open('GET', uri, true);
-      xhr.send(null);
-    });
+export const uploadImageAsync = async (
+  uri: string,
+  hook: UseMutationResult<boolean, unknown, boolean, unknown>
+): Promise<void> => {
+  try {
+    if (!auth.currentUser) {
+      console.error('No current user');
+      return;
+    }
 
+    const blob: Blob = await uriToBlob(uri);
     const fileId = `${auth.currentUser.uid}/${new Date().getTime().toString() + auth.currentUser?.uid}`;
     const newPost: Post = {
       uid: generateId(),
@@ -30,8 +24,29 @@ export const uploadImageAsync = async (uri: string): Promise<void> => {
       folderId: auth.currentUser.uid,
       creationTime: new Date(),
     };
-    savePost(newPost);
+
+    await savePost(newPost);
     const storageRef = ref(storage, fileId);
-    await uploadBytes(storageRef, blob);
+    uploadBytes(storageRef, blob).then(result => {
+      console.log('Upload successful!');
+      hook.mutate(false);
+    });
+  } catch (error) {
+    console.error('Error uploading image:', error);
   }
+};
+
+const uriToBlob = async (uri: string): Promise<Blob> => {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.onload = function () {
+      resolve(xhr.response);
+    };
+    xhr.onerror = function () {
+      reject(new Error('uriToBlob failed'));
+    };
+    xhr.responseType = 'blob';
+    xhr.open('GET', uri, true);
+    xhr.send(null);
+  });
 };
