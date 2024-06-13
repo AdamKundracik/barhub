@@ -44,7 +44,7 @@ export const AuthProvider = (props: Props) => {
   }
 
   useEffect(() => {
-    onAuthStateChanged(auth, u => {
+    onAuthStateChanged(auth, async u => {
       setAuthUser(!!u);
       setIsLoadingAuth(false);
     });

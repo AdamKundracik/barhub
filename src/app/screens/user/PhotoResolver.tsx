@@ -18,9 +18,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
+import { useTranslation } from 'react-i18next';
 
 export const PhotoResolver = ({ route }: any) => {
   const { location, setLocation } = useAuthContext();
+  const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 
   const mapRef = useRef<MapView>(null);
@@ -36,6 +38,9 @@ export const PhotoResolver = ({ route }: any) => {
         const data = await fetchNearbyPlaces(location);
         setLoading(false);
         setPlaces(data.places);
+      } else {
+        setLoading(false);
+        console.error('Location could not be retrieved');
       }
     }
 
@@ -103,7 +108,7 @@ export const PhotoResolver = ({ route }: any) => {
 
       <View style={styles.infoContainer}>
         <Text style={{ fontWeight: 'bold', fontSize: 24 }}>
-          Select location
+          {t('select-location')}
         </Text>
       </View>
 

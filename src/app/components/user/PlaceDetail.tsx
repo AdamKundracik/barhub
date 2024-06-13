@@ -41,7 +41,7 @@ export const PlaceDetail = memo(
       null
     );
     const [isFetching, setIsFetching] = useState(false);
-    const [photoUrls, setPhotourls] = useState<string[]>([]);
+    const [photoUrls, setPhotouUls] = useState<string[]>([]);
     const [isSaving, setIsSaving] = useState(false);
 
     const image = queryClient.getQueryData<string>('capturedImage');
@@ -60,16 +60,21 @@ export const PlaceDetail = memo(
 
       async function fetchPhotos(placeData: PlaceDetailsResponse) {
         if (placeData?.result.photos) {
-          const fetchPhotoPromises = placeData.result.photos.map(photo => {
-            return fetchPlacePhotos(
-              photo.photo_reference,
-              photo.width,
-              photo.height
-            );
-          });
-          const fetchedUrls = await Promise.all(fetchPhotoPromises);
-          const validUrls = fetchedUrls.filter(url => url !== undefined);
-          setPhotourls(validUrls as string[]);
+          try {
+            const fetchPhotoPromises = placeData.result.photos.map(photo => {
+              return fetchPlacePhotos(
+                photo.photo_reference,
+                photo.width,
+                photo.height
+              );
+            });
+            const fetchedUrls = await Promise.all(fetchPhotoPromises);
+            const validUrls = fetchedUrls.filter(url => url);
+            setPhotouUls(validUrls as string[]);
+          } catch (error) {
+            setIsFetching(false);
+            console.error(error);
+          }
         }
       }
 
@@ -78,6 +83,9 @@ export const PlaceDetail = memo(
           fetchPhotos(placeData).then(() => {
             setIsFetching(false);
           });
+        } else {
+          console.error('No place data retrieved');
+          setIsFetching(false);
         }
       });
     }, [place]);
@@ -125,7 +133,7 @@ export const PlaceDetail = memo(
               </View>
             ) : (
               <View>
-                <Text style={{ marginBottom: '3%', fontWeight: 'bold' }}>
+                <Text style={{ marginBottom: 5, fontWeight: 'bold' }}>
                   {placeDetail?.result?.name}
                 </Text>
                 <Text>{placeDetail?.result?.formatted_address}</Text>
@@ -170,32 +178,6 @@ export const PlaceDetail = memo(
 );
 
 const styles = StyleSheet.create({
-  wrapper: {
-    width: '100%',
-    paddingTop: '10%',
-  },
-  vehicleItem: {
-    width: 300,
-    height: 50,
-    borderRadius: 12.5,
-    backgroundColor: 'white',
-    borderColor: 'rgba(0,0,0,0.4)',
-    borderWidth: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: '2%',
-  },
-  selectedVehicleItem: {
-    width: 300,
-    height: 50,
-    borderRadius: 12.5,
-    backgroundColor: 'rgba(101,214,255,0.67)',
-    borderColor: 'rgba(0,0,0,0.2)',
-    borderWidth: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: '2%',
-  },
   opening_hours: {
     paddingVertical: 10,
     flex: 1,

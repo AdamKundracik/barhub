@@ -12,4 +12,5 @@ export const distanceMatrixGoogleApiKey =
   'AIzaSyCr_ipzTlBlh7qocZlJzfEfQuLmZQt-Xw8';
 export const radius = 80;
 
+//max_distance - means maximum distance from user posting photo to nearest selected place
 export const max_distance = 20;

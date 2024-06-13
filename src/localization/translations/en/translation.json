@@ -33,5 +33,6 @@
   "distance-warning-title": "Distance does not match",
   "distance-warning-message": "Your location does not match the location of the selected place. Have you selected the correct place?",
   "no-opening-hours": "No opening hours available",
-  "choose": "Choose"
+  "choose": "Choose",
+  "select-location": "Select place location"
 }

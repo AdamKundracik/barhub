@@ -10,12 +10,12 @@ import SetuProfileNav from './SetuProfileNav';
 
 export const Navigation = () => {
   const tokenResult = useAuthIdToken(['token'], auth, {
-    onSuccess(result) {},
+    refetchOnWindowFocus: 'always',
   });
   const user = useAuthUser(['user'], auth, {
     onSuccess(user) {
       if (user) {
-        console.log('User is authenticated!', user.email, user.displayName);
+        // console.log('User is authenticated!', user.email, user.displayName);
       }
     },
     refetchOnReconnect: true,
@@ -25,6 +25,7 @@ export const Navigation = () => {
   });
 
   if (user.isLoading) {
+    console.log(user);
     return <Loading />;
   }
 
