@@ -23,6 +23,7 @@ import { UserStackList } from '../../utils/types/screen-types';
 import { uploadImageAsync } from '../../utils/helper-functions/helperFunctions';
 import { max_distance } from '../../utils/helper-functions/constants';
 import { useTranslation } from 'react-i18next';
+import { useUploadingStateManagement } from '../../utils/hooks/useUploadingStateManagement';
 
 type PlaceDetailModalProps = {
   isOpen: boolean;
@@ -46,6 +47,7 @@ export const PlaceDetail = memo(
 
     const image = queryClient.getQueryData<string>('capturedImage');
     const { deleteImage } = useImageManagement();
+    const { setUploadingState } = useUploadingStateManagement();
 
     useEffect(() => {
       setIsFetching(true);
@@ -99,7 +101,8 @@ export const PlaceDetail = memo(
         if (calculatedDistance && calculatedDistance < max_distance) {
           if (image) {
             setIsSaving(true);
-            uploadImageAsync(image).then(() => {
+            setUploadingState.mutate(true);
+            uploadImageAsync(image, setUploadingState).then(() => {
               onClose();
               navigation.navigate('Feed');
               deleteImage.mutate();

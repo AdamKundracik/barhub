@@ -4,6 +4,7 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
+  Text,
   View,
 } from 'react-native';
 import { getDownloadURL, getStorage, list, ref } from 'firebase/storage';
@@ -12,14 +13,23 @@ import UserPost from '../../components/user/UserPost';
 import ActionsRow from '../../components/user/ActionsRow';
 import { auth } from '../../../../firebaseConfig';
 import { useImageManagement } from '../../utils/hooks/useImageManagement';
-import { useQueryClient } from 'react-query';
+import { useQuery, useQueryClient } from 'react-query';
 import { useFocusEffect } from '@react-navigation/native';
+import { commonAppStyles } from '../../utils/styles/styles';
 
 export const NewsFeed = () => {
   const queryClient = useQueryClient();
   const [fileUrls, setFileUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [zoomedPost, setZoomedPost] = useState<string | null>(null);
+
+  const { data: imageUploading, refetch } = useQuery(
+    'imageUploading',
+    () => {},
+    {
+      refetchInterval: 5000,
+    }
+  );
 
   const { deleteImage } = useImageManagement();
 
@@ -59,7 +69,7 @@ export const NewsFeed = () => {
   }, []);
 
   return (
-    <Layout pageTitle={'Feed'}>
+    <Layout pageTitle="Feed">
       <ActionsRow />
       <ScrollView
         contentContainerStyle={styles.scrollView}
@@ -74,18 +84,31 @@ export const NewsFeed = () => {
             <ActivityIndicator size="large" color="#ffffff" />
           </View>
         ) : (
-          fileUrls.map(url => (
-            <View
-              key={url}
-              style={{ marginVertical: 10, zIndex: zoomedPost === url ? 1 : 0 }}
-            >
-              <UserPost
-                link={url}
-                setZoomedPost={setZoomedPost}
-                isZoomed={zoomedPost === url}
-              />
-            </View>
-          ))
+          <View>
+            {imageUploading ? (
+              <View>
+                <Text style={commonAppStyles.textPrimary}>
+                  Uploading photo...
+                </Text>
+              </View>
+            ) : null}
+
+            {fileUrls.map(url => (
+              <View
+                key={url}
+                style={{
+                  marginVertical: 10,
+                  zIndex: zoomedPost === url ? 1 : 0,
+                }}
+              >
+                <UserPost
+                  link={url}
+                  setZoomedPost={setZoomedPost}
+                  isZoomed={zoomedPost === url}
+                />
+              </View>
+            ))}
+          </View>
         )}
       </ScrollView>
     </Layout>

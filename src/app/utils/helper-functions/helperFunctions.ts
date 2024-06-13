@@ -3,8 +3,12 @@ import { auth, storage } from '../../../../firebaseConfig';
 import { savePost } from '../services/functions';
 import { Post } from '../types/types';
 import { generateId } from './generate-hash';
+import { UseMutationResult } from 'react-query';
 
-export const uploadImageAsync = async (uri: string): Promise<void> => {
+export const uploadImageAsync = async (
+  uri: string,
+  hook: UseMutationResult<boolean, unknown, boolean, unknown>
+): Promise<void> => {
   try {
     if (!auth.currentUser) {
       console.error('No current user');
@@ -25,6 +29,7 @@ export const uploadImageAsync = async (uri: string): Promise<void> => {
     const storageRef = ref(storage, fileId);
     uploadBytes(storageRef, blob).then(result => {
       console.log('Upload successful!');
+      hook.mutate(false);
     });
   } catch (error) {
     console.error('Error uploading image:', error);
