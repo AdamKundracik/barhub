@@ -27,7 +27,7 @@ export const ActionsRow = () => {
         <TouchableOpacity>
           <FontAwesomeIcon
             style={styles.icon}
-            icon={Icons.Eye}
+            icon={Icons.Search}
             color={'white'}
             size={24}
           />

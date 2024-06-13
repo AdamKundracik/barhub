@@ -11,11 +11,24 @@ import React, { useEffect, useState } from 'react';
 import UserPost from '../../components/user/UserPost';
 import ActionsRow from '../../components/user/ActionsRow';
 import { auth } from '../../../../firebaseConfig';
+import { useImageManagement } from '../../utils/hooks/useImageManagement';
+import { useQueryClient } from 'react-query';
+import { useFocusEffect } from '@react-navigation/native';
 
 export const NewsFeed = () => {
+  const queryClient = useQueryClient();
   const [fileUrls, setFileUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [zoomedPost, setZoomedPost] = useState<string | null>(null);
+
+  const { deleteImage } = useImageManagement();
+
+  const handleScreenFocus = () => {
+    const image = queryClient.getQueryData<string>('capturedImage');
+    if (image) deleteImage.mutate();
+  };
+
+  useFocusEffect(handleScreenFocus);
 
   const listFiles = async () => {
     try {

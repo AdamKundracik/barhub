@@ -20,9 +20,11 @@ import DatePicker from 'expo-datepicker';
 import { getAge } from '../../utils/helper-functions/getAge';
 import { setUser } from '../../utils/services/functions';
 import { createDateFromCustomString } from '../../utils/helper-functions/createDateFromString';
-import { updateProfile } from 'firebase/auth';
 import { auth } from '../../../../firebaseConfig';
-import { useAuthReload } from '@react-query-firebase/auth';
+import {
+  useAuthReload,
+  useAuthUpdateProfile,
+} from '@react-query-firebase/auth';
 import { Icons } from '../../utils/icons/icons';
 
 export const SetUpProfile = () => {
@@ -32,6 +34,7 @@ export const SetUpProfile = () => {
   const [uploading, setUploading] = useState(false);
 
   const mutation = useAuthReload();
+  const mutationUpdateProfile = useAuthUpdateProfile();
 
   function reloadUser() {
     mutation.mutate(auth.currentUser!);
@@ -63,13 +66,19 @@ export const SetUpProfile = () => {
       displayName: username,
       dateOfBirth: dateOfBirth,
     });
-    updateProfile(auth.currentUser!, {
-      displayName: username,
-      photoURL: image,
-    }).then(async () => {
+
+    if (auth.currentUser) {
+      mutationUpdateProfile.mutate({
+        user: auth.currentUser,
+        displayName: username, // optional
+        photoURL: image, // optional
+      });
       setUploading(false);
       reloadUser();
-    });
+    } else {
+      setUploading(false);
+      console.error('Missing auth');
+    }
   }
 
   return (

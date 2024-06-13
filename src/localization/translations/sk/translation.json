@@ -29,5 +29,10 @@
   "user-name": "Používateľské meno",
   "date-of-birth": "Dátum narodenia",
   "submit": "Potvrdiť",
-  "setup-profile": "Nastav svoj profil"
+  "setup-profile": "Nastav svoj profil",
+  "distance-warning-title": "Vzdialenosť sa nezhoduje",
+  "distance-warning-message": "Vaša poloha sa nezhoduje s polohou vybraného miesta. Vybrali ste správne miesto?",
+  "no-opening-hours": "Nie sú k dispozícii žiadne otváracie hodiny.",
+  "choose": "Vybrať",
+  "select-location": "Vyberte polohu miesta"
 }

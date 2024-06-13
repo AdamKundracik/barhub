@@ -1,5 +1,4 @@
 import { httpsCallable } from 'firebase/functions';
-import { Post, User } from '../types/types';
 import { functions } from '../../../../firebaseConfig';
 import {
   EmptyDataResponse,
@@ -8,6 +7,8 @@ import {
   SetDocumentFromCollectionRequest,
 } from '../helper-functions/functions-types';
 import { MISSING_REQUIRED_REQUEST_PARAMS } from '../helper-functions/constants';
+import { Post } from '../types/types';
+import { User } from '../../../../shared';
 
 export const savePost = async (
   data: Partial<Post>

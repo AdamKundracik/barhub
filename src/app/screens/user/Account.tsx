@@ -12,21 +12,14 @@ import { auth } from '../../../../firebaseConfig';
 import { useTranslation } from 'react-i18next';
 import 'firebase/functions';
 import { useState } from 'react';
-import { useAuthUser } from '@react-query-firebase/auth';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
+import { useQueryClient } from 'react-query';
+import { User } from '../../../../shared';
 
 export const Account = ({ navigation }: any) => {
-  const user = useAuthUser(['user'], auth, {
-    onSuccess(user) {
-      if (user) {
-        console.log('User is authenticated!', user.email, user.displayName);
-      }
-    },
-    onError(error) {
-      console.error('Failed to subscribe to users authentication state!');
-    },
-  });
+  const user: User = useQueryClient().getQueryData('user')!;
+
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
 
@@ -47,14 +40,14 @@ export const Account = ({ navigation }: any) => {
       <View style={styles.container}>
         <Image
           source={
-            user.data?.photoURL
-              ? { uri: user.data?.photoURL }
+            user.photoURL
+              ? { uri: user.photoURL }
               : require('../../../../assets/userIcon.png')
           }
           style={styles.profilePicture}
         />
-        <Text style={styles.userName}>{user.data?.displayName}</Text>
-        <Text style={styles.userName}>{user.data?.email}</Text>
+        <Text style={styles.userName}>{user.displayName}</Text>
+        <Text style={styles.userName}>{user.email}</Text>
         <Text style={styles.picturesTaken}>Pictures taken: %PICTURES%</Text>
         <TouchableOpacity style={styles.button}>
           <Text style={styles.buttonText}>
