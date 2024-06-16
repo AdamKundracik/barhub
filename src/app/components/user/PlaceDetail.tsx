@@ -99,10 +99,10 @@ export const PlaceDetail = memo(
         });
         const calculatedDistance = data.data?.distance;
         if (calculatedDistance && calculatedDistance < max_distance) {
-          if (image) {
+          if (image && place?.id) {
             setIsSaving(true);
             setUploadingState.mutate(true);
-            uploadImageAsync(image, setUploadingState).then(() => {
+            uploadImageAsync(image, setUploadingState, place?.id).then(() => {
               onClose();
               navigation.navigate('Feed');
               deleteImage.mutate();
