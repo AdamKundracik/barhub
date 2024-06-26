@@ -11,17 +11,19 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../../../../firebaseConfig';
 import { useTranslation } from 'react-i18next';
 import 'firebase/functions';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
 import { useQueryClient } from 'react-query';
 import { User } from '../../../../shared';
+import { getProfilePicture } from '../../utils/helper-functions/helperFunctions';
 
-export const Account = ({ navigation }: any) => {
+export const Account = () => {
   const user: User = useQueryClient().getQueryData('user')!;
 
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
+  const [profileUrl, setProfileUrl] = useState<string>('');
 
   function triggerSignOut() {
     signOut(auth)
@@ -35,13 +37,25 @@ export const Account = ({ navigation }: any) => {
       });
   }
 
+  useEffect(() => {
+    async function getPicture() {
+      setLoading(true);
+      await getProfilePicture().then(uri => {
+        if (uri) setProfileUrl(uri);
+        setLoading(false);
+      });
+    }
+
+    getPicture();
+  }, []);
+
   return (
     <Layout pageTitle={'Account'}>
       <View style={styles.container}>
         <Image
           source={
             user.photoURL
-              ? { uri: user.photoURL }
+              ? { uri: profileUrl }
               : require('../../../../assets/userIcon.png')
           }
           style={styles.profilePicture}

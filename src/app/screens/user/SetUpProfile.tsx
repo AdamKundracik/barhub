@@ -26,6 +26,7 @@ import {
   useAuthUpdateProfile,
 } from '@react-query-firebase/auth';
 import { Icons } from '../../utils/icons/icons';
+import { uploadProfilePhotoAsync } from '../../utils/helper-functions/helperFunctions';
 
 export const SetUpProfile = () => {
   const [image, setImage] = useState<string | null>(null);
@@ -59,6 +60,8 @@ export const SetUpProfile = () => {
   }
 
   async function submitForm() {
+    if (!image) return;
+
     setUploading(true);
     const dateOfBirth = createDateFromCustomString(date);
     await setUser({
@@ -73,7 +76,11 @@ export const SetUpProfile = () => {
         displayName: username, // optional
         photoURL: image, // optional
       });
-      setUploading(false);
+
+      uploadProfilePhotoAsync(image!).then(() => {
+        setUploading(false);
+      });
+
       reloadUser();
     } else {
       setUploading(false);
