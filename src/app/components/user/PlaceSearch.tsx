@@ -16,6 +16,7 @@ import { PlacePrediction } from '../../utils/types/types';
 
 type LayoutProps = {
   setSearching: (isSearching: boolean) => void;
+  setPlace: (place: PlacePrediction) => void;
 };
 
 export const PlaceSearch = (props: LayoutProps) => {
@@ -66,7 +67,14 @@ export const PlaceSearch = (props: LayoutProps) => {
           onChangeText={text => getAutocompletePlaces(text)}
         />
         {places.map((place, index) => (
-          <TouchableOpacity key={index} style={{ padding: 15 }}>
+          <TouchableOpacity
+            key={index}
+            style={{ padding: 15 }}
+            onPress={() => {
+              props.setPlace(place);
+              onCancelClick();
+            }}
+          >
             <Text
               style={[
                 commonAppStyles.textPrimary,

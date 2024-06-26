@@ -95,10 +95,11 @@ export const getProfilePicture = async () => {
   }
 };
 
-export const listFiles = async () => {
+export const listFiles = async (placeId: string | undefined | null) => {
   try {
+    console.log('placeId', placeId);
     const storage = getStorage();
-    const listRef = ref(storage, auth.currentUser?.uid);
+    const listRef = ref(storage, placeId ?? auth.currentUser?.uid);
     const res = await list(listRef, { maxResults: 20 });
     const urls = await Promise.all(
       res.items.map(item => getDownloadURL(item)).reverse()

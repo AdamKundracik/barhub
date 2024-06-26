@@ -16,12 +16,14 @@ import { useFocusEffect } from '@react-navigation/native';
 import { commonAppStyles } from '../../utils/styles/styles';
 import { listFiles } from '../../utils/helper-functions/helperFunctions';
 import PlaceSearch from '../../components/user/PlaceSearch';
+import { PlacePrediction } from '../../utils/types/types';
 
 export const NewsFeed = () => {
   const queryClient = useQueryClient();
   const [fileUrls, setFileUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [zoomedPost, setZoomedPost] = useState<string | null>(null);
+  const [place, setPlace] = useState<PlacePrediction | null>(null);
   const [searching, setSearching] = useState<boolean>(false);
 
   const { data: imageUploading, refetch } = useQuery(
@@ -43,7 +45,7 @@ export const NewsFeed = () => {
 
   const getFiles = () => {
     setLoading(true);
-    listFiles().then(urls => {
+    listFiles(place?.placeId).then(urls => {
       if (urls) setFileUrls(urls);
       setLoading(false);
     });
@@ -59,9 +61,11 @@ export const NewsFeed = () => {
 
   useEffect(() => {
     getFiles();
-  }, []);
+    console.log('place', place);
+  }, [place]);
 
-  if (searching) return <PlaceSearch setSearching={setSearching} />;
+  if (searching)
+    return <PlaceSearch setSearching={setSearching} setPlace={setPlace} />;
 
   return (
     <Layout pageTitle="Feed">

@@ -48,7 +48,6 @@ export const UserProvider = (props: Props) => {
   async function getLocation(): Promise<void> {
     try {
       const coords: LocationType = await getCoords();
-      console.log(coords);
       setLocation(coords);
     } catch (e) {
       console.error(e);
