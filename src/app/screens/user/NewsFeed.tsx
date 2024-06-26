@@ -7,15 +7,14 @@ import {
   Text,
   View,
 } from 'react-native';
-import { getDownloadURL, getStorage, list, ref } from 'firebase/storage';
 import React, { useEffect, useState } from 'react';
 import UserPost from '../../components/user/UserPost';
 import ActionsRow from '../../components/user/ActionsRow';
-import { auth } from '../../../../firebaseConfig';
 import { useImageManagement } from '../../utils/hooks/useImageManagement';
 import { useQuery, useQueryClient } from 'react-query';
 import { useFocusEffect } from '@react-navigation/native';
 import { commonAppStyles } from '../../utils/styles/styles';
+import { listFiles } from '../../utils/helper-functions/helperFunctions';
 
 export const NewsFeed = () => {
   const queryClient = useQueryClient();
@@ -40,32 +39,24 @@ export const NewsFeed = () => {
 
   useFocusEffect(handleScreenFocus);
 
-  const listFiles = async () => {
-    try {
-      const storage = getStorage();
-      const listRef = ref(storage, auth.currentUser?.uid);
-      const res = await list(listRef, { maxResults: 20 });
-      const urls = await Promise.all(
-        res.items.map(item => getDownloadURL(item)).reverse()
-      );
-      setFileUrls(urls);
-    } catch (error) {
-      console.error('Error listing files: ', error);
-    } finally {
+  const getFiles = () => {
+    setLoading(true);
+    listFiles().then(urls => {
+      if (urls) setFileUrls(urls);
       setLoading(false);
-    }
+    });
   };
 
   const onRefresh = React.useCallback(() => {
     setLoading(true);
-    listFiles();
+    getFiles();
     setTimeout(() => {
       setLoading(false);
     }, 2000);
   }, []);
 
   useEffect(() => {
-    listFiles();
+    getFiles();
   }, []);
 
   return (
