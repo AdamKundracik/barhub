@@ -61,7 +61,6 @@ export const NewsFeed = () => {
 
   useEffect(() => {
     getFiles();
-    console.log('place', place);
   }, [place]);
 
   if (searching)

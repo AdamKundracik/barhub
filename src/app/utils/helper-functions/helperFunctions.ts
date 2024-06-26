@@ -97,7 +97,6 @@ export const getProfilePicture = async () => {
 
 export const listFiles = async (placeId: string | undefined | null) => {
   try {
-    console.log('placeId', placeId);
     const storage = getStorage();
     const listRef = ref(storage, placeId ?? auth.currentUser?.uid);
     const res = await list(listRef, { maxResults: 20 });
