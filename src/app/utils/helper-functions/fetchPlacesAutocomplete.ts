@@ -1,5 +1,5 @@
 import { googleAPIKey } from './constants';
-import { LocationType } from '../types/types';
+import { AutocompleteResponse, LocationType } from '../types/types';
 
 export const fetchPlaceAutocomplete = async (
   input: string,
@@ -8,6 +8,7 @@ export const fetchPlaceAutocomplete = async (
   const url = 'https://places.googleapis.com/v1/places:autocomplete';
   const requestBody = {
     input: input,
+    includedPrimaryTypes: ['restaurant', 'bar', 'cafe'],
     locationRestriction: {
       circle: {
         center: {
@@ -31,7 +32,7 @@ export const fetchPlaceAutocomplete = async (
       body: JSON.stringify(requestBody),
     });
 
-    const data = await response.json();
+    const data: AutocompleteResponse = await response.json();
     return data;
   } catch (error) {
     console.error('Error fetching place autocomplete:', error);

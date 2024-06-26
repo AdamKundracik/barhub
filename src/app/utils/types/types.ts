@@ -149,3 +149,40 @@ export type GetDistanceDataRequest = {
   startLocation: LocationType;
   endLocation: LocationType;
 };
+
+export interface Match {
+  endOffset: number;
+}
+
+export interface Text {
+  text: string;
+  matches: Match[];
+}
+
+export interface MainText {
+  text: string;
+  matches: Match[];
+}
+
+export interface StructuredFormat {
+  mainText: MainText;
+  secondaryText: {
+    text: string;
+  };
+}
+
+export interface PlacePrediction {
+  place: string;
+  placeId: string;
+  text: Text;
+  structuredFormat: StructuredFormat;
+  types: string[];
+}
+
+export interface Suggestion {
+  placePrediction: PlacePrediction;
+}
+
+export interface AutocompleteResponse {
+  suggestions: Suggestion[];
+}

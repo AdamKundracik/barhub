@@ -29,6 +29,7 @@ import {
   faUser,
   faUserCircle,
   faUsers,
+  faX,
 } from '@fortawesome/free-solid-svg-icons';
 import { faEye, faEyeSlash } from '@fortawesome/free-regular-svg-icons';
 
@@ -65,4 +66,5 @@ export const Icons = {
   Bolt: faBolt,
   Back: faArrowLeft,
   Cancel: faCancel,
+  X: faX,
 };
