@@ -4,8 +4,16 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
 import { Icons } from '../../utils/icons/icons';
 
-export const ActionsRow = () => {
+type LayoutProps = {
+  setSearching: (isSearching: boolean) => void;
+};
+
+export const ActionsRow = (props: LayoutProps) => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
+
+  function onSearchClick() {
+    props.setSearching(true);
+  }
 
   return (
     <View style={styles.row}>
@@ -24,7 +32,7 @@ export const ActionsRow = () => {
         </TouchableOpacity>
       </View>
       <View style={{ display: 'flex', flexDirection: 'row' }}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={onSearchClick}>
           <FontAwesomeIcon
             style={styles.icon}
             icon={Icons.Search}

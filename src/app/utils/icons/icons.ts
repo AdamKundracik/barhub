@@ -3,6 +3,7 @@ import {
   faBars,
   faBolt,
   faCamera,
+  faCancel,
   faCircleCheck,
   faCog,
   faComment,
@@ -63,4 +64,5 @@ export const Icons = {
   Rotate: faRotateBack,
   Bolt: faBolt,
   Back: faArrowLeft,
+  Cancel: faCancel,
 };

@@ -15,12 +15,14 @@ import { useQuery, useQueryClient } from 'react-query';
 import { useFocusEffect } from '@react-navigation/native';
 import { commonAppStyles } from '../../utils/styles/styles';
 import { listFiles } from '../../utils/helper-functions/helperFunctions';
+import PlaceSearch from '../../components/user/PlaceSearch';
 
 export const NewsFeed = () => {
   const queryClient = useQueryClient();
   const [fileUrls, setFileUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [zoomedPost, setZoomedPost] = useState<string | null>(null);
+  const [searching, setSearching] = useState<boolean>(false);
 
   const { data: imageUploading, refetch } = useQuery(
     'imageUploading',
@@ -59,9 +61,11 @@ export const NewsFeed = () => {
     getFiles();
   }, []);
 
+  if (searching) return <PlaceSearch setSearching={setSearching} />;
+
   return (
     <Layout pageTitle="Feed">
-      <ActionsRow />
+      <ActionsRow setSearching={setSearching} />
       <ScrollView
         contentContainerStyle={styles.scrollView}
         refreshControl={
@@ -70,7 +74,11 @@ export const NewsFeed = () => {
       >
         {loading ? (
           <View
-            style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+            style={{
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
             <ActivityIndicator size="large" color="#ffffff" />
           </View>
