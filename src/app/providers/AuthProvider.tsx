@@ -8,13 +8,10 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../../../firebaseConfig';
 
 type ContextProps = {
-  authUser: null | boolean;
   emailVerified: boolean;
-  isLoadingAuth: boolean;
   location: LocationType;
   setLocation: (value: LocationType) => void;
 };
@@ -26,8 +23,6 @@ interface Props {
 }
 
 export const AuthProvider = (props: Props) => {
-  const [authUser, setAuthUser] = useState<null | boolean>(null);
-  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const [emailVerified, setEmailVerified] = useState(false);
   const [location, setLocation] = useState<LocationType>({
     latitude: 0,
@@ -44,13 +39,6 @@ export const AuthProvider = (props: Props) => {
   }
 
   useEffect(() => {
-    onAuthStateChanged(auth, async u => {
-      setAuthUser(!!u);
-      setIsLoadingAuth(false);
-    });
-  }, [auth.currentUser?.uid]);
-
-  useEffect(() => {
     if (auth.currentUser?.uid) {
       getLocation().catch(e => console.error(e));
       const interval = setInterval(() => {
@@ -62,13 +50,11 @@ export const AuthProvider = (props: Props) => {
 
   const ctx = useMemo(() => {
     return {
-      authUser,
-      isLoadingAuth,
       emailVerified,
       location,
       setLocation,
     };
-  }, [authUser, isLoadingAuth, emailVerified, location, setLocation]);
+  }, [emailVerified, location, setLocation]);
 
   return (
     <AuthContext.Provider value={ctx}>{props.children}</AuthContext.Provider>

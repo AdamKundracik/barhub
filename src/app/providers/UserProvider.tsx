@@ -10,13 +10,16 @@ import { getCurrentUser } from '../utils/services/functions';
 import { auth } from '../../../firebaseConfig';
 import { GetUserResult } from '../utils/helper-functions/functions-types';
 import { User } from '../../../shared';
+import { getProfilePicture } from '../utils/helper-functions/helperFunctions';
 
 type ContextProps = {
   userData: User | null;
+  profileUri: string;
   isLoading: boolean;
 };
 
 const initialContext: ContextProps = {
+  profileUri: '',
   userData: null,
   isLoading: true,
 };
@@ -30,6 +33,16 @@ const UserContext = createContext<Partial<ContextProps>>(initialContext);
 export const UserProvider = (props: Props) => {
   const [userData, setUserData] = useState<GetUserResult['data'] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [profileUri, setProfileUri] = useState<string>('');
+
+  useEffect(() => {
+    async function getImage() {
+      const uri = await getProfilePicture();
+      if (uri) setProfileUri(uri);
+    }
+
+    getImage();
+  }, [auth.currentUser?.uid]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -45,10 +58,11 @@ export const UserProvider = (props: Props) => {
 
   const ctx = useMemo(() => {
     return {
+      profileUri,
       userData,
       isLoading,
     };
-  }, [userData, isLoading]);
+  }, [profileUri, userData, isLoading]);
 
   return (
     <UserContext.Provider value={ctx}>{props.children}</UserContext.Provider>
