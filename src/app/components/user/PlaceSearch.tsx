@@ -86,6 +86,7 @@ export const PlaceSearch = (props: LayoutProps) => {
         </View>
         <TextInput
           style={formStyles.inputPrimary}
+          placeholder={'Search for your place'}
           onChangeText={text => getAutocompletePlaces(text)}
         />
         {places.map((place, index) => (

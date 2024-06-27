@@ -48,8 +48,8 @@ export const Account = () => {
           }
           style={styles.profilePicture}
         />
-        <Text style={styles.userName}>{user.displayName}</Text>
-        <Text style={styles.userName}>{user.email}</Text>
+        <Text style={styles.userName}>{user?.displayName}</Text>
+        <Text style={styles.userName}>{user?.email}</Text>
         <Text style={styles.picturesTaken}>Pictures taken: %PICTURES%</Text>
         <TouchableOpacity style={styles.button}>
           <Text style={styles.buttonText}>
@@ -73,7 +73,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000',
   },
   profilePicture: {
     width: 150,

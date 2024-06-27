@@ -69,7 +69,6 @@ export const MapSearch = (props: LayoutProps) => {
         const data = await fetchNearbyPlaces(region);
         setLoading(false);
         setPlaces(data.places);
-        console.log('PLACES', places);
       } else {
         setLoading(false);
         console.error('Location could not be retrieved');

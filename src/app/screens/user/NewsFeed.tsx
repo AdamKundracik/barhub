@@ -5,6 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
@@ -17,9 +18,11 @@ import { commonAppStyles } from '../../utils/styles/styles';
 import { listFiles } from '../../utils/helper-functions/helperFunctions';
 import PlaceSearch from '../../components/user/PlaceSearch';
 import { PlacePrediction } from '../../utils/types/types';
+import { useTranslation } from 'react-i18next';
 
 export const NewsFeed = () => {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [fileUrls, setFileUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [zoomedPost, setZoomedPost] = useState<string | null>(null);
@@ -96,21 +99,44 @@ export const NewsFeed = () => {
               </View>
             ) : null}
 
-            {fileUrls.map(url => (
-              <View
-                key={url}
-                style={{
-                  marginVertical: 10,
-                  zIndex: zoomedPost === url ? 1 : 0,
-                }}
-              >
-                <UserPost
-                  link={url}
-                  setZoomedPost={setZoomedPost}
-                  isZoomed={zoomedPost === url}
-                />
+            {fileUrls.length ? (
+              fileUrls.map(url => (
+                <View
+                  key={url}
+                  style={{
+                    marginVertical: 10,
+                    zIndex: zoomedPost === url ? 1 : 0,
+                  }}
+                >
+                  <UserPost
+                    link={url}
+                    setZoomedPost={setZoomedPost}
+                    isZoomed={zoomedPost === url}
+                  />
+                </View>
+              ))
+            ) : (
+              <View style={styles.infoContainer}>
+                <View style={{ marginBottom: 15, justifyContent: 'center' }}>
+                  <Text style={[commonAppStyles.textPrimary, { fontSize: 22 }]}>
+                    {t('photos-info')}
+                  </Text>
+                </View>
+                <TouchableOpacity style={styles.requestButton}>
+                  <Text
+                    style={[
+                      commonAppStyles.textSecondary,
+                      { fontSize: 22, fontWeight: 'bold' },
+                    ]}
+                  >
+                    {t('request-photo')}
+                  </Text>
+                </TouchableOpacity>
+                <Text style={{ color: '#a6a6a6' }}>
+                  {t('request-photo-info')}
+                </Text>
               </View>
-            ))}
+            )}
           </View>
         )}
       </ScrollView>
@@ -134,6 +160,21 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flexGrow: 1,
+  },
+  infoContainer: {
+    marginTop: 50,
+    flex: 1,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    width: 300,
+  },
+  requestButton: {
+    borderRadius: 10,
+    backgroundColor: '#d8d8d8',
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 15,
   },
 });
 

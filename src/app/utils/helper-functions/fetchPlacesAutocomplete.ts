@@ -20,8 +20,6 @@ export const fetchPlaceAutocomplete = async (
     },
   };
 
-  console.log(JSON.stringify(requestBody));
-
   try {
     const response = await fetch(url, {
       method: 'POST',

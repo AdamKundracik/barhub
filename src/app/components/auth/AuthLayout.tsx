@@ -60,7 +60,7 @@ export const AuthLayout = ({ children, pageTitle }: LayoutProps) => {
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    backgroundColor: 'black',
+    backgroundColor: '#020213',
   },
   content: {
     flex: 1,
