@@ -5,6 +5,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  View,
 } from 'react-native';
 import { commonAppStyles, formStyles } from '../../utils/styles/styles';
 import React, { useEffect, useRef, useState } from 'react';
@@ -13,6 +14,7 @@ import { Icons } from '../../utils/icons/icons';
 import { fetchPlaceAutocomplete } from '../../utils/helper-functions/fetchPlacesAutocomplete';
 import { useUserContext } from '../../providers/UserProvider';
 import { PlacePrediction } from '../../utils/types/types';
+import MapSearch from '../shared/MapSearch';
 
 type LayoutProps = {
   setSearching: (isSearching: boolean) => void;
@@ -22,6 +24,8 @@ type LayoutProps = {
 export const PlaceSearch = (props: LayoutProps) => {
   const { location } = useUserContext();
   const [places, setPlaces] = useState<PlacePrediction[]>([]);
+  const [isMapShown, setIsMapShown] = useState<boolean>(false);
+
   const translateY = useRef(new Animated.Value(1000)).current; // Start position is off-screen
 
   useEffect(() => {
@@ -49,19 +53,37 @@ export const PlaceSearch = (props: LayoutProps) => {
     if (places) {
       const predicted = places.suggestions.map(sugs => sugs.placePrediction);
       setPlaces(predicted);
-      console.log(predicted);
     }
   }
+
+  if (isMapShown)
+    return (
+      <Layout pageTitle={'Map search'}>
+        <MapSearch
+          setIsMapShown={setIsMapShown}
+          setPlace={props.setPlace}
+          setIsSearching={props.setSearching}
+        />
+      </Layout>
+    );
 
   return (
     <Layout pageTitle="Search places">
       <Animated.View style={{ transform: [{ translateY }] }}>
-        <TouchableOpacity
-          style={{ paddingVertical: 20 }}
-          onPress={onCancelClick}
+        <View
+          style={{
+            paddingVertical: 20,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+          }}
         >
-          <FontAwesomeIcon icon={Icons.X} size={24} color={'white'} />
-        </TouchableOpacity>
+          <TouchableOpacity onPress={onCancelClick}>
+            <FontAwesomeIcon icon={Icons.X} size={24} color={'white'} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setIsMapShown(true)}>
+            <FontAwesomeIcon icon={Icons.Map} size={24} color={'white'} />
+          </TouchableOpacity>
+        </View>
         <TextInput
           style={formStyles.inputPrimary}
           onChangeText={text => getAutocompletePlaces(text)}
