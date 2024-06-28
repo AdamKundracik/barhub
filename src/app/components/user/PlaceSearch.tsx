@@ -2,6 +2,7 @@ import Layout from './Layout';
 import {
   Animated,
   Easing,
+  PanResponder,
   Text,
   TextInput,
   TouchableOpacity,
@@ -37,6 +38,39 @@ export const PlaceSearch = (props: LayoutProps) => {
     }).start();
   }, []);
 
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // If the user swipes down
+        return gestureState.dy > 10;
+      },
+      onPanResponderMove: Animated.event([null, { dy: translateY }], {
+        useNativeDriver: false,
+      }),
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 300) {
+          // If the swipe is significant, close the window
+          Animated.timing(translateY, {
+            toValue: 1000,
+            duration: 250,
+            easing: Easing.in(Easing.ease),
+            useNativeDriver: true,
+          }).start(() => {
+            props.setSearching(false);
+          });
+        } else {
+          // Otherwise, snap back to the original position
+          Animated.timing(translateY, {
+            toValue: 0,
+            duration: 250,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
   function onCancelClick() {
     Animated.timing(translateY, {
       toValue: 1000, // Move back off-screen
@@ -69,7 +103,10 @@ export const PlaceSearch = (props: LayoutProps) => {
 
   return (
     <Layout pageTitle="Search places">
-      <Animated.View style={{ transform: [{ translateY }] }}>
+      <Animated.View
+        style={{ transform: [{ translateY }] }}
+        {...panResponder.panHandlers}
+      >
         <View
           style={{
             paddingVertical: 20,

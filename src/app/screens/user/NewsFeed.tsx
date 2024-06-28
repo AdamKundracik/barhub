@@ -106,7 +106,7 @@ export const NewsFeed = () => {
     <Layout pageTitle="Feed">
       <ActionsRow setSearching={setSearching} />
       {place && (
-        <View style={{ alignSelf: 'flex-start' }}>
+        <View style={{ alignSelf: 'flex-start', marginBottom: 5 }}>
           <PlaceFilterChip
             setPlace={setPlace}
             place={place.structuredFormat.mainText.text}
