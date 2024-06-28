@@ -57,7 +57,9 @@
     "react-native-svg": "^15.3.0",
     "react-query": "^3.39.3",
     "shared": "file:./modules/shared",
-    "expo-notifications": "~0.28.9"
+    "expo-notifications": "~0.28.9",
+    "expo-device": "~6.0.2",
+    "expo-constants": "~16.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

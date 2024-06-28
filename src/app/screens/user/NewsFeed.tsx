@@ -21,6 +21,7 @@ import { PlacePrediction } from '../../utils/types/types';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import PlaceFilterChip from '../../components/user/PlaceFilterChip';
+import { sendPushNotification } from '../../utils/services/notofications-handler';
 
 export const NewsFeed = () => {
   const queryClient = useQueryClient();
@@ -40,6 +41,10 @@ export const NewsFeed = () => {
   );
 
   const { deleteImage } = useImageManagement();
+
+  async function requestPhoto() {
+    await sendPushNotification('ExponentPushToken[aYDywuOD28ocUrPiWNtivm]');
+  }
 
   const handleScreenFocus = () => {
     const image = queryClient.getQueryData<string>('capturedImage');
@@ -161,7 +166,10 @@ export const NewsFeed = () => {
                     {t('photos-info')}
                   </Text>
                 </View>
-                <TouchableOpacity style={styles.requestButton}>
+                <TouchableOpacity
+                  style={styles.requestButton}
+                  onPress={requestPhoto}
+                >
                   <Text
                     style={[
                       commonAppStyles.textSecondary,
