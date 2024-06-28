@@ -5,6 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
@@ -15,12 +16,20 @@ import { useQuery, useQueryClient } from 'react-query';
 import { useFocusEffect } from '@react-navigation/native';
 import { commonAppStyles } from '../../utils/styles/styles';
 import { listFiles } from '../../utils/helper-functions/helperFunctions';
+import PlaceSearch from '../../components/user/PlaceSearch';
+import { PlacePrediction } from '../../utils/types/types';
+import { useTranslation } from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import PlaceFilterChip from '../../components/user/PlaceFilterChip';
 
 export const NewsFeed = () => {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [fileUrls, setFileUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [zoomedPost, setZoomedPost] = useState<string | null>(null);
+  const [place, setPlace] = useState<PlacePrediction | null>(null);
+  const [searching, setSearching] = useState<boolean>(false);
 
   const { data: imageUploading, refetch } = useQuery(
     'imageUploading',
@@ -39,29 +48,71 @@ export const NewsFeed = () => {
 
   useFocusEffect(handleScreenFocus);
 
-  const getFiles = () => {
+  async function savePlaceToStorage(place: PlacePrediction) {
+    try {
+      await AsyncStorage.setItem('savedPlace', JSON.stringify(place));
+    } catch (error) {
+      console.error('Error saving place to storage:', error);
+    }
+  }
+
+  async function getPlaceFromStorage() {
+    try {
+      const savedPlace = await AsyncStorage.getItem('savedPlace');
+      if (savedPlace) {
+        setPlace(JSON.parse(savedPlace));
+      }
+    } catch (error) {
+      console.error('Error getting place from storage:', error);
+    }
+  }
+
+  const getFiles = async () => {
     setLoading(true);
-    listFiles().then(urls => {
-      if (urls) setFileUrls(urls);
+    try {
+      const urls = await listFiles(place?.placeId);
+      if (urls) {
+        setFileUrls(urls);
+      } else {
+        setFileUrls([]);
+      }
+    } catch (error) {
+      console.error('Error getting files:', error);
+      setFileUrls([]);
+    } finally {
       setLoading(false);
-    });
+    }
   };
 
   const onRefresh = React.useCallback(() => {
-    setLoading(true);
     getFiles();
-    setTimeout(() => {
-      setLoading(false);
-    }, 2000);
+  }, [place]);
+
+  useEffect(() => {
+    getPlaceFromStorage();
   }, []);
 
   useEffect(() => {
     getFiles();
-  }, []);
+    if (place) {
+      savePlaceToStorage(place);
+    }
+  }, [place]);
+
+  if (searching)
+    return <PlaceSearch setSearching={setSearching} setPlace={setPlace} />;
 
   return (
     <Layout pageTitle="Feed">
-      <ActionsRow />
+      <ActionsRow setSearching={setSearching} />
+      {place && (
+        <View style={{ alignSelf: 'flex-start', marginBottom: 5 }}>
+          <PlaceFilterChip
+            setPlace={setPlace}
+            place={place.structuredFormat.mainText.text}
+          />
+        </View>
+      )}
       <ScrollView
         contentContainerStyle={styles.scrollView}
         refreshControl={
@@ -70,7 +121,11 @@ export const NewsFeed = () => {
       >
         {loading ? (
           <View
-            style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+            style={{
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
             <ActivityIndicator size="large" color="#ffffff" />
           </View>
@@ -79,27 +134,48 @@ export const NewsFeed = () => {
             {imageUploading ? (
               <View>
                 <Text style={commonAppStyles.textPrimary}>
-                  {/*docasne*/}
                   Uploading photo...
                 </Text>
               </View>
             ) : null}
-
-            {fileUrls.map(url => (
-              <View
-                key={url}
-                style={{
-                  marginVertical: 10,
-                  zIndex: zoomedPost === url ? 1 : 0,
-                }}
-              >
-                <UserPost
-                  link={url}
-                  setZoomedPost={setZoomedPost}
-                  isZoomed={zoomedPost === url}
-                />
+            {fileUrls.length ? (
+              fileUrls.map(url => (
+                <View
+                  key={url}
+                  style={{
+                    marginVertical: 10,
+                    zIndex: zoomedPost === url ? 1 : 0,
+                  }}
+                >
+                  <UserPost
+                    link={url}
+                    setZoomedPost={setZoomedPost}
+                    isZoomed={zoomedPost === url}
+                  />
+                </View>
+              ))
+            ) : (
+              <View style={styles.infoContainer}>
+                <View style={{ marginBottom: 15, justifyContent: 'center' }}>
+                  <Text style={[commonAppStyles.textPrimary, { fontSize: 22 }]}>
+                    {t('photos-info')}
+                  </Text>
+                </View>
+                <TouchableOpacity style={styles.requestButton}>
+                  <Text
+                    style={[
+                      commonAppStyles.textSecondary,
+                      { fontSize: 22, fontWeight: 'bold' },
+                    ]}
+                  >
+                    {t('request-photo')}
+                  </Text>
+                </TouchableOpacity>
+                <Text style={{ color: '#a6a6a6' }}>
+                  {t('request-photo-info')}
+                </Text>
               </View>
-            ))}
+            )}
           </View>
         )}
       </ScrollView>
@@ -123,6 +199,21 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flexGrow: 1,
+  },
+  infoContainer: {
+    marginTop: 50,
+    flex: 1,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    width: 300,
+  },
+  requestButton: {
+    borderRadius: 10,
+    backgroundColor: '#d8d8d8',
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 15,
   },
 });
 

@@ -17,7 +17,7 @@ export const Layout = ({ children }: LayoutProps) => {
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    backgroundColor: 'black',
+    backgroundColor: '#020213',
   },
   mainContent: {
     flex: 1,

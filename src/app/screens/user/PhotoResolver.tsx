@@ -9,7 +9,6 @@ import {
   View,
 } from 'react-native';
 import Layout from '../../components/user/Layout';
-import { useAuthContext } from '../../providers/AuthProvider';
 import { fetchNearbyPlaces } from '../../utils/helper-functions/fetchNearByPlaces';
 import { Place } from '../../utils/types/types';
 import { PlaceDetail } from '../../components/user/PlaceDetail';
@@ -19,11 +18,12 @@ import { Icons } from '../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
 import { useTranslation } from 'react-i18next';
+import { useUserContext } from '../../providers/UserProvider';
 
 export const PhotoResolver = ({ route }: any) => {
-  const { location, setLocation } = useAuthContext();
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
+  const { location } = useUserContext();
 
   const mapRef = useRef<MapView>(null);
   const [isSaving, setIsSaving] = useState(false);

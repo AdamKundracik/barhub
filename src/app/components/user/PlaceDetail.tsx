@@ -15,7 +15,6 @@ import { commonAppStyles, formStyles } from '../../utils/styles/styles';
 import { fetchPlaceDetails } from '../../utils/helper-functions/fetchPlaceDetail';
 import { fetchPlacePhotos } from '../../utils/helper-functions/fetchPlacePhotos';
 import { getDistanceData } from '../../utils/helper-functions/getDistanceData';
-import { useAuthContext } from '../../providers/AuthProvider';
 import { useImageManagement } from '../../utils/hooks/useImageManagement';
 import { useQueryClient } from 'react-query';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -24,6 +23,7 @@ import { uploadImageAsync } from '../../utils/helper-functions/helperFunctions';
 import { max_distance } from '../../utils/helper-functions/constants';
 import { useTranslation } from 'react-i18next';
 import { useUploadingStateManagement } from '../../utils/hooks/useUploadingStateManagement';
+import { useUserContext } from '../../providers/UserProvider';
 
 type PlaceDetailModalProps = {
   isOpen: boolean;
@@ -37,7 +37,7 @@ export const PlaceDetail = memo(
     const { t } = useTranslation();
 
     const navigation = useNavigation<NavigationProp<UserStackList>>();
-    const { location } = useAuthContext();
+    const { location } = useUserContext();
     const [placeDetail, setPlaceDetail] = useState<PlaceDetailsResponse | null>(
       null
     );

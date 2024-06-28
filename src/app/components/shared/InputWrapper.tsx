@@ -6,7 +6,7 @@ import { Icons } from '../../utils/icons/icons';
 
 type LayoutProps = {
   children: ReactNode | ReactNode[];
-  inputLabel: string;
+  inputLabel?: string;
   passwordInput?: boolean;
   togglePassword?: boolean;
   setTogglePassword?: (show: boolean) => void;

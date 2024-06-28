@@ -10,15 +10,24 @@ import { getCurrentUser } from '../utils/services/functions';
 import { auth } from '../../../firebaseConfig';
 import { GetUserResult } from '../utils/helper-functions/functions-types';
 import { User } from '../../../shared';
+import { getProfilePicture } from '../utils/helper-functions/helperFunctions';
+import { LocationType } from '../utils/types/types';
+import { getCoords } from '../utils/helper-functions/get-coords';
 
 type ContextProps = {
+  location: LocationType;
+  setLocation: (value: LocationType) => void;
   userData: User | null;
+  profileUri: string;
   isLoading: boolean;
 };
 
 const initialContext: ContextProps = {
+  profileUri: '',
   userData: null,
   isLoading: true,
+  location: { latitude: 0, longitude: 0 },
+  setLocation: value => {},
 };
 
 interface Props {
@@ -30,6 +39,39 @@ const UserContext = createContext<Partial<ContextProps>>(initialContext);
 export const UserProvider = (props: Props) => {
   const [userData, setUserData] = useState<GetUserResult['data'] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [profileUri, setProfileUri] = useState<string>('');
+  const [location, setLocation] = useState<LocationType>({
+    latitude: 0,
+    longitude: 0,
+  });
+
+  async function getLocation(): Promise<void> {
+    try {
+      const coords: LocationType = await getCoords();
+      setLocation(coords);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  useEffect(() => {
+    if (auth.currentUser?.uid) {
+      getLocation().catch(e => console.error(e));
+      const interval = setInterval(() => {
+        getLocation().catch(e => console.error(e));
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, []);
+
+  useEffect(() => {
+    async function getImage() {
+      const uri = await getProfilePicture();
+      if (uri) setProfileUri(uri);
+    }
+
+    getImage();
+  }, [auth.currentUser?.uid]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -45,10 +87,13 @@ export const UserProvider = (props: Props) => {
 
   const ctx = useMemo(() => {
     return {
+      profileUri,
       userData,
       isLoading,
+      location,
+      setLocation,
     };
-  }, [userData, isLoading]);
+  }, [profileUri, userData, isLoading, location, setLocation]);
 
   return (
     <UserContext.Provider value={ctx}>{props.children}</UserContext.Provider>
