@@ -35,7 +35,6 @@ export const uploadImageAsync = async (
     await savePost(newPost);
     const storageRef = ref(storage, fileId);
     uploadBytes(storageRef, blob).then(result => {
-      console.log('Upload successful!');
       hook.mutate(false);
     });
   } catch (error) {

@@ -19,6 +19,8 @@ import { listFiles } from '../../utils/helper-functions/helperFunctions';
 import PlaceSearch from '../../components/user/PlaceSearch';
 import { PlacePrediction } from '../../utils/types/types';
 import { useTranslation } from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import PlaceFilterChip from '../../components/user/PlaceFilterChip';
 
 export const NewsFeed = () => {
   const queryClient = useQueryClient();
@@ -46,24 +48,55 @@ export const NewsFeed = () => {
 
   useFocusEffect(handleScreenFocus);
 
-  const getFiles = () => {
+  async function savePlaceToStorage(place: PlacePrediction) {
+    try {
+      await AsyncStorage.setItem('savedPlace', JSON.stringify(place));
+    } catch (error) {
+      console.error('Error saving place to storage:', error);
+    }
+  }
+
+  async function getPlaceFromStorage() {
+    try {
+      const savedPlace = await AsyncStorage.getItem('savedPlace');
+      if (savedPlace) {
+        setPlace(JSON.parse(savedPlace));
+      }
+    } catch (error) {
+      console.error('Error getting place from storage:', error);
+    }
+  }
+
+  const getFiles = async () => {
     setLoading(true);
-    listFiles(place?.placeId).then(urls => {
-      if (urls) setFileUrls(urls);
+    try {
+      const urls = await listFiles(place?.placeId);
+      if (urls) {
+        setFileUrls(urls);
+      } else {
+        setFileUrls([]);
+      }
+    } catch (error) {
+      console.error('Error getting files:', error);
+      setFileUrls([]);
+    } finally {
       setLoading(false);
-    });
+    }
   };
 
   const onRefresh = React.useCallback(() => {
-    setLoading(true);
     getFiles();
-    setTimeout(() => {
-      setLoading(false);
-    }, 2000);
+  }, [place]);
+
+  useEffect(() => {
+    getPlaceFromStorage();
   }, []);
 
   useEffect(() => {
     getFiles();
+    if (place) {
+      savePlaceToStorage(place);
+    }
   }, [place]);
 
   if (searching)
@@ -72,6 +105,14 @@ export const NewsFeed = () => {
   return (
     <Layout pageTitle="Feed">
       <ActionsRow setSearching={setSearching} />
+      {place && (
+        <View style={{ alignSelf: 'flex-start' }}>
+          <PlaceFilterChip
+            setPlace={setPlace}
+            place={place.structuredFormat.mainText.text}
+          />
+        </View>
+      )}
       <ScrollView
         contentContainerStyle={styles.scrollView}
         refreshControl={
@@ -93,12 +134,10 @@ export const NewsFeed = () => {
             {imageUploading ? (
               <View>
                 <Text style={commonAppStyles.textPrimary}>
-                  {/*docasne*/}
                   Uploading photo...
                 </Text>
               </View>
             ) : null}
-
             {fileUrls.length ? (
               fileUrls.map(url => (
                 <View

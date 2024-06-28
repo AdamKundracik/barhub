@@ -14,7 +14,7 @@ import {
   View,
 } from 'react-native';
 import { Place, PlacePrediction } from '../../utils/types/types';
-import Layout from '../user/Layout';
+import Layout from './Layout';
 import { useEffect, useRef, useState } from 'react';
 import { fetchNearbyPlaces } from '../../utils/helper-functions/fetchNearByPlaces';
 import { useTranslation } from 'react-i18next';

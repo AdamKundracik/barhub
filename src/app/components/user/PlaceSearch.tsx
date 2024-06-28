@@ -14,7 +14,7 @@ import { Icons } from '../../utils/icons/icons';
 import { fetchPlaceAutocomplete } from '../../utils/helper-functions/fetchPlacesAutocomplete';
 import { useUserContext } from '../../providers/UserProvider';
 import { PlacePrediction } from '../../utils/types/types';
-import MapSearch from '../shared/MapSearch';
+import MapSearch from './MapSearch';
 
 type LayoutProps = {
   setSearching: (isSearching: boolean) => void;
