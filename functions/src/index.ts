@@ -54,7 +54,6 @@ export const getAllUsers = functions.https.onCall(
         }
 
         const usersCollection = db.collection('users');
-        console.log('Fetching users collection...');
 
         try {
             const snapshot = await usersCollection.get();
@@ -109,7 +108,6 @@ export const testLog = functions.https.onCall(
         }
 
         const usersCollection = db.collection('users');
-        console.log('Fetching users collection...');
 
         try {
             const snapshot = await usersCollection.where('uid', "!=", context.auth.uid).get();
