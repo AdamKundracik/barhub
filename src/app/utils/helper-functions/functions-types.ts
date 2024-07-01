@@ -102,6 +102,17 @@ export type GetUserResult = {
   data?: User;
 };
 
+export type GetALlUsersResponse = {
+  data: GetUserResult;
+};
+
+export type GetAllUsersResult = {
+  status: ServiceStatusEnum;
+  code: ServiceCodeEnum;
+  message?: string;
+  data?: { users: User[] };
+};
+
 export type SignInUserRequest = {
   data: SignInUserRequestData;
 };

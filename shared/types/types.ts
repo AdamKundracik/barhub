@@ -1,3 +1,5 @@
+import { LocationType } from '../../src/app/utils/types/types';
+
 export interface UserRecord {
   customClaims: { [key: string]: any };
   disabled: boolean;
@@ -23,4 +25,6 @@ export interface UserRecord {
 
 export interface User extends UserRecord {
   dateOfBirth: Date;
+  location: LocationType;
+  pushToken: string;
 }

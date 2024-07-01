@@ -3,6 +3,7 @@ import { functions } from '../../../../firebaseConfig';
 import {
   EmptyDataResponse,
   EmptyDataResult,
+  GetAllUsersResult,
   GetUserResult,
   SetDocumentFromCollectionRequest,
 } from '../helper-functions/functions-types';
@@ -43,5 +44,17 @@ export const getCurrentUser = async (
   if (!userId) return MISSING_REQUIRED_REQUEST_PARAMS;
   const cloudFunction = httpsCallable(functions, 'getCurrentUser');
   const response = (await cloudFunction(userId)) as unknown as GetUserResult;
+  return response;
+};
+
+export const getAllUsers = async (): Promise<GetAllUsersResult> => {
+  const cloudFunction = httpsCallable(functions, 'getAllUsers');
+  const response = (await cloudFunction()) as unknown as GetAllUsersResult;
+  return response;
+};
+
+export const testLog = async (): Promise<GetAllUsersResult> => {
+  const cloudFunction = httpsCallable(functions, 'testLog');
+  const response = (await cloudFunction()) as unknown as GetAllUsersResult;
   return response;
 };

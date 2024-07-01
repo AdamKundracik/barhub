@@ -19,12 +19,18 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { commonAppStyles } from '../../utils/styles/styles';
 import { useTranslation } from 'react-i18next';
 import { Icons } from '../../utils/icons/icons';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import {
+  NavigationProp,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
 import { useQueryClient } from 'react-query';
 import { useImageManagement } from '../../utils/hooks/useImageManagement';
 
 export const CameraScreen = () => {
+  const route = useRoute();
+
   const queryClient = useQueryClient();
   const [isSaving, setIsSaving] = useState(false);
   const { t } = useTranslation();

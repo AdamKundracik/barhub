@@ -17,10 +17,12 @@ import { useFocusEffect } from '@react-navigation/native';
 import { commonAppStyles } from '../../utils/styles/styles';
 import { listFiles } from '../../utils/helper-functions/helperFunctions';
 import PlaceSearch from '../../components/user/PlaceSearch';
-import { PlacePrediction } from '../../utils/types/types';
+import { PlaceDetailsResponse, PlacePrediction } from '../../utils/types/types';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import PlaceFilterChip from '../../components/user/PlaceFilterChip';
+import { sendNotificationHandler } from '../../utils/helper-functions/sendNotificationHandler';
+import { fetchPlaceDetails } from '../../utils/helper-functions/fetchPlaceDetail';
 import { sendPushNotification } from '../../utils/services/notofications-handler';
 
 export const NewsFeed = () => {
@@ -43,7 +45,20 @@ export const NewsFeed = () => {
   const { deleteImage } = useImageManagement();
 
   async function requestPhoto() {
-    await sendPushNotification('ExponentPushToken[aYDywuOD28ocUrPiWNtivm]');
+    if (place) {
+      const detail: PlaceDetailsResponse = await fetchPlaceDetails(
+        place.placeId
+      );
+      console.log(detail.result.geometry.location);
+      const tokens = await sendNotificationHandler({
+        latitude: detail.result.geometry.location.lat,
+        longitude: detail.result.geometry.location.lng,
+      });
+      console.log('tokens', tokens);
+      tokens.forEach(token => {
+        sendPushNotification(token, place.placeId);
+      });
+    }
   }
 
   const handleScreenFocus = () => {

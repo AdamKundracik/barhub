@@ -84,3 +84,9 @@ export async function registerForPushNotificationsAsync() {
     handleRegistrationError('Must use physical device for push notifications');
   }
 }
+
+export const listenToNotificationsAsync = async () => {
+  Notifications.getLastNotificationResponseAsync().then(response => {
+    console.log('resp', response?.notification.date);
+  });
+};

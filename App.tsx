@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { useEffect, useRef, useState } from 'react';
 import * as Notifications from 'expo-notifications';
 import { registerForPushNotificationsAsync } from './src/app/utils/services/notofications-handler';
+import { setUser } from './src/app/utils/services/functions';
 
 export default function App() {
   const [expoPushToken, setExpoPushToken] = useState('');
@@ -16,8 +17,15 @@ export default function App() {
   const responseListener = useRef<Notifications.Subscription>();
 
   useEffect(() => {
+    async function setTokenToDatabase(pushToken: string) {
+      await setUser({ pushToken: pushToken });
+    }
+
     registerForPushNotificationsAsync()
-      .then(token => setExpoPushToken(token ?? ''))
+      .then((token: string | undefined) => {
+        setExpoPushToken(token ?? '');
+        setTokenToDatabase(token ?? '');
+      })
       .catch((error: any) => setExpoPushToken(`${error}`));
 
     notificationListener.current =
@@ -27,7 +35,7 @@ export default function App() {
 
     responseListener.current =
       Notifications.addNotificationResponseReceivedListener(response => {
-        console.log(response);
+        const data = response.notification.request.content.data.placeId;
       });
 
     return () => {
