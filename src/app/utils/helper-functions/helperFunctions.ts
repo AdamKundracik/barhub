@@ -10,6 +10,7 @@ import { savePost } from '../services/functions';
 import { Post } from '../types/types';
 import { generateId } from './generate-hash';
 import { UseMutationResult } from 'react-query';
+import * as ImageManipulator from 'expo-image-manipulator';
 
 export const uploadImageAsync = async (
   uri: string,
@@ -48,17 +49,27 @@ export const uploadImageAsync = async (
 };
 
 const uriToBlob = async (uri: string): Promise<Blob> => {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.onload = function () {
-      resolve(xhr.response);
-    };
-    xhr.onerror = function () {
-      reject(new Error('uriToBlob failed'));
-    };
-    xhr.responseType = 'blob';
-    xhr.open('GET', uri, true);
-    xhr.send(null);
+  return new Promise(async (resolve, reject) => {
+    try {
+      const manipResult = await ImageManipulator.manipulateAsync(
+        uri,
+        [{ resize: { width: 576, height: 786 } }],
+        { compress: 0.8, format: ImageManipulator.SaveFormat.PNG }
+      );
+
+      const xhr = new XMLHttpRequest();
+      xhr.onload = function () {
+        resolve(xhr.response);
+      };
+      xhr.onerror = function () {
+        reject(new Error('uriToBlob failed'));
+      };
+      xhr.responseType = 'blob';
+      xhr.open('GET', manipResult.uri, true);
+      xhr.send(null);
+    } catch (error) {
+      reject(error);
+    }
   });
 };
 

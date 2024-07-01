@@ -25,18 +25,20 @@ export const UserPost = (props: PostInterface) => {
 
   const pinch = Gesture.Pinch()
     .onStart(g => {
-      if (g.numberOfPointers == 2) {
+      if (g.numberOfPointers === 2) {
         focalX.value = g.focalX;
         focalY.value = g.focalY;
       }
       setZoomedPost(link);
     })
     .onUpdate(g => {
-      scale.value = g.scale;
-      const dx = g.focalX - focalX.value;
-      const dy = g.focalY - focalY.value;
-      xCurrent.value = dx * -(1 - g.scale);
-      yCurrent.value = dy * -(1 - g.scale);
+      if (g.scale >= 1) {
+        scale.value = g.scale;
+        const dx = g.focalX - focalX.value;
+        const dy = g.focalY - focalY.value;
+        xCurrent.value = dx * -(1 - g.scale);
+        yCurrent.value = dy * -(1 - g.scale);
+      }
     })
     .onEnd(() => {
       // Animate values back to original states
