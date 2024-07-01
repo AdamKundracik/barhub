@@ -24,6 +24,7 @@ import { max_distance } from '../../utils/helper-functions/constants';
 import { useTranslation } from 'react-i18next';
 import { useUploadingStateManagement } from '../../utils/hooks/useUploadingStateManagement';
 import { useUserContext } from '../../providers/UserProvider';
+import { setUser } from '../../utils/services/functions';
 
 type PlaceDetailModalProps = {
   isOpen: boolean;
@@ -102,11 +103,18 @@ export const PlaceDetail = memo(
           if (image && place?.id) {
             setIsSaving(true);
             setUploadingState.mutate(true);
-            uploadImageAsync(image, setUploadingState, place?.id).then(() => {
+            uploadImageAsync(
+              image,
+              setUploadingState,
+              place?.id,
+              place.displayName.text,
+              place.formattedAddress
+            ).then(() => {
               onClose();
               navigation.navigate('Feed');
               deleteImage.mutate();
             });
+            setUser({ lastUploadedPost: new Date() });
           }
         } else {
           Alert.alert(

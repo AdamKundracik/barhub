@@ -6,7 +6,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { getCurrentUser } from '../utils/services/functions';
+import { getCurrentUser, setUser } from '../utils/services/functions';
 import { auth } from '../../../firebaseConfig';
 import { GetUserResult } from '../utils/helper-functions/functions-types';
 import { User } from '../../../shared';
@@ -48,6 +48,9 @@ export const UserProvider = (props: Props) => {
   async function getLocation(): Promise<void> {
     try {
       const coords: LocationType = await getCoords();
+      await setUser({
+        location: { latitude: coords.latitude, longitude: coords.longitude },
+      });
       setLocation(coords);
     } catch (e) {
       console.error(e);
@@ -59,7 +62,7 @@ export const UserProvider = (props: Props) => {
       getLocation().catch(e => console.error(e));
       const interval = setInterval(() => {
         getLocation().catch(e => console.error(e));
-      }, 5000);
+      }, 150000);
       return () => clearInterval(interval);
     }
   }, []);

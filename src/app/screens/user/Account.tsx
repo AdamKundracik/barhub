@@ -48,7 +48,7 @@ export const Account = () => {
           }
           style={styles.profilePicture}
         />
-        <Text style={styles.userName}>{user?.displayName}</Text>
+        <Text style={styles.userName}>{auth.currentUser?.displayName}</Text>
         <Text style={styles.userName}>{user?.email}</Text>
         <Text style={styles.picturesTaken}>Pictures taken: %PICTURES%</Text>
         <TouchableOpacity style={styles.button}>
