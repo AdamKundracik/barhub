@@ -8,12 +8,16 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import UserPost from '../../components/user/UserPost';
 import ActionsRow from '../../components/user/ActionsRow';
 import { useImageManagement } from '../../utils/hooks/useImageManagement';
 import { useQuery, useQueryClient } from 'react-query';
-import { useFocusEffect } from '@react-navigation/native';
+import {
+  NavigationProp,
+  useFocusEffect,
+  useNavigation,
+} from '@react-navigation/native';
 import { commonAppStyles } from '../../utils/styles/styles';
 import { listFiles } from '../../utils/helper-functions/helperFunctions';
 import PlaceSearch from '../../components/user/PlaceSearch';
@@ -23,16 +27,72 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import PlaceFilterChip from '../../components/user/PlaceFilterChip';
 import { sendNotificationHandler } from '../../utils/helper-functions/sendNotificationHandler';
 import { fetchPlaceDetails } from '../../utils/helper-functions/fetchPlaceDetail';
-import { sendPushNotification } from '../../utils/services/notofications-handler';
+import {
+  registerForPushNotificationsAsync,
+  sendPushNotification,
+} from '../../utils/services/notofications-handler';
+import * as Notifications from 'expo-notifications';
+import { setUser } from '../../utils/services/functions';
+import { UserStackList } from '../../utils/types/screen-types';
+import { useUserContext } from '../../providers/UserProvider';
 
 export const NewsFeed = () => {
+  const navigation = useNavigation<NavigationProp<UserStackList>>();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
+  const { userData } = useUserContext();
+  const { deleteImage } = useImageManagement();
+
   const [fileUrls, setFileUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [zoomedPost, setZoomedPost] = useState<string | null>(null);
   const [place, setPlace] = useState<PlacePrediction | null>(null);
   const [searching, setSearching] = useState<boolean>(false);
+
+  const [expoPushToken, setExpoPushToken] = useState('');
+  const [notification, setNotification] = useState<
+    Notifications.Notification | undefined
+  >(undefined);
+  const notificationListener = useRef<Notifications.Subscription>();
+  const responseListener = useRef<Notifications.Subscription>();
+
+  useEffect(() => {
+    async function setTokenToDatabase(pushToken: string) {
+      await setUser({ pushToken: pushToken });
+    }
+
+    registerForPushNotificationsAsync()
+      .then((token: string | undefined) => {
+        setExpoPushToken(token ?? '');
+        setTokenToDatabase(token ?? '');
+      })
+      .catch((error: any) => setExpoPushToken(`${error}`));
+
+    notificationListener.current =
+      Notifications.addNotificationReceivedListener(notification => {
+        setNotification(notification);
+      });
+
+    responseListener.current =
+      Notifications.addNotificationResponseReceivedListener(response => {
+        const placeId = response.notification.request.content.data.placeId;
+        const senderToken =
+          response.notification.request.content.data.senderToken;
+        navigation.navigate('Camera', {
+          placeId: placeId,
+          senderToken: senderToken,
+        });
+      });
+
+    return () => {
+      notificationListener.current &&
+        Notifications.removeNotificationSubscription(
+          notificationListener.current
+        );
+      responseListener.current &&
+        Notifications.removeNotificationSubscription(responseListener.current);
+    };
+  }, []);
 
   const { data: imageUploading, refetch } = useQuery(
     'imageUploading',
@@ -42,21 +102,24 @@ export const NewsFeed = () => {
     }
   );
 
-  const { deleteImage } = useImageManagement();
+  useEffect(() => {
+    getFiles();
+  }, [imageUploading]);
 
   async function requestPhoto() {
+    console.log(userData);
+    const senderToken = userData?.pushToken;
     if (place) {
       const detail: PlaceDetailsResponse = await fetchPlaceDetails(
         place.placeId
       );
-      console.log(detail.result.geometry.location);
       const tokens = await sendNotificationHandler({
         latitude: detail.result.geometry.location.lat,
         longitude: detail.result.geometry.location.lng,
       });
       console.log('tokens', tokens);
       tokens.forEach(token => {
-        sendPushNotification(token, place.placeId);
+        sendPushNotification(token, place.placeId, senderToken ?? '');
       });
     }
   }

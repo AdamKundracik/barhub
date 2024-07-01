@@ -27,11 +27,24 @@ import {
 import { UserStackList } from '../../utils/types/screen-types';
 import { useQueryClient } from 'react-query';
 import { useImageManagement } from '../../utils/hooks/useImageManagement';
+import { useUploadingStateManagement } from '../../utils/hooks/useUploadingStateManagement';
+import { uploadImageAsync } from '../../utils/helper-functions/helperFunctions';
+import { sendPushNotificationResponse } from '../../utils/services/notofications-handler';
+import { useUserContext } from '../../providers/UserProvider';
+import { fetchPlaceDetails } from '../../utils/helper-functions/fetchPlaceDetail';
+import { PlaceDetailsResponse } from '../../utils/types/types';
 
 export const CameraScreen = () => {
   const route = useRoute();
+  const routeResponse = route.params as {
+    placeId: string;
+    senderToken: string;
+  };
 
+  const { userData } = useUserContext();
   const queryClient = useQueryClient();
+  const { setUploadingState } = useUploadingStateManagement();
+
   const [isSaving, setIsSaving] = useState(false);
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
@@ -41,6 +54,7 @@ export const CameraScreen = () => {
   const camera = useRef(null);
   const image = queryClient.getQueryData<string>('capturedImage');
   const { saveImage, deleteImage } = useImageManagement();
+
   const captureImage = async () => {
     if (permission?.granted && camera.current) {
       try {
@@ -51,6 +65,40 @@ export const CameraScreen = () => {
       }
     }
   };
+
+  async function saveImageFromCamera() {
+    if (!image) {
+      console.error('No image');
+      return;
+    }
+
+    if (routeResponse?.placeId) {
+      const token = userData?.pushToken;
+      const place: PlaceDetailsResponse = await fetchPlaceDetails(
+        routeResponse.placeId
+      );
+      if (!token) {
+        return;
+      }
+      setIsSaving(true);
+      uploadImageAsync(
+        image,
+        setUploadingState,
+        routeResponse?.placeId,
+        place.result.name,
+        place.result.formatted_address
+      ).then(() => {
+        navigation.navigate('Feed');
+        setIsSaving(false);
+        sendPushNotificationResponse(
+          routeResponse.senderToken,
+          routeResponse.placeId
+        ).then();
+      });
+    } else {
+      navigation.navigate('PhotoResolver');
+    }
+  }
 
   function toggleCameraFacing() {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
@@ -144,9 +192,7 @@ export const CameraScreen = () => {
                 <View>
                   <TouchableOpacity
                     style={styles.button}
-                    onPress={() => {
-                      navigation.navigate('PhotoResolver');
-                    }}
+                    onPress={saveImageFromCamera}
                   >
                     <Text
                       style={[

@@ -1,7 +1,7 @@
 import { LocationType } from '../types/types';
-import { haversineDistance } from './distanceBetweenPoints';
 import { testLog } from '../services/functions';
 import { User } from '../../../../shared';
+import { haversineDistance } from './distanceBetweenPoints';
 
 export const sendNotificationHandler = async (
   placeLocation: LocationType
@@ -24,18 +24,24 @@ export const sendNotificationHandler = async (
       return [];
     }
 
-    users?.forEach(user => {
-      const distanceResp = haversineDistance(
-        user?.location?.latitude,
-        user?.location?.longitude,
-        placeLocation?.latitude,
-        placeLocation?.longitude // Correct the last parameter to placeLocation.longitude
-      );
+    users
+      ?.filter(user => user.pushToken)
+      .forEach(user => {
+        const distanceResp = Math.round(
+          haversineDistance(
+            user?.location?.latitude,
+            user?.location?.longitude,
+            placeLocation?.latitude,
+            placeLocation?.longitude // Correct the last parameter to placeLocation.longitude
+          )
+        );
 
-      if (distanceResp < 30) {
-        tokens.push(user.pushToken);
-      }
-    });
+        console.log(distanceResp);
+
+        if (distanceResp < 30) {
+          tokens.push(user.pushToken);
+        }
+      });
   } catch (error) {
     console.error('Error in sendNotificationHandler:', error);
   }

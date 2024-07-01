@@ -1,4 +1,5 @@
 import { User } from '../../../../shared';
+import { Post } from '../types/types';
 
 export const COLLECTION = {
   USERS: 'users',
@@ -111,6 +112,13 @@ export type GetAllUsersResult = {
   code: ServiceCodeEnum;
   message?: string;
   data?: { users: User[] };
+};
+
+export type GetAllPostsResult = {
+  status: ServiceStatusEnum;
+  code: ServiceCodeEnum;
+  message?: string;
+  data?: { posts: Post[] };
 };
 
 export type SignInUserRequest = {

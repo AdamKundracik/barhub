@@ -112,7 +112,7 @@ export const testLog = functions.https.onCall(
         console.log('Fetching users collection...');
 
         try {
-            const snapshot = await usersCollection.get();
+            const snapshot = await usersCollection.where('uid', "!=", context.auth.uid).get();
             const users: User[] = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()

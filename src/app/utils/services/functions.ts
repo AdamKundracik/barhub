@@ -3,6 +3,7 @@ import { functions } from '../../../../firebaseConfig';
 import {
   EmptyDataResponse,
   EmptyDataResult,
+  GetAllPostsResult,
   GetAllUsersResult,
   GetUserResult,
   SetDocumentFromCollectionRequest,
@@ -56,5 +57,11 @@ export const getAllUsers = async (): Promise<GetAllUsersResult> => {
 export const testLog = async (): Promise<GetAllUsersResult> => {
   const cloudFunction = httpsCallable(functions, 'testLog');
   const response = (await cloudFunction()) as unknown as GetAllUsersResult;
+  return response;
+};
+
+export const getPosts = async (): Promise<GetAllPostsResult> => {
+  const cloudFunction = httpsCallable(functions, 'getPosts');
+  const response = (await cloudFunction()) as unknown as GetAllPostsResult;
   return response;
 };

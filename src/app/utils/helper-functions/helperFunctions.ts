@@ -14,7 +14,9 @@ import { UseMutationResult } from 'react-query';
 export const uploadImageAsync = async (
   uri: string,
   hook: UseMutationResult<boolean, unknown, boolean, unknown>,
-  placeId: string
+  placeId: string,
+  placeName: string,
+  placeAddress: string
 ): Promise<void> => {
   try {
     if (!auth.currentUser) {
@@ -26,10 +28,13 @@ export const uploadImageAsync = async (
     const fileId = `${placeId}/${new Date().getTime().toString() + '_' + auth.currentUser?.uid}`;
     const newPost: Post = {
       uid: generateId(),
+      user_id: auth.currentUser?.uid,
       name: auth.currentUser.displayName ?? '',
       fileId: fileId,
       folderId: auth.currentUser.uid,
       creationTime: new Date(),
+      placeName: placeName,
+      placeAddress: placeAddress,
     };
 
     await savePost(newPost);

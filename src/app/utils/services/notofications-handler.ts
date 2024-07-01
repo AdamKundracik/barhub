@@ -12,14 +12,38 @@ Notifications.setNotificationHandler({
 });
 
 export async function sendPushNotification(
-  expoPushToken: string,
-  placeId: string
+  expoPushTokenRecipient: string,
+  placeId: string,
+  senderToken: string
 ) {
   const message = {
-    to: expoPushToken,
+    to: expoPushTokenRecipient,
     sound: 'default',
     title: 'Someone is requesting photo!',
     body: 'Will you show him how it looks inside?',
+    data: { placeId: placeId, senderToken: senderToken },
+  };
+
+  await fetch('https://exp.host/--/api/v2/push/send', {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Accept-encoding': 'gzip, deflate',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(message),
+  });
+}
+
+export async function sendPushNotificationResponse(
+  expoPushTokenRecipient: string,
+  placeId: string
+) {
+  const message = {
+    to: expoPushTokenRecipient,
+    sound: 'default',
+    title: 'Someone posted photo from requested place!',
+    body: 'Check out how it looks inside!',
     data: { placeId: placeId },
   };
 
@@ -70,12 +94,16 @@ export async function registerForPushNotificationsAsync() {
       handleRegistrationError('Project ID not found');
     }
     try {
-      const pushTokenString = (
-        await Notifications.getExpoPushTokenAsync({
-          projectId: Constants?.expoConfig?.extra?.eas.projectId,
-        })
-      ).data;
-      console.log(pushTokenString);
+      let pushTokenString: string;
+      if (Platform.OS === 'ios') {
+        pushTokenString = (
+          await Notifications.getExpoPushTokenAsync({
+            projectId: Constants?.expoConfig?.extra?.eas.projectId,
+          })
+        ).data;
+      } else {
+        pushTokenString = (await Notifications.getDevicePushTokenAsync()).data;
+      }
       return pushTokenString;
     } catch (e: unknown) {
       handleRegistrationError(`${e}`);

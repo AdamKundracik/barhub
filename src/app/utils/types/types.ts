@@ -16,9 +16,12 @@ export type Settings = {
 
 export type Post = {
   creationTime: Date;
+  user_id: string;
   fileId: string;
   folderId: string;
   name: string;
+  placeName: string;
+  placeAddress: string;
   uid: string;
 };
 

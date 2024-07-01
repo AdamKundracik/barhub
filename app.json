@@ -45,6 +45,7 @@
           ]
         }
       ],
+      "googleServicesFile": "./path/to/google-services.json",
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.CAMERA",
