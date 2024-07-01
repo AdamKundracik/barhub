@@ -10,7 +10,6 @@ export const sendNotificationHandler = async (
 
   try {
     const usersResponse = await testLog();
-    console.log(usersResponse.data);
 
     if (!usersResponse.data) {
       console.error('No users found or data is not in the expected format');
@@ -35,8 +34,6 @@ export const sendNotificationHandler = async (
             placeLocation?.longitude // Correct the last parameter to placeLocation.longitude
           )
         );
-
-        console.log(distanceResp);
 
         if (distanceResp < 30) {
           tokens.push(user.pushToken);

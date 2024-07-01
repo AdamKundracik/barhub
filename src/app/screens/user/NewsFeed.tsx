@@ -107,7 +107,6 @@ export const NewsFeed = () => {
   }, [imageUploading]);
 
   async function requestPhoto() {
-    console.log(userData);
     const senderToken = userData?.pushToken;
     if (place) {
       const detail: PlaceDetailsResponse = await fetchPlaceDetails(
@@ -117,7 +116,6 @@ export const NewsFeed = () => {
         latitude: detail.result.geometry.location.lat,
         longitude: detail.result.geometry.location.lng,
       });
-      console.log('tokens', tokens);
       tokens.forEach(token => {
         sendPushNotification(token, place.placeId, senderToken ?? '');
       });

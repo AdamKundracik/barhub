@@ -29,7 +29,6 @@ export const setUser = async (
   data: Partial<User>
 ): Promise<EmptyDataResult> => {
   if (!data) return MISSING_REQUIRED_REQUEST_PARAMS;
-  console.log(data);
   const cloudFunction = httpsCallable<
     SetDocumentFromCollectionRequest['data']['data']
   >(functions, 'setUser');
