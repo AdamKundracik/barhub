@@ -32,7 +32,7 @@ export const uploadImageAsync = async (
       user_id: auth.currentUser?.uid,
       name: auth.currentUser.displayName ?? '',
       fileId: fileId,
-      folderId: auth.currentUser.uid,
+      folderId: placeId,
       creationTime: new Date(),
       placeName: placeName,
       placeAddress: placeAddress,

@@ -20,7 +20,7 @@ export const savePost = async (
     SetDocumentFromCollectionRequest['data']['data']
   >(functions, 'savePost');
   const { data: response } = (await cloudFunction({
-    data: data,
+    data,
   })) as unknown as EmptyDataResponse;
   return response;
 };
