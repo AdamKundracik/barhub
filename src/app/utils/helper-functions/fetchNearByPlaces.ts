@@ -6,6 +6,7 @@ export const fetchNearbyPlaces = async (location: LocationType) => {
   const requestBody = {
     includedTypes: ['restaurant', 'bar', 'cafe'],
     maxResultCount: 20,
+    languageCode: 'en',
     locationRestriction: {
       circle: {
         center: {

@@ -8,7 +8,8 @@ export const fetchPlaceAutocomplete = async (
   const url = 'https://places.googleapis.com/v1/places:autocomplete';
   const requestBody = {
     input: input,
-    includedPrimaryTypes: ['restaurant', 'bar', 'cafe'],
+    includedPrimaryTypes: ['restaurant', 'bar', 'cafe', 'bakery'],
+    languageCode: 'en',
     locationRestriction: {
       circle: {
         center: {

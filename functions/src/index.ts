@@ -143,16 +143,14 @@ exports.getFreshContent = functions.https.onCall(
 
     try {
       const now = admin.firestore.Timestamp.now();
-      const threeHoursAgo = new Date(
-        now.toDate().getTime() - 3 * 60 * 60 * 1000
+      const threeDaysAgo = new Date(
+        now.toDate().getTime() - 3 * 24 * 60 * 60 * 1000
       );
-      const threeHoursAgoTimestamp = threeHoursAgo.getTime();
-
-      const limit = 10; // Number of items to fetch, default to 10
+      const threeDayssAgoTimestamp = threeDaysAgo.getTime();
 
       const query = await db
         .collection('posts')
-        .where('timestamp', '>=', threeHoursAgoTimestamp)
+        .where('timestamp', '>=', threeDayssAgoTimestamp)
         .limit(10);
 
       const querySnapshot = await query.get();
@@ -167,12 +165,49 @@ exports.getFreshContent = functions.https.onCall(
         ...doc.data(),
       }));
 
-      // Sort items by freshnessScore or combine with other relevance metrics if needed
-      // items.sort((a, b) => b.freshnessScore - a.freshnessScore);
-
       return items;
     } catch (error) {
       console.error('Error fetching fresh content:', error);
+      return null;
+    }
+  }
+);
+
+exports.getPostsByPlaceId = functions.https.onCall(
+  async (data, context: CallableContext): Promise<Post[]> => {
+    try {
+      const now = admin.firestore.Timestamp.now();
+      const threeDaysAgo = new Date(
+        now.toDate().getTime() - 3 * 24 * 60 * 60 * 1000
+      );
+      const threeDaysAgoTimestamp = threeDaysAgo.getTime();
+
+      if (!data.placeId) {
+        throw new Error('Missing placeId');
+      }
+
+      console.log('Received placeId:', data.placeId);
+
+      const query = await db
+        .collection('posts')
+        .where('folderId', '==', data?.placeId)
+        .where('timestamp', '>=', threeDaysAgoTimestamp);
+
+      const querySnapshot = await query.get();
+
+      if (querySnapshot.empty) {
+        console.error('snapshot is empty');
+        return null;
+      }
+
+      const items: Post[] = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      return items;
+    } catch (error) {
+      console.error('Error fetching posts:', error);
       return null;
     }
   }

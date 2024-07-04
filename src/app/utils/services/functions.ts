@@ -38,12 +38,9 @@ export const setUser = async (
   return response;
 };
 
-export const getCurrentUser = async (
-  userId: string
-): Promise<GetUserResult> => {
-  if (!userId) return MISSING_REQUIRED_REQUEST_PARAMS;
+export const getCurrentUser = async (): Promise<GetUserResult> => {
   const cloudFunction = httpsCallable(functions, 'getCurrentUser');
-  const response = (await cloudFunction(userId)) as unknown as GetUserResult;
+  const response = (await cloudFunction()) as unknown as GetUserResult;
   return response;
 };
 
@@ -69,5 +66,15 @@ export const getFreshContent = async (): Promise<GetFreshnessContentResult> => {
   const cloudFunction = httpsCallable(functions, 'getFreshContent');
   const response =
     (await cloudFunction()) as unknown as GetFreshnessContentResult;
+  return response;
+};
+
+export const getPostsByPlaceID = async (
+  placeId: string
+): Promise<GetAllPostsResult> => {
+  const cloudFunction = httpsCallable(functions, 'getPostsByPlaceId');
+  const response = (await cloudFunction({
+    placeId: placeId,
+  })) as unknown as GetAllPostsResult;
   return response;
 };

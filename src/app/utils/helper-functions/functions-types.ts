@@ -117,7 +117,7 @@ export type GetAllPostsResult = {
   status: ServiceStatusEnum;
   code: ServiceCodeEnum;
   message?: string;
-  data?: { posts: Post[] };
+  data?: Post[];
 };
 
 export type GetFreshnessContentResult = {

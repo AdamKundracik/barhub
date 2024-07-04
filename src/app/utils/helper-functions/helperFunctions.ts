@@ -31,7 +31,7 @@ export const uploadImageAsync = async (
       uid: generateId(),
       user_id: auth.currentUser?.uid,
       name: auth.currentUser.displayName ?? '',
-      fileId: fileId,
+      fileId: fileId.split('/')[1],
       folderId: placeId,
       creationTime: new Date(),
       timestamp: Date.now(),
@@ -116,10 +116,16 @@ export const listFiles = async (placeId: string | undefined | null) => {
     const storage = getStorage();
     const listRef = ref(storage, placeId ?? auth.currentUser?.uid);
     const res = await list(listRef, { maxResults: 20 });
+    const fileNames: string[] = [];
     const urls = await Promise.all(
-      res.items.map(item => getDownloadURL(item)).reverse()
+      res.items
+        .map(item => {
+          fileNames.push(item.name);
+          return getDownloadURL(item);
+        })
+        .reverse()
     );
-    return urls;
+    return { urls, fileNames };
   } catch (error) {
     console.error('Error listing files: ', error);
   }
