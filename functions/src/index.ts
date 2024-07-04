@@ -7,6 +7,7 @@ admin.initializeApp();
 
 const db = admin.firestore();
 const functions = require('firebase-functions');
+const bucket = admin.storage().bucket();
 
 //TODO: FINISH FUNCTION
 export const createUser = functions.auth.user().onCreate(user => {
@@ -198,3 +199,39 @@ exports.getPostsByPlaceId = functions.https.onCall(
     }
   }
 );
+
+//SCHEDULE FUNCTIONS
+
+exports.deleteOldPostsAndImages = functions.pubsub
+  .schedule('every 60 minutes')
+  .onRun(async context => {
+    const threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
+    try {
+      // Query for posts older than 3 days
+      const postsSnapshot = await db
+        .collection('posts')
+        .where('timestamp', '<', threeDaysAgo.getTime())
+        .get();
+
+      const deletePromises: Promise<any>[] = [];
+
+      postsSnapshot.forEach(doc => {
+        const postData: Post = doc.data();
+        const fileId = postData.folderId + '/' + postData.fileId;
+
+        // Delete the image from Firebase Storage
+        const file = bucket.file(fileId);
+        deletePromises.push(file.delete());
+
+        // Delete the post document from Firestore
+        deletePromises.push(doc.ref.delete());
+      });
+
+      await Promise.all(deletePromises);
+      console.info('Successfully deleted old posts and images');
+    } catch (error) {
+      console.error('Error deleting old posts and images:', error);
+    }
+  });
