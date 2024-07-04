@@ -29,3 +29,19 @@ export interface User extends UserRecord {
   pushToken: string;
   lastUploadedPost: Date;
 }
+
+export type Post = {
+  creationTime: Date;
+  timestamp: number;
+  user_id: string;
+  fileId: string;
+  folderId: string;
+  name: string;
+  placeName: string;
+  placeAddress: string;
+  uid: string;
+};
+
+export interface PostUrlExtended extends Post {
+  url: string;
+}

@@ -7,10 +7,10 @@ import {
 } from 'firebase/storage';
 import { auth, storage } from '../../../../firebaseConfig';
 import { savePost } from '../services/functions';
-import { Post } from '../types/types';
 import { generateId } from './generate-hash';
 import { UseMutationResult } from 'react-query';
 import * as ImageManipulator from 'expo-image-manipulator';
+import { Post } from '../../../../shared';
 
 export const uploadImageAsync = async (
   uri: string,
@@ -31,9 +31,10 @@ export const uploadImageAsync = async (
       uid: generateId(),
       user_id: auth.currentUser?.uid,
       name: auth.currentUser.displayName ?? '',
-      fileId: fileId,
+      fileId: fileId.split('/')[1],
       folderId: placeId,
       creationTime: new Date(),
+      timestamp: Date.now(),
       placeName: placeName,
       placeAddress: placeAddress,
     };
@@ -115,11 +116,27 @@ export const listFiles = async (placeId: string | undefined | null) => {
     const storage = getStorage();
     const listRef = ref(storage, placeId ?? auth.currentUser?.uid);
     const res = await list(listRef, { maxResults: 20 });
+    const fileNames: string[] = [];
     const urls = await Promise.all(
-      res.items.map(item => getDownloadURL(item)).reverse()
+      res.items.map(item => {
+        fileNames.push(item.name);
+        return getDownloadURL(item);
+      })
     );
-    return urls;
+    return { urls, fileNames };
   } catch (error) {
     console.error('Error listing files: ', error);
+  }
+};
+
+export const listNewsFeedFiles = async (postPath: string) => {
+  try {
+    const storage = getStorage();
+    const fileRef = ref(storage, postPath);
+    const url = await getDownloadURL(fileRef);
+    return url;
+  } catch (error) {
+    console.error('Error getting file URL:', error);
+    return null;
   }
 };

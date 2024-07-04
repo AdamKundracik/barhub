@@ -8,8 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useEffect, useRef, useState } from 'react';
-import UserPost from '../../components/user/UserPost';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ActionsRow from '../../components/user/ActionsRow';
 import { useImageManagement } from '../../utils/hooks/useImageManagement';
 import { useQuery, useQueryClient } from 'react-query';
@@ -19,7 +18,6 @@ import {
   useNavigation,
 } from '@react-navigation/native';
 import { commonAppStyles } from '../../utils/styles/styles';
-import { listFiles } from '../../utils/helper-functions/helperFunctions';
 import PlaceSearch from '../../components/user/PlaceSearch';
 import { PlaceDetailsResponse, PlacePrediction } from '../../utils/types/types';
 import { useTranslation } from 'react-i18next';
@@ -35,6 +33,12 @@ import * as Notifications from 'expo-notifications';
 import { setUser } from '../../utils/services/functions';
 import { UserStackList } from '../../utils/types/screen-types';
 import { useUserContext } from '../../providers/UserProvider';
+import { PostUrlExtended } from '../../../../shared';
+import {
+  handleFreshContent,
+  handlePlacePosts,
+} from '../../utils/helper-functions/posts-functions';
+import UserPost from '../../components/user/UserPost';
 
 export const NewsFeed = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
@@ -43,7 +47,7 @@ export const NewsFeed = () => {
   const { userData } = useUserContext();
   const { deleteImage } = useImageManagement();
 
-  const [fileUrls, setFileUrls] = useState<string[]>([]);
+  const [posts, setPosts] = useState<PostUrlExtended[] | undefined>([]);
   const [loading, setLoading] = useState(true);
   const [zoomedPost, setZoomedPost] = useState<string | null>(null);
   const [place, setPlace] = useState<PlacePrediction | null>(null);
@@ -151,21 +155,22 @@ export const NewsFeed = () => {
   const getFiles = async () => {
     setLoading(true);
     try {
-      const urls = await listFiles(place?.placeId);
-      if (urls) {
-        setFileUrls(urls);
+      if (place) {
+        const posts = await handlePlacePosts(place.placeId);
+        setPosts(posts);
       } else {
-        setFileUrls([]);
+        const posts = await handleFreshContent();
+        setPosts(posts);
       }
     } catch (error) {
       console.error('Error getting files:', error);
-      setFileUrls([]);
+      setPosts([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const onRefresh = React.useCallback(() => {
+  const onRefresh = useCallback(() => {
     getFiles();
   }, [place]);
 
@@ -185,6 +190,7 @@ export const NewsFeed = () => {
 
   return (
     <Layout pageTitle="Feed">
+      <Text style={styles.text}>BARUJ</Text>
       <ActionsRow setSearching={setSearching} />
       {place && (
         <View style={{ alignSelf: 'flex-start', marginBottom: 5 }}>
@@ -219,22 +225,39 @@ export const NewsFeed = () => {
                 </Text>
               </View>
             ) : null}
-            {fileUrls.length ? (
-              fileUrls.map(url => (
-                <View
-                  key={url}
-                  style={{
-                    marginVertical: 10,
-                    zIndex: zoomedPost === url ? 1 : 0,
-                  }}
-                >
-                  <UserPost
-                    link={url}
-                    setZoomedPost={setZoomedPost}
-                    isZoomed={zoomedPost === url}
-                  />
-                </View>
-              ))
+            {posts ? (
+              <>
+                {place && (
+                  <TouchableOpacity
+                    style={styles.requestButton}
+                    onPress={requestPhoto}
+                  >
+                    <Text
+                      style={[
+                        commonAppStyles.textSecondary,
+                        { fontSize: 22, fontWeight: 'bold' },
+                      ]}
+                    >
+                      {t('request-photo')}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                {posts.map(post => (
+                  <View
+                    key={post.url}
+                    style={{
+                      marginVertical: 10,
+                      zIndex: zoomedPost === post.url ? 1 : 0,
+                    }}
+                  >
+                    <UserPost
+                      post={post}
+                      setZoomedPost={setZoomedPost}
+                      isZoomed={zoomedPost === post.url}
+                    />
+                  </View>
+                ))}
+              </>
             ) : (
               <View style={styles.infoContainer}>
                 <View style={{ marginBottom: 15, justifyContent: 'center' }}>
@@ -297,7 +320,14 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 10,
     marginBottom: 15,
+  },
+  text: {
+    fontSize: 24,
+    textAlign: 'center',
+    fontWeight: 'bold',
+    color: '#fff',
   },
 });
 

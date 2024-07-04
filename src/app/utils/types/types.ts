@@ -14,17 +14,6 @@ export type Settings = {
   // FOR ADDITIONAL SETTINGS
 };
 
-export type Post = {
-  creationTime: Date;
-  user_id: string;
-  fileId: string;
-  folderId: string;
-  name: string;
-  placeName: string;
-  placeAddress: string;
-  uid: string;
-};
-
 export type DisplayName = {
   languageCode: string;
   text: string;

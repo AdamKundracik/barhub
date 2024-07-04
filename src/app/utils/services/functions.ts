@@ -5,12 +5,12 @@ import {
   EmptyDataResult,
   GetAllPostsResult,
   GetAllUsersResult,
+  GetFreshnessContentResult,
   GetUserResult,
   SetDocumentFromCollectionRequest,
 } from '../helper-functions/functions-types';
 import { MISSING_REQUIRED_REQUEST_PARAMS } from '../helper-functions/constants';
-import { Post } from '../types/types';
-import { User } from '../../../../shared';
+import { Post, User } from '../../../../shared';
 
 export const savePost = async (
   data: Partial<Post>
@@ -20,7 +20,7 @@ export const savePost = async (
     SetDocumentFromCollectionRequest['data']['data']
   >(functions, 'savePost');
   const { data: response } = (await cloudFunction({
-    data,
+    ...data,
   })) as unknown as EmptyDataResponse;
   return response;
 };
@@ -38,12 +38,9 @@ export const setUser = async (
   return response;
 };
 
-export const getCurrentUser = async (
-  userId: string
-): Promise<GetUserResult> => {
-  if (!userId) return MISSING_REQUIRED_REQUEST_PARAMS;
+export const getCurrentUser = async (): Promise<GetUserResult> => {
   const cloudFunction = httpsCallable(functions, 'getCurrentUser');
-  const response = (await cloudFunction(userId)) as unknown as GetUserResult;
+  const response = (await cloudFunction()) as unknown as GetUserResult;
   return response;
 };
 
@@ -62,5 +59,22 @@ export const testLog = async (): Promise<GetAllUsersResult> => {
 export const getPosts = async (): Promise<GetAllPostsResult> => {
   const cloudFunction = httpsCallable(functions, 'getPosts');
   const response = (await cloudFunction()) as unknown as GetAllPostsResult;
+  return response;
+};
+
+export const getFreshContent = async (): Promise<GetFreshnessContentResult> => {
+  const cloudFunction = httpsCallable(functions, 'getFreshContent');
+  const response =
+    (await cloudFunction()) as unknown as GetFreshnessContentResult;
+  return response;
+};
+
+export const getPostsByPlaceID = async (
+  placeId: string
+): Promise<GetAllPostsResult> => {
+  const cloudFunction = httpsCallable(functions, 'getPostsByPlaceId');
+  const response = (await cloudFunction({
+    placeId: placeId,
+  })) as unknown as GetAllPostsResult;
   return response;
 };

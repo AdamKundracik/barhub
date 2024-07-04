@@ -35,7 +35,7 @@ export const sendNotificationHandler = async (
           )
         );
 
-        if (distanceResp < 30) {
+        if (distanceResp < 200) {
           tokens.push(user.pushToken);
         }
       });

@@ -8,15 +8,17 @@ import Animated, {
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
+import { PostUrlExtended } from '../../../../shared';
+import { timeAgo } from '../../utils/helper-functions/timeAgo';
 
 interface PostInterface {
-  link: string;
+  post: PostUrlExtended;
   setZoomedPost: (link: string | null) => void;
   isZoomed: boolean;
 }
 
 export const UserPost = (props: PostInterface) => {
-  const { link, setZoomedPost, isZoomed } = props;
+  const { post, setZoomedPost, isZoomed } = props;
   const focalX = useSharedValue(0);
   const focalY = useSharedValue(0);
   const xCurrent = useSharedValue(0);
@@ -29,7 +31,7 @@ export const UserPost = (props: PostInterface) => {
         focalX.value = g.focalX;
         focalY.value = g.focalY;
       }
-      setZoomedPost(link);
+      setZoomedPost(post.url);
     })
     .onUpdate(g => {
       if (g.scale >= 1) {
@@ -59,28 +61,30 @@ export const UserPost = (props: PostInterface) => {
     };
   });
 
+  const createdAgo = timeAgo(post.creationTime.toString());
+
   return (
     <View style={styles.postWrapper}>
       <View style={styles.userLine}>
-        <View>
-          <Text style={commonAppStyles.textPrimary}>Josh Manony</Text>
+        <View style={styles.userInfo}>
+          <Text style={commonAppStyles.textPrimary}>{post.name}</Text>
+          <Text style={commonAppStyles.textPrimary}>{post.placeName}</Text>
+          <Text style={commonAppStyles.textPrimary}>{post.placeAddress}</Text>
         </View>
-        <View>
-          <Text style={commonAppStyles.textPrimary}>2 hours</Text>
-        </View>
+        <Text style={commonAppStyles.textPrimary}>{createdAgo}</Text>
       </View>
       <GestureDetector gesture={pinch}>
         <Animated.Image
           style={[styles.photo, animatedStyle]}
           source={{
-            uri: link,
+            uri: post.url,
           }}
         />
       </GestureDetector>
       <View style={styles.photoActions}>
-        <FontAwesomeIcon color="white" icon={Icons.Heart}></FontAwesomeIcon>
-        <FontAwesomeIcon color="white" icon={Icons.Comment}></FontAwesomeIcon>
-        <FontAwesomeIcon color="white" icon={Icons.ShareAlt}></FontAwesomeIcon>
+        <FontAwesomeIcon color="white" icon={Icons.Heart} />
+        <FontAwesomeIcon color="white" icon={Icons.Comment} />
+        <FontAwesomeIcon color="white" icon={Icons.ShareAlt} />
       </View>
     </View>
   );
@@ -93,20 +97,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
   userLine: {
-    flex: 1,
-    paddingHorizontal: 10,
-    backgroundColor: '#424242',
-    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    backgroundColor: '#424242',
+    paddingVertical: 5,
   },
-  focalPoint: {
-    ...StyleSheet.absoluteFillObject,
-    width: 20,
-    height: 20,
-    backgroundColor: 'blue',
-    borderRadius: 10,
+  userInfo: {
+    flexShrink: 1,
+    marginRight: 10,
   },
   photo: {
     flex: 10,
@@ -115,7 +115,10 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   photoActions: {
-    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 10,
+    backgroundColor: '#424242',
   },
 });
 
