@@ -186,8 +186,6 @@ exports.getPostsByPlaceId = functions.https.onCall(
         throw new Error('Missing placeId');
       }
 
-      console.log('Received placeId:', data.placeId);
-
       const query = await db
         .collection('posts')
         .where('folderId', '==', data?.placeId)

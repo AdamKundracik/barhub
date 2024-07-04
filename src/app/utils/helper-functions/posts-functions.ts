@@ -19,6 +19,7 @@ const mapPostToUrl = (
   post: Post,
   postObject: { urls: string[]; fileNames: string[] }
 ): PostUrlExtended | undefined => {
+  //urls and fileNames are pushed in same order so we can simply just take their index
   const fileIndex = postObject.fileNames.indexOf(post.fileId);
   if (fileIndex !== -1) {
     const url = postObject.urls[fileIndex] || '';
