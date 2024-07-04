@@ -9,7 +9,6 @@ import {
   View,
 } from 'react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import UserPost from '../../components/user/UserPost';
 import ActionsRow from '../../components/user/ActionsRow';
 import { useImageManagement } from '../../utils/hooks/useImageManagement';
 import { useQuery, useQueryClient } from 'react-query';
@@ -39,6 +38,7 @@ import {
   handleFreshContent,
   handlePlacePosts,
 } from '../../utils/helper-functions/posts-functions';
+import UserPost from '../../components/user/UserPost';
 
 export const NewsFeed = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
@@ -190,6 +190,7 @@ export const NewsFeed = () => {
 
   return (
     <Layout pageTitle="Feed">
+      <Text style={styles.text}>BARUJ</Text>
       <ActionsRow setSearching={setSearching} />
       {place && (
         <View style={{ alignSelf: 'flex-start', marginBottom: 5 }}>
@@ -225,21 +226,38 @@ export const NewsFeed = () => {
               </View>
             ) : null}
             {posts ? (
-              posts.map(post => (
-                <View
-                  key={post.url}
-                  style={{
-                    marginVertical: 10,
-                    zIndex: zoomedPost === post.url ? 1 : 0,
-                  }}
-                >
-                  <UserPost
-                    post={post}
-                    setZoomedPost={setZoomedPost}
-                    isZoomed={zoomedPost === post.url}
-                  />
-                </View>
-              ))
+              <>
+                {place && (
+                  <TouchableOpacity
+                    style={styles.requestButton}
+                    onPress={requestPhoto}
+                  >
+                    <Text
+                      style={[
+                        commonAppStyles.textSecondary,
+                        { fontSize: 22, fontWeight: 'bold' },
+                      ]}
+                    >
+                      {t('request-photo')}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                {posts.map(post => (
+                  <View
+                    key={post.url}
+                    style={{
+                      marginVertical: 10,
+                      zIndex: zoomedPost === post.url ? 1 : 0,
+                    }}
+                  >
+                    <UserPost
+                      post={post}
+                      setZoomedPost={setZoomedPost}
+                      isZoomed={zoomedPost === post.url}
+                    />
+                  </View>
+                ))}
+              </>
             ) : (
               <View style={styles.infoContainer}>
                 <View style={{ marginBottom: 15, justifyContent: 'center' }}>
@@ -302,7 +320,14 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 10,
     marginBottom: 15,
+  },
+  text: {
+    fontSize: 24,
+    textAlign: 'center',
+    fontWeight: 'bold',
+    color: '#fff',
   },
 });
 

@@ -118,12 +118,10 @@ export const listFiles = async (placeId: string | undefined | null) => {
     const res = await list(listRef, { maxResults: 20 });
     const fileNames: string[] = [];
     const urls = await Promise.all(
-      res.items
-        .map(item => {
-          fileNames.push(item.name);
-          return getDownloadURL(item);
-        })
-        .reverse()
+      res.items.map(item => {
+        fileNames.push(item.name);
+        return getDownloadURL(item);
+      })
     );
     return { urls, fileNames };
   } catch (error) {

@@ -27,20 +27,8 @@ export const setUser = functions.https.onCall(
 );
 
 export const savePost = functions.https.onCall(
-  async (
-    post: {
-      creationTime: Date;
-      fileId: string;
-      folderId: string;
-      name: string;
-      uid: string;
-    },
-    context: CallableContext
-  ) => {
-    await db
-      .collection('posts')
-      .doc(context.auth.uid)
-      .set(post, { merge: true });
+  async (post: Post, context: CallableContext) => {
+    await db.collection('posts').doc(post.fileId).set(post);
   }
 );
 

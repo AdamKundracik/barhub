@@ -1,6 +1,7 @@
 import { Post, PostUrlExtended } from '../../../../shared';
 import { getFreshContent, getPostsByPlaceID } from '../services/functions';
 import { listFiles, listNewsFeedFiles } from './helperFunctions';
+import { getRandomRecentPosts } from './getRandomRecentPosts';
 
 export const handlePlacePosts = async (placeId: string) => {
   const posts = await getPostsByPlaceID(placeId);
@@ -11,7 +12,7 @@ export const handlePlacePosts = async (placeId: string) => {
       .map(post => mapPostToUrl(post, postObject))
       .filter((post): post is PostUrlExtended => post !== undefined);
 
-    return postsWithUrls;
+    return postsWithUrls.reverse();
   }
 };
 
@@ -34,7 +35,7 @@ export const handleFreshContent = async () => {
   if (posts.data) {
     const postPromises = posts.data.map(post => mapNewsFeedPostToUrl(post));
     const postsWithUrls: PostUrlExtended[] = await Promise.all(postPromises);
-    return postsWithUrls;
+    return getRandomRecentPosts(postsWithUrls.reverse());
   } else {
     return [];
   }
