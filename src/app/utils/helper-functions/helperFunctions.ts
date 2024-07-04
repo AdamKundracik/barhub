@@ -7,10 +7,10 @@ import {
 } from 'firebase/storage';
 import { auth, storage } from '../../../../firebaseConfig';
 import { savePost } from '../services/functions';
-import { Post } from '../types/types';
 import { generateId } from './generate-hash';
 import { UseMutationResult } from 'react-query';
 import * as ImageManipulator from 'expo-image-manipulator';
+import { Post } from '../../../../shared';
 
 export const uploadImageAsync = async (
   uri: string,
@@ -34,6 +34,7 @@ export const uploadImageAsync = async (
       fileId: fileId,
       folderId: placeId,
       creationTime: new Date(),
+      timestamp: Date.now(),
       placeName: placeName,
       placeAddress: placeAddress,
     };
@@ -121,5 +122,17 @@ export const listFiles = async (placeId: string | undefined | null) => {
     return urls;
   } catch (error) {
     console.error('Error listing files: ', error);
+  }
+};
+
+export const listNewsFeedFiles = async (postPath: string) => {
+  try {
+    const storage = getStorage();
+    const fileRef = ref(storage, postPath);
+    const url = await getDownloadURL(fileRef);
+    return url;
+  } catch (error) {
+    console.error('Error getting file URL:', error);
+    return null;
   }
 };

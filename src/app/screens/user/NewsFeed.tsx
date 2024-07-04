@@ -19,7 +19,10 @@ import {
   useNavigation,
 } from '@react-navigation/native';
 import { commonAppStyles } from '../../utils/styles/styles';
-import { listFiles } from '../../utils/helper-functions/helperFunctions';
+import {
+  listFiles,
+  listNewsFeedFiles,
+} from '../../utils/helper-functions/helperFunctions';
 import PlaceSearch from '../../components/user/PlaceSearch';
 import { PlaceDetailsResponse, PlacePrediction } from '../../utils/types/types';
 import { useTranslation } from 'react-i18next';
@@ -32,7 +35,7 @@ import {
   sendPushNotification,
 } from '../../utils/services/notofications-handler';
 import * as Notifications from 'expo-notifications';
-import { setUser } from '../../utils/services/functions';
+import { getFreshContent, setUser } from '../../utils/services/functions';
 import { UserStackList } from '../../utils/types/screen-types';
 import { useUserContext } from '../../providers/UserProvider';
 
@@ -151,11 +154,27 @@ export const NewsFeed = () => {
   const getFiles = async () => {
     setLoading(true);
     try {
-      const urls = await listFiles(place?.placeId);
-      if (urls) {
-        setFileUrls(urls);
+      if (place) {
+        const urls = await listFiles(place?.placeId);
+        setFileUrls(urls || []);
       } else {
-        setFileUrls([]);
+        const urls: string[] = [];
+        const posts = await getFreshContent();
+        console.log('posts', posts.data);
+
+        if (posts.data) {
+          const urlPromises = posts.data.map(post =>
+            listNewsFeedFiles(post.fileId)
+          );
+
+          const fetchedUrls = await Promise.all(urlPromises);
+          fetchedUrls.forEach(url => {
+            if (url) urls.push(url);
+          });
+        }
+
+        console.log(urls);
+        setFileUrls(urls);
       }
     } catch (error) {
       console.error('Error getting files:', error);
