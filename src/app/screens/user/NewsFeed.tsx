@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import UserPost from '../../components/user/UserPost';
 import ActionsRow from '../../components/user/ActionsRow';
 import { useImageManagement } from '../../utils/hooks/useImageManagement';
@@ -156,13 +156,11 @@ export const NewsFeed = () => {
     setLoading(true);
     try {
       if (place) {
-        handlePlacePosts(place.placeId).then(posts => {
-          setPosts(posts);
-        });
+        const posts = await handlePlacePosts(place.placeId);
+        setPosts(posts);
       } else {
-        handleFreshContent().then(posts => {
-          setPosts(posts);
-        });
+        const posts = await handleFreshContent();
+        setPosts(posts);
       }
     } catch (error) {
       console.error('Error getting files:', error);
@@ -172,7 +170,7 @@ export const NewsFeed = () => {
     }
   };
 
-  const onRefresh = React.useCallback(() => {
+  const onRefresh = useCallback(() => {
     getFiles();
   }, [place]);
 
