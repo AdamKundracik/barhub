@@ -5,14 +5,24 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "ios": {
+        "image": "latest",
+        "simulator": true
+      }
     },
     "preview": {
       "distribution": "internal"
     },
-    "production": {}
+    "production": {},
+    "simulator": {
+      "ios": {
+        "simulator": true
+      }
+    }
   },
   "submit": {
     "production": {}
   }
 }
+

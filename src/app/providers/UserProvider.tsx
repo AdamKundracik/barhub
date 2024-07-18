@@ -80,7 +80,7 @@ export const UserProvider = (props: Props) => {
     const fetchUserData = async () => {
       const uid = auth.currentUser?.uid;
       if (uid) {
-        const user = await getCurrentUser(uid);
+        const user = await getCurrentUser();
         setUserData(user.data);
       }
       setIsLoading(false);

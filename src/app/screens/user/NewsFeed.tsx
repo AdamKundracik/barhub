@@ -190,7 +190,7 @@ export const NewsFeed = () => {
 
   return (
     <Layout pageTitle="Feed">
-      <Text style={styles.text}>BARUJ</Text>
+      <Text style={styles.text}>BarHub</Text>
       <ActionsRow setSearching={setSearching} />
       {place && (
         <View style={{ alignSelf: 'flex-start', marginBottom: 5 }}>

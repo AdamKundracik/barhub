@@ -13,10 +13,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "bundleIdentifier": "com.baruj.baruj",
+      "bundleIdentifier": "com.barhub.barhub",
       "associatedDomains": [
         "applinks:expo.dev"
       ],
+      "googleServicesFile": "./GoogleService-Info.plist",
       "supportsTablet": true,
       "config": {
         "googleMapsApiKey": "AIzaSyAMoNX-aQzrjpnZ0KjYegeyhV47C8rRBVU"
@@ -45,7 +46,7 @@
           ]
         }
       ],
-      "googleServicesFile": "./path/to/google-services.json",
+      "googleServicesFile": "./google-services.json",
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.CAMERA",

@@ -85,9 +85,9 @@ export const uploadProfilePhotoAsync = async (uri: string): Promise<void> => {
     const fileId = `profile_photos/${auth.currentUser?.uid}`;
 
     const storageRef = ref(storage, fileId);
-    uploadBytes(storageRef, blob).then(result => {
-      console.log('Upload successful!');
-    });
+    await uploadBytes(storageRef, blob);
+
+    console.log('Upload successful!');
   } catch (error) {
     console.error('Error uploading image:', error);
   }

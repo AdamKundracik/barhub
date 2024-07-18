@@ -10,11 +10,15 @@ import SetuProfileNav from './SetuProfileNav';
 
 export const Navigation = () => {
   const user = useAuthUser(['user'], auth, {
-    refetchOnReconnect: true,
+    onSuccess(user) {
+      console.log(user);
+    },
     onError(error) {
       console.error('Failed to subscribe to users authentication state!');
     },
   });
+
+  console.log(user.isRefetching);
 
   if (user.isLoading) {
     return <Loading />;

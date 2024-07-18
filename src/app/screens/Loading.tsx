@@ -3,7 +3,7 @@ import React, { StyleSheet, Text, View } from 'react-native';
 export const Loading = () => {
   return (
     <View style={styles.wrapper}>
-      <Text style={styles.text}>BARUJ</Text>
+      <Text style={styles.text}>BARHUB</Text>
     </View>
   );
 };

@@ -24,6 +24,7 @@ import { auth } from '../../../../firebaseConfig';
 import {
   useAuthReload,
   useAuthUpdateProfile,
+  useAuthUser,
 } from '@react-query-firebase/auth';
 import { Icons } from '../../utils/icons/icons';
 import { uploadProfilePhotoAsync } from '../../utils/helper-functions/helperFunctions';
@@ -33,12 +34,18 @@ export const SetUpProfile = () => {
   const [username, setUserName] = useState('');
   const [date, setDate] = useState(new Date().toISOString());
   const [uploading, setUploading] = useState(false);
+  const { refetch } = useAuthUser(['user'], auth, {
+    refetchOnMount: false,
+    onError(error) {
+      console.error('Failed to subscribe to users authentication state!');
+    },
+  });
 
   const mutation = useAuthReload();
   const mutationUpdateProfile = useAuthUpdateProfile();
 
-  function reloadUser() {
-    mutation.mutate(auth.currentUser!);
+  async function reloadUser() {
+    await mutation.mutateAsync(auth.currentUser!);
   }
 
   const pickImage = async () => {
@@ -60,31 +67,33 @@ export const SetUpProfile = () => {
   }
 
   async function submitForm() {
-    if (!image) return;
+    try {
+      if (!image) return;
 
-    setUploading(true);
-    const dateOfBirth = createDateFromCustomString(date);
-    await setUser({
-      photoURL: image,
-      displayName: username,
-      dateOfBirth: dateOfBirth,
-    });
-
-    if (auth.currentUser) {
-      mutationUpdateProfile.mutate({
-        user: auth.currentUser,
-        displayName: username, // optional
-        photoURL: image, // optional
+      setUploading(true);
+      const dateOfBirth = createDateFromCustomString(date);
+      await setUser({
+        photoURL: image,
+        displayName: username,
+        dateOfBirth: dateOfBirth,
       });
 
-      uploadProfilePhotoAsync(image!).then(() => {
-        setUploading(false);
-      });
+      if (auth.currentUser) {
+        await uploadProfilePhotoAsync(image!);
 
-      reloadUser();
-    } else {
+        await mutationUpdateProfile.mutateAsync({
+          user: auth.currentUser,
+          displayName: username, // optional
+          photoURL: image, // optional
+        });
+
+        await reloadUser();
+        await refetch();
+      }
+    } catch (e) {
+      console.log(e);
+    } finally {
       setUploading(false);
-      console.error('Missing auth');
     }
   }
 
