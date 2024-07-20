@@ -11,17 +11,19 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../../../../firebaseConfig';
 import { useTranslation } from 'react-i18next';
 import 'firebase/functions';
-import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
 import { useUserContext } from '../../providers/UserProvider';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
+import { useQueryClient } from 'react-query';
+import { User } from '../../../../shared';
 
 export const Account = () => {
   const { t } = useTranslation();
-  const { profileUri, userData } = useUserContext();
-  const [loading, setLoading] = useState(true);
+  const user: User = useQueryClient().getQueryData('user')!;
+
+  const { profileUri } = useUserContext();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 
   function triggerSignOut() {
@@ -48,8 +50,8 @@ export const Account = () => {
           style={styles.profilePicture}
         />
         <Text style={styles.userName}>{auth.currentUser?.displayName}</Text>
-        <Text style={styles.userName}>{userData?.email}</Text>
-        {userData?.premium && (
+        <Text style={styles.userName}>{auth.currentUser?.email}</Text>
+        {user?.premium && (
           <Text style={styles.picturesTaken}>PREMIUM MEMBER</Text>
         )}
 

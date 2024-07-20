@@ -49,10 +49,15 @@ export const Register = ({ navigation }: any) => {
           console.error(error.message);
           break;
       }
+      setLoading(false);
+    },
+    onSuccess() {
+      setLoading(false);
     },
   });
 
   function handleRegister() {
+    setLoading(true);
     mutation.mutate({
       email: email,
       password: password,

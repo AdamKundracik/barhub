@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
 } from 'react-native';
-import { signInWithEmailAndPassword } from 'firebase/auth';
 import * as React from 'react';
 import { useState } from 'react';
 
@@ -36,33 +35,14 @@ export const LogIn = ({ navigation }: any) => {
       }
       console.error('Could not sign you in!');
     },
+    onSuccess() {
+      setLoading(false);
+    },
   });
 
   function onSignIn() {
-    mutation.mutate({ email, password });
-  }
-
-  function handleLogin() {
     setLoading(true);
-    signInWithEmailAndPassword(auth, email, password)
-      .then(async userCredential => {
-        const user = userCredential.user;
-        setLoading(false);
-      })
-      .catch(error => {
-        switch (error.code) {
-          case 'auth/invalid-credential':
-            alert(t('wrong-password'));
-            break;
-          case 'auth/invalid-email':
-            alert(t(`invalid-email`));
-            console.error(`Invalid email`);
-            break;
-        }
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        setLoading(false);
-      });
+    mutation.mutate({ email, password });
   }
 
   return (
