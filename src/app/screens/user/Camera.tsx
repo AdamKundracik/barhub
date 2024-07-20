@@ -106,7 +106,7 @@ export const CameraScreen = () => {
 
   if (!permission) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={styles.container}>
         <Text>{t('noPermission')}</Text>
       </View>
     );
@@ -114,11 +114,18 @@ export const CameraScreen = () => {
 
   if (!permission.granted) {
     return (
-      <View style={styles.container}>
-        <Text style={{ textAlign: 'center' }}>
+      <View style={styles.grantPermission}>
+        <Text
+          style={{
+            textAlign: 'center',
+            color: 'white',
+            fontWeight: 'bold',
+            fontSize: 18,
+          }}
+        >
           {t('permissionToCameraRequest')}
         </Text>
-        <Button onPress={requestPermission} title="grant permission" />
+        <Button onPress={requestPermission} title={t('grantPermission')} />
       </View>
     );
   }
@@ -278,6 +285,12 @@ const styles = StyleSheet.create({
     zIndex: 10,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  grantPermission: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#020213',
   },
 });
 export default CameraScreen;

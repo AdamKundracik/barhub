@@ -4,6 +4,7 @@ import Account from '../screens/user/Account';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import CameraScreen from '../screens/user/Camera';
 import PhotoResolver from '../screens/user/PhotoResolver';
+import Subscription from '../screens/user/Subscription';
 
 const UserStack = createNativeStackNavigator();
 
@@ -23,6 +24,7 @@ const UserNav = () => {
         options={{ animation: 'slide_from_left' }}
       />
       <UserStack.Screen name={'PhotoResolver'} component={PhotoResolver} />
+      <UserStack.Screen name={'Subscription'} component={Subscription} />
     </UserStack.Navigator>
   );
 };

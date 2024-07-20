@@ -8,6 +8,8 @@ export type UserStackList = {
   PhotoResolver: undefined;
 
   Camera: { placeId: string; senderToken: string } | undefined;
+
+  Subscription: undefined;
 };
 
 export type FeedsScreenProps = NativeStackScreenProps<

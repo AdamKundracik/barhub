@@ -3,7 +3,19 @@ import React, { StyleSheet, Text, View } from 'react-native';
 export const Loading = () => {
   return (
     <View style={styles.wrapper}>
-      <Text style={styles.text}>BARHUB</Text>
+      <View style={{ alignSelf: 'center', flexDirection: 'row' }}>
+        <View style={{ paddingHorizontal: 5 }}>
+          <Text style={[styles.text, { color: 'white' }]}>Bar</Text>
+        </View>
+        <View
+          style={{
+            backgroundColor: '#ffa31a',
+            borderRadius: 5,
+          }}
+        >
+          <Text style={[styles.text, { color: 'black' }]}>hub</Text>
+        </View>
+      </View>
     </View>
   );
 };
@@ -18,6 +30,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 72,
     textAlign: 'center',
-    color: '#fff',
+    fontWeight: 'bold',
+    paddingHorizontal: 5,
   },
 });

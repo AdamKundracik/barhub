@@ -37,5 +37,6 @@
   "select-location": "Select place location",
   "photos-info": "No images for this place",
   "request-photo": "Request photo",
-  "request-photo-info": "By click on this button you will request any user who is located in requested place, to take picture of the place"
+  "request-photo-info": "By click on this button you will request any user who is located in requested place, to take picture of the place",
+  "grantPermission": "Grant permission"
 }

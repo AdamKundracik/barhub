@@ -15,6 +15,7 @@ interface PostInterface {
   post: PostUrlExtended;
   setZoomedPost: (link: string | null) => void;
   isZoomed: boolean;
+  hasPremium: boolean;
 }
 
 export const UserPost = (props: PostInterface) => {
@@ -75,6 +76,7 @@ export const UserPost = (props: PostInterface) => {
       </View>
       <GestureDetector gesture={pinch}>
         <Animated.Image
+          blurRadius={!props.hasPremium ? 50 : 0}
           style={[styles.photo, animatedStyle]}
           source={{
             uri: post.url,

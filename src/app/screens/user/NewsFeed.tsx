@@ -39,6 +39,7 @@ import {
   handlePlacePosts,
 } from '../../utils/helper-functions/posts-functions';
 import UserPost from '../../components/user/UserPost';
+import { getDaysSince } from '../../utils/helper-functions/getDaysSince';
 
 export const NewsFeed = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
@@ -52,6 +53,10 @@ export const NewsFeed = () => {
   const [zoomedPost, setZoomedPost] = useState<string | null>(null);
   const [place, setPlace] = useState<PlacePrediction | null>(null);
   const [searching, setSearching] = useState<boolean>(false);
+  const [
+    numberOfDaysSinceLastPostedPhoto,
+    setNumberOfDaysSinceLastPostedPhoto,
+  ] = useState(0);
 
   const [expoPushToken, setExpoPushToken] = useState('');
   const [notification, setNotification] = useState<
@@ -59,6 +64,11 @@ export const NewsFeed = () => {
   >(undefined);
   const notificationListener = useRef<Notifications.Subscription>();
   const responseListener = useRef<Notifications.Subscription>();
+
+  useEffect(() => {
+    const numberOfDays = getDaysSince(userData?.lastUploadedPost ?? new Date());
+    setNumberOfDaysSinceLastPostedPhoto(numberOfDays);
+  }, []);
 
   useEffect(() => {
     async function setTokenToDatabase(pushToken: string) {
@@ -190,7 +200,35 @@ export const NewsFeed = () => {
 
   return (
     <Layout pageTitle="Feed">
-      <Text style={styles.text}>BarHub</Text>
+      <View style={{ alignSelf: 'center', flexDirection: 'row' }}>
+        <Text
+          style={{
+            color: 'white',
+            fontSize: 24,
+            fontWeight: 'bold',
+            paddingHorizontal: 5,
+          }}
+        >
+          Bar
+        </Text>
+        <View
+          style={{
+            backgroundColor: '#ffa31a',
+            borderRadius: 5,
+          }}
+        >
+          <Text
+            style={{
+              color: 'black',
+              fontSize: 24,
+              fontWeight: 'bold',
+              paddingHorizontal: 5,
+            }}
+          >
+            hub
+          </Text>
+        </View>
+      </View>
       <ActionsRow setSearching={setSearching} />
       {place && (
         <View style={{ alignSelf: 'flex-start', marginBottom: 5 }}>
@@ -251,6 +289,11 @@ export const NewsFeed = () => {
                     }}
                   >
                     <UserPost
+                      hasPremium={
+                        (userData?.premium ||
+                          numberOfDaysSinceLastPostedPhoto <= 2) ??
+                        false
+                      }
                       post={post}
                       setZoomedPost={setZoomedPost}
                       isZoomed={zoomedPost === post.url}

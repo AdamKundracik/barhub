@@ -14,16 +14,15 @@ import 'firebase/functions';
 import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
-import { useQueryClient } from 'react-query';
-import { User } from '../../../../shared';
 import { useUserContext } from '../../providers/UserProvider';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { UserStackList } from '../../utils/types/screen-types';
 
 export const Account = () => {
-  const user: User = useQueryClient().getQueryData('user')!;
-
   const { t } = useTranslation();
-  const { profileUri } = useUserContext();
+  const { profileUri, userData } = useUserContext();
   const [loading, setLoading] = useState(true);
+  const navigation = useNavigation<NavigationProp<UserStackList>>();
 
   function triggerSignOut() {
     signOut(auth)
@@ -49,9 +48,15 @@ export const Account = () => {
           style={styles.profilePicture}
         />
         <Text style={styles.userName}>{auth.currentUser?.displayName}</Text>
-        <Text style={styles.userName}>{user?.email}</Text>
-        <Text style={styles.picturesTaken}>Pictures taken: %PICTURES%</Text>
-        <TouchableOpacity style={styles.button}>
+        <Text style={styles.userName}>{userData?.email}</Text>
+        {userData?.premium && (
+          <Text style={styles.picturesTaken}>PREMIUM MEMBER</Text>
+        )}
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate('Subscription')}
+        >
           <Text style={styles.buttonText}>
             Settings{' '}
             <FontAwesomeIcon

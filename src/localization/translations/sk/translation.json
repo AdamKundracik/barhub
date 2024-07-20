@@ -37,5 +37,6 @@
   "select-location": "Vyberte polohu miesta",
   "photos-info": "Žiadna fotka z tohoto miesta",
   "request-photo": "Požiadať fotku",
-  "request-photo-info": "Kliknutím na toto tlačidlo požiadate ktoréhokoľvek používateľa, ktorý sa nachádza na požadovanom mieste, aby toto miesto odfotil."
+  "request-photo-info": "Kliknutím na toto tlačidlo požiadate ktoréhokoľvek používateľa, ktorý sa nachádza na požadovanom mieste, aby toto miesto odfotil.",
+  "grantPermission": "Získať prístup"
 }

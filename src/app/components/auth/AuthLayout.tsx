@@ -44,7 +44,7 @@ export const AuthLayout = ({ children, pageTitle }: LayoutProps) => {
                     },
                   ]}
                 >
-                  BARUJ
+                  Barhub
                 </Text>
               </View>
               {children}
