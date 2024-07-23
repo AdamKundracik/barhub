@@ -1,4 +1,4 @@
-package com.baruj.baruj
+package com.barhub.barhub
 
 import android.app.Application
 import android.content.res.Configuration

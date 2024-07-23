@@ -83,14 +83,16 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.baruj.baruj'
+    namespace 'com.barhub.barhub'
     defaultConfig {
-        applicationId 'com.baruj.baruj'
-        minSdkVersion rootProject.ext.minSdkVersion
+        applicationId 'com.barhub.barhub'
+        minSdkVersion 24
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0.0"
+        missingDimensionStrategy 'react-native-camera', 'general'
     }
+    //rootProject.ext.minSdkVersion
     signingConfigs {
         debug {
             storeFile file('debug.keystore')

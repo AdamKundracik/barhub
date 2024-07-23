@@ -1,4 +1,4 @@
-package com.baruj.baruj
+package com.barhub.barhub
 
 import android.os.Build
 import android.os.Bundle

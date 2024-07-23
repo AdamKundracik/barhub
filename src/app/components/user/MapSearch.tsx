@@ -1,5 +1,6 @@
 import MapView, {
   Circle,
+  Details,
   Marker,
   PROVIDER_DEFAULT,
   Region,
@@ -8,6 +9,7 @@ import {
   ActivityIndicator,
   Image,
   Keyboard,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -82,16 +84,22 @@ export const MapSearch = (props: LayoutProps) => {
     setRegion(region);
   };
 
-  const onRegionChangeComplete = (region: Region) => {
+  const onRegionChangeComplete = (region: Region, gesture: Details) => {
     // Clear the previous timeout
+
     if (regionTimeout.current) {
       clearTimeout(regionTimeout.current);
     }
-
-    // Set a new timeout
-    regionTimeout.current = setTimeout(() => {
-      onRegionChange(region);
-    }, 1000); // Delay for 1sec
+    if (Platform.OS === 'android') {
+      if (gesture.isGesture) {
+        onRegionChange(region);
+      }
+    } else {
+      // Set a new timeout
+      regionTimeout.current = setTimeout(() => {
+        onRegionChange(region);
+      }, 1000); // Delay for 1sec
+    }
   };
 
   return (

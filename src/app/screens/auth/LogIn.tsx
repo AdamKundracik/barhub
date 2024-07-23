@@ -34,6 +34,7 @@ export const LogIn = ({ navigation }: any) => {
           break;
       }
       console.error('Could not sign you in!');
+      setLoading(false);
     },
     onSuccess() {
       setLoading(false);

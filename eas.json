@@ -14,7 +14,15 @@
     "preview": {
       "distribution": "internal"
     },
-    "production": {},
+    "production": {
+      "android": {
+        "buildType": "app-bundle",
+        "gradleCommand": ":app:assembleRelease",
+        "env": {
+          "EXPO_ANDROID_MIN_SDK_VERSION": "24"
+        }
+      }
+    },
     "simulator": {
       "ios": {
         "simulator": true
@@ -25,4 +33,3 @@
     "production": {}
   }
 }
-

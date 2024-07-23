@@ -7,6 +7,7 @@ import { RevenueCatProvider } from './src/app/providers/RevenueCatProvider';
 
 export default function App() {
   const queryClient = new QueryClient();
+
   return (
     <RevenueCatProvider>
       <QueryClientProvider client={queryClient}>

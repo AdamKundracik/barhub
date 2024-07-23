@@ -30,7 +30,7 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="baruj"/>
-        <data android:scheme="com.baruj.baruj"/>
+        <data android:scheme="com.barhub.barhub"/>
         <data android:scheme="exp+baruj-app"/>
       </intent-filter>
       <intent-filter android:autoVerify="true" data-generated="true">
