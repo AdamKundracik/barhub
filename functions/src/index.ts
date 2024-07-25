@@ -9,7 +9,7 @@ const db = admin.firestore();
 const functions = require('firebase-functions');
 const bucket = admin.storage().bucket();
 
-// TODO: FINISH FUNCTION
+//TODO: FINISH FUNCTION
 export const createUser = functions.auth.user().onCreate(user => {
   return admin
     .firestore()
@@ -28,20 +28,8 @@ export const setUser = functions.https.onCall(
 );
 
 export const savePost = functions.https.onCall(
-  async (
-    post: {
-      creationTime: Date;
-      fileId: string;
-      folderId: string;
-      name: string;
-      uid: string;
-    },
-    context: CallableContext
-  ) => {
-    await db
-      .collection('posts')
-      .doc(context.auth.uid)
-      .set(post, { merge: true });
+  async (post: Post, context: CallableContext) => {
+    await db.collection('posts').doc(post.fileId).set(post);
   }
 );
 
@@ -99,62 +87,6 @@ export const getCurrentUser = functions.https.onCall(
   }
 );
 
-exports.toggleLike = functions.https.onCall(
-  async (data, context: CallableContext) => {
-    const { postId, userId } = data;
-
-    if (!postId || !userId) {
-      throw new functions.https.HttpsError(
-        'invalid-argument',
-        'Missing postId or userId'
-      );
-    }
-
-    try {
-      const likeDocRef = db
-        .collection('posts')
-        .doc(postId)
-        .collection('likes')
-        .doc(userId);
-      const likeDoc = await likeDocRef.get();
-
-      if (likeDoc.exists) {
-        await likeDocRef.delete();
-      } else {
-        await likeDocRef.set({});
-      }
-    } catch (error) {
-      console.error('Error toggling like: ', error);
-    }
-  }
-);
-
-exports.getLikeStatus = functions.https.onCall(
-  async (data, context: CallableContext) => {
-    const { postId, userId } = data;
-
-    if (!postId || !userId) {
-      throw new functions.https.HttpsError(
-        'invalid-argument',
-        'Missing postId or userId'
-      );
-    }
-
-    try {
-      const likeDocRef = db
-        .collection('posts')
-        .doc(postId)
-        .collection('likes')
-        .doc(userId);
-      const likeDoc = await likeDocRef.get();
-
-      return await likeDoc.exists;
-    } catch (error) {
-      console.error('Error getting like status: ', error);
-    }
-  }
-);
-
 export const testLog = functions.https.onCall(
   async (data, context: CallableContext) => {
     if (!context.auth) {
@@ -178,6 +110,10 @@ export const testLog = functions.https.onCall(
       return { users };
     } catch (error) {
       console.error('Error getting users collection: ', error);
+      throw new functions.https.HttpsError(
+        'internal',
+        'Unable to retrieve users'
+      );
     }
   }
 );
@@ -264,7 +200,7 @@ exports.getPostsByPlaceId = functions.https.onCall(
   }
 );
 
-// SCHEDULE FUNCTIONS
+//SCHEDULE FUNCTIONS
 
 exports.deleteOldPostsAndImages = functions.pubsub
   .schedule('every 60 minutes')
@@ -299,58 +235,3 @@ exports.deleteOldPostsAndImages = functions.pubsub
       console.error('Error deleting old posts and images:', error);
     }
   });
-
-exports.addComment = functions.https.onCall(async (data, context) => {
-  const { postId, userId, userName, userPhotoUrl, commentText } = data;
-
-  if (!postId || !userId || !userName || !userPhotoUrl || !commentText) {
-    throw new functions.https.HttpsError(
-      'invalid-argument',
-      'Missing postId, userId, userName, userPhotoUrl, or commentText'
-    );
-  }
-
-  try {
-    const comment = {
-      userId,
-      userName,
-      userPhotoUrl,
-      commentText,
-      creationTime: admin.firestore.FieldValue.serverTimestamp(),
-    };
-
-    await db
-      .collection('posts')
-      .doc(postId)
-      .collection('comments')
-      .add(comment);
-  } catch (error) {
-    console.error('Error adding comment: ', error);
-  }
-});
-
-exports.getComments = functions.https.onCall(async (data, context) => {
-  const { postId } = data;
-
-  if (!postId) {
-    throw new functions.https.HttpsError('invalid-argument', 'Missing postId');
-  }
-
-  try {
-    const commentsSnapshot = await db
-      .collection('posts')
-      .doc(postId)
-      .collection('comments')
-      .orderBy('creationTime', 'asc')
-      .get();
-
-    const comments = commentsSnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-
-    return { comments };
-  } catch (error) {
-    console.error('Error fetching comments: ', error);
-  }
-});

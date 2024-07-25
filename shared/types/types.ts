@@ -40,7 +40,6 @@ export type Post = {
   placeName: string;
   placeAddress: string;
   uid: string;
-  id: string;
 };
 
 export interface PostUrlExtended extends Post {
