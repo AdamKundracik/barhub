@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TextInput,Image, TouchableOpacity, View } from 'react-native';
 import { commonAppStyles } from '../../utils/styles/styles';
 import Animated, {
   useAnimatedStyle,
@@ -9,13 +9,19 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
 import { PostUrlExtended } from '../../../../shared';
-import { timeAgo } from '../../utils/helper-functions/timeAgo';
+import { timeAgo,getTimeAgoFromTimestampSeconds } from '../../utils/helper-functions/timeAgo';
+import { useEffect, useState } from 'react';
+import { addCommentToPost, checkLikeStatus, fetchCommentsForPost, toggleLike } from '../../utils/services/functions';
+import { auth } from '../../../../firebaseConfig';
+import { t } from 'i18next';
 
 interface PostInterface {
   post: PostUrlExtended;
   setZoomedPost: (link: string | null) => void;
   isZoomed: boolean;
 }
+
+type ItemProps = {userName: string,commentText:string,creationTime: any,id:string,userId:string,userPhotoUrl:string}
 
 export const UserPost = (props: PostInterface) => {
   const { post, setZoomedPost, isZoomed } = props;
@@ -24,6 +30,36 @@ export const UserPost = (props: PostInterface) => {
   const xCurrent = useSharedValue(0);
   const yCurrent = useSharedValue(0);
   const scale = useSharedValue(1);
+
+  const [likeStatus, setLikeStatus] = useState<boolean>(false);
+  const [showComments,setShowComments] = useState<boolean>(false)
+  const [comments, setComments] = useState<ItemProps[]>([]);
+  const [newComment, setNewComment] = useState('');
+  
+  useEffect(() => {
+    if (auth.currentUser?.uid) {
+      checkLikeStatus(props.post.id, auth.currentUser.uid).then(data => setLikeStatus(data.data));
+    }
+  }, [auth.currentUser?.uid, props.post.id]);
+
+  useEffect(() => {
+    const loadComments = async () => {
+      const fetchedComments = await fetchCommentsForPost(post.id);
+      setComments(fetchedComments);
+    };
+
+    if (showComments) {
+      loadComments();
+    }
+
+    console.log(comments)
+  },[showComments])
+
+  const handleLikeToggle = async () => {
+    if (auth.currentUser?.uid) {
+      await toggleLike(props.post.id, auth.currentUser.uid).then(() => {checkLikeStatus(props.post.id, auth.currentUser.uid).then(data => setLikeStatus(data.data))})
+    }
+  };
 
   const pinch = Gesture.Pinch()
     .onStart(g => {
@@ -61,6 +97,16 @@ export const UserPost = (props: PostInterface) => {
     };
   });
 
+  const handleAddComment = async () => {
+    if (newComment) {
+      await addCommentToPost(post.id, auth.currentUser?.uid, auth.currentUser?.displayName, auth.currentUser?.photoURL, newComment.trim());
+      setNewComment('');
+ 
+      const updatedComments = await fetchCommentsForPost(post.id);
+      setComments(updatedComments)
+    }
+  };
+
   const createdAgo = timeAgo(post.creationTime.toString());
 
   return (
@@ -82,10 +128,44 @@ export const UserPost = (props: PostInterface) => {
         />
       </GestureDetector>
       <View style={styles.photoActions}>
-        <FontAwesomeIcon color="white" icon={Icons.Heart} />
-        <FontAwesomeIcon color="white" icon={Icons.Comment} />
-        <FontAwesomeIcon color="white" icon={Icons.ShareAlt} />
+      <TouchableOpacity  onPress={() => handleLikeToggle()}>
+        <FontAwesomeIcon color={likeStatus ? 'red' : 'white'} icon={Icons.Heart} />
+        </TouchableOpacity>
+
+        <TouchableOpacity  onPress={() => setShowComments(!showComments)}>
+        <FontAwesomeIcon color="white" icon={Icons.Comment}></FontAwesomeIcon>
+        </TouchableOpacity>
+        {/* UNTIL FUNCTIONALITY WILL BE IMPLEMENTED */}
+        {/* <FontAwesomeIcon color="white" icon={Icons.ShareAlt}></FontAwesomeIcon> */}
       </View>
+
+    
+      <View style={styles.commentsList}>
+        {comments.map((comment, index) => (
+          <View key={index} style={styles.commentItem}>
+          <View style={styles.profileImg}>
+            <Image style={styles.profilePicture}  height={32} width={32} source={comment?.userPhotoUrl ? {uri: comment?.userPhotoUrl} : require('../../../../assets/userIcon.png')}></Image>
+          </View>
+          <View style={styles.commentContent}>
+            <Text style={styles.commentBy}>{comment.userName} {getTimeAgoFromTimestampSeconds(comment.creationTime._seconds)}</Text>
+            <Text style={styles.commentText}>{comment.commentText}</Text>
+        </View>
+        </View>
+        ))}
+      </View>
+      {showComments && (
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            value={newComment}
+            onChangeText={setNewComment}
+            placeholder="Add a comment..."
+          />
+          <TouchableOpacity onPress={handleAddComment} style={styles.button}>
+            <Text style={styles.buttonText}>{t('save')}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };
@@ -120,6 +200,80 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: '#424242',
   },
+  commentsList: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  commentItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#ccc',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  input: {
+    flex: 1,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    marginRight: 10,
+  },
+  button: {
+    backgroundColor: '#007BFF',
+    padding: 10,
+    borderRadius: 20,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  iconButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: '#007BFF',
+    padding: 10,
+    borderRadius: 50,
+  },
+  icon: {
+    width: 30,
+    height: 30,
+    tintColor: '#fff',
+  },
+  commentText: {
+    fontSize: 16,
+  },
+  profileImg: {
+    width: 32,
+    height: 32,
+    borderRadius: 50
+  },
+  profileText: {
+    color: 'ccc'
+  },
+  commentBy: {
+  },
+  profilePicture: {
+    width: 32,
+    height: 32,
+    borderRadius: 32,
+  },
+  commentContent:{
+    marginLeft: 10,
+     flex: 1,
+    flexDirection: 'column',
+    alignItems: 'flex-start'
+  }
 });
 
 export default UserPost;
