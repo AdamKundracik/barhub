@@ -289,6 +289,9 @@ exports.deleteOldPostsAndImages = functions.pubsub
         const file = bucket.file(fileId);
         deletePromises.push(file.delete());
 
+        deletePromises.push(deleteSubcollection(doc.ref, 'likes'));
+        deletePromises.push(deleteSubcollection(doc.ref, 'comments'));
+
         // Delete the post document from Firestore
         deletePromises.push(doc.ref.delete());
       });
@@ -354,3 +357,13 @@ exports.getComments = functions.https.onCall(async (data, context) => {
     console.error('Error fetching comments: ', error);
   }
 });
+
+async function deleteSubcollection(postRef, subcollectionName) {
+  const subcollectionSnapshot = await postRef
+    .collection(subcollectionName)
+    .get();
+  const deletePromises = subcollectionSnapshot.docs.map(doc =>
+    doc.ref.delete()
+  );
+  await Promise.all(deletePromises);
+}

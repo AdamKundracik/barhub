@@ -11,6 +11,7 @@ import { generateId } from './generate-hash';
 import { UseMutationResult } from 'react-query';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { Post } from '../../../../shared';
+import { Image } from 'react-native';
 
 export const uploadImageAsync = async (
   uri: string,
@@ -52,10 +53,13 @@ export const uploadImageAsync = async (
 const uriToBlob = async (uri: string): Promise<Blob> => {
   return new Promise(async (resolve, reject) => {
     try {
+      const width = 576;
+      const height = 720;
+
       const manipResult = await ImageManipulator.manipulateAsync(
         uri,
-        [{ resize: { width: 576, height: 786 } }],
-        { compress: 0.8, format: ImageManipulator.SaveFormat.PNG }
+        [{ resize: { width, height } }],
+        { compress: 0.7, format: ImageManipulator.SaveFormat.WEBP }
       );
 
       const xhr = new XMLHttpRequest();
@@ -93,7 +97,7 @@ export const uploadProfilePhotoAsync = async (uri: string): Promise<void> => {
   }
 };
 
-export const getProfilePicture = async () => {
+export const getProfilePicture = async (): Promise<string> => {
   let uri = '';
   try {
     const storage = getStorage();
@@ -108,6 +112,7 @@ export const getProfilePicture = async () => {
     return uri;
   } catch (error) {
     console.error('Error listing files: ', error);
+    return '';
   }
 };
 

@@ -14,6 +14,7 @@ import { useEffect, useState } from 'react';
 import { addCommentToPost, checkLikeStatus, fetchCommentsForPost, toggleLike } from '../../utils/services/functions';
 import { auth } from '../../../../firebaseConfig';
 import { t } from 'i18next';
+import useDebounce from '../../utils/hooks/useDebounce';
 
 interface PostInterface {
   post: PostUrlExtended;
@@ -35,7 +36,7 @@ export const UserPost = (props: PostInterface) => {
   const [showComments,setShowComments] = useState<boolean>(false)
   const [comments, setComments] = useState<ItemProps[]>([]);
   const [newComment, setNewComment] = useState('');
-  
+
   useEffect(() => {
     if (auth.currentUser?.uid) {
       checkLikeStatus(props.post.id, auth.currentUser.uid).then(data => setLikeStatus(data.data));
@@ -51,13 +52,14 @@ export const UserPost = (props: PostInterface) => {
     if (showComments) {
       loadComments();
     }
-
-    console.log(comments)
   },[showComments])
 
   const handleLikeToggle = async () => {
     if (auth.currentUser?.uid) {
-      await toggleLike(props.post.id, auth.currentUser.uid).then(() => {checkLikeStatus(props.post.id, auth.currentUser.uid).then(data => setLikeStatus(data.data))})
+      setLikeStatus(!likeStatus)
+      useDebounce(async () => {
+        await toggleLike(props.post.id, auth.currentUser.uid).then(() => {checkLikeStatus(props.post.id, auth.currentUser.uid)})
+      },1000)
     }
   };
 
@@ -125,6 +127,7 @@ export const UserPost = (props: PostInterface) => {
           source={{
             uri: post.url,
           }}
+          resizeMode="contain"
         />
       </GestureDetector>
       <View style={styles.photoActions}>
