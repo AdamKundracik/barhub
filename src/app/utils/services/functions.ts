@@ -76,5 +76,53 @@ export const getPostsByPlaceID = async (
   const response = (await cloudFunction({
     placeId: placeId,
   })) as unknown as GetAllPostsResult;
+};
+
+export const toggleLike = async (
+  postId: string,
+  userId: string
+): Promise<any> => {
+  const cloudFunction = httpsCallable(functions, 'toggleLike');
+  const response = await cloudFunction({
+    postId,
+    userId,
+  });
   return response;
+};
+
+export const checkLikeStatus = async (
+  postId: string,
+  userId: string
+): Promise<any> => {
+  const cloudFunction = httpsCallable(functions, 'getLikeStatus');
+  const response = await cloudFunction({
+    postId,
+    userId,
+  });
+  return response;
+};
+
+export const addCommentToPost = async (
+  postId: string,
+  userId: string,
+  userName: string,
+  userPhotoUrl: string,
+  commentText: string
+) => {
+  const cloudFunction = httpsCallable(functions, 'addComment');
+  const response = await cloudFunction({
+    postId,
+    userId,
+    userName,
+    userPhotoUrl,
+    commentText,
+  });
+  return response;
+};
+
+// Function to fetch comments for a post
+export const fetchCommentsForPost = async (postId: string) => {
+  const cloudFunction = httpsCallable(functions, 'getComments');
+  const response = await cloudFunction({ postId });
+  return response?.data?.comments;
 };
