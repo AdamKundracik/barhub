@@ -64,11 +64,6 @@ export const SetUpProfile = () => {
 
     setUploading(true);
     const dateOfBirth = createDateFromCustomString(date);
-    await setUser({
-      photoURL: image,
-      displayName: username,
-      dateOfBirth: dateOfBirth,
-    });
 
     if (auth.currentUser) {
       mutationUpdateProfile.mutate({
@@ -77,7 +72,15 @@ export const SetUpProfile = () => {
         photoURL: image, // optional
       });
 
-      uploadProfilePhotoAsync(image!).then(() => {
+      uploadProfilePhotoAsync(image!).then(async (result) => {
+        await setUser({
+          photoURL: result,
+          displayName: username,
+          dateOfBirth: dateOfBirth,
+        }).then(() => {
+          reloadUser();
+          setUploading(false);
+        })
         setUploading(false);
       });
 

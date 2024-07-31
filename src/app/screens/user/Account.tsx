@@ -22,7 +22,6 @@ export const Account = () => {
   const user: User = useQueryClient().getQueryData('user')!;
 
   const { t } = useTranslation();
-  const { profileUri } = useUserContext();
   const [loading, setLoading] = useState(true);
 
   function triggerSignOut() {
@@ -42,8 +41,8 @@ export const Account = () => {
       <View style={styles.container}>
         <Image
           source={
-            profileUri
-              ? { uri: profileUri }
+            auth.currentUser?.photoURL
+              ? { uri: auth.currentUser.photoURL }
               : require('../../../../assets/userIcon.png')
           }
           style={styles.profilePicture}
