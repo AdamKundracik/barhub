@@ -14,17 +14,17 @@ import { Place, PlaceDetailsResponse } from '../../utils/types/types';
 import { commonAppStyles, formStyles } from '../../utils/styles/styles';
 import { fetchPlaceDetails } from '../../utils/helper-functions/fetchPlaceDetail';
 import { fetchPlacePhotos } from '../../utils/helper-functions/fetchPlacePhotos';
-import { getDistanceData } from '../../utils/helper-functions/getDistanceData';
 import { useImageManagement } from '../../utils/hooks/useImageManagement';
 import { useQueryClient } from 'react-query';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
 import { uploadImageAsync } from '../../utils/helper-functions/helperFunctions';
-import { max_distance } from '../../utils/helper-functions/constants';
 import { useTranslation } from 'react-i18next';
 import { useUploadingStateManagement } from '../../utils/hooks/useUploadingStateManagement';
 import { useUserContext } from '../../providers/UserProvider';
 import { setUser } from '../../utils/services/functions';
+import { haversineDistance } from '../../utils/helper-functions/distanceBetweenPoints';
+import { max_distance } from '../../utils/helper-functions/constants';
 
 type PlaceDetailModalProps = {
   isOpen: boolean;
@@ -94,11 +94,14 @@ export const PlaceDetail = memo(
 
     async function savePost() {
       try {
-        const data = await getDistanceData({
-          startLocation: location!,
-          endLocation: place?.location!,
-        });
-        const calculatedDistance = data.data?.distance;
+        const calculatedDistance = Math.round(
+          haversineDistance(
+            location?.latitude!,
+            location?.longitude!,
+            place?.location.latitude!,
+            place?.location.longitude!
+          )
+        );
         if (calculatedDistance && calculatedDistance < max_distance) {
           if (image && place?.id) {
             setIsSaving(true);

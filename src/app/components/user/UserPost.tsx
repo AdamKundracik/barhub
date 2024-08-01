@@ -1,4 +1,11 @@
-import { StyleSheet, Text, TextInput,Image, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { commonAppStyles } from '../../utils/styles/styles';
 import Animated, {
   useAnimatedStyle,
@@ -9,9 +16,17 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
 import { PostUrlExtended } from '../../../../shared';
-import { timeAgo,getTimeAgoFromTimestampSeconds } from '../../utils/helper-functions/timeAgo';
+import {
+  getTimeAgoFromTimestampSeconds,
+  timeAgo,
+} from '../../utils/helper-functions/timeAgo';
 import { useEffect, useState } from 'react';
-import { addCommentToPost, checkLikeStatus, fetchCommentsForPost, toggleLike } from '../../utils/services/functions';
+import {
+  addCommentToPost,
+  checkLikeStatus,
+  fetchCommentsForPost,
+  toggleLike,
+} from '../../utils/services/functions';
 import { auth } from '../../../../firebaseConfig';
 import { t } from 'i18next';
 import useDebounce from '../../utils/hooks/useDebounce';
@@ -20,9 +35,17 @@ interface PostInterface {
   post: PostUrlExtended;
   setZoomedPost: (link: string | null) => void;
   isZoomed: boolean;
+  hasPremium: boolean;
 }
 
-type ItemProps = {userName: string,commentText:string,creationTime: any,id:string,userId:string,userPhotoUrl:string}
+type ItemProps = {
+  userName: string;
+  commentText: string;
+  creationTime: any;
+  id: string;
+  userId: string;
+  userPhotoUrl: string;
+};
 
 export const UserPost = (props: PostInterface) => {
   const { post, setZoomedPost, isZoomed } = props;
@@ -33,13 +56,15 @@ export const UserPost = (props: PostInterface) => {
   const scale = useSharedValue(1);
 
   const [likeStatus, setLikeStatus] = useState<boolean>(false);
-  const [showComments,setShowComments] = useState<boolean>(false)
+  const [showComments, setShowComments] = useState<boolean>(false);
   const [comments, setComments] = useState<ItemProps[]>([]);
   const [newComment, setNewComment] = useState('');
 
   useEffect(() => {
     if (auth.currentUser?.uid) {
-      checkLikeStatus(props.post.id, auth.currentUser.uid).then(data => setLikeStatus(data.data));
+      checkLikeStatus(props.post.id, auth.currentUser.uid).then(data =>
+        setLikeStatus(data.data)
+      );
     }
   }, [auth.currentUser?.uid, props.post.id]);
 
@@ -52,14 +77,16 @@ export const UserPost = (props: PostInterface) => {
     if (showComments) {
       loadComments();
     }
-  },[showComments])
+  }, [showComments]);
 
   const handleLikeToggle = async () => {
     if (auth.currentUser?.uid) {
-      setLikeStatus(!likeStatus)
+      setLikeStatus(!likeStatus);
       useDebounce(async () => {
-        await toggleLike(props.post.id, auth.currentUser.uid).then(() => {checkLikeStatus(props.post.id, auth.currentUser.uid)})
-      },1000)
+        await toggleLike(props.post.id, auth.currentUser!.uid).then(() => {
+          checkLikeStatus(props.post.id, auth.currentUser!.uid);
+        }); // Delay for 1sec
+      }, 1000);
     }
   };
 
@@ -100,12 +127,22 @@ export const UserPost = (props: PostInterface) => {
   });
 
   const handleAddComment = async () => {
-    if (newComment) {
-      await addCommentToPost(post.id, auth.currentUser?.uid, auth.currentUser?.displayName, auth.currentUser?.photoURL, newComment.trim());
+    if (
+      newComment &&
+      auth.currentUser?.displayName &&
+      auth.currentUser.photoURL
+    ) {
+      await addCommentToPost(
+        post.id,
+        auth.currentUser?.uid!,
+        auth.currentUser?.displayName,
+        auth.currentUser?.photoURL,
+        newComment.trim()
+      );
       setNewComment('');
- 
+
       const updatedComments = await fetchCommentsForPost(post.id);
-      setComments(updatedComments)
+      setComments(updatedComments);
     }
   };
 
@@ -123,6 +160,7 @@ export const UserPost = (props: PostInterface) => {
       </View>
       <GestureDetector gesture={pinch}>
         <Animated.Image
+          blurRadius={!props.hasPremium ? 50 : 0}
           style={[styles.photo, animatedStyle]}
           source={{
             uri: post.url,
@@ -131,29 +169,43 @@ export const UserPost = (props: PostInterface) => {
         />
       </GestureDetector>
       <View style={styles.photoActions}>
-      <TouchableOpacity  onPress={() => handleLikeToggle()}>
-        <FontAwesomeIcon color={likeStatus ? 'red' : 'white'} icon={Icons.Heart} />
+        <TouchableOpacity onPress={() => handleLikeToggle()}>
+          <FontAwesomeIcon
+            color={likeStatus ? 'red' : 'white'}
+            icon={Icons.Heart}
+          />
         </TouchableOpacity>
 
-        <TouchableOpacity  onPress={() => setShowComments(!showComments)}>
-        <FontAwesomeIcon color="white" icon={Icons.Comment}></FontAwesomeIcon>
+        <TouchableOpacity onPress={() => setShowComments(!showComments)}>
+          <FontAwesomeIcon color="white" icon={Icons.Comment}></FontAwesomeIcon>
         </TouchableOpacity>
         {/* UNTIL FUNCTIONALITY WILL BE IMPLEMENTED */}
         {/* <FontAwesomeIcon color="white" icon={Icons.ShareAlt}></FontAwesomeIcon> */}
       </View>
 
-    
       <View style={styles.commentsList}>
         {comments.map((comment, index) => (
           <View key={index} style={styles.commentItem}>
-          <View style={styles.profileImg}>
-            <Image style={styles.profilePicture}  height={32} width={32} source={comment?.userPhotoUrl ? {uri: comment?.userPhotoUrl} : require('../../../../assets/userIcon.png')}></Image>
+            <View style={styles.profileImg}>
+              <Image
+                style={styles.profilePicture}
+                height={32}
+                width={32}
+                source={
+                  comment?.userPhotoUrl
+                    ? { uri: comment?.userPhotoUrl }
+                    : require('../../../../assets/userIcon.png')
+                }
+              ></Image>
+            </View>
+            <View style={styles.commentContent}>
+              <Text style={styles.commentBy}>
+                {comment.userName}{' '}
+                {getTimeAgoFromTimestampSeconds(comment.creationTime._seconds)}
+              </Text>
+              <Text style={styles.commentText}>{comment.commentText}</Text>
+            </View>
           </View>
-          <View style={styles.commentContent}>
-            <Text style={styles.commentBy}>{comment.userName} {getTimeAgoFromTimestampSeconds(comment.creationTime._seconds)}</Text>
-            <Text style={styles.commentText}>{comment.commentText}</Text>
-        </View>
-        </View>
         ))}
       </View>
       {showComments && (
@@ -259,24 +311,23 @@ const styles = StyleSheet.create({
   profileImg: {
     width: 32,
     height: 32,
-    borderRadius: 50
+    borderRadius: 50,
   },
   profileText: {
-    color: 'ccc'
+    color: 'ccc',
   },
-  commentBy: {
-  },
+  commentBy: {},
   profilePicture: {
     width: 32,
     height: 32,
     borderRadius: 32,
   },
-  commentContent:{
+  commentContent: {
     marginLeft: 10,
-     flex: 1,
+    flex: 1,
     flexDirection: 'column',
-    alignItems: 'flex-start'
-  }
+    alignItems: 'flex-start',
+  },
 });
 
 export default UserPost;

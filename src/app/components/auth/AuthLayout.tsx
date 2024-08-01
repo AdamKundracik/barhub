@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { ReactNode } from 'react';
 import { authPageStyles, commonAppStyles } from '../../utils/styles/styles';
-import LanguageSwitcher from '../shared/settings/LanguageSwitcher';
 import ScrollView = Animated.ScrollView;
 
 type LayoutProps = {
@@ -44,14 +43,14 @@ export const AuthLayout = ({ children, pageTitle }: LayoutProps) => {
                     },
                   ]}
                 >
-                  BARUJ
+                  Barhub
                 </Text>
               </View>
               {children}
             </View>
           </View>
         </ScrollView>
-        <LanguageSwitcher />
+        {/*<LanguageSwitcher />*/}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

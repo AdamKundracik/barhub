@@ -5,12 +5,29 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "ios": {
+        "image": "latest",
+        "simulator": true
+      }
     },
     "preview": {
       "distribution": "internal"
     },
-    "production": {}
+    "production": {
+      "android": {
+        "buildType": "app-bundle",
+        "gradleCommand": ":app:assembleRelease",
+        "env": {
+          "EXPO_ANDROID_MIN_SDK_VERSION": "24"
+        }
+      }
+    },
+    "simulator": {
+      "ios": {
+        "simulator": true
+      }
+    }
   },
   "submit": {
     "production": {}

@@ -13,6 +13,7 @@ import { User } from '../../../shared';
 import { getProfilePicture } from '../utils/helper-functions/helperFunctions';
 import { LocationType } from '../utils/types/types';
 import { getCoords } from '../utils/helper-functions/get-coords';
+import { useUserManagement } from '../utils/hooks/useUserManagement';
 
 type ContextProps = {
   location: LocationType;
@@ -41,6 +42,7 @@ export const UserProvider = (props: Props) => {
     latitude: 0,
     longitude: 0,
   });
+  const { setUserToStore } = useUserManagement();
 
   async function getLocation(): Promise<void> {
     try {
@@ -68,7 +70,8 @@ export const UserProvider = (props: Props) => {
     const fetchUserData = async () => {
       const uid = auth.currentUser?.uid;
       if (uid) {
-        const user = await getCurrentUser(uid);
+        const user = await getCurrentUser();
+        if (user.data) setUserToStore.mutateAsync(user.data);
         setUserData(user.data);
       }
       setIsLoading(false);

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "183031933977",
+    "project_id": "baruj-android-notification",
+    "storage_bucket": "baruj-android-notification.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:183031933977:android:42e9d22e007b7cad54ce88",
+        "android_client_info": {
+          "package_name": "com.barhub.barhub"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4tBFlmMyLzXRLOrPS2LO00whUdw6lcQo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

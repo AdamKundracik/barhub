@@ -2,6 +2,7 @@ import {
   faArrowLeft,
   faBars,
   faBolt,
+  faBoxesPacking,
   faCamera,
   faCancel,
   faCircleCheck,
@@ -67,4 +68,5 @@ export const Icons = {
   Back: faArrowLeft,
   Cancel: faCancel,
   X: faX,
+  BoxPacking: faBoxesPacking,
 };
