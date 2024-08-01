@@ -19,12 +19,10 @@ type ContextProps = {
   location: LocationType;
   setLocation: (value: LocationType) => void;
   userData: User | null;
-  profileUri: string;
   isLoading: boolean;
 };
 
 const initialContext: ContextProps = {
-  profileUri: '',
   userData: null,
   isLoading: true,
   location: { latitude: 0, longitude: 0 },
@@ -40,7 +38,6 @@ const UserContext = createContext<Partial<ContextProps>>(initialContext);
 export const UserProvider = (props: Props) => {
   const [userData, setUserData] = useState<GetUserResult['data'] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [profileUri, setProfileUri] = useState<string>('');
   const [location, setLocation] = useState<LocationType>({
     latitude: 0,
     longitude: 0,
@@ -70,15 +67,6 @@ export const UserProvider = (props: Props) => {
   }, []);
 
   useEffect(() => {
-    async function getImage() {
-      const uri = await getProfilePicture();
-      if (uri) setProfileUri(uri);
-    }
-
-    getImage();
-  }, [auth.currentUser?.uid]);
-
-  useEffect(() => {
     const fetchUserData = async () => {
       const uid = auth.currentUser?.uid;
       if (uid) {
@@ -93,13 +81,12 @@ export const UserProvider = (props: Props) => {
 
   const ctx = useMemo(() => {
     return {
-      profileUri,
       userData,
       isLoading,
       location,
       setLocation,
     };
-  }, [profileUri, userData, isLoading, location, setLocation]);
+  }, [userData, isLoading, location, setLocation]);
 
   return (
     <UserContext.Provider value={ctx}>{props.children}</UserContext.Provider>

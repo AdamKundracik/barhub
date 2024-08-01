@@ -94,6 +94,7 @@ export const SetUpProfile = () => {
       console.log(e);
     } finally {
       setUploading(false);
+      console.error('Missing auth');
     }
   }
 

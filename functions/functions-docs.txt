@@ -2,7 +2,7 @@
 
 2. run npm run-script build in functions folder
 
-3. run firebase deploy --only functions in functions folder
+3. run "firebase deploy --only functions" in functions folder (example "firebase deploy --only functions:NAME OF THE FUNCITON NAME")
 
 4. wait for deployment
 

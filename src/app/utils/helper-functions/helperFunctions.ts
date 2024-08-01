@@ -11,6 +11,7 @@ import { generateId } from './generate-hash';
 import { UseMutationResult } from 'react-query';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { Post } from '../../../../shared';
+import { Image } from 'react-native';
 
 export const uploadImageAsync = async (
   uri: string,
@@ -52,10 +53,13 @@ export const uploadImageAsync = async (
 const uriToBlob = async (uri: string): Promise<Blob> => {
   return new Promise(async (resolve, reject) => {
     try {
+      const width = 576;
+      const height = 720;
+
       const manipResult = await ImageManipulator.manipulateAsync(
         uri,
-        [{ resize: { width: 576, height: 786 } }],
-        { compress: 0.8, format: ImageManipulator.SaveFormat.PNG }
+        [{ resize: { width, height } }],
+        { compress: 0.7, format: ImageManipulator.SaveFormat.WEBP }
       );
 
       const xhr = new XMLHttpRequest();
@@ -74,33 +78,33 @@ const uriToBlob = async (uri: string): Promise<Blob> => {
   });
 };
 
-export const uploadProfilePhotoAsync = async (uri: string): Promise<void> => {
+export const uploadProfilePhotoAsync = async (uri: string): Promise<string> => {
   try {
     if (!auth.currentUser) {
-      console.error('No current user');
-      return;
+      throw new Error('No current user');
     }
 
     const blob: Blob = await uriToBlob(uri);
     const fileId = `profile_photos/${auth.currentUser?.uid}`;
 
     const storageRef = ref(storage, fileId);
-    await uploadBytes(storageRef, blob);
+    const result = await uploadBytes(storageRef, blob);
 
-    console.log('Upload successful!');
+    return getProfilePicture(result.metadata.name);
   } catch (error) {
     console.error('Error uploading image:', error);
+    throw error;
   }
 };
 
-export const getProfilePicture = async () => {
+export const getProfilePicture = async (id?: string): Promise<string> => {
   let uri = '';
   try {
     const storage = getStorage();
     const listRef = ref(storage, 'profile_photos');
     const res = await list(listRef);
     const photoReference = res.items.find(
-      item => item.name === auth.currentUser?.uid
+      item => item.name === auth.currentUser?.uid || id
     );
     if (photoReference) {
       uri = await getDownloadURL(photoReference);
@@ -108,6 +112,7 @@ export const getProfilePicture = async () => {
     return uri;
   } catch (error) {
     console.error('Error listing files: ', error);
+    return '';
   }
 };
 
