@@ -82,12 +82,6 @@ export const UserPost = (props: PostInterface) => {
   const handleLikeToggle = async () => {
     if (auth.currentUser?.uid) {
       setLikeStatus(!likeStatus);
-      console.log('click');
-      // useDebounce(() => {
-      //   console.log('toggle');
-      //
-      //   });
-      // }, 1000);
       useDebounce(async () => {
         await toggleLike(props.post.id, auth.currentUser!.uid).then(() => {
           checkLikeStatus(props.post.id, auth.currentUser!.uid);
