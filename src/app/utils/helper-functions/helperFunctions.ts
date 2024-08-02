@@ -1,4 +1,5 @@
 import {
+  deleteObject,
   getDownloadURL,
   getStorage,
   list,
@@ -7,11 +8,9 @@ import {
 } from 'firebase/storage';
 import { auth, storage } from '../../../../firebaseConfig';
 import { savePost } from '../services/functions';
-import { generateId } from './generate-hash';
 import { UseMutationResult } from 'react-query';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { Post } from '../../../../shared';
-import { Image } from 'react-native';
 
 export const uploadImageAsync = async (
   uri: string,
@@ -29,7 +28,7 @@ export const uploadImageAsync = async (
     const blob: Blob = await uriToBlob(uri);
     const fileId = `${placeId}/${new Date().getTime().toString() + '_' + auth.currentUser?.uid}`;
     const newPost: Post = {
-      uid: generateId(),
+      id: '',
       user_id: auth.currentUser?.uid,
       name: auth.currentUser.displayName ?? '',
       fileId: fileId.split('/')[1],
@@ -84,10 +83,10 @@ export const uploadProfilePhotoAsync = async (uri: string): Promise<string> => {
       throw new Error('No current user');
     }
 
-    const blob: Blob = await uriToBlob(uri);
     const fileId = `profile_photos/${auth.currentUser?.uid}`;
-
     const storageRef = ref(storage, fileId);
+
+    const blob: Blob = await uriToBlob(uri);
     const result = await uploadBytes(storageRef, blob);
 
     return getProfilePicture(result.metadata.name);
@@ -101,19 +100,27 @@ export const getProfilePicture = async (id?: string): Promise<string> => {
   let uri = '';
   try {
     const storage = getStorage();
-    const listRef = ref(storage, 'profile_photos');
-    const res = await list(listRef);
-    const photoReference = res.items.find(
-      item => item.name === auth.currentUser?.uid || id
-    );
-    if (photoReference) {
-      uri = await getDownloadURL(photoReference);
+    const listRef = ref(storage, `profile_photos/${id}`);
+
+    try {
+      uri = await getDownloadURL(listRef);
+    } catch (downloadError) {
+      // Handle the error from getDownloadURL
+      console.error('Error getting download URL: ', downloadError);
+      return ''; // Return an empty string or a default placeholder image URL
     }
-    return uri;
+
+    return uri; // Return the successful URI
   } catch (error) {
+    // Handle any other errors that may occur
     console.error('Error listing files: ', error);
-    return '';
+    return ''; // Return an empty string or a default placeholder image URL
   }
+};
+
+export const deleteProfilePicture = async (userId: string): Promise<void> => {
+  const storageRef = ref(storage, `profile_photos/${userId}`);
+  await deleteObject(storageRef);
 };
 
 export const listFiles = async (placeId: string | undefined | null) => {

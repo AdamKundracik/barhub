@@ -40,7 +40,6 @@ export type Post = {
   name: string;
   placeName: string;
   placeAddress: string;
-  uid: string;
   id: string;
 };
 

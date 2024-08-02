@@ -151,7 +151,7 @@ export const MapSearch = (props: LayoutProps) => {
         onPress={() => props.setIsMapShown(false)}
         style={styles.closeButton}
       >
-        <FontAwesomeIcon icon={Icons.X} size={32} color={'black'} />
+        <FontAwesomeIcon icon={Icons.Remove} size={32} color={'black'} />
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.infoContainer} onPress={pickPlace}>

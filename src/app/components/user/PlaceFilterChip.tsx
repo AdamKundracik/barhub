@@ -25,7 +25,7 @@ export const PlaceFilterChip = (props: LayoutProps) => {
         style={styles.deleteIcon}
         onPress={() => removeSavedPlace()}
       >
-        <FontAwesomeIcon icon={Icons.X} size={12} color={'white'} />
+        <FontAwesomeIcon icon={Icons.Remove} size={12} color={'white'} />
       </TouchableOpacity>
     </View>
   );
