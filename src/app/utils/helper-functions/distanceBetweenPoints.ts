@@ -21,6 +21,8 @@ export const haversineDistance = (
   lat2: number,
   lon2: number
 ): number => {
+  console.log(lat1, lon1, lat1, lon2);
+
   const R = 6371.0088; // Mean radius of the Earth in kilometers
 
   const dLat = toRadians(lat2 - lat1);

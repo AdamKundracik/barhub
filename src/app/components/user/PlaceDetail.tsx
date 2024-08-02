@@ -102,7 +102,9 @@ export const PlaceDetail = memo(
             place?.location.longitude!
           )
         );
-        if (calculatedDistance && calculatedDistance < max_distance) {
+        console.log(calculatedDistance);
+        console.log(calculatedDistance <= max_distance);
+        if (calculatedDistance <= max_distance) {
           if (image && place?.id) {
             setIsSaving(true);
             setUploadingState.mutate(true);
