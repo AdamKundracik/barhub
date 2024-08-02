@@ -263,7 +263,7 @@ export const NewsFeed = () => {
                 </Text>
               </View>
             ) : null}
-            {posts ? (
+            {posts.length ? (
               <>
                 {place && (
                   <TouchableOpacity
