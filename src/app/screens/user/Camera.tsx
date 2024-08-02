@@ -33,6 +33,7 @@ import { sendPushNotificationResponse } from '../../utils/services/notofications
 import { useUserContext } from '../../providers/UserProvider';
 import { fetchPlaceDetails } from '../../utils/helper-functions/fetchPlaceDetail';
 import { PlaceDetailsResponse } from '../../utils/types/types';
+import { setUser } from '../../utils/services/functions';
 
 export const CameraScreen = () => {
   const route = useRoute();
@@ -81,7 +82,7 @@ export const CameraScreen = () => {
         return;
       }
       setIsSaving(true);
-      uploadImageAsync(
+      await uploadImageAsync(
         image,
         setUploadingState,
         routeResponse?.placeId,
@@ -94,6 +95,9 @@ export const CameraScreen = () => {
           routeResponse.senderToken,
           routeResponse.placeId
         ).then();
+      });
+      await setUser({
+        lastUploadedPost: new Date(),
       });
     } else {
       navigation.navigate('PhotoResolver');

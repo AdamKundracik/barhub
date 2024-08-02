@@ -76,6 +76,7 @@ export const getPostsByPlaceID = async (
   const response = (await cloudFunction({
     placeId: placeId,
   })) as unknown as GetAllPostsResult;
+  return response;
 };
 
 export const toggleLike = async (

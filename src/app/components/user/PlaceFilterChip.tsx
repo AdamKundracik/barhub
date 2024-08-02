@@ -17,17 +17,17 @@ export const PlaceFilterChip = (props: LayoutProps) => {
   }
 
   return (
-    <View style={styles.container}>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={() => removeSavedPlace()}
+    >
       <View style={styles.chipText}>
         <Text style={commonAppStyles.textPrimary}>{props.place}</Text>
       </View>
-      <TouchableOpacity
-        style={styles.deleteIcon}
-        onPress={() => removeSavedPlace()}
-      >
+      <View style={styles.deleteIcon}>
         <FontAwesomeIcon icon={Icons.Remove} size={12} color={'white'} />
-      </TouchableOpacity>
-    </View>
+      </View>
+    </TouchableOpacity>
   );
 };
 

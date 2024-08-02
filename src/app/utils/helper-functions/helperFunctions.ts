@@ -27,6 +27,12 @@ export const uploadImageAsync = async (
 
     const blob: Blob = await uriToBlob(uri);
     const fileId = `${placeId}/${new Date().getTime().toString() + '_' + auth.currentUser?.uid}`;
+
+    const storageRef = ref(storage, fileId);
+    await uploadBytes(storageRef, blob);
+    await hook.mutateAsync(false);
+    const url = await getDownloadURL(storageRef);
+
     const newPost: Post = {
       id: '',
       user_id: auth.currentUser?.uid,
@@ -37,13 +43,10 @@ export const uploadImageAsync = async (
       timestamp: Date.now(),
       placeName: placeName,
       placeAddress: placeAddress,
+      photoUrl: url,
     };
 
     await savePost(newPost);
-    const storageRef = ref(storage, fileId);
-    uploadBytes(storageRef, blob).then(result => {
-      hook.mutate(false);
-    });
   } catch (error) {
     console.error('Error uploading image:', error);
   }

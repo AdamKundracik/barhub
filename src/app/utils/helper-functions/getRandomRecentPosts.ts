@@ -1,6 +1,6 @@
-import { PostUrlExtended } from '../../../../shared';
+import { Post } from '../../../../shared';
 
-export const getRandomRecentPosts = (posts: PostUrlExtended[]) => {
+export const getRandomRecentPosts = (posts: Post[]) => {
   // Shuffle the array of recent posts
   const shuffledPosts = posts.sort(() => Math.random() - 0.5);
 
