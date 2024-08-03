@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
+import { useTranslation } from 'react-i18next';
 
 const { height } = Dimensions.get('window'); // Get the screen height
 
@@ -22,6 +23,7 @@ type SlidingViewProps = {
 
 export const SlidingView = (props: SlidingViewProps) => {
   const slideAnim = useRef(new Animated.Value(height)).current; // Start off-screen
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (props.visible) {
@@ -49,17 +51,17 @@ export const SlidingView = (props: SlidingViewProps) => {
     >
       <TouchableOpacity style={styles.option} onPress={props.openGallery}>
         <FontAwesomeIcon icon={Icons.Image} size={24} color={'white'} />
-        <Text style={styles.text}>Pick picture from gallery</Text>
+        <Text style={styles.text}>{t('pick-from-gallery')}</Text>
       </TouchableOpacity>
       <View style={styles.seperator}></View>
       <TouchableOpacity style={styles.option} onPress={props.openCamera}>
         <FontAwesomeIcon icon={Icons.Camera} size={24} color={'white'} />
-        <Text style={styles.text}>Take new picture</Text>
+        <Text style={styles.text}>{t('take-new-picture')}</Text>
       </TouchableOpacity>
       <View style={styles.seperator}></View>
       <TouchableOpacity style={styles.option} onPress={props.removePicture}>
         <FontAwesomeIcon icon={Icons.Ban} size={24} color={'white'} />
-        <Text style={styles.text}>Remove picture</Text>
+        <Text style={styles.text}>{t('remove-picture')}</Text>
       </TouchableOpacity>
     </Animated.View>
   );
