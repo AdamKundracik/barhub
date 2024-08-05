@@ -49,15 +49,18 @@ export const SetUpProfile = () => {
   }
 
   const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
+    const permission = await ImagePicker.getMediaLibraryPermissionsAsync();
+    if (permission.granted) {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
 
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
+      if (!result.canceled) {
+        setImage(result.assets[0].uri);
+      }
     }
   };
 
@@ -75,7 +78,6 @@ export const SetUpProfile = () => {
 
       if (auth.currentUser) {
         const url = await uploadProfilePhotoAsync(image!);
-        console.log(url);
 
         await setUser({
           photoURL: url,

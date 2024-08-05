@@ -1,5 +1,6 @@
 import {
   faArrowLeft,
+  faBan,
   faBars,
   faBolt,
   faBoxesPacking,
@@ -14,11 +15,13 @@ import {
   faGear,
   faHeart,
   faHeartBroken,
+  faImage,
   faMap,
   faMapLocationDot,
   faPaperPlane,
   faPencil,
   faPlusSquare,
+  faRemove,
   faRotateBack,
   faSearch,
   faSearchMinus,
@@ -69,4 +72,7 @@ export const Icons = {
   Cancel: faCancel,
   X: faX,
   BoxPacking: faBoxesPacking,
+  Image: faImage,
+  Remove: faRemove,
+  Ban: faBan,
 };

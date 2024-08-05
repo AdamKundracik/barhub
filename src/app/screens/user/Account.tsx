@@ -1,35 +1,42 @@
+import React, { useState } from 'react';
 import {
   Alert,
   Image,
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import Layout from '../../components/user/Layout';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../../../firebaseConfig';
 import { useTranslation } from 'react-i18next';
-import 'firebase/functions';
-import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
 import { useQueryClient } from 'react-query';
+import SlidingView from '../../components/shared/SlidingView';
+import * as ImagePicker from 'expo-image-picker';
 import { User } from '../../../../shared';
-import { useUserContext } from '../../providers/UserProvider';
+import {
+  deleteProfilePicture,
+  uploadProfilePhotoAsync,
+} from '../../utils/helper-functions/helperFunctions';
+import { setUser } from '../../utils/services/functions';
+import { useAuthUpdateProfile } from '@react-query-firebase/auth';
 
 export const Account = () => {
-  const user: User = useQueryClient().getQueryData('user')!;
+  const user: User = useQueryClient().getQueryData('user');
 
   const { t } = useTranslation();
-  const [loading, setLoading] = useState(true);
+  const mutationUpdateProfile = useAuthUpdateProfile();
+  const [isSlidingViewVisible, setSlidingViewVisible] = useState(false);
 
-  const { profileUri } = useUserContext();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 
-  function triggerSignOut() {
+  const handleSignOut = () => {
     signOut(auth)
       .then(() => {
         Alert.alert(t('Signed out'), t('You have been signed out'), [
@@ -39,41 +46,137 @@ export const Account = () => {
       .catch(error => {
         console.error(error);
       });
-  }
+  };
+
+  const toggleOpenOptions = () => {
+    setSlidingViewVisible(!isSlidingViewVisible);
+  };
+
+  const handleOutsideClick = () => {
+    if (isSlidingViewVisible) {
+      setSlidingViewVisible(false);
+    }
+  };
+
+  const openGallery = async () => {
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      Alert.alert(
+        'Permission Denied',
+        'Permission to access the gallery is required.'
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      const uri = await uploadProfilePhotoAsync(result.assets[0].uri);
+
+      await setUser({
+        photoURL: uri,
+      });
+
+      await mutationUpdateProfile.mutateAsync({
+        photoURL: uri,
+        user: auth.currentUser!,
+        displayName: auth.currentUser?.displayName,
+      });
+
+      setSlidingViewVisible(false); // Close the sliding view after the action
+    }
+  };
+
+  const openCamera = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      Alert.alert(
+        'Permission Denied',
+        'Permission to access the camera is required.'
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      const uri = await uploadProfilePhotoAsync(result.assets[0].uri);
+
+      await setUser({
+        photoURL: uri,
+      });
+
+      await mutationUpdateProfile.mutateAsync({
+        photoURL: uri,
+        user: auth.currentUser!,
+        displayName: auth.currentUser?.displayName,
+      });
+
+      setSlidingViewVisible(false); // Close the sliding view after the action
+    }
+  };
+
+  const removePicture = async () => {
+    await deleteProfilePicture(auth.currentUser?.uid!);
+    await setUser({
+      photoURL: '',
+    });
+
+    await mutationUpdateProfile.mutateAsync({
+      photoURL: '',
+      user: auth.currentUser!,
+      displayName: auth.currentUser?.displayName,
+    });
+  };
 
   return (
-    <Layout pageTitle={'Account'}>
-      <View style={styles.container}>
-        <Image
-          source={
-            auth.currentUser?.photoURL
-              ? { uri: auth.currentUser.photoURL }
-              : require('../../../../assets/userIcon.png')
-          }
-          style={styles.profilePicture}
-        />
-        <Text style={styles.userName}>{auth.currentUser?.displayName}</Text>
-        <Text style={styles.userName}>{auth.currentUser?.email}</Text>
-        {user?.premium && (
-          <Text style={styles.picturesTaken}>PREMIUM MEMBER</Text>
-        )}
+    <Layout pageTitle="Account">
+      <TouchableWithoutFeedback onPress={handleOutsideClick}>
+        <View style={styles.container}>
+          <TouchableOpacity onPress={toggleOpenOptions}>
+            <Image
+              source={
+                auth.currentUser?.photoURL
+                  ? { uri: auth.currentUser.photoURL }
+                  : require('../../../../assets/userIcon.png')
+              }
+              style={styles.profilePicture}
+            />
+          </TouchableOpacity>
+          <Text style={styles.userName}>{auth.currentUser?.displayName}</Text>
+          <Text style={styles.userName}>{auth.currentUser?.email}</Text>
+          {user?.premium && (
+            <Text style={styles.picturesTaken}>PREMIUM MEMBER</Text>
+          )}
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('Subscription')}
-        >
-          <Text style={styles.buttonText}>
-            Settings{' '}
-            <FontAwesomeIcon
-              icon={Icons.Gear}
-              color={'white'}
-            ></FontAwesomeIcon>
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={triggerSignOut}>
-          <Text style={styles.buttonText}>Logout</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => navigation.navigate('Subscription')}
+          >
+            <Text style={styles.buttonText}>
+              Settings <FontAwesomeIcon icon={Icons.Gear} color="white" />
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={handleSignOut}>
+            <Text style={styles.buttonText}>Logout</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableWithoutFeedback>
+      <SlidingView
+        visible={isSlidingViewVisible}
+        onClose={() => setSlidingViewVisible(false)}
+        openGallery={openGallery}
+        openCamera={openCamera}
+        removePicture={removePicture}
+      />
     </Layout>
   );
 };

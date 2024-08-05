@@ -115,7 +115,7 @@ export const PlaceSearch = (props: LayoutProps) => {
           }}
         >
           <TouchableOpacity onPress={onCancelClick}>
-            <FontAwesomeIcon icon={Icons.X} size={24} color={'white'} />
+            <FontAwesomeIcon icon={Icons.Remove} size={24} color={'white'} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setIsMapShown(true)}>
             <FontAwesomeIcon icon={Icons.Map} size={24} color={'white'} />

@@ -33,7 +33,7 @@ import * as Notifications from 'expo-notifications';
 import { setUser } from '../../utils/services/functions';
 import { UserStackList } from '../../utils/types/screen-types';
 import { useUserContext } from '../../providers/UserProvider';
-import { PostUrlExtended } from '../../../../shared';
+import { Post } from '../../../../shared';
 import {
   handleFreshContent,
   handlePlacePosts,
@@ -48,7 +48,7 @@ export const NewsFeed = () => {
   const { userData } = useUserContext();
   const { deleteImage } = useImageManagement();
 
-  const [posts, setPosts] = useState<PostUrlExtended[] | undefined>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [zoomedPost, setZoomedPost] = useState<string | null>(null);
   const [place, setPlace] = useState<PlacePrediction | null>(null);
@@ -263,7 +263,7 @@ export const NewsFeed = () => {
                 </Text>
               </View>
             ) : null}
-            {posts ? (
+            {posts.length ? (
               <>
                 {place && (
                   <TouchableOpacity
@@ -282,10 +282,10 @@ export const NewsFeed = () => {
                 )}
                 {posts.map(post => (
                   <View
-                    key={post.url}
+                    key={post.photoUrl}
                     style={{
                       marginVertical: 10,
-                      zIndex: zoomedPost === post.url ? 1 : 0,
+                      zIndex: zoomedPost === post.photoUrl ? 1 : 0,
                     }}
                   >
                     <UserPost
@@ -296,7 +296,7 @@ export const NewsFeed = () => {
                       }
                       post={post}
                       setZoomedPost={setZoomedPost}
-                      isZoomed={zoomedPost === post.url}
+                      isZoomed={zoomedPost === post.photoUrl}
                     />
                   </View>
                 ))}

@@ -38,5 +38,8 @@
   "photos-info": "Žiadna fotka z tohoto miesta",
   "request-photo": "Požiadať fotku",
   "request-photo-info": "Kliknutím na toto tlačidlo požiadate ktoréhokoľvek používateľa, ktorý sa nachádza na požadovanom mieste, aby toto miesto odfotil.",
-  "grantPermission": "Získať prístup"
+  "grantPermission": "Získať prístup",
+  "pick-from-gallery": "Vybrať z galérie",
+  "take-new-picture": "Odfotiť novú fotlku",
+  "remove-picture": "Odstrániť fotku"
 }

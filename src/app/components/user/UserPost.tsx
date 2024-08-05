@@ -15,7 +15,7 @@ import Animated, {
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
-import { PostUrlExtended } from '../../../../shared';
+import { Post } from '../../../../shared';
 import {
   getTimeAgoFromTimestampSeconds,
   timeAgo,
@@ -32,7 +32,7 @@ import { t } from 'i18next';
 import useDebounce from '../../utils/hooks/useDebounce';
 
 interface PostInterface {
-  post: PostUrlExtended;
+  post: Post;
   setZoomedPost: (link: string | null) => void;
   isZoomed: boolean;
   hasPremium: boolean;
@@ -96,7 +96,7 @@ export const UserPost = (props: PostInterface) => {
         focalX.value = g.focalX;
         focalY.value = g.focalY;
       }
-      setZoomedPost(post.url);
+      setZoomedPost(post.photoUrl);
     })
     .onUpdate(g => {
       if (g.scale >= 1) {
@@ -163,7 +163,7 @@ export const UserPost = (props: PostInterface) => {
           blurRadius={!props.hasPremium ? 50 : 0}
           style={[styles.photo, animatedStyle]}
           source={{
-            uri: post.url,
+            uri: post.photoUrl,
           }}
           resizeMode="contain"
         />
