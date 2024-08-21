@@ -26,8 +26,6 @@ export default function App() {
       break;
   }
 
-  console.log(locales);
-
   return (
     <RevenueCatProvider>
       <QueryClientProvider client={queryClient}>
