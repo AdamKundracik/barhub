@@ -55,8 +55,6 @@ export const UserProvider = (props: Props) => {
     }
 
     const onLocation = BackgroundGeolocation.onLocation(location => {
-      console.log('[onLocation]', location);
-      console.log('coords', JSON.stringify(location.coords));
       const currentLocation: LocationType = {
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
@@ -65,33 +63,10 @@ export const UserProvider = (props: Props) => {
       setUserIntoDB(currentLocation);
     });
 
-    const onMotionChange = BackgroundGeolocation.onMotionChange(event => {
-      console.log('[onMotionChange]', event);
-    });
-
-    const onActivityChange = BackgroundGeolocation.onActivityChange(event => {
-      console.log('[onActivityChange]', event);
-    });
-
-    const onProviderChange = BackgroundGeolocation.onProviderChange(event => {
-      console.log('[onProviderChange]', event);
-      switch (event.status) {
-        case BackgroundGeolocation.AUTHORIZATION_STATUS_DENIED:
-          console.log('- Location authorization denied');
-          break;
-        case BackgroundGeolocation.AUTHORIZATION_STATUS_ALWAYS:
-          console.log('- Location always granted');
-          break;
-        case BackgroundGeolocation.AUTHORIZATION_STATUS_WHEN_IN_USE:
-          console.log('- Location WhenInUse granted');
-          break;
-      }
-    });
-
     BackgroundGeolocation.ready({
       desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
-      distanceFilter: 10,
-      stopTimeout: 1,
+      distanceFilter: 100,
+      stopTimeout: 5,
       debug: true,
       logLevel: BackgroundGeolocation.LOG_LEVEL_VERBOSE,
       stopOnTerminate: false,
@@ -106,9 +81,6 @@ export const UserProvider = (props: Props) => {
 
     return () => {
       onLocation.remove();
-      onMotionChange.remove();
-      onActivityChange.remove();
-      onProviderChange.remove();
     };
   }, []);
 
