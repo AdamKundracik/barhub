@@ -12,7 +12,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
-    <string>baruj-app</string>
+    <string>barhub</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -39,7 +39,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>exp+baruj-app</string>
+          <string>exp+barhub</string>
         </array>
       </dict>
     </array>

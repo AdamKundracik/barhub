@@ -1,4 +1,4 @@
-rootProject.name = 'baruj-app'
+rootProject.name = 'barhub'
 
 dependencyResolutionManagement {
   versionCatalogs {

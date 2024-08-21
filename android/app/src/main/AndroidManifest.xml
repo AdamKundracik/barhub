@@ -34,6 +34,7 @@
         <data android:scheme="baruj"/>
         <data android:scheme="com.barhub.barhub"/>
         <data android:scheme="exp+baruj-app"/>
+        <data android:scheme="exp+barhub"/>
       </intent-filter>
       <intent-filter android:autoVerify="true" data-generated="true">
         <action android:name="android.intent.action.VIEW"/>
