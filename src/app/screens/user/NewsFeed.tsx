@@ -1,6 +1,7 @@
 import Layout from '../../components/user/Layout';
 import {
   ActivityIndicator,
+  Alert,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -92,10 +93,20 @@ export const NewsFeed = () => {
         const placeId = response.notification.request.content.data.placeId;
         const senderToken =
           response.notification.request.content.data.senderToken;
-        navigation.navigate('Camera', {
-          placeId: placeId,
-          senderToken: senderToken,
-        });
+        const notificationTTL =
+          response.notification.request.content.data.notificationTTL;
+        const sentAt = response.notification.request.content.data.sentAt;
+        if (sentAt + notificationTTL < new Date().getTime()) {
+          Alert.alert(
+            'Request Expired',
+            'Oh no, you missed your chance! There is only 3 minutes to take a photo :('
+          );
+        } else {
+          navigation.navigate('Camera', {
+            placeId: placeId,
+            senderToken: senderToken,
+          });
+        }
       });
 
     return () => {
