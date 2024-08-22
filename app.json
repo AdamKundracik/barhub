@@ -81,6 +81,12 @@
         }
       ],
       [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.995791421821-fjmj5qmj8j48e4s13nktbiqkt6gq83jb"
+        }
+      ],
+      [
         "expo-gradle-ext-vars",
         {
           "googlePlayServicesLocationVersion": "21.1.0",

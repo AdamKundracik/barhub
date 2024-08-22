@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import Layout from '../../components/user/Layout';
-import { signOut } from 'firebase/auth';
+import { signOut, updateProfile } from 'firebase/auth';
 import { auth } from '../../../../firebaseConfig';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -82,10 +82,8 @@ export const Account = () => {
         photoURL: uri,
       });
 
-      await mutationUpdateProfile.mutateAsync({
+      await updateProfile(auth.currentUser!, {
         photoURL: uri,
-        user: auth.currentUser!,
-        displayName: auth.currentUser?.displayName,
       });
 
       setSlidingViewVisible(false); // Close the sliding view after the action

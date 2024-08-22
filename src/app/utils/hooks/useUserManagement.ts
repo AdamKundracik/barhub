@@ -5,7 +5,7 @@ export function useUserManagement() {
   const queryClient = useQueryClient();
 
   const setUserToStore = useMutation(
-    (user: User): Promise<User> => {
+    (user: Partial<User>): Promise<Partial<User>> => {
       return new Promise(resolve => {
         resolve(user);
       });

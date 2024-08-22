@@ -13,9 +13,12 @@ import { InputWrapper } from '../../components/shared/InputWrapper';
 import { commonAppStyles, formStyles } from '../../utils/styles/styles';
 import { auth } from '../../../../firebaseConfig';
 import { useTranslation } from 'react-i18next';
-import { useAuthSignInWithEmailAndPassword } from '@react-query-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import faAuth from '@react-native-firebase/auth';
+import {
+  GoogleAuthProvider,
+  signInWithCredential,
+  signInWithEmailAndPassword,
+} from 'firebase/auth';
 
 export const LogIn = ({ navigation }: any) => {
   const { t } = useTranslation();
@@ -27,6 +30,8 @@ export const LogIn = ({ navigation }: any) => {
   GoogleSignin.configure({
     webClientId:
       '995791421821-tedjmv2vuu6coprv5ij6h5dje9io5rls.apps.googleusercontent.com',
+    iosClientId:
+      '995791421821-fjmj5qmj8j48e4s13nktbiqkt6gq83jb.apps.googleusercontent.com',
   });
 
   async function onGoogleButtonPress() {
@@ -36,34 +41,23 @@ export const LogIn = ({ navigation }: any) => {
     const { idToken } = await GoogleSignin.signIn();
 
     // Create a Google credential with the token
-    const googleCredential = faAuth.GoogleAuthProvider.credential(idToken);
+    const googleCredential = GoogleAuthProvider.credential(idToken);
 
     // Sign-in the user with the credential
-    return faAuth().signInWithCredential(googleCredential);
+    await signInWithCredential(auth, googleCredential);
   }
 
-  const mutation = useAuthSignInWithEmailAndPassword(auth, {
-    onError(error) {
-      switch (error.code) {
-        case 'auth/invalid-credential':
-          alert(t('wrong-password'));
-          break;
-        case 'auth/invalid-email':
-          alert(t(`invalid-email`));
-          console.error(`Invalid email`);
-          break;
-      }
-      console.error('Could not sign you in!');
-      setLoading(false);
-    },
-    onSuccess() {
-      setLoading(false);
-    },
-  });
-
-  function onSignIn() {
+  async function onSignIn() {
     setLoading(true);
-    mutation.mutate({ email, password });
+    await signInWithEmailAndPassword(auth, email, password).catch(error => {
+      if (error.code === 'auth/email-already-in-use') {
+        console.log('That email address is already in use!');
+      }
+
+      if (error.code === 'auth/invalid-email') {
+        console.log('That email address is invalid!');
+      }
+    });
   }
 
   return (
@@ -107,8 +101,9 @@ export const LogIn = ({ navigation }: any) => {
       </TouchableOpacity>
 
       <TouchableOpacity
-        onPress={() => onGoogleButtonPress()}
+        onPress={onGoogleButtonPress}
         style={[formStyles.buttonPrimary]}
+        disabled={loading}
       >
         <Text style={formStyles.buttonText}>GOOGLE</Text>
       </TouchableOpacity>
