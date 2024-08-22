@@ -1,4 +1,5 @@
 #import "AppDelegate.h"
+#import <Firebase.h>
 // @generated begin react-native-background-fetch-import - expo prebuild (DO NOT MODIFY) sync-fb890e6efd6cc6e67ebbda1087e0a6d7e0bcc527
 #import <TSBackgroundFetch/TSBackgroundFetch.h>
 // @generated end react-native-background-fetch-import
@@ -15,6 +16,8 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+[FIRApp configure];
+
 // @generated begin react-native-maps-init - expo prebuild (DO NOT MODIFY) sync-ad0b9f11fcfd834d5f9aa879512a215859ba8a30
 #if __has_include(<GoogleMaps/GoogleMaps.h>)
   [GMSServices provideAPIKey:@"AIzaSyAMoNX-aQzrjpnZ0KjYegeyhV47C8rRBVU"];

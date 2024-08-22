@@ -14,6 +14,8 @@ import { commonAppStyles, formStyles } from '../../utils/styles/styles';
 import { auth } from '../../../../firebaseConfig';
 import { useTranslation } from 'react-i18next';
 import { useAuthSignInWithEmailAndPassword } from '@react-query-firebase/auth';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import faAuth from '@react-native-firebase/auth';
 
 export const LogIn = ({ navigation }: any) => {
   const { t } = useTranslation();
@@ -21,6 +23,24 @@ export const LogIn = ({ navigation }: any) => {
   const [password, setPassword] = useState('');
   const [togglePassword, setTogglePassword] = useState(true);
   const [loading, setLoading] = useState(false);
+
+  GoogleSignin.configure({
+    webClientId:
+      '995791421821-tedjmv2vuu6coprv5ij6h5dje9io5rls.apps.googleusercontent.com',
+  });
+
+  async function onGoogleButtonPress() {
+    // Check if your device supports Google Play
+    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    // Get the users ID token
+    const { idToken } = await GoogleSignin.signIn();
+
+    // Create a Google credential with the token
+    const googleCredential = faAuth.GoogleAuthProvider.credential(idToken);
+
+    // Sign-in the user with the credential
+    return faAuth().signInWithCredential(googleCredential);
+  }
 
   const mutation = useAuthSignInWithEmailAndPassword(auth, {
     onError(error) {
@@ -84,6 +104,13 @@ export const LogIn = ({ navigation }: any) => {
           />
         )}
         {!loading && <Text style={formStyles.buttonText}>{t('login')}</Text>}
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={() => onGoogleButtonPress()}
+        style={[formStyles.buttonPrimary]}
+      >
+        <Text style={formStyles.buttonText}>GOOGLE</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.login}

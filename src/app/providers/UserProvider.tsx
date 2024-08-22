@@ -56,8 +56,8 @@ export const UserProvider = (props: Props) => {
 
     const onLocation = BackgroundGeolocation.onLocation(location => {
       const currentLocation: LocationType = {
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
+        latitude: location.coords?.latitude,
+        longitude: location.coords?.longitude,
       };
       setLocation(currentLocation);
       setUserIntoDB(currentLocation);
