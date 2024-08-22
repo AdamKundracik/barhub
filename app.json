@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "baruj-app",
-    "slug": "baruj-app",
+    "name": "barhub",
+    "slug": "barhub",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -21,6 +21,21 @@
       "supportsTablet": true,
       "config": {
         "googleMapsApiKey": "AIzaSyAMoNX-aQzrjpnZ0KjYegeyhV47C8rRBVU"
+      },
+      "infoPlist": {
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Barhub This app requires location in the background",
+        "NSLocationWhenInUseUsageDescription": "Barhub This app requires location while in use",
+        "NSMotionUsageDescription": "Barhub This app uses motion-detection to determine the motion-activity of the device (walking, vehicle, bicycle, etc)",
+        "UIBackgroundModes": [
+          "location",
+          "fetch",
+          "processing",
+          "audio"
+        ],
+        "BGTaskSchedulerPermittedIdentifiers": [
+          "com.transistorsoft.fetch",
+          "com.transistorsoft.customtask"
+        ]
       }
     },
     "android": {
@@ -59,6 +74,20 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      [
+        "react-native-background-geolocation",
+        {
+          "license": "YOUR_LICENSE_KEY_HERE"
+        }
+      ],
+      [
+        "expo-gradle-ext-vars",
+        {
+          "googlePlayServicesLocationVersion": "21.1.0",
+          "appCompatVersion": "1.4.2"
+        }
+      ],
+      "react-native-background-fetch",
       "expo-font",
       "expo-localization",
       "expo-image-picker",
@@ -95,7 +124,10 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Allow barhub to use your location."
         }
-      ]
+      ],
+      "react-native-background-geolocation",
+      "react-native-background-fetch",
+      "expo-gradle-ext-vars"
     ],
     "extra": {
       "eas": {

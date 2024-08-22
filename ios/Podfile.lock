@@ -1,5 +1,8 @@
 PODS:
   - boost (1.83.0)
+  - CocoaLumberjack (3.8.5):
+    - CocoaLumberjack/Core (= 3.8.5)
+  - CocoaLumberjack/Core (3.8.5)
   - DoubleConversion (1.1.6)
   - EXApplication (5.9.1):
     - ExpoModulesCore
@@ -1540,6 +1543,11 @@ PODS:
   - RevenueCat (4.43.2)
   - RevenueCatUI (4.43.2):
     - RevenueCat (= 4.43.2)
+  - RNBackgroundFetch (4.2.5):
+    - React-Core
+  - RNBackgroundGeolocation (4.16.5):
+    - CocoaLumberjack (~> 3.8.5)
+    - React-Core
   - RNCAsyncStorage (1.23.1):
     - React-Core
   - RNCPicker (2.7.5):
@@ -1730,6 +1738,8 @@ DEPENDENCIES:
   - React-runtimescheduler (from `../node_modules/react-native/ReactCommon/react/renderer/runtimescheduler`)
   - React-utils (from `../node_modules/react-native/ReactCommon/react/utils`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - RNBackgroundFetch (from `../node_modules/react-native-background-fetch`)
+  - RNBackgroundGeolocation (from `../node_modules/react-native-background-geolocation`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
@@ -1746,6 +1756,7 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - CocoaLumberjack
     - Firebase
     - FirebaseAppCheckInterop
     - FirebaseAuthInterop
@@ -1937,6 +1948,10 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/react/utils"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  RNBackgroundFetch:
+    :path: "../node_modules/react-native-background-fetch"
+  RNBackgroundGeolocation:
+    :path: "../node_modules/react-native-background-geolocation"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNCPicker:
@@ -1966,6 +1981,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost: d3f49c53809116a5d38da093a8aa78bf551aed09
+  CocoaLumberjack: 6a459bc897d6d80bd1b8c78482ec7ad05dffc3f0
   DoubleConversion: 76ab83afb40bddeeee456813d9c04f67f78771b5
   EXApplication: c08200c34daca7af7fd76ac4b9d606077410e8ad
   EXConstants: 409690fbfd5afea964e5e9d6c4eb2c2b59222c59
@@ -2066,6 +2082,8 @@ SPEC CHECKSUMS:
   ReactCommon: 4a09c7d8a06e93c1e2e988a3b9f3db3d2449f2fc
   RevenueCat: 3d934653b7e8b09af88fd47e9e84cfaf5d0a89ba
   RevenueCatUI: 1417f375baf005eaf3afa8bc99724f567abfd6da
+  RNBackgroundFetch: 2f800a04434620db15ede2e8f21886608a2d1743
+  RNBackgroundGeolocation: 09f8b98ed34b597b9e522b89a43306a4bc50083f
   RNCAsyncStorage: 826b603ae9c0f88b5ac4e956801f755109fa4d5c
   RNCPicker: 3e2c37a8328f368ce14da050cdc8231deb5fc9f9
   RNFBApp: 87e1cdbf128f8574283d415bc58eac36df546a6f
