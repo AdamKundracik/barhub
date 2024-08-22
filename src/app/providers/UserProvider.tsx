@@ -10,10 +10,11 @@ import { getCurrentUser, setUser } from '../utils/services/functions';
 import { auth } from '../../../firebaseConfig';
 import { GetUserResult } from '../utils/helper-functions/functions-types';
 import { User } from '../../../shared';
-import { getProfilePicture } from '../utils/helper-functions/helperFunctions';
 import { LocationType } from '../utils/types/types';
-import { getCoords } from '../utils/helper-functions/get-coords';
 import { useUserManagement } from '../utils/hooks/useUserManagement';
+import BackgroundGeolocation from 'react-native-background-geolocation';
+import { getCoords } from '../utils/helper-functions/get-coords';
+import { AppState } from 'react-native';
 
 type ContextProps = {
   location: LocationType;
@@ -44,26 +45,48 @@ export const UserProvider = (props: Props) => {
   });
   const { setUserToStore } = useUserManagement();
 
-  async function getLocation(): Promise<void> {
-    try {
-      const coords: LocationType = await getCoords();
-      await setUser({
-        location: { latitude: coords.latitude, longitude: coords.longitude },
-      });
-      setLocation(coords);
-    } catch (e) {
-      console.error(e);
+  useEffect(() => {
+    if (AppState.currentState === 'active') {
+      getLocation();
     }
-  }
+
+    async function setUserIntoDB(location: LocationType) {
+      await setUser({ location: location });
+    }
+
+    const onLocation = BackgroundGeolocation.onLocation(location => {
+      const currentLocation: LocationType = {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      };
+      setLocation(currentLocation);
+      setUserIntoDB(currentLocation);
+    });
+
+    BackgroundGeolocation.ready({
+      desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
+      distanceFilter: 100,
+      stopTimeout: 5,
+      debug: true,
+      logLevel: BackgroundGeolocation.LOG_LEVEL_VERBOSE,
+      stopOnTerminate: false,
+      startOnBoot: true,
+      showsBackgroundLocationIndicator: true,
+    }).then(state => {
+      console.log(
+        '- BackgroundGeolocation is configured and ready: ',
+        state.enabled
+      );
+    });
+
+    return () => {
+      onLocation.remove();
+    };
+  }, []);
 
   useEffect(() => {
-    if (auth.currentUser?.uid) {
-      getLocation().catch(e => console.error(e));
-      const interval = setInterval(() => {
-        getLocation().catch(e => console.error(e));
-      }, 150000);
-      return () => clearInterval(interval);
-    }
+    BackgroundGeolocation.start();
+    setLocation({ latitude: 0, longitude: 0 });
   }, []);
 
   useEffect(() => {
@@ -78,6 +101,18 @@ export const UserProvider = (props: Props) => {
     };
     fetchUserData();
   }, []);
+
+  async function getLocation(): Promise<void> {
+    try {
+      const coords: LocationType = await getCoords();
+      await setUser({
+        location: { latitude: coords.latitude, longitude: coords.longitude },
+      });
+      setLocation(coords);
+    } catch (e) {
+      console.error(e);
+    }
+  }
 
   const ctx = useMemo(() => {
     return {
