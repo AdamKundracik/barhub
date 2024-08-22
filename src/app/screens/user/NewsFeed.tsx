@@ -96,11 +96,8 @@ export const NewsFeed = () => {
         const notificationTTL =
           response.notification.request.content.data.notificationTTL;
         const sentAt = response.notification.request.content.data.sentAt;
-        if (sentAt + notificationTTL < new Date().getTime()) {
-          Alert.alert(
-            'Request Expired',
-            'Oh no, you missed your chance! There is only 3 minutes to take a photo :('
-          );
+        if (new Date().getTime() > sentAt + notificationTTL) {
+          Alert.alert(t('request-expired'), t('missed-request-info'));
         } else {
           navigation.navigate('Camera', {
             placeId: placeId,

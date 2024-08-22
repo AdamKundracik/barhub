@@ -41,5 +41,7 @@
   "grantPermission": "Berechtigung erteilen",
   "pick-from-gallery": "Bild aus Galerie auswählen",
   "take-new-picture": "Neues Bild aufnehmen",
-  "remove-picture": "Bild entfernen"
+  "remove-picture": "Bild entfernen",
+  "request-expired": "Anfrage abgelaufen!",
+  "missed-request-info": "Oh nein, du hast deine Chance verpasst! Es gibt nur 3 Minuten, um ein Foto zu machen :("
 }

@@ -41,5 +41,7 @@
   "grantPermission": "Grant permission",
   "pick-from-gallery": "Pick picture from gallery",
   "take-new-picture": "Take new picture",
-  "remove-picture": "Remove picture"
+  "remove-picture": "Remove picture",
+  "request-expired": "Request expired!",
+  "missed-request-info": "Oh no, you missed your chance! There is only 3 minutes to take a photo :("
 }
