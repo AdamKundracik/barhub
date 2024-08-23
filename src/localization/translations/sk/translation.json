@@ -41,5 +41,7 @@
   "grantPermission": "Získať prístup",
   "pick-from-gallery": "Vybrať z galérie",
   "take-new-picture": "Odfotiť novú fotlku",
-  "remove-picture": "Odstrániť fotku"
+  "remove-picture": "Odstrániť fotku",
+  "request-expired": "Žiadosť expirovala",
+  "missed-request-info": "To snáď nie! Prišiel si o svoju šancu. Na odfotenie fotky máš len 3 minúty."
 }
