@@ -252,8 +252,8 @@ exports.getPostsByPlaceId = functions.https.onCall(
       }
 
       const items: Post[] = querySnapshot.docs.map(doc => ({
-        id: doc.id,
         ...doc.data(),
+        id: doc.id,
       }));
 
       return items;

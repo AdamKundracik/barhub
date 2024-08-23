@@ -13,8 +13,6 @@ export const handlePlacePosts = async (placeId: string) => {
 
 export const handleFreshContent = async () => {
   const posts = await getFreshContent();
-  console.log(posts);
-
   if (posts.data) {
     const postsWithUrls: Post[] = await Promise.all(posts.data);
     return getRandomRecentPosts(postsWithUrls.reverse());
