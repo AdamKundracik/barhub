@@ -1,6 +1,7 @@
 import Layout from '../../components/user/Layout';
 import {
   ActivityIndicator,
+  Alert,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -92,10 +93,17 @@ export const NewsFeed = () => {
         const placeId = response.notification.request.content.data.placeId;
         const senderToken =
           response.notification.request.content.data.senderToken;
-        navigation.navigate('Camera', {
-          placeId: placeId,
-          senderToken: senderToken,
-        });
+        const notificationTTL =
+          response.notification.request.content.data.notificationTTL;
+        const sentAt = response.notification.request.content.data.sentAt;
+        if (new Date().getTime() > sentAt + notificationTTL) {
+          Alert.alert(t('request-expired'), t('missed-request-info'));
+        } else {
+          navigation.navigate('Camera', {
+            placeId: placeId,
+            senderToken: senderToken,
+          });
+        }
       });
 
     return () => {
