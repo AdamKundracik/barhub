@@ -44,8 +44,8 @@ export const getCurrentUser = async (): Promise<GetUserResult> => {
   return response;
 };
 
-export const getAllUsers = async (): Promise<GetAllUsersResult> => {
-  const cloudFunction = httpsCallable(functions, 'getAllUsers');
+export const getAllExistingUsers = async (): Promise<GetAllUsersResult> => {
+  const cloudFunction = httpsCallable(functions, 'getAllExistingUsers');
   const response = (await cloudFunction()) as unknown as GetAllUsersResult;
   return response;
 };

@@ -45,15 +45,8 @@ export const savePost = functions.https.onCall(
   }
 );
 
-export const getAllUsers = functions.https.onCall(
+exports.getAllExistingUsers = functions.https.onCall(
   async (data: any, context: CallableContext) => {
-    if (!context.auth) {
-      throw new functions.https.HttpsError(
-        'unauthenticated',
-        'The function must be called while authenticated.'
-      );
-    }
-
     const usersCollection = db.collection('users');
 
     try {
