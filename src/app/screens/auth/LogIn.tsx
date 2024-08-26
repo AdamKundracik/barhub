@@ -34,6 +34,7 @@ export const LogIn = ({ navigation }: any) => {
       '995791421821-tedjmv2vuu6coprv5ij6h5dje9io5rls.apps.googleusercontent.com',
     iosClientId:
       '995791421821-fjmj5qmj8j48e4s13nktbiqkt6gq83jb.apps.googleusercontent.com',
+    offlineAccess: true,
   });
 
   async function onGoogleButtonPress() {
