@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "barhub",
-    "slug": "barhub",
+    "slug": "baruj-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -78,6 +78,12 @@
         "react-native-background-geolocation",
         {
           "license": "YOUR_LICENSE_KEY_HERE"
+        }
+      ],
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.995791421821-fjmj5qmj8j48e4s13nktbiqkt6gq83jb"
         }
       ],
       [

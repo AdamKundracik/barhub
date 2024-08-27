@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { RevenueCatProvider } from './src/app/providers/RevenueCatProvider';
 import { getLocales } from 'expo-localization';
 import i18n from './src/localization/i18n';
+import { UserProvider } from './src/app/providers/UserProvider';
 
 export default function App() {
   const queryClient = new QueryClient();
@@ -31,7 +32,9 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <I18nextProvider i18n={i18n}>
-            <Navigation />
+            <UserProvider>
+              <Navigation />
+            </UserProvider>
           </I18nextProvider>
         </GestureHandlerRootView>
       </QueryClientProvider>

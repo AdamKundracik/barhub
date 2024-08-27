@@ -12,8 +12,9 @@ import { useState } from 'react';
 import { commonAppStyles, formStyles } from '../../utils/styles/styles';
 import { InputWrapper } from '../../components/shared/InputWrapper';
 import { useTranslation } from 'react-i18next';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+
 import { auth } from '../../../../firebaseConfig';
-import { useAuthCreateUserWithEmailAndPassword } from '@react-query-firebase/auth';
 
 export const Register = ({ navigation }: any) => {
   const { t } = useTranslation();
@@ -23,8 +24,9 @@ export const Register = ({ navigation }: any) => {
   const [togglePassword, setTogglePassword] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  const mutation = useAuthCreateUserWithEmailAndPassword(auth, {
-    onError: error => {
+  async function handleRegister() {
+    setLoading(true);
+    await createUserWithEmailAndPassword(auth, email, password).catch(error => {
       switch (error.code) {
         case 'auth/email-already-in-use':
           alert(t(`email-in-use`));
@@ -49,18 +51,6 @@ export const Register = ({ navigation }: any) => {
           console.error(error.message);
           break;
       }
-      setLoading(false);
-    },
-    onSuccess() {
-      setLoading(false);
-    },
-  });
-
-  function handleRegister() {
-    setLoading(true);
-    mutation.mutate({
-      email: email,
-      password: password,
     });
   }
 

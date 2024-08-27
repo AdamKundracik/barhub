@@ -21,11 +21,8 @@ import { getAge } from '../../utils/helper-functions/getAge';
 import { setUser } from '../../utils/services/functions';
 import { createDateFromCustomString } from '../../utils/helper-functions/createDateFromString';
 import { auth } from '../../../../firebaseConfig';
-import {
-  useAuthReload,
-  useAuthUpdateProfile,
-  useAuthUser,
-} from '@react-query-firebase/auth';
+import { useAuthUser } from '@react-query-firebase/auth';
+import { reload, updateProfile } from 'firebase/auth';
 import { Icons } from '../../utils/icons/icons';
 import { uploadProfilePhotoAsync } from '../../utils/helper-functions/helperFunctions';
 
@@ -41,11 +38,8 @@ export const SetUpProfile = () => {
     },
   });
 
-  const mutation = useAuthReload();
-  const mutationUpdateProfile = useAuthUpdateProfile();
-
   async function reloadUser() {
-    await mutation.mutateAsync(auth.currentUser!);
+    await reload(auth.currentUser!);
   }
 
   const pickImage = async () => {
@@ -85,8 +79,7 @@ export const SetUpProfile = () => {
           dateOfBirth: dateOfBirth,
         });
 
-        await mutationUpdateProfile.mutateAsync({
-          user: auth.currentUser,
+        await updateProfile(auth.currentUser, {
           displayName: username, // optional
           photoURL: url, // optional
         });
