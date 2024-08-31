@@ -107,7 +107,8 @@
             "minSdkVersion": 24
           },
           "ios": {
-            "deploymentTarget": "13.4"
+            "deploymentTarget": "13.4",
+            "useFrameworks": "static"
           }
         }
       ],
@@ -140,5 +141,9 @@
         "projectId": "327ee99d-c7b6-44f6-a100-2012be11a10f"
       }
     }
+  },
+  "react-native-google-mobile-ads": {
+    "android_app_id": "ca-app-pub-12345678910~123456459",
+    "ios_app_id": "ca-app-pub-2698936582690038~3283915793"
   }
 }

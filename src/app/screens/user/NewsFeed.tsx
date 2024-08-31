@@ -41,6 +41,7 @@ import {
 } from '../../utils/helper-functions/posts-functions';
 import UserPost from '../../components/user/UserPost';
 import { getDaysSince } from '../../utils/helper-functions/getDaysSince';
+import Ad from '../../components/user/Ad';
 
 export const NewsFeed = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
@@ -252,6 +253,9 @@ export const NewsFeed = () => {
           <RefreshControl refreshing={loading} onRefresh={onRefresh} />
         }
       >
+        <View style={{ alignSelf: 'center' }}>
+          <Ad />
+        </View>
         {loading ? (
           <View
             style={{

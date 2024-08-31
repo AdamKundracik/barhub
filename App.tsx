@@ -5,6 +5,9 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { RevenueCatProvider } from './src/app/providers/RevenueCatProvider';
 import { getLocales } from 'expo-localization';
 import i18n from './src/localization/i18n';
+import mobileAds from 'react-native-google-mobile-ads';
+import requestTrackingPermissionsAsync from 'react-native-google-mobile-ads';
+import { useEffect } from 'react';
 import { UserProvider } from './src/app/providers/UserProvider';
 
 export default function App() {
@@ -26,6 +29,23 @@ export default function App() {
       i18n.changeLanguage('en');
       break;
   }
+
+  // Go inside your component/function
+
+  // Initialize Google Mobile Ads SDK
+  useEffect(() => {
+    (async () => {
+      // Google AdMob will show any messages here that you just set up on the AdMob Privacy & Messaging page
+      const { status: trackingStatus } =
+        await requestTrackingPermissionsAsync();
+      if (trackingStatus !== 'granted') {
+        // Do something here such as turn off Sentry tracking, store in context/redux to allow for personalized ads, etc.
+      }
+
+      // Initialize the ads
+      await mobileAds().initialize();
+    })();
+  }, []);
 
   return (
     <RevenueCatProvider>
