@@ -15,7 +15,11 @@ export const createUser = functions.auth.user().onCreate(user => {
     .firestore()
     .collection('users')
     .doc(user.uid)
-    .set(JSON.parse(JSON.stringify(user)));
+    .set(JSON.parse(JSON.stringify(user)), { merge: true });
+});
+
+export const deleteUser = functions.auth.user().onDelete(user => {
+  return admin.firestore().collection('users').doc(user.uid).delete();
 });
 
 export const setUser = functions.https.onCall(

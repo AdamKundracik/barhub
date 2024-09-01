@@ -7,6 +7,8 @@ export const formStyles = StyleSheet.create({
     padding: 10,
     backgroundColor: 'white',
     borderRadius: 10,
+    borderColor: 'black',
+    borderWidth: 1,
   },
   buttonPrimary: {
     alignItems: 'center',
