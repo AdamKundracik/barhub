@@ -8,7 +8,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import Layout from '../../components/user/Layout';
+import Layout from '../../components/user/Shared/Layout';
 import { signOut, updateProfile } from 'firebase/auth';
 import { auth } from '../../../../firebaseConfig';
 import { useTranslation } from 'react-i18next';
@@ -16,20 +16,18 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
-import { useQueryClient } from 'react-query';
 import SlidingView from '../../components/shared/SlidingView';
 import * as ImagePicker from 'expo-image-picker';
-import { User } from '../../../../shared';
 import {
   deleteProfilePicture,
   uploadProfilePhotoAsync,
 } from '../../utils/helper-functions/helperFunctions';
 import { setUser } from '../../utils/services/functions';
 import { useAuthUpdateProfile } from '@react-query-firebase/auth';
+import { useUserContext } from '../../providers/UserProvider';
 
 export const Account = () => {
-  const user: User = useQueryClient().getQueryData('user');
-
+  const { userData } = useUserContext();
   const { t } = useTranslation();
   const mutationUpdateProfile = useAuthUpdateProfile();
   const [isSlidingViewVisible, setSlidingViewVisible] = useState(false);
@@ -151,7 +149,7 @@ export const Account = () => {
           </TouchableOpacity>
           <Text style={styles.userName}>{auth.currentUser?.displayName}</Text>
           <Text style={styles.userName}>{auth.currentUser?.email}</Text>
-          {user?.premium && (
+          {userData?.premium && (
             <Text style={styles.picturesTaken}>PREMIUM MEMBER</Text>
           )}
 

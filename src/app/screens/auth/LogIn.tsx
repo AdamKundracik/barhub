@@ -1,6 +1,5 @@
 import {
   ActivityIndicator,
-  Alert,
   StyleSheet,
   Text,
   TextInput,
@@ -20,7 +19,6 @@ import {
   signInWithCredential,
   signInWithEmailAndPassword,
 } from 'firebase/auth';
-import { getAllExistingUsers } from '../../utils/services/functions';
 
 export const LogIn = ({ navigation }: any) => {
   const { t } = useTranslation();
@@ -41,23 +39,7 @@ export const LogIn = ({ navigation }: any) => {
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
     const { idToken, user, scopes } = await GoogleSignin.signIn();
     const googleCredential = GoogleAuthProvider.credential(idToken);
-    const allUsers = await getAllExistingUsers();
-    const userAccount = allUsers.data?.users.find(
-      userAcc => userAcc.email === user.email
-    );
-    const userExists =
-      userAccount && userAccount.providerData[0].providerId === 'password';
-
-    // If exists, dont log in with google, else login with google
-    if (userExists) {
-      Alert.alert(
-        'User already exists!',
-        'User with this email already exists.\nLog in to your account.'
-      );
-    } else {
-      // Sign-in the user with the credential
-      await signInWithCredential(auth, googleCredential);
-    }
+    await signInWithCredential(auth, googleCredential);
   }
 
   async function onSignIn() {

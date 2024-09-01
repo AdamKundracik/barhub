@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { commonAppStyles } from '../../utils/styles/styles';
+import { commonAppStyles } from '../../../utils/styles/styles';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -14,22 +14,22 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../utils/icons/icons';
-import { Post } from '../../../../shared';
+import { Icons } from '../../../utils/icons/icons';
+import { Post } from '../../../../../shared';
 import {
   getTimeAgoFromTimestampSeconds,
   timeAgo,
-} from '../../utils/helper-functions/timeAgo';
+} from '../../../utils/helper-functions/timeAgo';
 import { useEffect, useState } from 'react';
 import {
   addCommentToPost,
   checkLikeStatus,
   fetchCommentsForPost,
   toggleLike,
-} from '../../utils/services/functions';
-import { auth } from '../../../../firebaseConfig';
+} from '../../../utils/services/functions';
+import { auth } from '../../../../../firebaseConfig';
 import { t } from 'i18next';
-import useDebounce from '../../utils/hooks/useDebounce';
+import useDebounce from '../../../utils/hooks/useDebounce';
 
 interface PostInterface {
   post: Post;
@@ -178,6 +178,7 @@ export const UserPost = (props: PostInterface) => {
 
         <TouchableOpacity onPress={() => setShowComments(!showComments)}>
           <FontAwesomeIcon color="white" icon={Icons.Comment}></FontAwesomeIcon>
+          <Text style={commonAppStyles.textPrimary}>{comments.length}</Text>
         </TouchableOpacity>
         {/* UNTIL FUNCTIONALITY WILL BE IMPLEMENTED */}
         {/* <FontAwesomeIcon color="white" icon={Icons.ShareAlt}></FontAwesomeIcon> */}
@@ -194,7 +195,7 @@ export const UserPost = (props: PostInterface) => {
                 source={
                   comment?.userPhotoUrl
                     ? { uri: comment?.userPhotoUrl }
-                    : require('../../../../assets/userIcon.png')
+                    : require('../../../../../assets/userIcon.png')
                 }
               ></Image>
             </View>

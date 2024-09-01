@@ -12,7 +12,10 @@ import { useState } from 'react';
 import { commonAppStyles, formStyles } from '../../utils/styles/styles';
 import { InputWrapper } from '../../components/shared/InputWrapper';
 import { useTranslation } from 'react-i18next';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+} from 'firebase/auth';
 
 import { auth } from '../../../../firebaseConfig';
 
@@ -52,6 +55,7 @@ export const Register = ({ navigation }: any) => {
           break;
       }
     });
+    await sendEmailVerification(auth.currentUser as any);
   }
 
   function isSamePassword(): boolean {

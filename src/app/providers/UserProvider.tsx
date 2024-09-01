@@ -23,6 +23,7 @@ type ContextProps = {
   setLocation: (value: LocationType) => void;
   userData: User | null;
   isLoading: boolean;
+  emailVerified: boolean;
 };
 
 interface Props {
@@ -41,6 +42,7 @@ export const UserProvider = (props: Props) => {
   const [initializing, setInitializing] = useState(true);
   const { setUserToStore } = useUserManagement();
 
+  const [emailVerified, setEmailVerified] = useState<boolean>(false);
   const [authUser, setAuthUser] = useState<null | boolean>(null);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
@@ -49,8 +51,9 @@ export const UserProvider = (props: Props) => {
       setAuthUser(!!u);
       setUserData(u);
       setIsLoadingAuth(false);
+      setEmailVerified(u?.emailVerified ?? false);
     });
-  }, []);
+  }, [auth]);
 
   useEffect(() => {
     if (AppState.currentState === 'active') {
@@ -107,7 +110,7 @@ export const UserProvider = (props: Props) => {
       setIsLoading(false);
     };
     fetchUserData();
-  }, []);
+  }, [isLoadingAuth]);
 
   async function getLocation(): Promise<void> {
     try {
@@ -129,8 +132,17 @@ export const UserProvider = (props: Props) => {
       setLocation,
       authUser,
       isLoadingAuth,
+      emailVerified,
     };
-  }, [userData, isLoading, location, setLocation, authUser, isLoadingAuth]);
+  }, [
+    userData,
+    isLoading,
+    location,
+    setLocation,
+    authUser,
+    isLoadingAuth,
+    emailVerified,
+  ]);
 
   return (
     <UserContext.Provider value={ctx}>{props.children}</UserContext.Provider>

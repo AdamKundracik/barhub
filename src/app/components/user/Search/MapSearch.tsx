@@ -15,18 +15,18 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Place, PlacePrediction } from '../../utils/types/types';
-import Layout from './Layout';
+import { Place, PlacePrediction } from '../../../utils/types/types';
+import Layout from '../Shared/Layout';
 import { useEffect, useRef, useState } from 'react';
-import { fetchNearbyPlaces } from '../../utils/helper-functions/fetchNearByPlaces';
+import { fetchNearbyPlaces } from '../../../utils/helper-functions/fetchNearByPlaces';
 import { useTranslation } from 'react-i18next';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { UserStackList } from '../../utils/types/screen-types';
-import { useUserContext } from '../../providers/UserProvider';
+import { UserStackList } from '../../../utils/types/screen-types';
+import { useUserContext } from '../../../providers/UserProvider';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../utils/icons/icons';
-import { radius } from '../../utils/helper-functions/constants';
-import { mapPlaceToPlacePrediction } from '../../utils/helper-functions/mapPlaceToPlacePrediction';
+import { Icons } from '../../../utils/icons/icons';
+import { radius } from '../../../utils/helper-functions/constants';
+import { mapPlaceToPlacePrediction } from '../../../utils/helper-functions/mapPlaceToPlacePrediction';
 
 const latitudeDelta = 0.025;
 const longitudeDelta = 0.025;
@@ -144,7 +144,7 @@ export const MapSearch = (props: LayoutProps) => {
       <View style={styles.markerFixed}>
         <Image
           style={styles.marker}
-          source={require('../../../../assets/pin.png')}
+          source={require('../../../../../assets/pin.png')}
         />
       </View>
       <TouchableOpacity

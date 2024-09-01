@@ -1,182 +1,74 @@
-import Layout from '../../components/user/Layout';
-import {
-  ActivityIndicator,
-  Alert,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import ActionsRow from '../../components/user/ActionsRow';
-import { useImageManagement } from '../../utils/hooks/useImageManagement';
+import React, { useCallback, useEffect, useState } from 'react';
+import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
+import Layout from '../../components/user/Shared/Layout';
 import { useQuery, useQueryClient } from 'react-query';
-import {
-  NavigationProp,
-  useFocusEffect,
-  useNavigation,
-} from '@react-navigation/native';
-import { commonAppStyles } from '../../utils/styles/styles';
-import PlaceSearch from '../../components/user/PlaceSearch';
-import { PlaceDetailsResponse, PlacePrediction } from '../../utils/types/types';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import PlaceFilterChip from '../../components/user/PlaceFilterChip';
-import { sendNotificationHandler } from '../../utils/helper-functions/sendNotificationHandler';
-import { fetchPlaceDetails } from '../../utils/helper-functions/fetchPlaceDetail';
-import {
-  registerForPushNotificationsAsync,
-  sendPushNotification,
-} from '../../utils/services/notofications-handler';
-import * as Notifications from 'expo-notifications';
-import { setUser } from '../../utils/services/functions';
 import { UserStackList } from '../../utils/types/screen-types';
 import { useUserContext } from '../../providers/UserProvider';
-import { Post } from '../../../../shared';
 import {
   handleFreshContent,
   handlePlacePosts,
 } from '../../utils/helper-functions/posts-functions';
-import UserPost from '../../components/user/UserPost';
 import { getDaysSince } from '../../utils/helper-functions/getDaysSince';
+import PlaceSearch from '../../components/user/Search/PlaceSearch';
+import { PlaceDetailsResponse, PlacePrediction } from '../../utils/types/types';
+import { Post } from '../../../../shared';
+import NotificationHandler from '../../components/user/NewsFeed/NotificationHandler';
+import LoadingIndicator from '../../components/user/NewsFeed/LoadingIndicator';
+import PostsList from '../../components/user/NewsFeed/PostList';
+import EmptyState from '../../components/user/NewsFeed/EmptyState';
+import { fetchPlaceDetails } from '../../utils/helper-functions/fetchPlaceDetail';
+import { sendNotificationHandler } from '../../utils/helper-functions/sendNotificationHandler';
+import { sendPushNotification } from '../../utils/services/notofications-handler';
+import FeedHeader from '../../components/user/NewsFeed/FeedHeader';
 
-export const NewsFeed = () => {
+export const NewsFeed: React.FC = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
   const { userData } = useUserContext();
-  const { deleteImage } = useImageManagement();
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [zoomedPost, setZoomedPost] = useState<string | null>(null);
   const [place, setPlace] = useState<PlacePrediction | null>(null);
   const [searching, setSearching] = useState<boolean>(false);
+  const [isPlaceLoaded, setIsPlaceLoaded] = useState(false); // Ensure place is loaded before fetching files
+
   const [
     numberOfDaysSinceLastPostedPhoto,
     setNumberOfDaysSinceLastPostedPhoto,
   ] = useState(0);
 
-  const [expoPushToken, setExpoPushToken] = useState('');
-  const [notification, setNotification] = useState<
-    Notifications.Notification | undefined
-  >(undefined);
-  const notificationListener = useRef<Notifications.Subscription>();
-  const responseListener = useRef<Notifications.Subscription>();
-
   useEffect(() => {
     const numberOfDays = getDaysSince(userData?.lastUploadedPost ?? new Date());
     setNumberOfDaysSinceLastPostedPhoto(numberOfDays);
-  }, []);
-
-  useEffect(() => {
-    async function setTokenToDatabase(pushToken: string) {
-      await setUser({ pushToken: pushToken });
-    }
-
-    registerForPushNotificationsAsync()
-      .then((token: string | undefined) => {
-        setExpoPushToken(token ?? '');
-        setTokenToDatabase(token ?? '');
-      })
-      .catch((error: any) => setExpoPushToken(`${error}`));
-
-    notificationListener.current =
-      Notifications.addNotificationReceivedListener(notification => {
-        setNotification(notification);
-      });
-
-    responseListener.current =
-      Notifications.addNotificationResponseReceivedListener(response => {
-        const placeId = response.notification.request.content.data.placeId;
-        const senderToken =
-          response.notification.request.content.data.senderToken;
-        const notificationTTL =
-          response.notification.request.content.data.notificationTTL;
-        const sentAt = response.notification.request.content.data.sentAt;
-        if (new Date().getTime() > sentAt + notificationTTL) {
-          Alert.alert(t('request-expired'), t('missed-request-info'));
-        } else {
-          navigation.navigate('Camera', {
-            placeId: placeId,
-            senderToken: senderToken,
-          });
-        }
-      });
-
-    return () => {
-      notificationListener.current &&
-        Notifications.removeNotificationSubscription(
-          notificationListener.current
-        );
-      responseListener.current &&
-        Notifications.removeNotificationSubscription(responseListener.current);
-    };
-  }, []);
+  }, [userData]);
 
   const { data: imageUploading, refetch } = useQuery(
     'imageUploading',
     () => {},
-    {
-      refetchInterval: 5000,
-    }
+    { refetchInterval: 5000 }
   );
 
+  // Fetch files only after place has been loaded
   useEffect(() => {
-    getFiles();
-  }, [imageUploading]);
-
-  async function requestPhoto() {
-    const senderToken = userData?.pushToken;
-    if (place) {
-      const detail: PlaceDetailsResponse = await fetchPlaceDetails(
-        place.placeId
-      );
-      const tokens = await sendNotificationHandler({
-        latitude: detail.result.geometry.location.lat,
-        longitude: detail.result.geometry.location.lng,
-      });
-      tokens.forEach(token => {
-        sendPushNotification(token, place.placeId, senderToken ?? '');
-      });
+    if (isPlaceLoaded) {
+      getFiles();
     }
-  }
-
-  const handleScreenFocus = () => {
-    const image = queryClient.getQueryData<string>('capturedImage');
-    if (image) deleteImage.mutate();
-  };
-
-  useFocusEffect(handleScreenFocus);
-
-  async function savePlaceToStorage(place: PlacePrediction) {
-    try {
-      await AsyncStorage.setItem('savedPlace', JSON.stringify(place));
-    } catch (error) {
-      console.error('Error saving place to storage:', error);
-    }
-  }
-
-  async function getPlaceFromStorage() {
-    try {
-      const savedPlace = await AsyncStorage.getItem('savedPlace');
-      if (savedPlace) {
-        setPlace(JSON.parse(savedPlace));
-      }
-    } catch (error) {
-      console.error('Error getting place from storage:', error);
-    }
-  }
+  }, [imageUploading, isPlaceLoaded]);
 
   const getFiles = async () => {
     setLoading(true);
     try {
       if (place) {
+        setPosts([]);
         const posts = await handlePlacePosts(place.placeId);
         setPosts(posts);
       } else {
+        setPosts([]);
         const posts = await handleFreshContent();
         setPosts(posts);
       }
@@ -189,63 +81,77 @@ export const NewsFeed = () => {
   };
 
   const onRefresh = useCallback(() => {
+    if (isPlaceLoaded) {
+      getFiles();
+    }
+  }, [place, isPlaceLoaded]);
+
+  // Load place from storage once on component mount
+  useEffect(() => {
+    const loadPlaceFromStorage = async () => {
+      try {
+        const savedPlace = await AsyncStorage.getItem('savedPlace');
+        if (savedPlace) {
+          const parsedPlace = JSON.parse(savedPlace);
+          setPlace(parsedPlace);
+        }
+      } catch (error) {
+        console.error('Error loading place from storage:', error);
+      } finally {
+        setIsPlaceLoaded(true); // Indicate that the place has been loaded
+      }
+    };
+
+    if (!isPlaceLoaded) {
+      loadPlaceFromStorage();
+    }
+  }, [isPlaceLoaded]);
+
+  useEffect(() => {
     getFiles();
   }, [place]);
 
   useEffect(() => {
-    getPlaceFromStorage();
-  }, []);
+    const savePlaceToStorage = async () => {
+      try {
+        await AsyncStorage.setItem('savedPlace', JSON.stringify(place));
+      } catch (error) {
+        console.error('Error saving place to storage:', error);
+      }
+    };
 
-  useEffect(() => {
-    getFiles();
     if (place) {
-      savePlaceToStorage(place);
+      savePlaceToStorage();
     }
   }, [place]);
+
+  async function requestPhoto() {
+    const senderToken = userData?.pushToken;
+    if (place) {
+      const detail: PlaceDetailsResponse = await fetchPlaceDetails(
+        place.placeId
+      );
+      const tokens = await sendNotificationHandler({
+        latitude: detail.result.geometry.location?.lat,
+        longitude: detail.result.geometry.location?.lng,
+      });
+      tokens.forEach(token => {
+        sendPushNotification(token, place.placeId, senderToken ?? '');
+      });
+    }
+  }
 
   if (searching)
     return <PlaceSearch setSearching={setSearching} setPlace={setPlace} />;
 
   return (
     <Layout pageTitle="Feed">
-      <View style={{ alignSelf: 'center', flexDirection: 'row' }}>
-        <Text
-          style={{
-            color: 'white',
-            fontSize: 24,
-            fontWeight: 'bold',
-            paddingHorizontal: 5,
-          }}
-        >
-          Bar
-        </Text>
-        <View
-          style={{
-            backgroundColor: '#ffa31a',
-            borderRadius: 5,
-          }}
-        >
-          <Text
-            style={{
-              color: 'black',
-              fontSize: 24,
-              fontWeight: 'bold',
-              paddingHorizontal: 5,
-            }}
-          >
-            hub
-          </Text>
-        </View>
-      </View>
-      <ActionsRow setSearching={setSearching} />
-      {place && (
-        <View style={{ alignSelf: 'flex-start', marginBottom: 5 }}>
-          <PlaceFilterChip
-            setPlace={setPlace}
-            place={place.structuredFormat.mainText.text}
-          />
-        </View>
-      )}
+      <FeedHeader
+        place={place}
+        setSearching={setSearching}
+        setPlace={setPlace}
+      />
+      <NotificationHandler navigation={navigation} userData={userData} />
       <ScrollView
         contentContainerStyle={styles.scrollView}
         refreshControl={
@@ -253,88 +159,19 @@ export const NewsFeed = () => {
         }
       >
         {loading ? (
-          <View
-            style={{
-              flex: 1,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <ActivityIndicator size="large" color="#ffffff" />
-          </View>
+          <LoadingIndicator />
+        ) : posts.length ? (
+          <PostsList
+            posts={posts}
+            zoomedPost={zoomedPost}
+            setZoomedPost={setZoomedPost}
+            userData={userData}
+            numberOfDaysSinceLastPostedPhoto={numberOfDaysSinceLastPostedPhoto}
+            place={place}
+            requestPhoto={requestPhoto}
+          />
         ) : (
-          <View>
-            {imageUploading ? (
-              <View>
-                <Text style={commonAppStyles.textPrimary}>
-                  Uploading photo...
-                </Text>
-              </View>
-            ) : null}
-            {posts.length ? (
-              <>
-                {place && (
-                  <TouchableOpacity
-                    style={styles.requestButton}
-                    onPress={requestPhoto}
-                  >
-                    <Text
-                      style={[
-                        commonAppStyles.textSecondary,
-                        { fontSize: 22, fontWeight: 'bold' },
-                      ]}
-                    >
-                      {t('request-photo')}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-                {posts.map(post => (
-                  <View
-                    key={post.photoUrl}
-                    style={{
-                      marginVertical: 10,
-                      zIndex: zoomedPost === post.photoUrl ? 1 : 0,
-                    }}
-                  >
-                    <UserPost
-                      hasPremium={
-                        (userData?.premium ||
-                          numberOfDaysSinceLastPostedPhoto <= 2) ??
-                        false
-                      }
-                      post={post}
-                      setZoomedPost={setZoomedPost}
-                      isZoomed={zoomedPost === post.photoUrl}
-                    />
-                  </View>
-                ))}
-              </>
-            ) : (
-              <View style={styles.infoContainer}>
-                <View style={{ marginBottom: 15, justifyContent: 'center' }}>
-                  <Text style={[commonAppStyles.textPrimary, { fontSize: 22 }]}>
-                    {t('photos-info')}
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.requestButton}
-                  onPress={requestPhoto}
-                >
-                  <Text
-                    style={[
-                      commonAppStyles.textSecondary,
-                      { fontSize: 22, fontWeight: 'bold' },
-                    ]}
-                  >
-                    {t('request-photo')}
-                  </Text>
-                </TouchableOpacity>
-                <Text style={{ color: '#a6a6a6' }}>
-                  {t('request-photo-info')}
-                </Text>
-              </View>
-            )}
-          </View>
+          <EmptyState requestPhoto={requestPhoto} />
         )}
       </ScrollView>
     </Layout>
@@ -342,43 +179,8 @@ export const NewsFeed = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  actionsRow: {
-    height: 30,
-    backgroundColor: 'white',
-  },
-  image: {
-    width: '100%',
-    height: 200,
-    marginBottom: 10,
-  },
   scrollView: {
     flexGrow: 1,
-  },
-  infoContainer: {
-    marginTop: 50,
-    flex: 1,
-    alignSelf: 'center',
-    justifyContent: 'center',
-    width: 300,
-  },
-  requestButton: {
-    borderRadius: 10,
-    backgroundColor: '#d8d8d8',
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 15,
-  },
-  text: {
-    fontSize: 24,
-    textAlign: 'center',
-    fontWeight: 'bold',
-    color: '#fff',
   },
 });
 

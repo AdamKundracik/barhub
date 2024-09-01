@@ -196,8 +196,7 @@ exports.getFreshContent = functions.https.onCall(
 
       const query = await db
         .collection('posts')
-        .where('timestamp', '>=', threeDayssAgoTimestamp)
-        .limit(10);
+        .where('timestamp', '>=', threeDayssAgoTimestamp);
 
       const querySnapshot = await query.get();
 
@@ -234,8 +233,7 @@ exports.getPostsByPlaceId = functions.https.onCall(
 
       const query = await db
         .collection('posts')
-        .where('folderId', '==', data?.placeId)
-        .where('timestamp', '>=', threeDaysAgoTimestamp);
+        .where('folderId', '==', data?.placeId);
 
       const querySnapshot = await query.get();
 
