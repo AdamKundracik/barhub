@@ -8,10 +8,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Layout from '../../components/user/Layout';
+import Layout from '../../components/user/Shared/Layout';
 import { fetchNearbyPlaces } from '../../utils/helper-functions/fetchNearByPlaces';
 import { Place } from '../../utils/types/types';
-import { PlaceDetail } from '../../components/user/PlaceDetail';
+import { PlaceDetail } from '../../components/user/Search/PlaceDetail';
 import { radius } from '../../utils/helper-functions/constants';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';

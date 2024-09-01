@@ -50,6 +50,7 @@
     "expo-media-library": "~16.0.4",
     "expo-notifications": "~0.28.11",
     "expo-status-bar": "~1.12.1",
+    "expo-tracking-transparency": "^4.0.2",
     "firebase": "^9.23.0",
     "firebase-admin": "^12.1.1",
     "firebase-functions": "^5.0.1",

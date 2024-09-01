@@ -1,4 +1,4 @@
-import Layout from './Layout';
+import Layout from '../Shared/Layout';
 import {
   Animated,
   Easing,
@@ -8,13 +8,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { commonAppStyles, formStyles } from '../../utils/styles/styles';
+import { commonAppStyles, formStyles } from '../../../utils/styles/styles';
 import React, { useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../utils/icons/icons';
-import { fetchPlaceAutocomplete } from '../../utils/helper-functions/fetchPlacesAutocomplete';
-import { useUserContext } from '../../providers/UserProvider';
-import { PlacePrediction } from '../../utils/types/types';
+import { Icons } from '../../../utils/icons/icons';
+import { fetchPlaceAutocomplete } from '../../../utils/helper-functions/fetchPlacesAutocomplete';
+import { useUserContext } from '../../../providers/UserProvider';
+import { PlacePrediction } from '../../../utils/types/types';
 import MapSearch from './MapSearch';
 
 type LayoutProps = {

@@ -2,7 +2,6 @@ import {
   deleteObject,
   getDownloadURL,
   getStorage,
-  list,
   ref,
   uploadBytes,
 } from 'firebase/storage';
@@ -124,34 +123,4 @@ export const getProfilePicture = async (id?: string): Promise<string> => {
 export const deleteProfilePicture = async (userId: string): Promise<void> => {
   const storageRef = ref(storage, `profile_photos/${userId}`);
   await deleteObject(storageRef);
-};
-
-export const listFiles = async (placeId: string | undefined | null) => {
-  try {
-    const storage = getStorage();
-    const listRef = ref(storage, placeId ?? auth.currentUser?.uid);
-    const res = await list(listRef, { maxResults: 20 });
-    const fileNames: string[] = [];
-    const urls = await Promise.all(
-      res.items.map(item => {
-        fileNames.push(item.name);
-        return getDownloadURL(item);
-      })
-    );
-    return { urls, fileNames };
-  } catch (error) {
-    console.error('Error listing files: ', error);
-  }
-};
-
-export const listNewsFeedFiles = async (postPath: string) => {
-  try {
-    const storage = getStorage();
-    const fileRef = ref(storage, postPath);
-    const url = await getDownloadURL(fileRef);
-    return url;
-  } catch (error) {
-    console.error('Error getting file URL:', error);
-    return null;
-  }
 };

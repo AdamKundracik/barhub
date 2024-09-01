@@ -50,7 +50,7 @@ export const UserProvider = (props: Props) => {
       setUserData(u);
       setIsLoadingAuth(false);
     });
-  }, []);
+  }, [auth]);
 
   useEffect(() => {
     if (AppState.currentState === 'active') {
@@ -107,7 +107,7 @@ export const UserProvider = (props: Props) => {
       setIsLoading(false);
     };
     fetchUserData();
-  }, []);
+  }, [isLoadingAuth]);
 
   async function getLocation(): Promise<void> {
     try {

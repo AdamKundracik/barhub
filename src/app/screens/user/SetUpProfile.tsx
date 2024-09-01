@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
-import Layout from '../../components/user/Layout';
+import Layout from '../../components/user/Shared/Layout';
 import {
   ActivityIndicator,
   Image,
