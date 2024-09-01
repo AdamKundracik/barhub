@@ -23,14 +23,14 @@ import {
   uploadProfilePhotoAsync,
 } from '../../utils/helper-functions/helperFunctions';
 import { setUser } from '../../utils/services/functions';
-import { useAuthUpdateProfile } from '@react-query-firebase/auth';
 import { useUserContext } from '../../providers/UserProvider';
+import { DeleteUserModal } from '../../components/user/Account/DeleteUserModal';
 
 export const Account = () => {
   const { userData } = useUserContext();
   const { t } = useTranslation();
-  const mutationUpdateProfile = useAuthUpdateProfile();
   const [isSlidingViewVisible, setSlidingViewVisible] = useState(false);
+  const [modalOpened, setModalOpened] = useState(false);
 
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 
@@ -110,9 +110,8 @@ export const Account = () => {
         photoURL: uri,
       });
 
-      await mutationUpdateProfile.mutateAsync({
+      await updateProfile(auth.currentUser!, {
         photoURL: uri,
-        user: auth.currentUser!,
         displayName: auth.currentUser?.displayName,
       });
 
@@ -126,9 +125,8 @@ export const Account = () => {
       photoURL: '',
     });
 
-    await mutationUpdateProfile.mutateAsync({
+    await updateProfile(auth.currentUser!, {
       photoURL: '',
-      user: auth.currentUser!,
       displayName: auth.currentUser?.displayName,
     });
   };
@@ -153,6 +151,9 @@ export const Account = () => {
             <Text style={styles.picturesTaken}>PREMIUM MEMBER</Text>
           )}
 
+          <TouchableOpacity style={styles.button} onPress={handleSignOut}>
+            <Text style={styles.buttonText}>Logout</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             style={styles.button}
             onPress={() => navigation.navigate('Subscription')}
@@ -161,8 +162,11 @@ export const Account = () => {
               Settings <FontAwesomeIcon icon={Icons.Gear} color="white" />
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={handleSignOut}>
-            <Text style={styles.buttonText}>Logout</Text>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => setModalOpened(true)}
+          >
+            <Text style={{ color: 'red' }}>Delete user</Text>
           </TouchableOpacity>
         </View>
       </TouchableWithoutFeedback>
@@ -172,6 +176,10 @@ export const Account = () => {
         openGallery={openGallery}
         openCamera={openCamera}
         removePicture={removePicture}
+      />
+      <DeleteUserModal
+        isOpen={modalOpened}
+        onClose={() => setModalOpened(false)}
       />
     </Layout>
   );
