@@ -26,12 +26,6 @@ export const sendNotificationHandler = async (
     users
       ?.filter(user => user.pushToken)
       .forEach(user => {
-        console.log(
-          'user',
-          user?.location?.latitude,
-          user?.location?.longitude
-        );
-        console.log('place', placeLocation?.latitude, placeLocation?.longitude);
         const distanceResp = Math.round(
           haversineDistance(
             user?.location?.latitude,
