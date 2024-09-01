@@ -88,7 +88,7 @@ export const SetUpProfile = () => {
         await refetch();
       }
     } catch (e) {
-      console.log(e);
+      console.error(e);
     } finally {
       setUploading(false);
       console.error('Missing auth');

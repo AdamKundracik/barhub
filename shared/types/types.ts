@@ -42,6 +42,8 @@ export type Post = {
   placeAddress: string;
   id: string;
   photoUrl: string;
+  likesCount: number;
+  commentsCount: number;
 };
 
 export interface PostUrlExtended extends Post {

@@ -73,8 +73,6 @@ export const RevenueCatProvider = ({ children }: any) => {
       newUser.premium = true;
     }
 
-    console.log(newUser);
-
     setCurrentUser(newUser);
     await setUser(newUser);
   };
