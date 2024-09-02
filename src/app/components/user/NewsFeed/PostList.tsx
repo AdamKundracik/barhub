@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import RequestPhotoButton from './RequestPhotoButton';
 import { Post, User } from '../../../../../shared';
 import { PlacePrediction } from '../../../utils/types/types';
@@ -14,6 +14,9 @@ interface PostsListProps {
   numberOfDaysSinceLastPostedPhoto: number;
   place: PlacePrediction | null;
   requestPhoto: () => void;
+  fetchMorePosts: () => Promise<void>;
+  onRefresh: () => void;
+  loading: boolean;
 }
 
 const PostsList: React.FC<PostsListProps> = ({
@@ -24,30 +27,52 @@ const PostsList: React.FC<PostsListProps> = ({
   numberOfDaysSinceLastPostedPhoto,
   place,
   requestPhoto,
-}) => (
-  <>
-    {place && <RequestPhotoButton requestPhoto={requestPhoto} />}
-    {posts.map((post, index) => (
-      <View
-        key={index} // changed to index because we might skip rendering post based on index.
-        style={{
-          marginVertical: 10,
-          zIndex: zoomedPost === post.photoUrl ? 1 : 0,
-        }}
-      >
-        <UserPost
-          hasPremium={
-            (userData?.premium || numberOfDaysSinceLastPostedPhoto <= 7) ??
-            false
-          }
-          post={post}
-          setZoomedPost={setZoomedPost}
-          isZoomed={zoomedPost === post.photoUrl}
-        />
-        {index % 2 === 0 && index !== 0 && <Ad />}
-      </View>
-    ))}
-  </>
-);
+  fetchMorePosts,
+  onRefresh,
+  loading,
+}) => {
+  const renderPostItem = ({ item, index }: { item: Post; index: number }) => (
+    <View
+      key={item.id} // Use `id` if available to avoid index-based keys.
+      style={{
+        marginVertical: 10,
+        zIndex: zoomedPost === item.photoUrl ? 1 : 0,
+      }}
+    >
+      <UserPost
+        hasPremium={
+          (userData?.premium || numberOfDaysSinceLastPostedPhoto <= 7) ?? false
+        }
+        post={item}
+        setZoomedPost={setZoomedPost}
+        isZoomed={zoomedPost === item.photoUrl}
+      />
+      {index % 2 === 0 && index !== 0 && <Ad />}
+    </View>
+  );
+
+  return (
+    <FlatList
+      data={posts}
+      renderItem={renderPostItem}
+      keyExtractor={item => item.id.toString()}
+      contentContainerStyle={styles.scrollView}
+      refreshControl={
+        <RefreshControl refreshing={loading} onRefresh={onRefresh} />
+      }
+      onEndReached={fetchMorePosts}
+      onEndReachedThreshold={0.5} // Trigger when the user scrolls close to the end
+      ListHeaderComponent={
+        place && <RequestPhotoButton requestPhoto={requestPhoto} />
+      }
+    />
+  );
+};
+
+const styles = StyleSheet.create({
+  scrollView: {
+    flexGrow: 1,
+  },
+});
 
 export default PostsList;

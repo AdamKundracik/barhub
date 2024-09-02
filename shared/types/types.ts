@@ -46,6 +46,11 @@ export type Post = {
   commentsCount: number;
 };
 
+export type InfinityScrollPost = {
+  posts: Post[];
+  lastVisible: string;
+};
+
 export interface PostUrlExtended extends Post {
   url: string;
 }

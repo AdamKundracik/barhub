@@ -90,6 +90,14 @@ export const UserPost = (props: PostInterface) => {
     }
   };
 
+  const doubleTap = Gesture.Tap()
+    .maxDuration(250)
+    .numberOfTaps(2)
+    .onStart(async () => {
+      console.log('double tap');
+      await handleLikeToggle();
+    });
+
   const pinch = Gesture.Pinch()
     .onStart(g => {
       if (g.numberOfPointers === 2) {
@@ -158,15 +166,17 @@ export const UserPost = (props: PostInterface) => {
         </View>
         <Text style={commonAppStyles.textPrimary}>{createdAgo}</Text>
       </View>
-      <GestureDetector gesture={pinch}>
-        <Animated.Image
-          blurRadius={!props.hasPremium ? 50 : 0}
-          style={[styles.photo, animatedStyle]}
-          source={{
-            uri: post.photoUrl,
-          }}
-          resizeMode="contain"
-        />
+      <GestureDetector gesture={doubleTap}>
+        <GestureDetector gesture={pinch}>
+          <Animated.Image
+            blurRadius={!props.hasPremium ? 50 : 0}
+            style={[styles.photo, animatedStyle]}
+            source={{
+              uri: post.photoUrl,
+            }}
+            resizeMode="contain"
+          />
+        </GestureDetector>
       </GestureDetector>
       <View style={styles.photoActions}>
         <TouchableOpacity onPress={() => handleLikeToggle()}>

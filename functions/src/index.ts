@@ -1,5 +1,5 @@
 import { CallableContext } from 'firebase-functions/lib/common/providers/https';
-import { Post, User } from '../../shared';
+import { InfinityScrollPost, Post, User } from '../../shared';
 
 const admin = require('firebase-admin');
 
@@ -180,41 +180,59 @@ export const testLog = functions.https.onCall(
 );
 
 exports.getFreshContent = functions.https.onCall(
-  async (data, context: CallableContext): Promise<Post[]> => {
-    function calculateFreshnessScore(postTimestamp: number, now: number) {
-      const timeDifference = now - postTimestamp; // Time difference in milliseconds
-      const timeDifferenceInHours = timeDifference / (60 * 60 * 1000); // Convert to hours
-
-      // Example time decay function: exponential decay
-      const freshnessScore = Math.exp(-timeDifferenceInHours);
-
-      return freshnessScore;
-    }
-
+  async (
+    data,
+    context: CallableContext
+  ): Promise<InfinityScrollPost | null> => {
     try {
-      const now = admin.firestore.Timestamp.now();
-      const threeDaysAgo = new Date(
-        now.toDate().getTime() - 3 * 24 * 60 * 60 * 1000
-      );
-      const threeDayssAgoTimestamp = threeDaysAgo.getTime();
+      // Retrieve pagination parameters from the input data
+      const { pageSize = 3, lastVisible = null } = data; // Set default page size to 10
 
-      const query = await db
+      // Reference to the 'posts' collection with timestamp ordering
+      let query = db
         .collection('posts')
-        .where('timestamp', '>=', threeDayssAgoTimestamp);
+        .orderBy('timestamp', 'desc') // Order by the most recent posts first
+        .limit(pageSize);
 
-      const querySnapshot = await query.get();
+      // Validate the `lastVisible` parameter
+      if (lastVisible) {
+        // Fetch the document that corresponds to `lastVisible`
+        const lastVisibleDoc = await db
+          .collection('posts')
+          .doc(lastVisible)
+          .get();
 
-      if (querySnapshot.empty) {
-        console.error('snapshot is empty');
-        return null;
+        // If the document exists, use it as the starting point for the next query
+        if (lastVisibleDoc.exists) {
+          query = query.startAfter(lastVisibleDoc);
+        } else {
+          console.error('Invalid lastVisible document.');
+          return { lastVisible: '', posts: [] } as InfinityScrollPost;
+        }
       }
 
+      // Execute the query
+      const querySnapshot = await query.get();
+
+      // Check if the result is empty
+      if (querySnapshot.empty) {
+        return { lastVisible: '', posts: [] } as InfinityScrollPost;
+      }
+
+      // Map the fetched documents to Post objects
       const items: Post[] = querySnapshot.docs.map(doc => ({
         ...doc.data(),
         id: doc.id,
       }));
 
-      return items;
+      // Get the last document to be used for the next page
+      const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
+
+      // Return the fetched posts and the last visible document's ID
+      return {
+        posts: items,
+        lastVisible: lastDoc.id, // Use the ID of the last document for pagination
+      } as InfinityScrollPost;
     } catch (error) {
       console.error('Error fetching fresh content:', error);
       return null;

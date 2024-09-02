@@ -1,4 +1,4 @@
-import { Post, User } from '../../../../shared';
+import { InfinityScrollPost, Post, User } from '../../../../shared';
 
 export const COLLECTION = {
   USERS: 'users',
@@ -124,7 +124,7 @@ export type GetFreshnessContentResult = {
   status: ServiceStatusEnum;
   code: ServiceCodeEnum;
   message?: string;
-  data?: Post[];
+  data?: InfinityScrollPost;
 };
 
 export type SignInUserRequest = {
