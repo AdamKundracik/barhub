@@ -2,7 +2,11 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import Layout from '../../components/user/Shared/Layout';
 import { useQuery, useQueryClient } from 'react-query';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import {
+  NavigationProp,
+  useFocusEffect,
+  useNavigation,
+} from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserStackList } from '../../utils/types/screen-types';
@@ -23,6 +27,7 @@ import { fetchPlaceDetails } from '../../utils/helper-functions/fetchPlaceDetail
 import { sendNotificationHandler } from '../../utils/helper-functions/sendNotificationHandler';
 import { sendPushNotification } from '../../utils/services/notofications-handler';
 import FeedHeader from '../../components/user/NewsFeed/FeedHeader';
+import { useImageManagement } from '../../utils/hooks/useImageManagement';
 
 export const NewsFeed: React.FC = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
@@ -36,6 +41,7 @@ export const NewsFeed: React.FC = () => {
   const [place, setPlace] = useState<PlacePrediction | null>(null);
   const [searching, setSearching] = useState<boolean>(false);
   const [isPlaceLoaded, setIsPlaceLoaded] = useState(false); // Ensure place is loaded before fetching files
+  const { deleteImage } = useImageManagement();
 
   const [
     numberOfDaysSinceLastPostedPhoto,
@@ -46,6 +52,13 @@ export const NewsFeed: React.FC = () => {
     const numberOfDays = getDaysSince(userData?.lastUploadedPost ?? new Date());
     setNumberOfDaysSinceLastPostedPhoto(numberOfDays);
   }, [userData]);
+
+  const handleScreenFocus = () => {
+    const image = queryClient.getQueryData<string>('capturedImage');
+    if (image) deleteImage.mutate();
+  };
+
+  useFocusEffect(handleScreenFocus);
 
   const { data: imageUploading, refetch } = useQuery(
     'imageUploading',

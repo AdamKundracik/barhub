@@ -77,8 +77,8 @@ export const UserProvider = (props: Props) => {
       desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
       distanceFilter: 100,
       stopTimeout: 5,
-      debug: true,
-      logLevel: BackgroundGeolocation.LOG_LEVEL_VERBOSE,
+      debug: false,
+      logLevel: BackgroundGeolocation.LOG_LEVEL_OFF,
       stopOnTerminate: false,
       startOnBoot: true,
       showsBackgroundLocationIndicator: true,
@@ -110,7 +110,7 @@ export const UserProvider = (props: Props) => {
       setIsLoading(false);
     };
     fetchUserData();
-  }, [isLoadingAuth]);
+  }, [isLoadingAuth, auth]);
 
   async function getLocation(): Promise<void> {
     try {
