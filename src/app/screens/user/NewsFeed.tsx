@@ -66,7 +66,6 @@ export const NewsFeed: React.FC = () => {
 
   useFocusEffect(handleScreenFocus);
 
-  // Fetch files only after place has been loaded
   useEffect(() => {
     if (isPlaceLoaded) {
       getFiles();
@@ -113,7 +112,6 @@ export const NewsFeed: React.FC = () => {
     }
   };
 
-  // Load place from storage once on component mount
   useEffect(() => {
     const loadPlaceFromStorage = async () => {
       try {
