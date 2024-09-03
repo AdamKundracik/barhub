@@ -1,22 +1,31 @@
-import { Post } from '../../../../shared';
+import { InfinityScrollPost, Post } from '../../../../shared';
 import { getFreshContent, getPostsByPlaceID } from '../services/functions';
-import { getRandomRecentPosts } from './getRandomRecentPosts';
 
-export const handlePlacePosts = async (placeId: string) => {
-  const posts = await getPostsByPlaceID(placeId);
-  if (posts.data) {
-    return posts.data?.reverse();
-  } else {
-    return [];
+export const handlePlacePosts = async (
+  placeId: string,
+  lastVisible?: string
+) => {
+  const response = lastVisible
+    ? await getPostsByPlaceID(placeId, lastVisible)
+    : await getPostsByPlaceID(placeId);
+  const data = response.data as InfinityScrollPost;
+
+  if (data.posts) {
+    const postsWithUrls: Post[] = await Promise.all(data.posts); // If you need to transform posts, do it here.
+    return { posts: postsWithUrls, lastVisible: data.lastVisible };
   }
+  return { posts: [], lastVisible: null };
 };
 
-export const handleFreshContent = async () => {
-  const posts = await getFreshContent();
-  if (posts.data) {
-    const postsWithUrls: Post[] = await Promise.all(posts.data);
-    return getRandomRecentPosts(postsWithUrls.reverse());
-  } else {
-    return [];
+export const handleFreshContent = async (lastVisible?: string | null) => {
+  const response = lastVisible
+    ? await getFreshContent(lastVisible)
+    : await getFreshContent();
+  const data = response.data as InfinityScrollPost;
+
+  if (data.posts) {
+    const postsWithUrls: Post[] = await Promise.all(data.posts); // If you need to transform posts, do it here.
+    return { posts: postsWithUrls, lastVisible: data.lastVisible };
   }
+  return { posts: [], lastVisible: null };
 };

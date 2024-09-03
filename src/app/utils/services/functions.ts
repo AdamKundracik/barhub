@@ -62,20 +62,27 @@ export const getPosts = async (): Promise<GetAllPostsResult> => {
   return response;
 };
 
-export const getFreshContent = async (): Promise<GetFreshnessContentResult> => {
+export const getFreshContent = async (
+  lastVisible?: string
+): Promise<GetFreshnessContentResult> => {
   const cloudFunction = httpsCallable(functions, 'getFreshContent');
-  const response =
-    (await cloudFunction()) as unknown as GetFreshnessContentResult;
+  const response = (await cloudFunction({
+    pageSize: 10,
+    lastVisible: lastVisible,
+  })) as unknown as GetFreshnessContentResult;
   return response;
 };
 
 export const getPostsByPlaceID = async (
-  placeId: string
-): Promise<GetAllPostsResult> => {
+  placeId: string,
+  lastVisible?: string
+): Promise<GetFreshnessContentResult> => {
   const cloudFunction = httpsCallable(functions, 'getPostsByPlaceId');
   const response = (await cloudFunction({
-    placeId: placeId,
-  })) as unknown as GetAllPostsResult;
+    pageSize: 5,
+    lastVisible: lastVisible,
+    placeId,
+  })) as unknown as GetFreshnessContentResult;
   return response;
 };
 

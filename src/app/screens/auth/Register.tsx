@@ -30,6 +30,7 @@ export const Register = ({ navigation }: any) => {
   async function handleRegister() {
     setLoading(true);
     await createUserWithEmailAndPassword(auth, email, password).catch(error => {
+      setLoading(false);
       switch (error.code) {
         case 'auth/email-already-in-use':
           alert(t(`email-in-use`));

@@ -1,8 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import Layout from '../../components/user/Shared/Layout';
 import { useQuery, useQueryClient } from 'react-query';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import {
+  NavigationProp,
+  useFocusEffect,
+  useNavigation,
+} from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserStackList } from '../../utils/types/screen-types';
@@ -23,6 +26,7 @@ import { fetchPlaceDetails } from '../../utils/helper-functions/fetchPlaceDetail
 import { sendNotificationHandler } from '../../utils/helper-functions/sendNotificationHandler';
 import { sendPushNotification } from '../../utils/services/notofications-handler';
 import FeedHeader from '../../components/user/NewsFeed/FeedHeader';
+import { useImageManagement } from '../../utils/hooks/useImageManagement';
 
 export const NewsFeed: React.FC = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
@@ -36,6 +40,8 @@ export const NewsFeed: React.FC = () => {
   const [place, setPlace] = useState<PlacePrediction | null>(null);
   const [searching, setSearching] = useState<boolean>(false);
   const [isPlaceLoaded, setIsPlaceLoaded] = useState(false); // Ensure place is loaded before fetching files
+  const [lastVisible, setLastVisible] = useState<string | null>(null);
+  const { deleteImage } = useImageManagement();
 
   const [
     numberOfDaysSinceLastPostedPhoto,
@@ -53,7 +59,13 @@ export const NewsFeed: React.FC = () => {
     { refetchInterval: 5000 }
   );
 
-  // Fetch files only after place has been loaded
+  const handleScreenFocus = () => {
+    const image = queryClient.getQueryData<string>('capturedImage');
+    if (image) deleteImage.mutate();
+  };
+
+  useFocusEffect(handleScreenFocus);
+
   useEffect(() => {
     if (isPlaceLoaded) {
       getFiles();
@@ -63,15 +75,12 @@ export const NewsFeed: React.FC = () => {
   const getFiles = async () => {
     setLoading(true);
     try {
-      if (place) {
-        setPosts([]);
-        const posts = await handlePlacePosts(place.placeId);
-        setPosts(posts);
-      } else {
-        setPosts([]);
-        const posts = await handleFreshContent();
-        setPosts(posts);
-      }
+      const data = place
+        ? await handlePlacePosts(place.placeId)
+        : await handleFreshContent();
+
+      setPosts(data.posts);
+      setLastVisible(data.lastVisible);
     } catch (error) {
       console.error('Error getting files:', error);
       setPosts([]);
@@ -86,7 +95,23 @@ export const NewsFeed: React.FC = () => {
     }
   }, [place, isPlaceLoaded]);
 
-  // Load place from storage once on component mount
+  const fetchMorePosts = async (lastVisible: string) => {
+    if (!lastVisible) return;
+    try {
+      const data = place
+        ? await handlePlacePosts(place.placeId, lastVisible)
+        : await handleFreshContent(lastVisible);
+
+      if (data.posts.length > 0) {
+        setPosts(prevPosts => [...prevPosts, ...data.posts]);
+        setLastVisible(data.lastVisible);
+      } else {
+      }
+    } catch (error) {
+      console.error('Error fetching more posts:', error);
+    }
+  };
+
   useEffect(() => {
     const loadPlaceFromStorage = async () => {
       try {
@@ -152,36 +177,26 @@ export const NewsFeed: React.FC = () => {
         setPlace={setPlace}
       />
       <NotificationHandler navigation={navigation} userData={userData} />
-      <ScrollView
-        contentContainerStyle={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={onRefresh} />
-        }
-      >
-        {loading ? (
-          <LoadingIndicator />
-        ) : posts.length ? (
-          <PostsList
-            posts={posts}
-            zoomedPost={zoomedPost}
-            setZoomedPost={setZoomedPost}
-            userData={userData}
-            numberOfDaysSinceLastPostedPhoto={numberOfDaysSinceLastPostedPhoto}
-            place={place}
-            requestPhoto={requestPhoto}
-          />
-        ) : (
-          <EmptyState requestPhoto={requestPhoto} />
-        )}
-      </ScrollView>
+      {loading ? (
+        <LoadingIndicator />
+      ) : posts.length ? (
+        <PostsList
+          posts={posts}
+          zoomedPost={zoomedPost}
+          setZoomedPost={setZoomedPost}
+          userData={userData}
+          numberOfDaysSinceLastPostedPhoto={numberOfDaysSinceLastPostedPhoto}
+          place={place}
+          requestPhoto={requestPhoto}
+          fetchMorePosts={() => fetchMorePosts(lastVisible ?? '')}
+          onRefresh={onRefresh}
+          loading={loading}
+        />
+      ) : (
+        <EmptyState requestPhoto={requestPhoto} />
+      )}
     </Layout>
   );
 };
-
-const styles = StyleSheet.create({
-  scrollView: {
-    flexGrow: 1,
-  },
-});
 
 export default NewsFeed;
