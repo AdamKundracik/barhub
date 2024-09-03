@@ -37,8 +37,11 @@ export const Register = ({ navigation }: any) => {
   const [uploading, setUploading] = useState(false);
 
   const pickImage = async () => {
-    const permission = await ImagePicker.getMediaLibraryPermissionsAsync();
+    // Request media library permissions if not already granted
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
     if (permission.granted) {
+      // Open image picker
       let result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.All,
         allowsEditing: true,
@@ -46,9 +49,13 @@ export const Register = ({ navigation }: any) => {
         quality: 1,
       });
 
+      // Handle result
       if (!result.canceled) {
+        // Set the image URI
         setImage(result.assets[0].uri);
       }
+    } else {
+      console.log('Permission to access media library was denied.');
     }
   };
 
@@ -139,6 +146,7 @@ export const Register = ({ navigation }: any) => {
           style={formStyles.inputPrimary}
           placeholder={t('user-name')}
           keyboardType={'default'}
+          placeholderTextColor={secondaryTextColor}
         />
       </InputWrapper>
       <DatePicker />
