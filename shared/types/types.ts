@@ -32,7 +32,7 @@ export interface User extends UserRecord {
 }
 
 export type Post = {
-  creationTime: Date;
+  creationTime: string;
   timestamp: number;
   user_id: string;
   fileId: string;

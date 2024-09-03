@@ -24,6 +24,7 @@ type ContextProps = {
   userData: User | null;
   isLoading: boolean;
   emailVerified: boolean;
+  fetchUserData: () => Promise<void>;
 };
 
 interface Props {
@@ -64,17 +65,17 @@ export const UserProvider = (props: Props) => {
       await setUser({ location: location });
     }
 
-    const onLocation = BackgroundGeolocation.onLocation(location => {
+    const onLocation = BackgroundGeolocation.onLocation(async location => {
       const currentLocation: LocationType = {
         latitude: location.coords?.latitude,
         longitude: location.coords?.longitude,
       };
       setLocation(currentLocation);
-      setUserIntoDB(currentLocation);
+      await setUserIntoDB(currentLocation);
     });
 
     BackgroundGeolocation.ready({
-      desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
+      desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_NAVIGATION,
       distanceFilter: 100,
       stopTimeout: 5,
       debug: false,
@@ -100,17 +101,19 @@ export const UserProvider = (props: Props) => {
   }, []);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      const uid = auth.currentUser?.uid;
-      if (uid) {
-        const user = await getCurrentUser();
-        if (user.data) setUserToStore.mutateAsync(user.data);
-        setUserData(user.data);
-      }
-      setIsLoading(false);
-    };
     fetchUserData();
   }, [isLoadingAuth, auth]);
+
+  const fetchUserData = async () => {
+    const uid = auth.currentUser?.uid;
+    if (uid) {
+      const user = await getCurrentUser();
+      if (user.data) setUserToStore.mutateAsync(user.data);
+      console.log(user.data);
+      setUserData(user.data);
+    }
+    setIsLoading(false);
+  };
 
   async function getLocation(): Promise<void> {
     try {
@@ -133,6 +136,7 @@ export const UserProvider = (props: Props) => {
       authUser,
       isLoadingAuth,
       emailVerified,
+      fetchUserData,
     };
   }, [
     userData,
@@ -142,6 +146,7 @@ export const UserProvider = (props: Props) => {
     authUser,
     isLoadingAuth,
     emailVerified,
+    fetchUserData,
   ]);
 
   return (
