@@ -74,12 +74,15 @@ export const getFreshContent = async (
 };
 
 export const getPostsByPlaceID = async (
-  placeId: string
-): Promise<GetAllPostsResult> => {
+  placeId: string,
+  lastVisible?: string
+): Promise<GetFreshnessContentResult> => {
   const cloudFunction = httpsCallable(functions, 'getPostsByPlaceId');
   const response = (await cloudFunction({
-    placeId: placeId,
-  })) as unknown as GetAllPostsResult;
+    pageSize: 5,
+    lastVisible: lastVisible,
+    placeId,
+  })) as unknown as GetFreshnessContentResult;
   return response;
 };
 

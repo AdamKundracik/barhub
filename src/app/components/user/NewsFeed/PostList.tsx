@@ -61,7 +61,7 @@ const PostsList: React.FC<PostsListProps> = ({
         <RefreshControl refreshing={loading} onRefresh={onRefresh} />
       }
       onEndReached={fetchMorePosts}
-      onEndReachedThreshold={0.5} // Trigger when the user scrolls close to the end
+      onEndReachedThreshold={0} // Trigger when the user scrolls close to the end
       ListHeaderComponent={
         place && <RequestPhotoButton requestPhoto={requestPhoto} />
       }

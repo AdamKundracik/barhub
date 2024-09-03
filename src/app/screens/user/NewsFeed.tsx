@@ -65,16 +65,12 @@ export const NewsFeed: React.FC = () => {
   const getFiles = async () => {
     setLoading(true);
     try {
-      if (place) {
-        setPosts([]);
-        const posts = await handlePlacePosts(place.placeId);
-        setPosts(posts);
-      } else {
-        setPosts([]);
-        const posts = await handleFreshContent();
-        setPosts(posts.posts);
-        setLastVisible(posts.lastVisible);
-      }
+      const data = place
+        ? await handlePlacePosts(place.placeId)
+        : await handleFreshContent();
+
+      setPosts(data.posts);
+      setLastVisible(data.lastVisible);
     } catch (error) {
       console.error('Error getting files:', error);
       setPosts([]);
@@ -90,13 +86,17 @@ export const NewsFeed: React.FC = () => {
   }, [place, isPlaceLoaded]);
 
   const fetchMorePosts = async (lastVisible: string) => {
+    if (!lastVisible) return;
+    setIsFetchingMore(true);
     try {
-      const newPosts = await handleFreshContent(lastVisible);
+      const data = place
+        ? await handlePlacePosts(place.placeId, lastVisible)
+        : await handleFreshContent(lastVisible);
 
-      if (newPosts.posts.length > 0) {
-        setPosts(prevPosts => [...prevPosts, ...newPosts.posts]);
-        setLastVisible(newPosts.lastVisible);
-        setHasMorePosts(newPosts.posts.length > 0);
+      if (data.posts.length > 0) {
+        setPosts(prevPosts => [...prevPosts, ...data.posts]);
+        setLastVisible(data.lastVisible);
+        setHasMorePosts(data.posts.length > 0);
       } else {
         setHasMorePosts(false);
       }

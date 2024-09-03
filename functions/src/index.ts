@@ -241,37 +241,60 @@ exports.getFreshContent = functions.https.onCall(
 );
 
 exports.getPostsByPlaceId = functions.https.onCall(
-  async (data, context: CallableContext): Promise<Post[]> => {
+  async (
+    data,
+    context: CallableContext
+  ): Promise<InfinityScrollPost | null> => {
     try {
-      const now = admin.firestore.Timestamp.now();
-      const threeDaysAgo = new Date(
-        now.toDate().getTime() - 3 * 24 * 60 * 60 * 1000
-      );
-      const threeDaysAgoTimestamp = threeDaysAgo.getTime();
+      const { pageSize = 1, lastVisible = null, placeId = null } = data;
 
-      if (!data.placeId) {
-        throw new Error('Missing placeId');
+      // Reference to the 'posts' collection with timestamp ordering
+      let query = db
+        .collection('posts')
+        .where('folderId', '==', placeId)
+        .limit(pageSize);
+
+      // Validate the `lastVisible` parameter
+      if (lastVisible) {
+        // Fetch the document that corresponds to `lastVisible`
+        const lastVisibleDoc = await db
+          .collection('posts')
+          .doc(lastVisible)
+          .get();
+
+        // If the document exists, use it as the starting point for the next query
+        if (lastVisibleDoc.exists) {
+          query = query.startAfter(lastVisibleDoc);
+        } else {
+          console.error('Invalid lastVisible document.');
+          return { lastVisible: '', posts: [] } as InfinityScrollPost;
+        }
       }
 
-      const query = await db
-        .collection('posts')
-        .where('folderId', '==', data?.placeId);
-
+      // Execute the query
       const querySnapshot = await query.get();
 
+      // Check if the result is empty
       if (querySnapshot.empty) {
-        console.error('snapshot is empty');
-        return null;
+        return { lastVisible: '', posts: [] } as InfinityScrollPost;
       }
 
+      // Map the fetched documents to Post objects
       const items: Post[] = querySnapshot.docs.map(doc => ({
         ...doc.data(),
         id: doc.id,
       }));
 
-      return items;
+      // Get the last document to be used for the next page
+      const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
+
+      // Return the fetched posts and the last visible document's ID
+      return {
+        posts: items,
+        lastVisible: lastDoc.id, // Use the ID of the last document for pagination
+      } as InfinityScrollPost;
     } catch (error) {
-      console.error('Error fetching posts:', error);
+      console.error('Error fetching fresh content:', error);
       return null;
     }
   }
