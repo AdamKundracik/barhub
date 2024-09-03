@@ -1,7 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Layout from '../../components/user/Shared/Layout';
 import { useQuery, useQueryClient } from 'react-query';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import {
+  NavigationProp,
+  useFocusEffect,
+  useNavigation,
+} from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserStackList } from '../../utils/types/screen-types';
@@ -22,6 +26,7 @@ import { fetchPlaceDetails } from '../../utils/helper-functions/fetchPlaceDetail
 import { sendNotificationHandler } from '../../utils/helper-functions/sendNotificationHandler';
 import { sendPushNotification } from '../../utils/services/notofications-handler';
 import FeedHeader from '../../components/user/NewsFeed/FeedHeader';
+import { useImageManagement } from '../../utils/hooks/useImageManagement';
 
 export const NewsFeed: React.FC = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
@@ -35,9 +40,8 @@ export const NewsFeed: React.FC = () => {
   const [place, setPlace] = useState<PlacePrediction | null>(null);
   const [searching, setSearching] = useState<boolean>(false);
   const [isPlaceLoaded, setIsPlaceLoaded] = useState(false); // Ensure place is loaded before fetching files
-  const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [lastVisible, setLastVisible] = useState<string | null>(null);
-  const [hasMorePosts, setHasMorePosts] = useState(false); // To check if more posts are available
+  const { deleteImage } = useImageManagement();
 
   const [
     numberOfDaysSinceLastPostedPhoto,
@@ -54,6 +58,13 @@ export const NewsFeed: React.FC = () => {
     () => {},
     { refetchInterval: 5000 }
   );
+
+  const handleScreenFocus = () => {
+    const image = queryClient.getQueryData<string>('capturedImage');
+    if (image) deleteImage.mutate();
+  };
+
+  useFocusEffect(handleScreenFocus);
 
   // Fetch files only after place has been loaded
   useEffect(() => {
@@ -87,7 +98,6 @@ export const NewsFeed: React.FC = () => {
 
   const fetchMorePosts = async (lastVisible: string) => {
     if (!lastVisible) return;
-    setIsFetchingMore(true);
     try {
       const data = place
         ? await handlePlacePosts(place.placeId, lastVisible)
@@ -96,14 +106,10 @@ export const NewsFeed: React.FC = () => {
       if (data.posts.length > 0) {
         setPosts(prevPosts => [...prevPosts, ...data.posts]);
         setLastVisible(data.lastVisible);
-        setHasMorePosts(data.posts.length > 0);
       } else {
-        setHasMorePosts(false);
       }
     } catch (error) {
       console.error('Error fetching more posts:', error);
-    } finally {
-      setIsFetchingMore(false);
     }
   };
 
