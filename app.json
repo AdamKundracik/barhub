@@ -13,7 +13,6 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "buildNumber": "2",
       "bundleIdentifier": "com.barhub.barhub",
       "associatedDomains": [
         "applinks:expo.dev"
@@ -121,7 +120,6 @@
           ]
         }
       ],
-      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFF"

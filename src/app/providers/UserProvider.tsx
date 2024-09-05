@@ -70,12 +70,22 @@ export const UserProvider = (props: Props) => {
         latitude: location.coords?.latitude,
         longitude: location.coords?.longitude,
       };
-      setLocation(currentLocation);
-      await setUserIntoDB(currentLocation);
+      if (location.coords.speed && location.coords.speed < 3) {
+        setLocation(currentLocation);
+        await setUserIntoDB(currentLocation);
+      }
+    });
+
+    const onActivityChange = BackgroundGeolocation.onActivityChange(event => {
+      if (event.activity === 'in_vehicle') {
+        BackgroundGeolocation.stop();
+      } else {
+        BackgroundGeolocation.start();
+      }
     });
 
     BackgroundGeolocation.ready({
-      desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_NAVIGATION,
+      desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
       distanceFilter: 100,
       stopTimeout: 5,
       debug: false,
