@@ -113,41 +113,7 @@ export const NewsFeed: React.FC = () => {
   };
 
   useEffect(() => {
-    const loadPlaceFromStorage = async () => {
-      try {
-        const savedPlace = await AsyncStorage.getItem('savedPlace');
-        if (savedPlace) {
-          const parsedPlace = JSON.parse(savedPlace);
-          setPlace(parsedPlace);
-        }
-      } catch (error) {
-        console.error('Error loading place from storage:', error);
-      } finally {
-        setIsPlaceLoaded(true); // Indicate that the place has been loaded
-      }
-    };
-
-    if (!isPlaceLoaded) {
-      loadPlaceFromStorage();
-    }
-  }, [isPlaceLoaded]);
-
-  useEffect(() => {
     getFiles();
-  }, [place]);
-
-  useEffect(() => {
-    const savePlaceToStorage = async () => {
-      try {
-        await AsyncStorage.setItem('savedPlace', JSON.stringify(place));
-      } catch (error) {
-        console.error('Error saving place to storage:', error);
-      }
-    };
-
-    if (place) {
-      savePlaceToStorage();
-    }
   }, [place]);
 
   async function requestPhoto() {
