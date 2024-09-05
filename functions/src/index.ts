@@ -252,6 +252,7 @@ exports.getPostsByPlaceId = functions.https.onCall(
       let query = db
         .collection('posts')
         .where('folderId', '==', placeId)
+        .orderBy('timestamp', 'desc')
         .limit(pageSize);
 
       // Validate the `lastVisible` parameter

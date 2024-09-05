@@ -24,15 +24,16 @@ export interface UserRecord {
 }
 
 export interface User extends UserRecord {
-  dateOfBirth: Date;
+  dateOfBirth: string;
   location: LocationType;
   pushToken: string;
   lastUploadedPost: Date;
   premium: boolean;
+  acceptTermsOfUse: boolean;
 }
 
 export type Post = {
-  creationTime: Date;
+  creationTime: string;
   timestamp: number;
   user_id: string;
   fileId: string;

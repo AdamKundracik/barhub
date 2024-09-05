@@ -21,13 +21,20 @@ export const InputWrapper = ({
 }: LayoutProps) => {
   return (
     <View style={{ marginHorizontal: 12, marginTop: 8 }}>
-      <Text style={[commonAppStyles.textPrimary, { marginBottom: 10 }]}>
-        {inputLabel}
-      </Text>
+      {inputLabel && (
+        <Text
+          style={[
+            commonAppStyles.textPrimary,
+            { marginBottom: 10, paddingLeft: 12 },
+          ]}
+        >
+          {inputLabel}
+        </Text>
+      )}
       {passwordInput ? (
         <View style={{ position: 'relative' }}>
           {children}
-          <View style={{ position: 'absolute', right: 10, top: 7 }}>
+          <View style={{ position: 'absolute', right: 20, top: 12 }}>
             <TouchableOpacity
               onPress={() =>
                 setTogglePassword && setTogglePassword(!togglePassword)

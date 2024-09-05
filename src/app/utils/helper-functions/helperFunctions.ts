@@ -38,7 +38,7 @@ export const uploadImageAsync = async (
       name: auth.currentUser.displayName ?? '',
       fileId: fileId.split('/')[1],
       folderId: placeId,
-      creationTime: new Date(),
+      creationTime: new Date().toISOString(),
       timestamp: Date.now(),
       placeName: placeName,
       placeAddress: placeAddress,

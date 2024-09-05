@@ -43,5 +43,21 @@
   "take-new-picture": "Take new picture",
   "remove-picture": "Remove picture",
   "request-expired": "Request expired!",
-  "missed-request-info": "Oh no, you missed your chance! There is only 3 minutes to take a photo :("
+  "missed-request-info": "Oh no, you missed your chance! There is only 3 minutes to take a photo :(",
+  "Confirm": "Confirm",
+  "user-not-found": "user-not-found",
+  "email-already-in-use": "email-already-in-use",
+  "operation-not-allowed": "operation-not-allowed",
+  "account-exists-with-different-credential": "account-exists-with-different-credential",
+  "credential-already-in-use": "credential-already-in-use",
+  "popup-closed-by-user": "popup-closed-by-user",
+  "popup-blocked": "popup-blocked",
+  "invalid-action-code": "invalid-action-code",
+  "expired-action-code": "expired-action-code",
+  "invalid-verification-code": "invalid-verification-code",
+  "invalid-verification-id": "invalid-verification-id",
+  "requires-recent-login": "requires-recent-login",
+  "session-expired": "session-expired",
+  "unknown-error": "unknown-error",
+  "accept-terms": "accept-terms"
 }

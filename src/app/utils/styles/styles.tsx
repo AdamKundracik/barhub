@@ -1,24 +1,25 @@
 import { StyleSheet } from 'react-native';
+import { primaryBgColor, primaryColor, secondaryTextColor } from './colors';
 
 export const formStyles = StyleSheet.create({
   inputPrimary: {
-    height: 40,
-    marginBottom: 12,
-    padding: 10,
-    backgroundColor: 'white',
-    borderRadius: 10,
-    borderColor: 'black',
+    height: 50,
+    padding: 15,
+    backgroundColor: primaryBgColor,
+    borderRadius: 20,
+    borderColor: primaryColor,
     borderWidth: 1,
+    color: secondaryTextColor,
   },
   buttonPrimary: {
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10,
-    borderRadius: 30,
-    height: 40,
+    borderRadius: 10,
+    height: 50,
     alignSelf: 'center',
-    width: '80%',
-    backgroundColor: 'white',
+    width: 200,
+    backgroundColor: primaryColor,
   },
   buttonSecondary: {
     alignItems: 'center',
@@ -47,6 +48,7 @@ export const formStyles = StyleSheet.create({
     color: 'rgb(27,34,40)',
   },
   buttonText: {
+    color: secondaryTextColor,
     display: 'flex',
     margin: 'auto',
     fontWeight: 'bold',
@@ -56,10 +58,10 @@ export const formStyles = StyleSheet.create({
 
 export const commonAppStyles = StyleSheet.create({
   textPrimary: {
-    color: 'white',
+    color: primaryColor,
   },
   textSecondary: {
-    color: 'black',
+    color: secondaryTextColor,
   },
 });
 

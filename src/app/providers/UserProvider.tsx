@@ -24,6 +24,7 @@ type ContextProps = {
   userData: User | null;
   isLoading: boolean;
   emailVerified: boolean;
+  fetchUserData: () => Promise<void>;
 };
 
 interface Props {
@@ -64,13 +65,23 @@ export const UserProvider = (props: Props) => {
       await setUser({ location: location });
     }
 
-    const onLocation = BackgroundGeolocation.onLocation(location => {
+    const onLocation = BackgroundGeolocation.onLocation(async location => {
       const currentLocation: LocationType = {
         latitude: location.coords?.latitude,
         longitude: location.coords?.longitude,
       };
-      setLocation(currentLocation);
-      setUserIntoDB(currentLocation);
+      if (location.coords.speed && location.coords.speed < 3) {
+        setLocation(currentLocation);
+        await setUserIntoDB(currentLocation);
+      }
+    });
+
+    const onActivityChange = BackgroundGeolocation.onActivityChange(event => {
+      if (event.activity === 'in_vehicle') {
+        BackgroundGeolocation.stop();
+      } else {
+        BackgroundGeolocation.start();
+      }
     });
 
     BackgroundGeolocation.ready({
@@ -100,17 +111,19 @@ export const UserProvider = (props: Props) => {
   }, []);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      const uid = auth.currentUser?.uid;
-      if (uid) {
-        const user = await getCurrentUser();
-        if (user.data) setUserToStore.mutateAsync(user.data);
-        setUserData(user.data);
-      }
-      setIsLoading(false);
-    };
     fetchUserData();
   }, [isLoadingAuth, auth]);
+
+  const fetchUserData = async () => {
+    const uid = auth.currentUser?.uid;
+    if (uid) {
+      const user = await getCurrentUser();
+      if (user.data) setUserToStore.mutateAsync(user.data);
+      console.log(user.data);
+      setUserData(user.data);
+    }
+    setIsLoading(false);
+  };
 
   async function getLocation(): Promise<void> {
     try {
@@ -133,6 +146,7 @@ export const UserProvider = (props: Props) => {
       authUser,
       isLoadingAuth,
       emailVerified,
+      fetchUserData,
     };
   }, [
     userData,
@@ -142,6 +156,7 @@ export const UserProvider = (props: Props) => {
     authUser,
     isLoadingAuth,
     emailVerified,
+    fetchUserData,
   ]);
 
   return (
