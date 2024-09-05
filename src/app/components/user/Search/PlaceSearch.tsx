@@ -85,7 +85,7 @@ export const PlaceSearch = (props: LayoutProps) => {
   async function getAutocompletePlaces(searchText: string) {
     const places = await fetchPlaceAutocomplete(searchText, location!);
     if (places) {
-      const predicted = places.suggestions.map(sugs => sugs.placePrediction);
+      const predicted = places.suggestions?.map(sugs => sugs.placePrediction);
       setPlaces(predicted);
     }
   }

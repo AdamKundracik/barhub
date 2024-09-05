@@ -266,6 +266,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   textButtons: {
+    marginTop: 10,
     paddingHorizontal: 15,
     marginBottom: 10,
     alignSelf: 'flex-end',

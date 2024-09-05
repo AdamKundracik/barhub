@@ -1,5 +1,6 @@
 import {
   ActivityIndicator,
+  Alert,
   Image,
   StyleSheet,
   Text,
@@ -16,13 +17,17 @@ import { useTranslation } from 'react-i18next';
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
+  updateProfile,
 } from 'firebase/auth';
-
+import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import { auth } from '../../../../firebaseConfig';
-import { secondaryTextColor } from '../../utils/styles/colors';
+import { primaryColor, secondaryTextColor } from '../../utils/styles/colors';
 import * as ImagePicker from 'expo-image-picker';
 import Svg, { Circle, Path } from 'react-native-svg';
 import DatePicker from '../../components/shared/DatePicker';
+import { setUser } from '../../utils/services/functions';
+import * as url from 'node:url';
+import { uploadProfilePhotoAsync } from '../../utils/helper-functions/helperFunctions';
 
 export const Register = ({ navigation }: any) => {
   const { t } = useTranslation();
@@ -35,6 +40,7 @@ export const Register = ({ navigation }: any) => {
   const [username, setUserName] = useState('');
   const [date, setDate] = useState(new Date().toISOString());
   const [uploading, setUploading] = useState(false);
+  const [acceptsTermsOfUse, setAcceptsTermsOfUse] = useState(false);
 
   const pickImage = async () => {
     // Request media library permissions if not already granted
@@ -59,6 +65,10 @@ export const Register = ({ navigation }: any) => {
     }
   };
 
+  const handleDateChange = (newDate: string) => {
+    setDate(newDate); // Update the date state when the child component provides a new date
+  };
+
   async function handleRegister() {
     setLoading(true);
     await createUserWithEmailAndPassword(auth, email, password).catch(error => {
@@ -76,12 +86,6 @@ export const Register = ({ navigation }: any) => {
           alert(t(`sing-up-error`));
           console.error(`Error during sign up.`);
           break;
-        case 'auth/weak-password':
-          alert(t(`weak-password`));
-          console.error(
-            'Password is not strong enough. Add additional characters including special characters and numbers.'
-          );
-          break;
         default:
           alert(error.message);
           console.error(error.message);
@@ -89,10 +93,44 @@ export const Register = ({ navigation }: any) => {
       }
     });
     await sendEmailVerification(auth.currentUser as any);
+    if (image && auth.currentUser) {
+      const url = await uploadProfilePhotoAsync(image);
+      await updateProfile(auth.currentUser, {
+        displayName: username,
+        photoURL: url,
+      });
+    } else if (auth.currentUser) {
+      await updateProfile(auth.currentUser, {
+        displayName: username,
+      });
+    }
+
+    await setUser({
+      displayName: username,
+      photoURL: image,
+      dateOfBirth: date,
+      acceptTermsOfUse: acceptsTermsOfUse,
+    });
   }
 
   function isSamePassword(): boolean {
     return password === repeatPassword;
+  }
+
+  async function handleSetUserAccount() {
+    if (
+      email &&
+      username &&
+      date &&
+      password &&
+      repeatPassword &&
+      acceptsTermsOfUse &&
+      isSamePassword()
+    ) {
+      await handleRegister();
+    } else {
+      Alert.alert('Error', 'Invalid form');
+    }
   }
 
   return (
@@ -149,7 +187,7 @@ export const Register = ({ navigation }: any) => {
           placeholderTextColor={secondaryTextColor}
         />
       </InputWrapper>
-      <DatePicker />
+      <DatePicker onDateChange={handleDateChange} />
       <InputWrapper
         inputLabel={t('password')}
         setTogglePassword={setTogglePassword}
@@ -189,9 +227,18 @@ export const Register = ({ navigation }: any) => {
           </View>
         )}
       </InputWrapper>
-
+      <InputWrapper>
+        <BouncyCheckbox
+          style={{ padding: 5 }}
+          fillColor={primaryColor}
+          text={t('accept-terms')}
+          textStyle={{ color: 'white', fontSize: 12 }}
+          isChecked={acceptsTermsOfUse}
+          onPress={() => setAcceptsTermsOfUse(!acceptsTermsOfUse)}
+        ></BouncyCheckbox>
+      </InputWrapper>
       <TouchableOpacity
-        onPress={handleRegister}
+        onPress={handleSetUserAccount}
         style={formStyles.buttonPrimary}
         disabled={!isSamePassword()}
       >
@@ -205,15 +252,6 @@ export const Register = ({ navigation }: any) => {
           />
         )}
       </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.login}
-        onPress={() => navigation.navigate('Login')}
-      >
-        <Text style={commonAppStyles.textPrimary}>
-          {t('haveAccount')}{' '}
-          <Text style={{ fontWeight: 'bold' }}>{t('login')}!</Text>
-        </Text>
-      </TouchableOpacity>
     </AuthLayout>
   );
 };
@@ -222,7 +260,7 @@ const styles = StyleSheet.create({
   login: {
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 15,
+    padding: 10,
   },
   profilePicture: {
     width: 200,
@@ -237,6 +275,16 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+  },
+  checkbox: {
+    alignSelf: 'center',
+  },
+  label: {
+    margin: 8,
   },
 });
 export default Register;

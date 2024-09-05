@@ -1,58 +1,67 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import RNPickerSelect from 'react-native-picker-select'; // Import the picker component
-import { InputWrapper } from './InputWrapper'; // Adjust the import path as necessary
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View } from 'react-native';
+import RNPickerSelect from 'react-native-picker-select';
+import { InputWrapper } from './InputWrapper';
 import {
   primaryBgColor,
   primaryColor,
   secondaryTextColor,
-} from '../../utils/styles/colors'; // Adjust the path as necessary
+} from '../../utils/styles/colors';
+import { useTranslation } from 'react-i18next';
 
-const DatePicker = () => {
+type DatePickerProps = {
+  onDateChange: (date: string) => void;
+};
+
+const DatePicker = (props: DatePickerProps) => {
+  // Accept a prop from the parent component
+  const { t } = useTranslation();
+
   const [month, setMonth] = useState('');
   const [day, setDay] = useState('');
   const [year, setYear] = useState('');
 
-  // Generate days (1-31)
   const days = Array.from({ length: 31 }, (_, i) => ({
     label: String(i + 1).padStart(2, '0'),
     value: String(i + 1).padStart(2, '0'),
   }));
 
-  // Generate months (1-12)
   const months = Array.from({ length: 12 }, (_, i) => ({
     label: String(i + 1).padStart(2, '0'),
     value: String(i + 1).padStart(2, '0'),
   }));
 
-  // Generate years (1900-2100)
   const years = Array.from({ length: 201 }, (_, i) => ({
     label: String(1900 + i),
     value: String(1900 + i),
   }));
 
+  // Generate ISO date string whenever the user selects a complete date
+  useEffect(() => {
+    if (month && day && year) {
+      const date = new Date(`${year}-${month}-${day}T00:00:00Z`);
+      props.onDateChange(date.toISOString()); // Pass the ISO string to the parent
+    }
+  }, [month, day, year]);
+
   return (
     <View style={styles.container}>
       <View style={styles.datePickerContainer}>
-        {/* Month Picker */}
         <View style={styles.inputWrapper}>
-          <InputWrapper inputLabel="Month">
+          <InputWrapper inputLabel={t('month')}>
             <RNPickerSelect
               onValueChange={value => setMonth(value)}
               items={months}
               placeholder={{ label: 'MM', value: null }}
               value={month}
               style={pickerSelectStyles}
-              useNativeAndroidPickerStyle={false} // Disable native picker styles on Android
+              useNativeAndroidPickerStyle={false}
             />
           </InputWrapper>
         </View>
 
-        <Text style={styles.separator}>/</Text>
-
-        {/* Day Picker */}
         <View style={styles.inputWrapper}>
-          <InputWrapper inputLabel="Day">
+          <InputWrapper inputLabel={t('day')}>
             <RNPickerSelect
               onValueChange={value => setDay(value)}
               items={days}
@@ -64,11 +73,8 @@ const DatePicker = () => {
           </InputWrapper>
         </View>
 
-        <Text style={styles.separator}>/</Text>
-
-        {/* Year Picker */}
         <View style={styles.inputWrapper}>
-          <InputWrapper inputLabel="Year">
+          <InputWrapper inputLabel={t('year')}>
             <RNPickerSelect
               onValueChange={value => setYear(value)}
               items={years}
@@ -96,12 +102,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   inputWrapper: {
-    flex: 1, // Takes up equal space for each input field
-  },
-  separator: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginHorizontal: 5,
+    flex: 1,
   },
 });
 
@@ -109,25 +110,23 @@ const styles = StyleSheet.create({
 const pickerSelectStyles = {
   inputIOS: {
     backgroundColor: primaryBgColor,
-    fontSize: 18,
     paddingVertical: 12,
     paddingHorizontal: 10,
     borderWidth: 1,
     borderColor: primaryColor,
     borderRadius: 20,
     color: secondaryTextColor,
-    paddingRight: 30, // Add padding to ensure the text is not clipped
+    paddingRight: 30,
   },
   inputAndroid: {
     backgroundColor: primaryBgColor,
-    fontSize: 18,
     paddingVertical: 12,
     paddingHorizontal: 10,
     borderWidth: 1,
     borderColor: primaryColor,
     borderRadius: 20,
     color: secondaryTextColor,
-    paddingRight: 30, // Add padding to ensure the text is not clipped
+    paddingRight: 30,
   },
 };
 

@@ -39,7 +39,6 @@ export const NewsFeed: React.FC = () => {
   const [zoomedPost, setZoomedPost] = useState<string | null>(null);
   const [place, setPlace] = useState<PlacePrediction | null>(null);
   const [searching, setSearching] = useState<boolean>(false);
-  const [isPlaceLoaded, setIsPlaceLoaded] = useState(false); // Ensure place is loaded before fetching files
   const [lastVisible, setLastVisible] = useState<string | null>(null);
   const { deleteImage } = useImageManagement();
 
@@ -67,10 +66,8 @@ export const NewsFeed: React.FC = () => {
   useFocusEffect(handleScreenFocus);
 
   useEffect(() => {
-    if (isPlaceLoaded) {
-      getFiles();
-    }
-  }, [imageUploading, isPlaceLoaded]);
+    getFiles();
+  }, [imageUploading]);
 
   const getFiles = async () => {
     setLoading(true);
@@ -90,10 +87,8 @@ export const NewsFeed: React.FC = () => {
   };
 
   const onRefresh = useCallback(() => {
-    if (isPlaceLoaded) {
-      getFiles();
-    }
-  }, [place, isPlaceLoaded]);
+    getFiles();
+  }, [place]);
 
   const fetchMorePosts = async (lastVisible: string) => {
     if (!lastVisible) return;

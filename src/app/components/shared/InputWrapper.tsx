@@ -21,14 +21,16 @@ export const InputWrapper = ({
 }: LayoutProps) => {
   return (
     <View style={{ marginHorizontal: 12, marginTop: 8 }}>
-      <Text
-        style={[
-          commonAppStyles.textPrimary,
-          { marginBottom: 10, paddingLeft: 12 },
-        ]}
-      >
-        {inputLabel}
-      </Text>
+      {inputLabel && (
+        <Text
+          style={[
+            commonAppStyles.textPrimary,
+            { marginBottom: 10, paddingLeft: 12 },
+          ]}
+        >
+          {inputLabel}
+        </Text>
+      )}
       {passwordInput ? (
         <View style={{ position: 'relative' }}>
           {children}

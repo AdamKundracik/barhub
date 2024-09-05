@@ -4,7 +4,6 @@ import { primaryBgColor, primaryColor, secondaryTextColor } from './colors';
 export const formStyles = StyleSheet.create({
   inputPrimary: {
     height: 50,
-    marginBottom: 12,
     padding: 15,
     backgroundColor: primaryBgColor,
     borderRadius: 20,
