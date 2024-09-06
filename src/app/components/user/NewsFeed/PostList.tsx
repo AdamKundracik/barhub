@@ -3,7 +3,7 @@ import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import RequestPhotoButton from './RequestPhotoButton';
 import { Post, User } from '../../../../../shared';
 import { PlacePrediction } from '../../../utils/types/types';
-import UserPost from './UserPost';
+import UserPost from './Post/UserPost';
 import Ad from '../Ad';
 
 interface PostsListProps {
@@ -17,6 +17,7 @@ interface PostsListProps {
   fetchMorePosts: () => Promise<void>;
   onRefresh: () => void;
   loading: boolean;
+  isFiltering: boolean;
 }
 
 const PostsList: React.FC<PostsListProps> = ({
@@ -30,6 +31,7 @@ const PostsList: React.FC<PostsListProps> = ({
   fetchMorePosts,
   onRefresh,
   loading,
+  isFiltering,
 }) => {
   const renderPostItem = ({ item, index }: { item: Post; index: number }) => (
     <View
@@ -40,6 +42,7 @@ const PostsList: React.FC<PostsListProps> = ({
       }}
     >
       <UserPost
+        isFiltering={isFiltering}
         hasPremium={
           (userData?.premium || numberOfDaysSinceLastPostedPhoto <= 7) ?? false
         }

@@ -23,7 +23,12 @@ import {
   useNavigation,
 } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
-import { primaryColor, primaryDeepColor } from '../../utils/styles/colors';
+import {
+  primaryColor,
+  primaryDeepColor,
+  secondaryTextColor,
+} from '../../utils/styles/colors';
+import { useTranslation } from 'react-i18next';
 
 export const PlaceSearch = () => {
   const { location } = useUserContext();
@@ -32,6 +37,7 @@ export const PlaceSearch = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const [place, setPlace] = useState<PlacePrediction>();
 
+  const { t } = useTranslation();
   const translateY = useRef(new Animated.Value(1000)).current; // Start position off-screen
 
   // Slide-in animation when the tab is focused
@@ -136,8 +142,9 @@ export const PlaceSearch = () => {
         </View>
         <TextInput
           style={formStyles.inputPrimary}
-          placeholder={'Search for your place'}
+          placeholder={t('search-place')}
           onChangeText={text => getAutocompletePlaces(text)}
+          placeholderTextColor={secondaryTextColor}
         />
         {places?.map((place, index) => (
           <Pressable

@@ -5,5 +5,6 @@ export const textInputPlaceholderColor = '#CFCACA';
 export const secondaryTextColor = '#FFFFFF';
 export const primaryBgColor = '#020213';
 export const iconInactiveColor = '#4B4B4B';
+export const postBgColor = '#03031C';
 
 export const defaultFontFamily = 'Roboto';

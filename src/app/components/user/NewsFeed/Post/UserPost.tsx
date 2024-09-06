@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { commonAppStyles } from '../../../utils/styles/styles';
+import { commonAppStyles } from '../../../../utils/styles/styles';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -14,28 +14,34 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../../utils/icons/icons';
-import { Post } from '../../../../../shared';
+import { Icons } from '../../../../utils/icons/icons';
+import { Post } from '../../../../../../shared';
 import {
   getTimeAgoFromTimestampSeconds,
   timeAgo,
-} from '../../../utils/helper-functions/timeAgo';
+} from '../../../../utils/helper-functions/timeAgo';
 import { useEffect, useState } from 'react';
 import {
   addCommentToPost,
   checkLikeStatus,
   fetchCommentsForPost,
   toggleLike,
-} from '../../../utils/services/functions';
-import { auth } from '../../../../../firebaseConfig';
+} from '../../../../utils/services/functions';
+import { auth } from '../../../../../../firebaseConfig';
 import { t } from 'i18next';
-import useDebounce from '../../../utils/hooks/useDebounce';
+import useDebounce from '../../../../utils/hooks/useDebounce';
+import PlaceNameSeparator from './PlaceNameSeparator';
+import { postBgColor, primaryBgColor } from '../../../../utils/styles/colors';
+import UserLine from './UserLine';
+import { getLocales } from 'expo-localization';
+import InteractionBar from './InteractionBar';
 
 interface PostInterface {
   post: Post;
   setZoomedPost: (link: string | null) => void;
   isZoomed: boolean;
   hasPremium: boolean;
+  isFiltering: boolean;
 }
 
 type ItemProps = {
@@ -55,6 +61,7 @@ export const UserPost = (props: PostInterface) => {
   const yCurrent = useSharedValue(0);
   const scale = useSharedValue(1);
 
+  const locales = getLocales();
   const [likeStatus, setLikeStatus] = useState<boolean>(false);
   const [showComments, setShowComments] = useState<boolean>(false);
   const [comments, setComments] = useState<ItemProps[]>([]);
@@ -153,44 +160,43 @@ export const UserPost = (props: PostInterface) => {
     }
   };
 
-  const createdAgo = timeAgo(post.creationTime.toString());
-
   return (
     <View style={styles.postWrapper}>
-      <View style={styles.userLine}>
-        <View style={styles.userInfo}>
-          <Text style={commonAppStyles.textPrimary}>{post.name}</Text>
-          <Text style={commonAppStyles.textPrimary}>{post.placeName}</Text>
-          <Text style={commonAppStyles.textPrimary}>{post.placeAddress}</Text>
+      {!props.isFiltering && (
+        <View style={styles.placeName}>
+          <PlaceNameSeparator placeName={post.placeName} />
         </View>
-        <Text style={commonAppStyles.textPrimary}>{createdAgo}</Text>
-      </View>
-      <GestureDetector gesture={doubleTap}>
-        <GestureDetector gesture={pinch}>
-          <Animated.Image
-            blurRadius={!props.hasPremium ? 50 : 0}
-            style={[styles.photo, animatedStyle]}
-            source={{
-              uri: post.photoUrl,
-            }}
-            resizeMode="contain"
-          />
-        </GestureDetector>
-      </GestureDetector>
-      <View style={styles.photoActions}>
-        <TouchableOpacity onPress={() => handleLikeToggle()}>
-          <FontAwesomeIcon
-            color={likeStatus ? 'red' : 'white'}
-            icon={Icons.Heart}
-          />
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => setShowComments(!showComments)}>
-          <FontAwesomeIcon color="white" icon={Icons.Comment}></FontAwesomeIcon>
-          <Text style={commonAppStyles.textPrimary}>{comments.length}</Text>
-        </TouchableOpacity>
-        {/* UNTIL FUNCTIONALITY WILL BE IMPLEMENTED */}
-        {/* <FontAwesomeIcon color="white" icon={Icons.ShareAlt}></FontAwesomeIcon> */}
+      )}
+      <View style={styles.contentContainer}>
+        <UserLine
+          name={post.name}
+          date={new Date(post.creationTime).toLocaleString(
+            locales[0].languageTag
+          )}
+          address={post.placeAddress}
+          profileImage={post.userImageUrl}
+        />
+        <View style={{ height: 400 }}>
+          <GestureDetector gesture={doubleTap}>
+            <GestureDetector gesture={pinch}>
+              <Animated.Image
+                blurRadius={!props.hasPremium ? 50 : 0}
+                style={[styles.photo, animatedStyle]}
+                source={{
+                  uri: post.photoUrl,
+                }}
+                resizeMode="cover"
+              />
+            </GestureDetector>
+          </GestureDetector>
+        </View>
+        <InteractionBar
+          likes={post.likesCount}
+          comments={post.commentsCount}
+          onLikeToggle={handleLikeToggle}
+          onCommentToggle={handleAddComment}
+          isLiked={likeStatus}
+        />
       </View>
 
       <View style={styles.commentsList}>
@@ -204,7 +210,7 @@ export const UserPost = (props: PostInterface) => {
                 source={
                   comment?.userPhotoUrl
                     ? { uri: comment?.userPhotoUrl }
-                    : require('../../../../../assets/userIcon.png')
+                    : require('../../../../../../assets/userIcon.png')
                 }
               ></Image>
             </View>
@@ -238,22 +244,35 @@ export const UserPost = (props: PostInterface) => {
 const styles = StyleSheet.create({
   postWrapper: {
     width: '100%',
-    height: 600,
-    backgroundColor: 'white',
+    height: 'auto',
   },
   userLine: {
-    flexDirection: 'row',
+    display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 10,
-    backgroundColor: '#424242',
+    backgroundColor: 'grey',
     paddingVertical: 5,
   },
+  placeName: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    backgroundColor: primaryBgColor,
+  },
+  contentContainer: {
+    backgroundColor: postBgColor,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
   userInfo: {
+    padding: 15,
     flexShrink: 1,
     marginRight: 10,
   },
   photo: {
+    borderRadius: 20,
     flex: 10,
     width: '100%',
     height: '100%',
@@ -263,7 +282,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     padding: 10,
-    backgroundColor: '#424242',
   },
   commentsList: {
     paddingHorizontal: 20,

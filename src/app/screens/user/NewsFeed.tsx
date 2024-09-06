@@ -139,6 +139,7 @@ export const NewsFeed: React.FC = () => {
         <LoadingIndicator />
       ) : posts.length ? (
         <PostsList
+          isFiltering={!!place}
           posts={posts}
           zoomedPost={zoomedPost}
           setZoomedPost={setZoomedPost}
