@@ -69,7 +69,6 @@ export const CameraScreen = () => {
     if (permission?.granted && camera.current) {
       try {
         const data = await camera.current.takePictureAsync();
-        console.log(data.uri);
         setImage(data.uri);
       } catch (error) {
         console.log(error);

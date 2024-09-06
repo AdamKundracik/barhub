@@ -94,7 +94,6 @@ export const UserPost = (props: PostInterface) => {
     .maxDuration(250)
     .numberOfTaps(2)
     .onStart(async () => {
-      console.log('double tap');
       await handleLikeToggle();
     });
 
