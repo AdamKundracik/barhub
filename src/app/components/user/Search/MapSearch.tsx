@@ -32,7 +32,6 @@ const latitudeDelta = 0.025;
 const longitudeDelta = 0.025;
 
 type LayoutProps = {
-  setIsSearching: (isSearching: boolean) => void;
   setIsMapShown: (isSearching: boolean) => void;
   setPlace: (place: PlacePrediction) => void;
 };
@@ -58,8 +57,8 @@ export const MapSearch = (props: LayoutProps) => {
     if (selectedPlace) {
       const placePrediction = mapPlaceToPlacePrediction(selectedPlace);
       props.setPlace(placePrediction);
-      props.setIsSearching(false);
       props.setIsMapShown(false);
+      navigation.navigate('Feed', { selectedPlace: placePrediction }); // Navigate to Feed with selectedPlace
     }
   }
 
@@ -103,7 +102,7 @@ export const MapSearch = (props: LayoutProps) => {
   };
 
   return (
-    <Layout pageTitle={'Map'}>
+    <>
       <MapView
         style={styles.map}
         region={region}
@@ -165,7 +164,7 @@ export const MapSearch = (props: LayoutProps) => {
           <ActivityIndicator size="large" color="#fff" />
         </View>
       )}
-    </Layout>
+    </>
   );
 };
 

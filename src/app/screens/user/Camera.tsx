@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Button,
@@ -21,12 +21,12 @@ import { useTranslation } from 'react-i18next';
 import { Icons } from '../../utils/icons/icons';
 import {
   NavigationProp,
+  useFocusEffect,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
 import { useQueryClient } from 'react-query';
-import { useImageManagement } from '../../utils/hooks/useImageManagement';
 import { useUploadingStateManagement } from '../../utils/hooks/useUploadingStateManagement';
 import { uploadImageAsync } from '../../utils/helper-functions/helperFunctions';
 import { sendPushNotificationResponse } from '../../utils/services/notofications-handler';
@@ -53,14 +53,24 @@ export const CameraScreen = () => {
   const [permission, requestPermission] = useCameraPermissions();
   const [flash, setFlash] = useState<FlashMode>('off');
   const camera = useRef(null);
-  const image = queryClient.getQueryData<string>('capturedImage');
-  const { saveImage, deleteImage } = useImageManagement();
+  const [image, setImage] = useState<string | null>(null); // Local state for image
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        if (image) {
+          setImage(null);
+        }
+      };
+    }, [image])
+  );
 
   const captureImage = async () => {
     if (permission?.granted && camera.current) {
       try {
         const data = await camera.current.takePictureAsync();
-        saveImage.mutate(data.uri);
+        console.log(data.uri);
+        setImage(data.uri);
       } catch (error) {
         console.log(error);
       }
@@ -100,7 +110,7 @@ export const CameraScreen = () => {
         lastUploadedPost: new Date(),
       });
     } else {
-      navigation.navigate('PhotoResolver');
+      navigation.navigate('PhotoResolver', { image: image });
     }
   }
 
@@ -185,7 +195,9 @@ export const CameraScreen = () => {
                 <View>
                   <TouchableOpacity
                     style={styles.button}
-                    onPress={() => deleteImage.mutate()}
+                    onPress={() => {
+                      setImage(null);
+                    }}
                   >
                     <Text
                       style={[

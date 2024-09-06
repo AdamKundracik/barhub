@@ -1,15 +1,18 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Place, PlacePrediction } from './types';
 
 export type UserStackList = {
-  Feed: undefined;
+  Feed: { selectedPlace: PlacePrediction } | undefined;
 
   Account: undefined;
 
-  PhotoResolver: undefined;
+  PhotoResolver: { image: string };
 
   Camera: { placeId: string; senderToken: string } | undefined;
 
   Subscription: undefined;
+
+  PlaceSearch: undefined;
 };
 
 export type FeedsScreenProps = NativeStackScreenProps<
@@ -20,5 +23,6 @@ export type FeedsScreenProps = NativeStackScreenProps<
 
 export type CameraScreenProps = NativeStackScreenProps<
   UserStackList,
-  'PhotoResolver'
+  'PhotoResolver',
+  'PlaceSearch'
 >;

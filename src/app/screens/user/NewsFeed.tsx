@@ -5,6 +5,7 @@ import {
   NavigationProp,
   useFocusEffect,
   useNavigation,
+  useRoute,
 } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -15,7 +16,7 @@ import {
   handlePlacePosts,
 } from '../../utils/helper-functions/posts-functions';
 import { getDaysSince } from '../../utils/helper-functions/getDaysSince';
-import PlaceSearch from '../../components/user/Search/PlaceSearch';
+import PlaceSearch from './PlaceSearch';
 import { PlaceDetailsResponse, PlacePrediction } from '../../utils/types/types';
 import { Post } from '../../../../shared';
 import NotificationHandler from '../../components/user/NewsFeed/NotificationHandler';
@@ -26,13 +27,12 @@ import { fetchPlaceDetails } from '../../utils/helper-functions/fetchPlaceDetail
 import { sendNotificationHandler } from '../../utils/helper-functions/sendNotificationHandler';
 import { sendPushNotification } from '../../utils/services/notofications-handler';
 import FeedHeader from '../../components/user/NewsFeed/FeedHeader';
-import { useImageManagement } from '../../utils/hooks/useImageManagement';
 
 export const NewsFeed: React.FC = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
-  const queryClient = useQueryClient();
   const { t } = useTranslation();
   const { userData } = useUserContext();
+  const route = useRoute();
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +40,18 @@ export const NewsFeed: React.FC = () => {
   const [place, setPlace] = useState<PlacePrediction | null>(null);
   const [searching, setSearching] = useState<boolean>(false);
   const [lastVisible, setLastVisible] = useState<string | null>(null);
-  const { deleteImage } = useImageManagement();
+
+  const routeParams = route.params as { selectedPlace?: PlacePrediction }; // Define route params
+
+  useEffect(() => {
+    if (routeParams?.selectedPlace) {
+      setPlace(routeParams.selectedPlace); // Set the place when passed from PlaceSearch
+    }
+  }, [routeParams?.selectedPlace]);
+
+  useEffect(() => {
+    getFiles();
+  }, [place]);
 
   const [
     numberOfDaysSinceLastPostedPhoto,
@@ -57,13 +68,6 @@ export const NewsFeed: React.FC = () => {
     () => {},
     { refetchInterval: 5000 }
   );
-
-  const handleScreenFocus = () => {
-    const image = queryClient.getQueryData<string>('capturedImage');
-    if (image) deleteImage.mutate();
-  };
-
-  useFocusEffect(handleScreenFocus);
 
   useEffect(() => {
     getFiles();
@@ -127,16 +131,9 @@ export const NewsFeed: React.FC = () => {
     }
   }
 
-  if (searching)
-    return <PlaceSearch setSearching={setSearching} setPlace={setPlace} />;
-
   return (
     <Layout pageTitle="Feed">
-      <FeedHeader
-        place={place}
-        setSearching={setSearching}
-        setPlace={setPlace}
-      />
+      <FeedHeader place={place} setPlace={setPlace} />
       <NotificationHandler navigation={navigation} userData={userData} />
       {loading ? (
         <LoadingIndicator />

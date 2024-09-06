@@ -1,32 +1,167 @@
 import React from 'react';
-import NewsFeed from '../screens/user/NewsFeed';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import CameraScreen from '../screens/user/Camera';
 import Account from '../screens/user/Account';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import CameraScreen from '../screens/user/Camera';
+import { Icons } from '../utils/icons/icons';
+import NewsFeed from '../screens/user/NewsFeed';
 import PhotoResolver from '../screens/user/PhotoResolver';
 import Subscription from '../screens/user/Subscription';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { UserStackList } from '../utils/types/screen-types';
+import PlaceSearch from '../screens/user/PlaceSearch';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  iconInactiveColor,
+  primaryBgColor,
+  primaryColor,
+  primaryGrey,
+} from '../utils/styles/colors';
+import Svg, { Path } from 'react-native-svg';
+import { auth } from '../../../firebaseConfig';
+import { useUserContext } from '../providers/UserProvider'; // Adjust this import to match your icon path
 
-const UserStack = createNativeStackNavigator();
+// Create Bottom Tab and Stack Navigators
+const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
 
-const UserNav = () => {
+function UserNav() {
+  const { userData, fetchUserData } = useUserContext();
+
   return (
-    <UserStack.Navigator
+    <Tab.Navigator
       initialRouteName={'Feed'}
       screenOptions={{
         headerShown: false,
+        tabBarStyle: {
+          backgroundColor: primaryBgColor,
+          borderTopColor: primaryBgColor,
+        },
       }}
     >
-      <UserStack.Screen name={'Feed'} component={NewsFeed} />
-      <UserStack.Screen name={'Account'} component={Account} />
-      <UserStack.Screen
-        name={'Camera'}
-        component={CameraScreen}
-        options={{ animation: 'slide_from_left' }}
+      <Tab.Screen
+        name="Feed"
+        component={NewsFeed}
+        options={{
+          tabBarItemStyle: { display: 'none' },
+        }}
       />
-      <UserStack.Screen name={'PhotoResolver'} component={PhotoResolver} />
-      <UserStack.Screen name={'Subscription'} component={Subscription} />
-    </UserStack.Navigator>
+      <Tab.Screen
+        name="Camera"
+        component={CameraScreen}
+        options={{
+          headerTransparent: true,
+          title: '',
+          tabBarIcon: ({ focused }) => (
+            <FontAwesomeIcon
+              icon={Icons.Camera}
+              size={23}
+              color={focused ? 'white' : iconInactiveColor}
+            />
+          ),
+        }}
+        listeners={({ navigation, route }) => ({
+          tabPress: e => {
+            const currentRoute =
+              navigation.getState().routes[navigation.getState().index].name;
+            if (currentRoute === 'Camera') {
+              navigation.navigate('Feed'); // Navigate back to Feed if Camera is re-selected
+            } else {
+              navigation.navigate('Camera'); // Navigate to Camera
+            }
+          },
+        })}
+      />
+      <Tab.Screen
+        name="Account"
+        component={Account}
+        options={{
+          title: '',
+          tabBarIcon: ({ focused }) =>
+            userData?.photoURL ? (
+              <Image
+                source={{ uri: userData?.photoURL }}
+                style={styles.profilePicture}
+              />
+            ) : (
+              <Svg width="50" height="50" viewBox="0 0 50 50" fill="none">
+                <Path
+                  d="M25.0003 6.28979e-05C11.1864 6.28979e-05 0 11.2423 0 25.1251C0 28.7049 0.749508 32.1595 2.18752 35.4251C2.37551 35.9281 3.00053 36.1171 3.43754 35.9281C3.93803 35.7392 4.12604 35.111 3.93803 34.6719C2.62452 31.6563 1.93851 28.5157 1.93851 25.1859C1.93851 12.3734 12.3149 2.0093 25 2.0093C37.6883 2.0093 48.0615 12.3118 48.0615 25.125C48.0615 28.4545 47.373 31.5953 46.062 34.6109C45.874 35.1139 46.062 35.6782 46.5625 35.8672C46.687 35.931 46.8115 35.931 46.9385 35.931C47.3144 35.931 47.627 35.7421 47.8125 35.3666C49.2505 32.1597 50 28.7054 50 25.125C50 11.2422 38.8142 6.28979e-05 25.0003 6.28979e-05Z"
+                  fill={focused ? 'white' : iconInactiveColor}
+                />
+                <Path
+                  d="M5.11153 39.7802C4.9194 40.1574 4.98427 40.5958 5.23879 40.8455C10.1595 46.6765 17.3133 50 24.9789 50C32.6444 50 39.7983 46.6768 44.6544 40.9734C44.6544 40.9734 44.6544 40.9098 44.7193 40.9098C44.7842 40.8461 44.7842 40.7849 44.8465 40.7849C44.8465 40.7212 44.9114 40.66 44.9114 40.66C45.0387 40.4102 45.0387 40.0967 44.8465 39.8444C41.7175 34.2658 36.3499 30.4405 30.1542 28.9979C33.5404 27.1808 35.7762 23.669 35.7762 19.6579C35.7762 13.7657 30.9203 9 24.9166 9C18.913 9 14.0571 13.7657 14.0571 19.6579C14.0571 23.6692 16.3578 27.181 19.679 28.9979C13.6729 30.3766 8.24355 34.2017 5.11153 39.7802ZM16.1007 19.5937C16.1007 14.7668 20.0608 10.8805 24.9787 10.8805C29.8967 10.8805 33.8567 14.767 33.8567 19.5937C33.8567 24.3593 29.8967 28.3068 24.9787 28.3068C20.0608 28.3068 16.1007 24.4203 16.1007 19.5937ZM24.9787 30.2515C32.3249 30.2515 39.0322 34.0768 42.7379 40.1577C38.2663 45.1731 31.8132 48.1191 24.9787 48.1191C18.2062 48.1191 11.8182 45.2342 7.21956 40.1577C10.9899 34.0132 17.6971 30.2515 24.9787 30.2515Z"
+                  fill={focused ? 'white' : iconInactiveColor}
+                />
+              </Svg>
+            ),
+        }}
+        listeners={({ navigation, route }) => ({
+          tabPress: e => {
+            const currentRoute =
+              navigation.getState().routes[navigation.getState().index].name;
+            if (currentRoute === 'Account') {
+              navigation.navigate('Feed'); // Navigate back to Feed if Account is re-selected
+            } else {
+              navigation.navigate('Account'); // Navigate to Account
+            }
+          },
+        })}
+      />
+      <Tab.Screen
+        name="PlaceSearch"
+        component={PlaceSearch}
+        options={{
+          title: '',
+          tabBarIcon: ({ focused }) => (
+            <FontAwesomeIcon
+              icon={Icons.Search}
+              size={23}
+              color={focused ? 'white' : iconInactiveColor}
+            />
+          ),
+        }}
+        listeners={({ navigation, route }) => ({
+          tabPress: e => {
+            const currentRoute =
+              navigation.getState().routes[navigation.getState().index].name;
+            if (currentRoute === 'PlaceSearch') {
+              navigation.navigate('Feed'); // Navigate back to Feed if Search is re-selected
+            } else {
+              navigation.navigate('PlaceSearch'); // Navigate to Search
+            }
+          },
+        })}
+      />
+    </Tab.Navigator>
   );
-};
+}
 
-export default UserNav;
+export default function AppNavigator() {
+  return (
+    <Stack.Navigator
+      initialRouteName="BottomTabs"
+      screenOptions={{ headerShown: false }}
+    >
+      <Stack.Screen
+        name="BottomTabs"
+        component={UserNav}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen name="PhotoResolver" component={PhotoResolver} />
+      <Stack.Screen name="Subscription" component={Subscription} />
+    </Stack.Navigator>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: 'translucent',
+  },
+  profilePicture: {
+    width: 50,
+    height: 50,
+    borderRadius: 75,
+  },
+});
