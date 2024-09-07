@@ -70,9 +70,9 @@ export const UserProvider = (props: Props) => {
         latitude: location.coords?.latitude,
         longitude: location.coords?.longitude,
       };
-      if (location.coords.speed && location.coords.speed < 3) {
+      if (location.coords.speed && location.coords.speed < 4) {
         setLocation(currentLocation);
-        await setUserIntoDB(currentLocation);
+        await setUser({ location: currentLocation });
       }
     });
 
@@ -86,10 +86,10 @@ export const UserProvider = (props: Props) => {
 
     BackgroundGeolocation.ready({
       desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
-      distanceFilter: 100,
+      distanceFilter: 50,
       stopTimeout: 5,
-      debug: false,
-      logLevel: BackgroundGeolocation.LOG_LEVEL_OFF,
+      debug: true,
+      logLevel: BackgroundGeolocation.LOG_LEVEL_DEBUG,
       stopOnTerminate: false,
       startOnBoot: true,
       showsBackgroundLocationIndicator: true,
@@ -102,6 +102,7 @@ export const UserProvider = (props: Props) => {
 
     return () => {
       onLocation.remove();
+      onActivityChange.remove();
     };
   }, []);
 

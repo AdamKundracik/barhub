@@ -79,42 +79,37 @@ export async function registerForPushNotificationsAsync() {
     });
   }
 
-  if (Device.isDevice) {
-    const { status: existingStatus } =
-      await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  let finalStatus = existingStatus;
+  if (existingStatus !== 'granted') {
+    const { status } = await Notifications.requestPermissionsAsync();
+    finalStatus = status;
+  }
+  if (finalStatus !== 'granted') {
+    handleRegistrationError(
+      'Permission not granted to get push token for push notification!'
+    );
+    return;
+  }
+  const projectId =
+    Constants?.expoConfig?.extra?.eas?.projectId ??
+    Constants?.easConfig?.projectId;
+  if (!projectId) {
+    handleRegistrationError('Project ID not found');
+  }
+  try {
+    let pushTokenString: string;
+    if (Platform.OS === 'ios') {
+      pushTokenString = (
+        await Notifications.getExpoPushTokenAsync({
+          projectId: Constants?.expoConfig?.extra?.eas.projectId,
+        })
+      ).data;
+    } else {
+      pushTokenString = (await Notifications.getDevicePushTokenAsync()).data;
     }
-    if (finalStatus !== 'granted') {
-      handleRegistrationError(
-        'Permission not granted to get push token for push notification!'
-      );
-      return;
-    }
-    const projectId =
-      Constants?.expoConfig?.extra?.eas?.projectId ??
-      Constants?.easConfig?.projectId;
-    if (!projectId) {
-      handleRegistrationError('Project ID not found');
-    }
-    try {
-      let pushTokenString: string;
-      if (Platform.OS === 'ios') {
-        pushTokenString = (
-          await Notifications.getExpoPushTokenAsync({
-            projectId: Constants?.expoConfig?.extra?.eas.projectId,
-          })
-        ).data;
-      } else {
-        pushTokenString = (await Notifications.getDevicePushTokenAsync()).data;
-      }
-      return pushTokenString;
-    } catch (e: unknown) {
-      handleRegistrationError(`${e}`);
-    }
-  } else {
-    handleRegistrationError('Must use physical device for push notifications');
+    return pushTokenString;
+  } catch (e: unknown) {
+    handleRegistrationError(`${e}`);
   }
 }

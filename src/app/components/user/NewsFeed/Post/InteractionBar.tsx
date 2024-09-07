@@ -4,6 +4,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../../utils/icons/icons';
 import { rgbaColor } from 'react-native-reanimated/lib/typescript/reanimated2/Colors';
+import { postBgColor } from '../../../../utils/styles/colors';
 
 type InteractionBarProps = {
   likes: number;
@@ -44,7 +45,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 15,
-    backgroundColor: '#0f0f1c',
+    backgroundColor: postBgColor,
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
   },

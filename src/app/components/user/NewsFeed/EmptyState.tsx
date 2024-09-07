@@ -6,6 +6,7 @@ import {
   primaryColor,
   secondaryTextColor,
 } from '../../../utils/styles/colors';
+import RequestPhotoButton from './RequestPhotoButton';
 
 interface EmptyStateProps {
   requestPhoto: () => void;
@@ -18,9 +19,7 @@ const EmptyState = (props: EmptyStateProps) => {
     <View style={styles.container}>
       <View style={styles.card}>
         <Text style={styles.infoText}>{t('photos-info')}</Text>
-        <Pressable onPress={props.requestPhoto} style={styles.button}>
-          <Text style={styles.buttonText}>{t('request-photo')}</Text>
-        </Pressable>
+        <RequestPhotoButton requestPhoto={props.requestPhoto} />
         <Text style={styles.infoText2}>{t('request-photo-info')}</Text>
       </View>
     </View>

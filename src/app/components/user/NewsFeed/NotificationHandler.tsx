@@ -23,11 +23,12 @@ const NotificationHandler: React.FC<NotificationHandlerProps> = ({
 
   useEffect(() => {
     const setTokenToDatabase = async (pushToken: string) => {
-      await setUser({ pushToken });
+      await setUser({ pushToken: pushToken });
     };
 
     registerForPushNotificationsAsync()
       .then(token => {
+        console.log(token);
         setExpoPushToken(token ?? '');
         setTokenToDatabase(token ?? '');
       })
