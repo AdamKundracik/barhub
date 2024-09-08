@@ -1,4 +1,10 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { iconInactiveColor } from '../../../../utils/styles/colors';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../../utils/types/screen-types';
@@ -27,9 +33,9 @@ export const PlaceNameSeparator = (props: Props) => {
   return (
     <View style={styles.container}>
       <View style={styles.line} />
-      <Pressable onPress={() => navigateToBar()}>
+      <TouchableOpacity onPress={() => navigateToBar()}>
         <Text style={styles.text}>{props.placeName}</Text>
-      </Pressable>
+      </TouchableOpacity>
       <View style={styles.line} />
     </View>
   );
