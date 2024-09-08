@@ -70,7 +70,7 @@ export const UserProvider = (props: Props) => {
         latitude: location.coords?.latitude,
         longitude: location.coords?.longitude,
       };
-      if (location.coords.speed && location.coords.speed < 4) {
+      if (location.coords.speed && location.coords.speed <= 4) {
         setLocation(currentLocation);
         await setUser({ location: currentLocation });
       }
@@ -81,6 +81,19 @@ export const UserProvider = (props: Props) => {
         BackgroundGeolocation.stop();
       } else {
         BackgroundGeolocation.start();
+      }
+    });
+
+    const onMotionChange = BackgroundGeolocation.onMotionChange(async event => {
+      if (event.location.activity.type === 'still') {
+        console.log('still');
+        setLocation(event.location.coords);
+        await setUser({
+          location: {
+            latitude: event.location.coords.latitude,
+            longitude: event.location.coords.longitude,
+          },
+        });
       }
     });
 
@@ -103,6 +116,7 @@ export const UserProvider = (props: Props) => {
     return () => {
       onLocation.remove();
       onActivityChange.remove();
+      onMotionChange.remove();
     };
   }, []);
 
