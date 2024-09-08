@@ -102,7 +102,7 @@ export const MapSearch = (props: LayoutProps) => {
   };
 
   return (
-    <>
+    <Layout pageTitle={'Map'}>
       <MapView
         style={styles.map}
         region={region}
@@ -164,7 +164,7 @@ export const MapSearch = (props: LayoutProps) => {
           <ActivityIndicator size="large" color="#fff" />
         </View>
       )}
-    </>
+    </Layout>
   );
 };
 
