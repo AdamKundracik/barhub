@@ -1,14 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Layout from '../../components/user/Shared/Layout';
-import { useQuery, useQueryClient } from 'react-query';
+import { useQuery } from 'react-query';
 import {
   NavigationProp,
-  useFocusEffect,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserStackList } from '../../utils/types/screen-types';
 import { useUserContext } from '../../providers/UserProvider';
 import {
@@ -16,7 +14,6 @@ import {
   handlePlacePosts,
 } from '../../utils/helper-functions/posts-functions';
 import { getDaysSince } from '../../utils/helper-functions/getDaysSince';
-import PlaceSearch from './PlaceSearch';
 import { PlaceDetailsResponse, PlacePrediction } from '../../utils/types/types';
 import { Post } from '../../../../shared';
 import NotificationHandler from '../../components/user/NewsFeed/NotificationHandler';
@@ -71,7 +68,7 @@ export const NewsFeed: React.FC = () => {
 
   useEffect(() => {
     getFiles();
-  }, [imageUploading]);
+  }, [imageUploading, refetch]);
 
   const getFiles = async () => {
     setLoading(true);
@@ -144,8 +141,8 @@ export const NewsFeed: React.FC = () => {
           zoomedPost={zoomedPost}
           setZoomedPost={setZoomedPost}
           userData={userData}
-          numberOfDaysSinceLastPostedPhoto={numberOfDaysSinceLastPostedPhoto}
           place={place}
+          numberOfDaysSinceLastPostedPhoto={numberOfDaysSinceLastPostedPhoto}
           requestPhoto={requestPhoto}
           fetchMorePosts={() => fetchMorePosts(lastVisible ?? '')}
           onRefresh={onRefresh}

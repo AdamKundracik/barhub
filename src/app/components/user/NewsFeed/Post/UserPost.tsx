@@ -35,6 +35,7 @@ import { postBgColor, primaryBgColor } from '../../../../utils/styles/colors';
 import UserLine from './UserLine';
 import { getLocales } from 'expo-localization';
 import InteractionBar from './InteractionBar';
+import { PlacePrediction } from '../../../../utils/types/types';
 
 interface PostInterface {
   post: Post;
@@ -164,7 +165,10 @@ export const UserPost = (props: PostInterface) => {
     <View style={styles.postWrapper}>
       {!props.isFiltering && (
         <View style={styles.placeName}>
-          <PlaceNameSeparator placeName={post.placeName} />
+          <PlaceNameSeparator
+            placeName={post.placeName}
+            placeId={post.folderId}
+          />
         </View>
       )}
       <View style={styles.contentContainer}>

@@ -1,44 +1,92 @@
 import { Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-
-import {
-  deleteProfilePicture,
-  uploadProfilePhotoAsync,
-} from './helperFunctions';
-import { auth } from '../../../../firebaseConfig';
+import { PlaceDetailsResponse } from '../types/types';
+import { useUserContext } from '../../providers/UserProvider';
+import { fetchPlaceDetails } from './fetchPlaceDetail';
+import { uploadImageAsync, uploadProfilePhotoAsync } from './helperFunctions';
+import { useUploadingStateManagement } from '../hooks/useUploadingStateManagement';
+import { sendPushNotificationResponse } from '../services/notofications-handler';
 import { setUser } from '../services/functions';
-import { updateProfile } from 'firebase/auth';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../types/screen-types';
+import { User } from '../../../../shared';
 
-export const openCamera = async () => {
-  const navigation = useNavigation<NavigationProp<UserStackList>>();
-
-  const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-
-  if (!permissionResult.granted) {
-    Alert.alert(
-      'Permission Denied',
-      'Permission to access the camera is required.'
-    );
+async function saveImageFromCamera(
+  image: string,
+  userData: User,
+  setUploadingState: any,
+  placeId?: string,
+  senderToken?: string
+): Promise<void> {
+  console.log('here');
+  if (!image) {
+    console.error('No image');
     return;
   }
 
-  const result = await ImagePicker.launchCameraAsync({
-    quality: 0.8,
-  });
-
-  if (!result.canceled) {
-    await deleteProfilePicture(auth.currentUser?.uid!);
-    const uri = await uploadProfilePhotoAsync(result.assets[0].uri);
-
+  if (placeId && senderToken) {
+    console.log('HERE');
+    const token = userData?.pushToken;
+    const place: PlaceDetailsResponse = await fetchPlaceDetails(placeId);
+    if (!token) {
+      return;
+    }
+    await uploadImageAsync(
+      image,
+      setUploadingState,
+      placeId,
+      place.result.name,
+      place.result.formatted_address
+    ).then(() => {
+      sendPushNotificationResponse(senderToken, placeId).then();
+    });
     await setUser({
-      photoURL: uri,
+      lastUploadedPost: new Date(),
+    });
+  }
+}
+
+export const openCamera = async (
+  userData: User,
+  setUploadingState: any,
+  placeId?: string | null,
+  senderToken?: string,
+  navigation?: any
+) => {
+  try {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      Alert.alert(
+        'Permission Denied',
+        'Permission to access the camera is required.'
+      );
+      return;
+    }
+
+    // Launch the camera
+    const result = await ImagePicker.launchCameraAsync({
+      quality: 1,
+      allowsEditing: true,
+      aspect: [4, 4],
     });
 
-    await updateProfile(auth.currentUser!, {
-      photoURL: uri,
-      displayName: auth.currentUser?.displayName,
-    });
+    if (!result.canceled) {
+      if (placeId && senderToken) {
+        await saveImageFromCamera(
+          result.assets[0].uri,
+          userData,
+          setUploadingState,
+          placeId,
+          senderToken
+        );
+      } else {
+        // Navigate to PhotoResolver if no placeId and senderToken
+        navigation?.navigate('PhotoResolver', { image: result.assets[0].uri });
+      }
+    }
+  } catch (error) {
+    console.error('Error opening camera:', error);
+    Alert.alert('Error', 'There was an issue accessing the camera.');
   }
 };

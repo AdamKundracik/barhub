@@ -40,60 +40,6 @@ export const PlaceSearch = () => {
   const { t } = useTranslation();
   const translateY = useRef(new Animated.Value(1000)).current; // Start position off-screen
 
-  // Slide-in animation when the tab is focused
-  useFocusEffect(
-    useCallback(() => {
-      // Slide in when screen is focused
-      Animated.timing(translateY, {
-        toValue: 0, // Slide in to the screen
-        duration: 250,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: true,
-      }).start();
-
-      // Return a cleanup function to slide it out when unfocused
-      return () => {
-        Animated.timing(translateY, {
-          toValue: 1000, // Slide out off-screen
-          duration: 250,
-          easing: Easing.in(Easing.ease),
-          useNativeDriver: true,
-        }).start();
-      };
-    }, [translateY])
-  );
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gestureState) => {
-        // If the user swipes down
-        return gestureState.dy > 10;
-      },
-      onPanResponderMove: Animated.event([null, { dy: translateY }], {
-        useNativeDriver: false,
-      }),
-      onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dy > 300) {
-          // If the swipe is significant, close the window
-          Animated.timing(translateY, {
-            toValue: 1000,
-            duration: 250,
-            easing: Easing.in(Easing.ease),
-            useNativeDriver: true,
-          }).start(() => navigation.navigate('Feed'));
-        } else {
-          // Otherwise, snap back to the original position
-          Animated.timing(translateY, {
-            toValue: 0,
-            duration: 250,
-            easing: Easing.out(Easing.ease),
-            useNativeDriver: true,
-          }).start();
-        }
-      },
-    })
-  ).current;
-
   function onCancelClick() {
     Animated.timing(translateY, {
       toValue: 1000, // Move back off-screen
@@ -101,7 +47,7 @@ export const PlaceSearch = () => {
       easing: Easing.in(Easing.ease),
       useNativeDriver: true,
     }).start(() => {
-      navigation.navigate('Feed');
+      navigation.goBack();
     });
   }
 
@@ -122,10 +68,7 @@ export const PlaceSearch = () => {
 
   return (
     <Layout pageTitle="Search places">
-      <Animated.View
-        style={{ transform: [{ translateY }] }}
-        {...panResponder.panHandlers}
-      >
+      <View>
         <View
           style={{
             paddingBottom: 20,
@@ -181,7 +124,7 @@ export const PlaceSearch = () => {
             )}
           </Pressable>
         ))}
-      </Animated.View>
+      </View>
     </Layout>
   );
 };

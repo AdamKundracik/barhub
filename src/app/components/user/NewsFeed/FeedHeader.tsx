@@ -16,7 +16,7 @@ const FeedHeader: React.FC<HeaderProps> = ({ place, setPlace }) => (
       <View style={{ alignSelf: 'flex-start', marginBottom: 5 }}>
         <PlaceFilterChip
           setPlace={setPlace}
-          place={place.structuredFormat.mainText.text}
+          place={place.structuredFormat?.mainText.text}
         />
       </View>
     )}

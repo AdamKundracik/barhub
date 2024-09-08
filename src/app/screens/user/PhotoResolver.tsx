@@ -19,11 +19,15 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
 import { useTranslation } from 'react-i18next';
 import { useUserContext } from '../../providers/UserProvider';
+import { openCamera } from '../../utils/helper-functions/openCamera';
+import { useUploadingStateManagement } from '../../utils/hooks/useUploadingStateManagement';
 
 export const PhotoResolver = ({ route }: any) => {
   const { t } = useTranslation();
+  const { userData } = useUserContext();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { location } = useUserContext();
+  const { setUploadingState } = useUploadingStateManagement();
 
   const mapRef = useRef<MapView>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -123,7 +127,10 @@ export const PhotoResolver = ({ route }: any) => {
 
       <TouchableOpacity
         style={{ position: 'absolute', left: 20, top: 40 }}
-        onPress={() => navigation.navigate('Camera')}
+        onPress={async () => {
+          navigation.navigate('Feed');
+          await openCamera(userData!, setUploadingState);
+        }}
       >
         <FontAwesomeIcon icon={Icons.Back} color={'grey'} size={32} />
       </TouchableOpacity>

@@ -24,6 +24,7 @@ export const uploadImageAsync = async (
       return;
     }
 
+    console.log('uploading');
     const blob: Blob = await uriToBlob(uri);
     const fileId = `${placeId}/${new Date().getTime().toString() + '_' + auth.currentUser?.uid}`;
 
@@ -49,6 +50,7 @@ export const uploadImageAsync = async (
     };
 
     await savePost(newPost);
+    console.log('post saved');
   } catch (error) {
     console.error('Error uploading image:', error);
   }
@@ -57,7 +59,7 @@ export const uploadImageAsync = async (
 const uriToBlob = async (uri: string): Promise<Blob> => {
   return new Promise(async (resolve, reject) => {
     try {
-      const width = 576;
+      const width = 720;
       const height = 720;
 
       const manipResult = await ImageManipulator.manipulateAsync(
