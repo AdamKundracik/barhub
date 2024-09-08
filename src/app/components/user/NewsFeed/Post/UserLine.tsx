@@ -6,6 +6,7 @@ import {
   secondaryTextColor,
 } from '../../../../utils/styles/colors';
 import Svg, { Path } from 'react-native-svg';
+import Device from 'react-native-device-info';
 
 type Props = {
   name: string;
@@ -14,7 +15,12 @@ type Props = {
   profileImage: string | null;
 };
 
+// Check if the device is a tablet
+const isTablet = Device.isTablet();
+
 export const UserLine = (props: Props) => {
+  const styles = isTablet ? tabletStyles : mobileStyles;
+
   return (
     <View style={styles.container}>
       {props.profileImage ? (
@@ -45,7 +51,8 @@ export const UserLine = (props: Props) => {
   );
 };
 
-const styles = StyleSheet.create({
+// Styles for mobile devices
+const mobileStyles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -65,7 +72,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: primaryColor, // Light green-blue color as in the screenshot
+    color: primaryColor,
   },
   dateTimeContainer: {
     flexDirection: 'row',
@@ -74,11 +81,49 @@ const styles = StyleSheet.create({
   },
   dateTimeText: {
     fontSize: 14,
-    color: secondaryTextColor, // Light grey color for the date and time
+    color: secondaryTextColor,
   },
   address: {
     fontSize: 14,
-    color: '#999999', // Light grey color for the address
+    color: '#999999',
+  },
+});
+
+// Styles for tablets
+const tabletStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: postBgColor,
+    padding: 20,
+    borderRadius: 10,
+  },
+  image: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    marginRight: 20,
+  },
+  textContainer: {
+    flex: 1,
+  },
+  name: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: primaryColor,
+  },
+  dateTimeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 4,
+  },
+  dateTimeText: {
+    fontSize: 18,
+    color: secondaryTextColor,
+  },
+  address: {
+    fontSize: 18,
+    color: '#999999',
   },
 });
 
