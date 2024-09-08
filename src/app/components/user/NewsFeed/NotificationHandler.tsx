@@ -49,7 +49,6 @@ const NotificationHandler: React.FC<NotificationHandlerProps> = ({
         if (new Date().getTime() > sentAt + notificationTTL) {
           Alert.alert(t('request-expired'), t('missed-request-info'));
         } else {
-          console.log('handler', placeId, senderToken);
           openCamera(
             userData,
             setUploadingState,

@@ -24,7 +24,6 @@ export const uploadImageAsync = async (
       return;
     }
 
-    console.log('uploading');
     const blob: Blob = await uriToBlob(uri);
     const fileId = `${placeId}/${new Date().getTime().toString() + '_' + auth.currentUser?.uid}`;
 
@@ -50,7 +49,6 @@ export const uploadImageAsync = async (
     };
 
     await savePost(newPost);
-    console.log('post saved');
   } catch (error) {
     console.error('Error uploading image:', error);
   }

@@ -18,14 +18,12 @@ async function saveImageFromCamera(
   placeId?: string,
   senderToken?: string
 ): Promise<void> {
-  console.log('here');
   if (!image) {
     console.error('No image');
     return;
   }
 
   if (placeId && senderToken) {
-    console.log('HERE');
     const token = userData?.pushToken;
     const place: PlaceDetailsResponse = await fetchPlaceDetails(placeId);
     if (!token) {
