@@ -34,22 +34,36 @@ export const PlaceSearch = () => {
   const { location } = useUserContext();
   const [places, setPlaces] = useState<PlacePrediction[]>([]);
   const [isMapShown, setIsMapShown] = useState<boolean>(false);
+  const [searchText, setSearchText] = useState<string>('');
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const [place, setPlace] = useState<PlacePrediction>();
-
   const { t } = useTranslation();
   const translateY = useRef(new Animated.Value(1000)).current; // Start position off-screen
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   function onCancelClick() {
-    Animated.timing(translateY, {
-      toValue: 1000, // Move back off-screen
-      duration: 250,
-      easing: Easing.in(Easing.ease),
-      useNativeDriver: true,
-    }).start(() => {
-      navigation.goBack();
-    });
+    navigation.goBack();
   }
+
+  // Debounce effect to optimize autocomplete function
+  useEffect(() => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    debounceTimeoutRef.current = setTimeout(() => {
+      if (searchText) {
+        getAutocompletePlaces(searchText);
+      }
+    }, 300); // 300ms debounce delay
+
+    // Cleanup timeout on component unmount or searchText change
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, [searchText]);
 
   async function getAutocompletePlaces(searchText: string) {
     const places = await fetchPlaceAutocomplete(searchText, location!);
@@ -86,13 +100,12 @@ export const PlaceSearch = () => {
         <TextInput
           style={formStyles.inputPrimary}
           placeholder={t('search-place')}
-          onChangeText={text => getAutocompletePlaces(text)}
+          onChangeText={text => setSearchText(text)}
           placeholderTextColor={secondaryTextColor}
         />
         {places?.map((place, index) => (
           <Pressable
             key={index}
-            // style={{ padding: 15 }}
             style={({ pressed }) => [
               {
                 padding: pressed ? 16 : 16,

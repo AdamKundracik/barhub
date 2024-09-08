@@ -1,9 +1,7 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { PlacePrediction } from '../../../utils/types/types';
-import ActionsRow from '../ActionsRow';
 import PlaceFilterChip from './PlaceFilterChip';
-import Svg, { Path } from 'react-native-svg';
 
 interface HeaderProps {
   place: PlacePrediction | null;

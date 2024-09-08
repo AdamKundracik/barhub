@@ -63,5 +63,6 @@
   "month": "Monat",
   "day": "Tag",
   "year": "Jahr",
-  "search-place": "Geben Sie den Namen des Unternehmens / der Bar ein"
+  "search-place": "Geben Sie den Namen des Unternehmens / der Bar ein",
+  "search-surrounding": "Umgebung durchsuchen"
 }

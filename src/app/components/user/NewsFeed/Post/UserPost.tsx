@@ -6,20 +6,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { commonAppStyles } from '../../../../utils/styles/styles';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../../../utils/icons/icons';
 import { Post } from '../../../../../../shared';
-import {
-  getTimeAgoFromTimestampSeconds,
-  timeAgo,
-} from '../../../../utils/helper-functions/timeAgo';
+import { getTimeAgoFromTimestampSeconds } from '../../../../utils/helper-functions/timeAgo';
 import { useEffect, useState } from 'react';
 import {
   addCommentToPost,
@@ -35,7 +29,6 @@ import { postBgColor, primaryBgColor } from '../../../../utils/styles/colors';
 import UserLine from './UserLine';
 import { getLocales } from 'expo-localization';
 import InteractionBar from './InteractionBar';
-import { PlacePrediction } from '../../../../utils/types/types';
 
 interface PostInterface {
   post: Post;

@@ -1,9 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../../utils/icons/icons';
-import { rgbaColor } from 'react-native-reanimated/lib/typescript/reanimated2/Colors';
 import { postBgColor } from '../../../../utils/styles/colors';
 
 type InteractionBarProps = {

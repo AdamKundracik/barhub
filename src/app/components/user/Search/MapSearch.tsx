@@ -1,6 +1,5 @@
 import MapView, {
   Circle,
-  Details,
   Marker,
   PROVIDER_DEFAULT,
   Region,
@@ -9,7 +8,6 @@ import {
   ActivityIndicator,
   Image,
   Keyboard,
-  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -43,7 +41,7 @@ export const MapSearch = (props: LayoutProps) => {
 
   const mapRef = useRef<MapView>(null);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [places, setPlaces] = useState<Place[]>();
   const [region, setRegion] = useState<Region>({
     latitudeDelta,
@@ -51,69 +49,46 @@ export const MapSearch = (props: LayoutProps) => {
     latitude: location?.latitude!,
     longitude: location?.longitude!,
   });
-  const regionTimeout = useRef<NodeJS.Timeout | null>(null);
 
   function pickPlace() {
     if (selectedPlace) {
       const placePrediction = mapPlaceToPlacePrediction(selectedPlace);
       props.setPlace(placePrediction);
       props.setIsMapShown(false);
-      navigation.navigate('Feed', { selectedPlace: placePrediction }); // Navigate to Feed with selectedPlace
+      navigation.navigate('Feed', { selectedPlace: placePrediction });
     }
   }
 
-  useEffect(() => {
+  const handleSearchSurrounding = async () => {
     setLoading(true);
-
-    async function getPlaces() {
-      if (region) {
-        const data = await fetchNearbyPlaces(region);
-        setLoading(false);
-        setPlaces(data.places);
-      } else {
-        setLoading(false);
-        console.error('Location could not be retrieved');
-      }
-    }
-
-    getPlaces();
-  }, [region]);
-
-  const onRegionChange = (region: Region) => {
-    setRegion(region);
+    const data = await fetchNearbyPlaces(region);
+    setLoading(false);
+    setPlaces(data.places);
   };
 
-  const onRegionChangeComplete = (region: Region, gesture: Details) => {
-    // Clear the previous timeout
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
-    if (regionTimeout.current) {
-      clearTimeout(regionTimeout.current);
+  const onRegionChangeComplete = (newRegion: Region) => {
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
     }
-    if (Platform.OS === 'android') {
-      if (gesture.isGesture) {
-        onRegionChange(region);
-      }
-    } else {
-      // Set a new timeout
-      regionTimeout.current = setTimeout(() => {
-        onRegionChange(region);
-      }, 1000); // Delay for 1sec
-    }
+    debounceTimeout.current = setTimeout(() => {
+      setRegion(newRegion);
+    }, 700);
   };
 
   return (
-    <Layout pageTitle={'Map'}>
+    <>
       <MapView
         style={styles.map}
         region={region}
-        initialRegion={region}
         provider={PROVIDER_DEFAULT}
         ref={mapRef}
         showsUserLocation={true}
         showsMyLocationButton={true}
         onPress={Keyboard.dismiss}
         showsCompass={true}
-        onRegionChangeComplete={onRegionChangeComplete}
+        onRegionChangeComplete={onRegionChangeComplete} // Called when user stops moving the map
       >
         {!loading &&
           places?.map((place: Place, index: number) => (
@@ -140,22 +115,32 @@ export const MapSearch = (props: LayoutProps) => {
           />
         )}
       </MapView>
+
       <View style={styles.markerFixed}>
         <Image
           style={styles.marker}
           source={require('../../../../../assets/pin.png')}
         />
       </View>
+
       <TouchableOpacity
         onPress={() => props.setIsMapShown(false)}
         style={styles.closeButton}
       >
         <FontAwesomeIcon icon={Icons.Remove} size={32} color={'black'} />
       </TouchableOpacity>
-
       <TouchableOpacity style={styles.infoContainer} onPress={pickPlace}>
         <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 18 }}>
           {t('select-location')}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.searchButton}
+        onPress={handleSearchSurrounding}
+      >
+        <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>
+          {t('search-surrounding')}
         </Text>
       </TouchableOpacity>
 
@@ -164,7 +149,7 @@ export const MapSearch = (props: LayoutProps) => {
           <ActivityIndicator size="large" color="#fff" />
         </View>
       )}
-    </Layout>
+    </>
   );
 };
 
@@ -201,8 +186,16 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    top: 10,
-    right: 10,
+    top: 10, // Position near the top
+    left: 10, // Position on the left side
+  },
+  searchButton: {
+    position: 'absolute',
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 20,
+    bottom: 100,
+    alignSelf: 'center',
   },
 });
 

@@ -1,18 +1,9 @@
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { iconInactiveColor } from '../../../../utils/styles/colors';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../../utils/types/screen-types';
 import { fetchPlaceDetails } from '../../../../utils/helper-functions/fetchPlaceDetail';
-import {
-  mapPlaceDetailToPlacePrediction,
-  mapPlaceToPlacePrediction,
-} from '../../../../utils/helper-functions/mapPlaceToPlacePrediction';
+import { mapPlaceDetailToPlacePrediction } from '../../../../utils/helper-functions/mapPlaceToPlacePrediction';
 
 type Props = {
   placeName: string;

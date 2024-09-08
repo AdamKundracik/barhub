@@ -1,7 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
-import { commonAppStyles } from '../../../utils/styles/styles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PlacePrediction } from '../../../utils/types/types';
 import { primaryColor, secondaryTextColor } from '../../../utils/styles/colors';

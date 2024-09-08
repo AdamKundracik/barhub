@@ -1,10 +1,9 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../../../utils/icons/icons';
 import {
-  iconInactiveColor,
   postBgColor,
+  primaryColor,
+  secondaryTextColor,
 } from '../../../../utils/styles/colors';
 import Svg, { Path } from 'react-native-svg';
 
@@ -66,7 +65,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#5AE3D9', // Light green-blue color as in the screenshot
+    color: primaryColor, // Light green-blue color as in the screenshot
   },
   dateTimeContainer: {
     flexDirection: 'row',
@@ -75,7 +74,7 @@ const styles = StyleSheet.create({
   },
   dateTimeText: {
     fontSize: 14,
-    color: 'white', // Light grey color for the date and time
+    color: secondaryTextColor, // Light grey color for the date and time
   },
   address: {
     fontSize: 14,

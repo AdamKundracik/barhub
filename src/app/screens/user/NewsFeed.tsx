@@ -46,10 +46,6 @@ export const NewsFeed: React.FC = () => {
     }
   }, [routeParams?.selectedPlace]);
 
-  useEffect(() => {
-    getFiles();
-  }, [place]);
-
   const [
     numberOfDaysSinceLastPostedPhoto,
     setNumberOfDaysSinceLastPostedPhoto,

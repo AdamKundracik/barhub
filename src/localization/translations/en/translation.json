@@ -63,5 +63,6 @@
   "month": "month",
   "day": "day",
   "year": "year",
-  "search-place": "Enter the name of the business / bar"
+  "search-place": "Enter the name of the business / bar",
+  "search-surrounding": "Search surrounding"
 }

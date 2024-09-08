@@ -1,8 +1,8 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 import { commonAppStyles } from '../../../utils/styles/styles';
 import { useTranslation } from 'react-i18next';
-import { primaryBgColor, primaryColor } from '../../../utils/styles/colors';
+import { primaryColor } from '../../../utils/styles/colors';
 
 interface RequestPhotoButtonProps {
   requestPhoto: () => void;
