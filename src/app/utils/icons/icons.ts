@@ -16,8 +16,11 @@ import {
   faHeart,
   faHeartBroken,
   faImage,
+  faLocationPin,
+  faLocationPinLock,
   faMap,
   faMapLocationDot,
+  faMapPin,
   faPaperPlane,
   faPencil,
   faPlusSquare,
@@ -75,4 +78,5 @@ export const Icons = {
   Image: faImage,
   Remove: faRemove,
   Ban: faBan,
+  Pin: faLocationPinLock,
 };

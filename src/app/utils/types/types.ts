@@ -10,6 +10,12 @@ export type AuthStackParamList = {
   };
 }; // EXAMPLE FOR NAVIGATION
 
+export enum TabsTypes {
+  camera = 'Camera',
+  account = 'Account',
+  placeSearch = 'PlaceSearch',
+}
+
 export type Settings = {
   // FOR ADDITIONAL SETTINGS
 };

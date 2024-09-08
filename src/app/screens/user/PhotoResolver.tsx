@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import Layout from '../../components/user/Shared/Layout';
 import { fetchNearbyPlaces } from '../../utils/helper-functions/fetchNearByPlaces';
-import { Place } from '../../utils/types/types';
+import { Place, PlacePrediction } from '../../utils/types/types';
 import { PlaceDetail } from '../../components/user/Search/PlaceDetail';
 import { radius } from '../../utils/helper-functions/constants';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -19,11 +19,15 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
 import { useTranslation } from 'react-i18next';
 import { useUserContext } from '../../providers/UserProvider';
+import { openCamera } from '../../utils/helper-functions/openCamera';
+import { useUploadingStateManagement } from '../../utils/hooks/useUploadingStateManagement';
 
 export const PhotoResolver = ({ route }: any) => {
   const { t } = useTranslation();
+  const { userData } = useUserContext();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { location } = useUserContext();
+  const { setUploadingState } = useUploadingStateManagement();
 
   const mapRef = useRef<MapView>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -31,6 +35,14 @@ export const PhotoResolver = ({ route }: any) => {
   const [places, setPlaces] = useState<Place[]>();
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [detailOpened, setDetailOpened] = useState(false);
+  const routeParams = route.params as { image?: string }; // Define route params
+  const [image, setImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (routeParams?.image) {
+      setImage(routeParams.image); // Set the place when passed from PlaceSearch
+    }
+  }, [routeParams?.image]);
 
   useEffect(() => {
     async function getPlaces() {
@@ -101,6 +113,7 @@ export const PhotoResolver = ({ route }: any) => {
         ))}
       </MapView>
       <PlaceDetail
+        image={image}
         isOpen={detailOpened}
         onClose={() => setDetailOpened(false)}
         place={selectedPlace}
@@ -114,7 +127,10 @@ export const PhotoResolver = ({ route }: any) => {
 
       <TouchableOpacity
         style={{ position: 'absolute', left: 20, top: 40 }}
-        onPress={() => navigation.navigate('Camera')}
+        onPress={async () => {
+          navigation.navigate('Feed');
+          await openCamera(userData!, setUploadingState);
+        }}
       >
         <FontAwesomeIcon icon={Icons.Back} color={'grey'} size={32} />
       </TouchableOpacity>

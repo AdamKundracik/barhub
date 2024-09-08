@@ -27,7 +27,7 @@ import { useUserContext } from '../../providers/UserProvider';
 import { DeleteUserModal } from '../../components/user/Account/DeleteUserModal';
 
 export const Account = () => {
-  const { userData } = useUserContext();
+  const { userData, fetchUserData } = useUserContext();
   const { t } = useTranslation();
   const [isSlidingViewVisible, setSlidingViewVisible] = useState(false);
   const [modalOpened, setModalOpened] = useState(false);
@@ -84,6 +84,7 @@ export const Account = () => {
         photoURL: uri,
       });
 
+      if (fetchUserData) await fetchUserData();
       setSlidingViewVisible(false); // Close the sliding view after the action
     }
   };
@@ -104,6 +105,7 @@ export const Account = () => {
     });
 
     if (!result.canceled) {
+      await deleteProfilePicture(auth.currentUser?.uid!);
       const uri = await uploadProfilePhotoAsync(result.assets[0].uri);
 
       await setUser({
@@ -114,13 +116,15 @@ export const Account = () => {
         photoURL: uri,
         displayName: auth.currentUser?.displayName,
       });
-
+      if (fetchUserData) await fetchUserData();
       setSlidingViewVisible(false); // Close the sliding view after the action
     }
   };
 
   const removePicture = async () => {
-    await deleteProfilePicture(auth.currentUser?.uid!);
+    if (auth.currentUser?.providerId !== 'google.com') {
+      await deleteProfilePicture(auth.currentUser?.uid!);
+    }
     await setUser({
       photoURL: '',
     });
@@ -129,6 +133,7 @@ export const Account = () => {
       photoURL: '',
       displayName: auth.currentUser?.displayName,
     });
+    if (fetchUserData) await fetchUserData();
   };
 
   return (

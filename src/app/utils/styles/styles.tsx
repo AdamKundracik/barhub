@@ -1,11 +1,11 @@
 import { StyleSheet } from 'react-native';
-import { primaryBgColor, primaryColor, secondaryTextColor } from './colors';
+import { primaryGrey, primaryColor, secondaryTextColor } from './colors';
 
 export const formStyles = StyleSheet.create({
   inputPrimary: {
     height: 50,
     padding: 15,
-    backgroundColor: primaryBgColor,
+    backgroundColor: primaryGrey,
     borderRadius: 20,
     borderColor: primaryColor,
     borderWidth: 1,

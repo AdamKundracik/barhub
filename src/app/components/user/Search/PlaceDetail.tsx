@@ -14,7 +14,6 @@ import { Place, PlaceDetailsResponse } from '../../../utils/types/types';
 import { commonAppStyles, formStyles } from '../../../utils/styles/styles';
 import { fetchPlaceDetails } from '../../../utils/helper-functions/fetchPlaceDetail';
 import { fetchPlacePhotos } from '../../../utils/helper-functions/fetchPlacePhotos';
-import { useImageManagement } from '../../../utils/hooks/useImageManagement';
 import { useQueryClient } from 'react-query';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
@@ -30,10 +29,11 @@ type PlaceDetailModalProps = {
   isOpen: boolean;
   onClose: () => void;
   place: Place | null;
+  image: string | null;
 };
 
 export const PlaceDetail = memo(
-  ({ isOpen, onClose, place }: PlaceDetailModalProps) => {
+  ({ isOpen, onClose, place, image }: PlaceDetailModalProps) => {
     const queryClient = useQueryClient();
     const { t } = useTranslation();
 
@@ -46,8 +46,6 @@ export const PlaceDetail = memo(
     const [photoUrls, setPhotouUls] = useState<string[]>([]);
     const [isSaving, setIsSaving] = useState(false);
 
-    const image = queryClient.getQueryData<string>('capturedImage');
-    const { deleteImage } = useImageManagement();
     const { setUploadingState } = useUploadingStateManagement();
 
     useEffect(() => {
@@ -115,7 +113,6 @@ export const PlaceDetail = memo(
             ).then(() => {
               onClose();
               navigation.navigate('Feed');
-              deleteImage.mutate();
             });
             setUser({ lastUploadedPost: new Date() });
           }

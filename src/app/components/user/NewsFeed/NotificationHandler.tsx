@@ -6,6 +6,8 @@ import { NavigationProp } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { setUser } from '../../../utils/services/functions';
 import { registerForPushNotificationsAsync } from '../../../utils/services/notofications-handler';
+import { openCamera } from '../../../utils/helper-functions/openCamera';
+import { useUploadingStateManagement } from '../../../utils/hooks/useUploadingStateManagement';
 
 interface NotificationHandlerProps {
   navigation: NavigationProp<UserStackList>;
@@ -16,6 +18,8 @@ const NotificationHandler: React.FC<NotificationHandlerProps> = ({
   navigation,
   userData,
 }) => {
+  const { setUploadingState } = useUploadingStateManagement();
+
   const { t } = useTranslation();
   const [expoPushToken, setExpoPushToken] = useState<string>('');
   const notificationListener = useRef<Notifications.Subscription>();
@@ -23,7 +27,7 @@ const NotificationHandler: React.FC<NotificationHandlerProps> = ({
 
   useEffect(() => {
     const setTokenToDatabase = async (pushToken: string) => {
-      await setUser({ pushToken });
+      await setUser({ pushToken: pushToken });
     };
 
     registerForPushNotificationsAsync()
@@ -45,7 +49,13 @@ const NotificationHandler: React.FC<NotificationHandlerProps> = ({
         if (new Date().getTime() > sentAt + notificationTTL) {
           Alert.alert(t('request-expired'), t('missed-request-info'));
         } else {
-          navigation.navigate('Camera', { placeId, senderToken });
+          openCamera(
+            userData,
+            setUploadingState,
+            placeId,
+            senderToken,
+            navigation
+          );
         }
       });
 

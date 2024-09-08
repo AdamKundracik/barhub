@@ -7,6 +7,7 @@ import Purchases, {
 import { Platform } from 'react-native';
 import { User } from '../../../shared';
 import { setUser } from '../utils/services/functions';
+import { useUserContext } from './UserProvider';
 
 // Use your RevenueCat API keys
 const APIKeys = {
@@ -32,6 +33,7 @@ export const RevenueCatProvider = ({ children }: any) => {
   });
   const [packages, setPackages] = useState<PurchasesPackage[]>([]);
   const [isReady, setIsReady] = useState(false);
+  const { fetchUserData } = useUserContext();
 
   useEffect(() => {
     const init = async () => {
@@ -75,6 +77,7 @@ export const RevenueCatProvider = ({ children }: any) => {
 
     setCurrentUser(newUser);
     await setUser(newUser);
+    await fetchUserData;
   };
 
   const purchasePackage = async (pack: PurchasesPackage) => {

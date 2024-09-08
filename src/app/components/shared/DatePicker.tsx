@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { InputWrapper } from './InputWrapper';
 import {
-  primaryBgColor,
+  primaryGrey,
   primaryColor,
   secondaryTextColor,
 } from '../../utils/styles/colors';
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
 // Custom styles for the picker select component
 const pickerSelectStyles = {
   inputIOS: {
-    backgroundColor: primaryBgColor,
+    backgroundColor: primaryGrey,
     paddingVertical: 12,
     paddingHorizontal: 10,
     borderWidth: 1,
@@ -119,7 +119,7 @@ const pickerSelectStyles = {
     paddingRight: 30,
   },
   inputAndroid: {
-    backgroundColor: primaryBgColor,
+    backgroundColor: primaryGrey,
     paddingVertical: 12,
     paddingHorizontal: 10,
     borderWidth: 1,

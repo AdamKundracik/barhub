@@ -1598,6 +1598,8 @@ PODS:
     - React-Core
   - RNCPicker (2.7.5):
     - React-Core
+  - RNDeviceInfo (11.1.0):
+    - React-Core
   - RNFBApp (20.0.0):
     - Firebase/CoreOnly (= 10.25.0)
     - React-Core
@@ -1820,6 +1822,7 @@ DEPENDENCIES:
   - RNBackgroundGeolocation (from `../node_modules/react-native-background-geolocation`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
+  - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBAuth (from `../node_modules/@react-native-firebase/auth`)"
   - "RNFBFunctions (from `../node_modules/@react-native-firebase/functions`)"
@@ -2048,6 +2051,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNCPicker:
     :path: "../node_modules/@react-native-picker/picker"
+  RNDeviceInfo:
+    :path: "../node_modules/react-native-device-info"
   RNFBApp:
     :path: "../node_modules/@react-native-firebase/app"
   RNFBAuth:
@@ -2193,6 +2198,7 @@ SPEC CHECKSUMS:
   RNBackgroundGeolocation: 09f8b98ed34b597b9e522b89a43306a4bc50083f
   RNCAsyncStorage: 826b603ae9c0f88b5ac4e956801f755109fa4d5c
   RNCPicker: 3e2c37a8328f368ce14da050cdc8231deb5fc9f9
+  RNDeviceInfo: b899ce37a403a4dea52b7cb85e16e49c04a5b88e
   RNFBApp: 87e1cdbf128f8574283d415bc58eac36df546a6f
   RNFBAuth: ed61486ebcb31caa7c92d6e3064773511f5f60ff
   RNFBFunctions: 99a149d7b3641d64399865295a3437a73d410b95

@@ -59,5 +59,10 @@
   "requires-recent-login": "requires-recent-login",
   "session-expired": "session-expired",
   "unknown-error": "unknown-error",
-  "accept-terms": "accept-terms"
+  "accept-terms": "accept-terms",
+  "month": "month",
+  "day": "day",
+  "year": "year",
+  "search-place": "Enter the name of the business / bar",
+  "search-surrounding": "Search surrounding"
 }
