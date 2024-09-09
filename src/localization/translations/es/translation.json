@@ -64,5 +64,9 @@
   "day": "Día",
   "year": "Año",
   "search-place": "Ingrese el nombre del negocio / bar",
-  "search-surrounding": "Buscar alrededores"
+  "search-surrounding": "Buscar alrededores",
+  "comments": "Comentarios",
+  "no-comments": "Sin comentarios",
+  "add-comment": "Añadir un comentario...",
+  "send": "Enviar"
 }

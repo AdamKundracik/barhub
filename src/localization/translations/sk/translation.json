@@ -64,5 +64,9 @@
   "day": "Deň",
   "year": "Rok",
   "search-place": "Zadaj názov podniku / baru",
-  "search-surrounding": "Prehľadať okolie"
+  "search-surrounding": "Prehľadať okolie",
+  "comments": "Komentáre",
+  "no-comments": "Žiadne komentáre",
+  "add-comment": "Pridať komentár ...",
+  "send": "Poslať"
 }

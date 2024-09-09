@@ -26,6 +26,7 @@ import { getTimeAgoFromTimestampSeconds } from '../../../../utils/helper-functio
 import Svg, { Path } from 'react-native-svg';
 import useOptimistic from '../../../../utils/helper-functions/useOptimistic';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   postId: string | null;
@@ -34,6 +35,8 @@ type Props = {
 };
 
 const CommentsSlider = (props: Props) => {
+  const { t } = useTranslation(); // Initialize useTranslation
+
   const [newComment, setNewComment] = useState('');
   const [inputHeight, setInputHeight] = useState(40); // Default height for the input field
   const translateY = useRef(new Animated.Value(1000)).current;
@@ -167,7 +170,7 @@ const CommentsSlider = (props: Props) => {
       >
         <Animated.View style={styles.header} {...panResponder.panHandlers}>
           <Text style={{ color: primaryColor }}>{allComments.length}</Text>
-          <Text style={styles.headerText}>Comments</Text>
+          <Text style={styles.headerText}>{t('comments')}</Text>
           <TouchableOpacity onPress={onCancelClick}>
             <FontAwesomeIcon icon={Icons.Remove} size={24} color="#fff" />
           </TouchableOpacity>
@@ -285,7 +288,7 @@ const CommentsSlider = (props: Props) => {
                       fontSize: 18,
                     }}
                   >
-                    No comments
+                    {t('no-comments')}
                   </Text>
                 </View>
               </View>
@@ -296,7 +299,7 @@ const CommentsSlider = (props: Props) => {
         <View style={styles.inputContainer}>
           <TextInput
             style={[styles.input, { height: Math.max(40, inputHeight) }]} // Adjust height dynamically
-            placeholder="Add a comment..."
+            placeholder={t('add-comment')}
             placeholderTextColor="#ccc"
             value={newComment}
             onChangeText={setNewComment}
@@ -309,7 +312,7 @@ const CommentsSlider = (props: Props) => {
             onPress={handleAddComment}
             style={styles.sendButton}
           >
-            <Text style={styles.sendText}>Send</Text>
+            <Text style={styles.sendText}>{t('send')}</Text>
           </TouchableOpacity>
         </View>
       </Animated.View>

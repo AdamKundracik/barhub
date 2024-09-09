@@ -64,5 +64,9 @@
   "day": "Tag",
   "year": "Jahr",
   "search-place": "Geben Sie den Namen des Unternehmens / der Bar ein",
-  "search-surrounding": "Umgebung durchsuchen"
+  "search-surrounding": "Umgebung durchsuchen",
+  "comments": "Kommentare",
+  "no-comments": "Keine Kommentare",
+  "add-comment": "Kommentar hinzufügen..",
+  "send": "Senden"
 }
