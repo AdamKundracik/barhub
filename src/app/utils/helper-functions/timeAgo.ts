@@ -24,7 +24,7 @@ export const timeAgo = (date: string): string => {
   return 'just now';
 };
 
-export const getTimeAgoFromTimestampSeconds = timestampInSeconds => {
+export const getTimeAgoFromTimestampSeconds = (timestampInSeconds: number) => {
   const now = Date.now();
   const timestampInMilliseconds = timestampInSeconds * 1000;
   const differenceInMilliseconds = now - timestampInMilliseconds;

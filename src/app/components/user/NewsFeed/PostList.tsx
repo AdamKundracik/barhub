@@ -5,6 +5,7 @@ import { Post, User } from '../../../../../shared';
 import { PlacePrediction } from '../../../utils/types/types';
 import UserPost from './Post/UserPost';
 import Ad from '../Ad';
+import { useUserContext } from '../../../providers/UserProvider';
 
 interface PostsListProps {
   posts: Post[];
@@ -18,9 +19,10 @@ interface PostsListProps {
   onRefresh: () => void;
   loading: boolean;
   isFiltering: boolean;
+  onCommentPress: (postId: string) => void;
 }
 
-const PostsList: React.FC<PostsListProps> = ({
+const PostsList = ({
   posts,
   zoomedPost,
   setZoomedPost,
@@ -32,7 +34,10 @@ const PostsList: React.FC<PostsListProps> = ({
   onRefresh,
   loading,
   isFiltering,
-}) => {
+  onCommentPress,
+}: PostsListProps) => {
+  const { users } = useUserContext();
+
   const renderPostItem = ({ item, index }: { item: Post; index: number }) => (
     <View
       key={item.id} // Use `id` if available to avoid index-based keys.
@@ -42,6 +47,8 @@ const PostsList: React.FC<PostsListProps> = ({
       }}
     >
       <UserPost
+        user={users?.find(user => user.uid === item.user_id)}
+        onCommentPress={postId => onCommentPress(postId)}
         isFiltering={isFiltering}
         hasPremium={
           (userData?.premium || numberOfDaysSinceLastPostedPhoto <= 7) ?? false

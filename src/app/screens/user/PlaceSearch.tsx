@@ -38,8 +38,8 @@ export const PlaceSearch = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const [place, setPlace] = useState<PlacePrediction>();
   const { t } = useTranslation();
-  const translateY = useRef(new Animated.Value(1000)).current; // Start position off-screen
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const translateY = useRef(new Animated.Value(1000)).current; // Start position is off-screen
 
   function onCancelClick() {
     navigation.goBack();

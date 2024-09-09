@@ -1,12 +1,4 @@
-import {
-  Dimensions,
-  Image,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Dimensions, StyleSheet, View } from 'react-native';
 import Device from 'react-native-device-info'; // Import Device
 import Animated, {
   useAnimatedStyle,
@@ -14,12 +6,10 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { Post } from '../../../../../../shared';
+import { Post, User } from '../../../../../../shared';
 import { useEffect, useState } from 'react';
 import {
-  addCommentToPost,
   checkLikeStatus,
-  fetchCommentsForPost,
   toggleLike,
 } from '../../../../utils/services/functions';
 import { auth } from '../../../../../../firebaseConfig';
@@ -28,7 +18,6 @@ import PlaceNameSeparator from './PlaceNameSeparator';
 import { postBgColor, primaryBgColor } from '../../../../utils/styles/colors';
 import UserLine from './UserLine';
 import InteractionBar from './InteractionBar';
-import { getTimeAgoFromTimestampSeconds } from '../../../../utils/helper-functions/timeAgo';
 import { useTranslation } from 'react-i18next';
 
 interface PostInterface {
@@ -37,16 +26,9 @@ interface PostInterface {
   isZoomed: boolean;
   hasPremium: boolean;
   isFiltering: boolean;
+  user: User | undefined;
+  onCommentPress: (postId: string) => void;
 }
-
-type ItemProps = {
-  userName: string;
-  commentText: string;
-  creationTime: any;
-  id: string;
-  userId: string;
-  userPhotoUrl: string;
-};
 
 const isTablet = Device.isTablet();
 
@@ -54,7 +36,6 @@ const width = Dimensions.get('window').width;
 
 export const UserPost = (props: PostInterface) => {
   const { post, setZoomedPost, isZoomed } = props;
-  const { t } = useTranslation();
 
   const focalX = useSharedValue(0);
   const focalY = useSharedValue(0);
@@ -63,9 +44,6 @@ export const UserPost = (props: PostInterface) => {
   const scale = useSharedValue(1);
 
   const [likeStatus, setLikeStatus] = useState<boolean>(false);
-  const [showComments, setShowComments] = useState<boolean>(false);
-  const [comments, setComments] = useState<ItemProps[]>([]);
-  const [newComment, setNewComment] = useState('');
 
   useEffect(() => {
     if (auth.currentUser?.uid) {
@@ -74,17 +52,6 @@ export const UserPost = (props: PostInterface) => {
       );
     }
   }, [auth.currentUser?.uid, post.id]);
-
-  useEffect(() => {
-    const loadComments = async () => {
-      const fetchedComments = await fetchCommentsForPost(post.id);
-      setComments(fetchedComments);
-    };
-
-    if (showComments) {
-      loadComments();
-    }
-  }, [showComments]);
 
   const handleLikeToggle = async () => {
     if (auth.currentUser?.uid) {
@@ -140,26 +107,6 @@ export const UserPost = (props: PostInterface) => {
     };
   });
 
-  const handleAddComment = async () => {
-    if (
-      newComment &&
-      auth.currentUser?.displayName &&
-      auth.currentUser.photoURL
-    ) {
-      await addCommentToPost(
-        post.id,
-        auth.currentUser?.uid!,
-        auth.currentUser?.displayName,
-        auth.currentUser?.photoURL,
-        newComment.trim()
-      );
-      setNewComment('');
-
-      const updatedComments = await fetchCommentsForPost(post.id);
-      setComments(updatedComments);
-    }
-  };
-
   return (
     <>
       {!props.isFiltering && (
@@ -176,7 +123,7 @@ export const UserPost = (props: PostInterface) => {
         }
       >
         <UserLine
-          name={post.name}
+          user={props.user}
           date={new Date(post.creationTime).toLocaleString()}
           address={post.placeAddress}
           profileImage={post.userImageUrl}
@@ -202,75 +149,10 @@ export const UserPost = (props: PostInterface) => {
           likes={post.likesCount}
           comments={post.commentsCount}
           onLikeToggle={handleLikeToggle}
-          onCommentToggle={handleAddComment}
+          onCommentToggle={() => props.onCommentPress(props.post.id)}
           isLiked={likeStatus}
         />
       </View>
-
-      <View style={isTablet ? tabletStyles.commentsList : styles.commentsList}>
-        {comments.map((comment, index) => (
-          <View
-            key={index}
-            style={isTablet ? tabletStyles.commentItem : styles.commentItem}
-          >
-            <View
-              style={isTablet ? tabletStyles.profileImg : styles.profileImg}
-            >
-              <Image
-                style={
-                  isTablet ? tabletStyles.profilePicture : styles.profilePicture
-                }
-                height={32}
-                width={32}
-                source={
-                  comment?.userPhotoUrl
-                    ? { uri: comment?.userPhotoUrl }
-                    : require('../../../../../../assets/userIcon.png')
-                }
-              ></Image>
-            </View>
-            <View
-              style={
-                isTablet ? tabletStyles.commentContent : styles.commentContent
-              }
-            >
-              <Text
-                style={isTablet ? tabletStyles.commentBy : styles.commentBy}
-              >
-                {comment.userName}{' '}
-                {getTimeAgoFromTimestampSeconds(comment.creationTime._seconds)}
-              </Text>
-              <Text
-                style={isTablet ? tabletStyles.commentText : styles.commentText}
-              >
-                {comment.commentText}
-              </Text>
-            </View>
-          </View>
-        ))}
-      </View>
-      {showComments && (
-        <View
-          style={isTablet ? tabletStyles.inputContainer : styles.inputContainer}
-        >
-          <TextInput
-            style={isTablet ? tabletStyles.input : styles.input}
-            value={newComment}
-            onChangeText={setNewComment}
-            placeholder="Add a comment..."
-          />
-          <TouchableOpacity
-            onPress={handleAddComment}
-            style={isTablet ? tabletStyles.button : styles.button}
-          >
-            <Text
-              style={isTablet ? tabletStyles.buttonText : styles.buttonText}
-            >
-              {t('save')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
     </>
   );
 };

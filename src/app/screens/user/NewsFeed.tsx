@@ -15,7 +15,7 @@ import {
 } from '../../utils/helper-functions/posts-functions';
 import { getDaysSince } from '../../utils/helper-functions/getDaysSince';
 import { PlaceDetailsResponse, PlacePrediction } from '../../utils/types/types';
-import { Post } from '../../../../shared';
+import { CommentProps, Post } from '../../../../shared';
 import NotificationHandler from '../../components/user/NewsFeed/NotificationHandler';
 import LoadingIndicator from '../../components/user/NewsFeed/LoadingIndicator';
 import PostsList from '../../components/user/NewsFeed/PostList';
@@ -24,6 +24,13 @@ import { fetchPlaceDetails } from '../../utils/helper-functions/fetchPlaceDetail
 import { sendNotificationHandler } from '../../utils/helper-functions/sendNotificationHandler';
 import { sendPushNotification } from '../../utils/services/notofications-handler';
 import FeedHeader from '../../components/user/NewsFeed/FeedHeader';
+import CommentsSlider from '../../components/user/NewsFeed/Post/CommentsSlider';
+import {
+  addCommentToPost,
+  fetchCommentsForPost,
+} from '../../utils/services/functions';
+import commentsSlider from '../../components/user/NewsFeed/Post/CommentsSlider';
+import { auth } from '../../../../firebaseConfig';
 
 export const NewsFeed: React.FC = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
@@ -37,8 +44,10 @@ export const NewsFeed: React.FC = () => {
   const [place, setPlace] = useState<PlacePrediction | null>(null);
   const [searching, setSearching] = useState<boolean>(false);
   const [lastVisible, setLastVisible] = useState<string | null>(null);
-
+  const [showComments, setShowComments] = useState(false);
   const routeParams = route.params as { selectedPlace?: PlacePrediction }; // Define route params
+  const [comments, setComments] = useState<CommentProps[]>([]);
+  const [postId, setPostId] = useState<string | null>(null);
 
   useEffect(() => {
     if (routeParams?.selectedPlace) {
@@ -124,6 +133,11 @@ export const NewsFeed: React.FC = () => {
     }
   }
 
+  async function toggleComments(postId: string) {
+    setPostId(postId);
+    setShowComments(true);
+  }
+
   return (
     <Layout pageTitle="Feed">
       <FeedHeader place={place} setPlace={setPlace} />
@@ -132,6 +146,7 @@ export const NewsFeed: React.FC = () => {
         <LoadingIndicator />
       ) : posts.length ? (
         <PostsList
+          onCommentPress={postId => toggleComments(postId)}
           isFiltering={!!place}
           posts={posts}
           zoomedPost={zoomedPost}
@@ -146,6 +161,12 @@ export const NewsFeed: React.FC = () => {
         />
       ) : (
         <EmptyState requestPhoto={requestPhoto} />
+      )}
+      {showComments && (
+        <CommentsSlider
+          postId={postId}
+          closeComments={() => setShowComments(false)}
+        />
       )}
     </Layout>
   );

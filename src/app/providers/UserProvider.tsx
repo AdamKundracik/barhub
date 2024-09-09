@@ -6,7 +6,11 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { getCurrentUser, setUser } from '../utils/services/functions';
+import {
+  getAllExistingUsers,
+  getCurrentUser,
+  setUser,
+} from '../utils/services/functions';
 import { auth } from '../../../firebaseConfig';
 import { User } from '../../../shared';
 import { LocationType } from '../utils/types/types';
@@ -25,6 +29,7 @@ type ContextProps = {
   isLoading: boolean;
   emailVerified: boolean;
   fetchUserData: () => Promise<void>;
+  users: User[] | undefined;
 };
 
 interface Props {
@@ -46,6 +51,7 @@ export const UserProvider = (props: Props) => {
   const [emailVerified, setEmailVerified] = useState<boolean>(false);
   const [authUser, setAuthUser] = useState<null | boolean>(null);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+  const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
     onAuthStateChanged(auth, u => {
@@ -101,8 +107,8 @@ export const UserProvider = (props: Props) => {
       desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
       distanceFilter: 50,
       stopTimeout: 5,
-      debug: true,
-      logLevel: BackgroundGeolocation.LOG_LEVEL_DEBUG,
+      debug: false,
+      logLevel: BackgroundGeolocation.LOG_LEVEL_OFF,
       stopOnTerminate: false,
       startOnBoot: true,
       showsBackgroundLocationIndicator: true,
@@ -139,6 +145,14 @@ export const UserProvider = (props: Props) => {
     setIsLoading(false);
   };
 
+  useEffect(() => {
+    async function getUsers() {
+      const allUsers = await getAllExistingUsers();
+      setUsers(allUsers.data?.users ?? []);
+    }
+    getUsers();
+  }, [auth.currentUser?.uid]);
+
   async function getLocation(): Promise<void> {
     try {
       const coords: LocationType = await getCoords();
@@ -161,6 +175,7 @@ export const UserProvider = (props: Props) => {
       isLoadingAuth,
       emailVerified,
       fetchUserData,
+      users,
     };
   }, [
     userData,
@@ -171,6 +186,7 @@ export const UserProvider = (props: Props) => {
     isLoadingAuth,
     emailVerified,
     fetchUserData,
+    users,
   ]);
 
   return (
