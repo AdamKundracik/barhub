@@ -15,7 +15,7 @@ import {
 } from '../../utils/helper-functions/posts-functions';
 import { getDaysSince } from '../../utils/helper-functions/getDaysSince';
 import { PlaceDetailsResponse, PlacePrediction } from '../../utils/types/types';
-import { CommentProps, Post } from '../../../../shared';
+import { Post } from '../../../../shared';
 import NotificationHandler from '../../components/user/NewsFeed/NotificationHandler';
 import LoadingIndicator from '../../components/user/NewsFeed/LoadingIndicator';
 import PostsList from '../../components/user/NewsFeed/PostList';
@@ -25,12 +25,6 @@ import { sendNotificationHandler } from '../../utils/helper-functions/sendNotifi
 import { sendPushNotification } from '../../utils/services/notofications-handler';
 import FeedHeader from '../../components/user/NewsFeed/FeedHeader';
 import CommentsSlider from '../../components/user/NewsFeed/Post/CommentsSlider';
-import {
-  addCommentToPost,
-  fetchCommentsForPost,
-} from '../../utils/services/functions';
-import commentsSlider from '../../components/user/NewsFeed/Post/CommentsSlider';
-import { auth } from '../../../../firebaseConfig';
 
 export const NewsFeed: React.FC = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
@@ -42,12 +36,11 @@ export const NewsFeed: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [zoomedPost, setZoomedPost] = useState<string | null>(null);
   const [place, setPlace] = useState<PlacePrediction | null>(null);
-  const [searching, setSearching] = useState<boolean>(false);
   const [lastVisible, setLastVisible] = useState<string | null>(null);
   const [showComments, setShowComments] = useState(false);
   const routeParams = route.params as { selectedPlace?: PlacePrediction }; // Define route params
-  const [comments, setComments] = useState<CommentProps[]>([]);
   const [postId, setPostId] = useState<string | null>(null);
+  const { users } = useUserContext();
 
   useEffect(() => {
     if (routeParams?.selectedPlace) {
@@ -164,6 +157,7 @@ export const NewsFeed: React.FC = () => {
       )}
       {showComments && (
         <CommentsSlider
+          users={users}
           postId={postId}
           closeComments={() => setShowComments(false)}
         />
