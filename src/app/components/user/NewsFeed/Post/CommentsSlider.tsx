@@ -5,9 +5,7 @@ import {
   Easing,
   FlatList,
   Image,
-  KeyboardAvoidingView,
   PanResponder,
-  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -27,6 +25,7 @@ import { auth } from '../../../../../../firebaseConfig';
 import { getTimeAgoFromTimestampSeconds } from '../../../../utils/helper-functions/timeAgo';
 import Svg, { Path } from 'react-native-svg';
 import useOptimistic from '../../../../utils/helper-functions/useOptimistic';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
 
 type Props = {
   postId: string | null;
@@ -36,31 +35,28 @@ type Props = {
 
 const CommentsSlider = (props: Props) => {
   const [newComment, setNewComment] = useState('');
+  const [inputHeight, setInputHeight] = useState(40); // Default height for the input field
   const translateY = useRef(new Animated.Value(1000)).current;
   const [areCommentsLoading, setAreCommentsLoading] = useState(false);
   const [allComments, setAllComments] = useState<CommentProps[]>([]);
 
-  // Optimistic update logic
   const {
-    data: comments, // Holds the actual comments
-    pendingData, // Pending optimistic updates
+    data: comments,
+    pendingData,
     optimisticUpdate,
-  } = useOptimistic<CommentProps[]>(
-    async (newComments: CommentProps[]) => {
-      const lastComment = newComments[newComments.length - 1];
-      await addCommentToPost(
-        props.postId ?? '',
-        lastComment.userId,
-        lastComment.userName,
-        lastComment.userPhotoUrl,
-        lastComment.commentText
-      );
+  } = useOptimistic<CommentProps[]>(async (newComments: CommentProps[]) => {
+    const lastComment = newComments[newComments.length - 1];
+    await addCommentToPost(
+      props.postId ?? '',
+      lastComment.userId,
+      lastComment.userName,
+      lastComment.userPhotoUrl,
+      lastComment.commentText
+    );
 
-      const updatedComments = await fetchCommentsForPost(props.postId ?? '');
-      return updatedComments;
-    },
-    [] // Initial empty comment list
-  );
+    const updatedComments = await fetchCommentsForPost(props.postId ?? '');
+    return updatedComments;
+  }, []);
 
   useEffect(() => {
     Animated.timing(translateY, {
@@ -99,7 +95,6 @@ const CommentsSlider = (props: Props) => {
     })
   ).current;
 
-  // Optimistic comment handling
   const handleAddComment = () => {
     if (
       newComment &&
@@ -116,8 +111,19 @@ const CommentsSlider = (props: Props) => {
         creationTime: { _seconds: Math.floor(Date.now() / 1000) },
       };
 
-      optimisticUpdate([...comments, optimisticComment]); // Optimistically update the comments list
+      optimisticUpdate([...comments, optimisticComment]);
       setNewComment('');
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      //PREPARED FOR NEXT USAGE
+      // await deleteCommentFromPost(props.postId ?? '', commentId);
+      // const updatedComments = await fetchCommentsForPost(props.postId ?? '');
+      // optimisticUpdate(updatedComments);
+    } catch (error) {
+      console.error('Error deleting comment:', error);
     }
   };
 
@@ -128,7 +134,7 @@ const CommentsSlider = (props: Props) => {
       setAreCommentsLoading(true);
       try {
         const fetchedComments = await fetchCommentsForPost(props.postId);
-        setAllComments(fetchedComments); // Update the state directly with fetched comments
+        setAllComments(fetchedComments);
       } catch (e) {
         console.error(e);
       } finally {
@@ -230,6 +236,7 @@ const CommentsSlider = (props: Props) => {
                         alignItems: 'flex-end',
                         justifyContent: 'center',
                         marginLeft: 30,
+                        flexDirection: 'row',
                       }}
                     >
                       <Text
@@ -242,6 +249,18 @@ const CommentsSlider = (props: Props) => {
                           item.creationTime._seconds
                         )}
                       </Text>
+                      {item.userId === auth.currentUser?.uid && (
+                        <TouchableOpacity
+                          onPress={() => handleDeleteComment(item.id)}
+                          style={styles.trashButton}
+                        >
+                          <FontAwesomeIcon
+                            icon={faTrash}
+                            size={16}
+                            color="#fff"
+                          />
+                        </TouchableOpacity>
+                      )}
                     </View>
                   </View>
                 )}
@@ -276,11 +295,15 @@ const CommentsSlider = (props: Props) => {
 
         <View style={styles.inputContainer}>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { height: Math.max(40, inputHeight) }]} // Adjust height dynamically
             placeholder="Add a comment..."
             placeholderTextColor="#ccc"
             value={newComment}
             onChangeText={setNewComment}
+            onContentSizeChange={event => {
+              setInputHeight(event.nativeEvent.contentSize.height);
+            }}
+            multiline
           />
           <TouchableOpacity
             onPress={handleAddComment}
@@ -323,7 +346,7 @@ const styles = StyleSheet.create({
   commentItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center', // Center items vertically
+    alignItems: 'center',
     paddingVertical: 10,
     paddingHorizontal: 15,
   },
@@ -337,12 +360,13 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   commentBy: {
+    fontWeight: 'bold',
     color: '#fff',
     fontSize: 12,
   },
   commentText: {
     color: '#ccc',
-    fontSize: 14,
+    fontSize: 16,
   },
   commentTime: {
     color: '#999',
@@ -357,15 +381,16 @@ const styles = StyleSheet.create({
     borderTopColor: '#444',
   },
   image: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    marginRight: 20,
   },
   input: {
     flex: 1,
     borderColor: '#444',
     borderWidth: 1,
-    borderRadius: 30, // More rounded input field
+    borderRadius: 30,
     paddingHorizontal: 20,
     paddingVertical: 12,
     marginRight: 10,
@@ -380,6 +405,9 @@ const styles = StyleSheet.create({
   sendText: {
     color: '#000',
     fontWeight: 'bold',
+  },
+  trashButton: {
+    marginLeft: 10,
   },
 });
 
