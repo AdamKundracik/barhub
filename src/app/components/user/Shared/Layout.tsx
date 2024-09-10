@@ -25,6 +25,7 @@ import {
 import { UserStackList } from '../../../utils/types/screen-types';
 import { openCamera } from '../../../utils/helper-functions/openCamera';
 import { useUploadingStateManagement } from '../../../utils/hooks/useUploadingStateManagement';
+import { auth } from '../../../../../firebaseConfig';
 
 type LayoutProps = {
   children: ReactNode | ReactNode[];
@@ -84,7 +85,7 @@ export const Layout = ({ children }: LayoutProps) => {
               userData!,
               setUploadingState,
               null,
-              '',
+              auth.currentUser?.uid,
               navigation
             );
           }}

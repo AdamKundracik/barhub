@@ -258,7 +258,7 @@ const CommentsSlider = (props: Props) => {
                           style={styles.trashButton}
                         >
                           <FontAwesomeIcon
-                            icon={faTrash}
+                            icon={Icons.Remove}
                             size={16}
                             color="#fff"
                           />

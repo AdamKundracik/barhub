@@ -114,7 +114,7 @@ export const PlaceDetail = memo(
               onClose();
               navigation.navigate('Feed');
             });
-            setUser({ lastUploadedPost: new Date() });
+            setUser({ lastUploadedPost: new Date().toISOString() });
           }
         } else {
           Alert.alert(

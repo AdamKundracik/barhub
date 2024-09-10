@@ -27,7 +27,7 @@ export interface User extends UserRecord {
   dateOfBirth: string;
   location: LocationType;
   pushToken: string;
-  lastUploadedPost: Date;
+  lastUploadedPost: string;
   premium: boolean;
   acceptTermsOfUse: boolean;
 }

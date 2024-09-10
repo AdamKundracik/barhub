@@ -69,5 +69,8 @@
   "no-comments": "Keine Kommentare",
   "add-comment": "Kommentar hinzufügen..",
   "send": "Senden",
-  "older-photo-info": "Das Foto von diesem Ort ist älter als 3 Stunden."
+  "older-photo-info": "Das Foto von diesem Ort ist älter als 3 Stunden.",
+  "take-photo": "Foto machen",
+  "no-acitivity": "Längere Inaktivität des Kontos.",
+  "no-acitivity-info": "Um Fotos anzuzeigen, müssen Sie ein aktuelles Foto von einem Ort beisteuern."
 }

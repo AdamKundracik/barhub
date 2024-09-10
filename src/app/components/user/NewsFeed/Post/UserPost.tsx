@@ -1,4 +1,4 @@
-import { Dimensions, StyleSheet, View } from 'react-native';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import Device from 'react-native-device-info'; // Import Device
 import Animated, {
   useAnimatedStyle,
@@ -15,10 +15,25 @@ import {
 import { auth } from '../../../../../../firebaseConfig';
 import useDebounce from '../../../../utils/hooks/useDebounce';
 import PlaceNameSeparator from './PlaceNameSeparator';
-import { postBgColor, primaryBgColor } from '../../../../utils/styles/colors';
+import {
+  iconInactiveColor,
+  postBgColor,
+  primaryBgColor,
+  primaryColor,
+} from '../../../../utils/styles/colors';
 import UserLine from './UserLine';
 import InteractionBar from './InteractionBar';
 import { useTranslation } from 'react-i18next';
+import { BlurView } from 'expo-blur';
+import Svg, { Path } from 'react-native-svg';
+import Button from '../../../shared/Button';
+import { openCamera } from '../../../../utils/helper-functions/openCamera';
+import { useUserContext } from '../../../../providers/UserProvider';
+import { useUploadingStateManagement } from '../../../../utils/hooks/useUploadingStateManagement';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { UserStackList } from '../../../../utils/types/screen-types';
+import BluredPostFrontView from './BluredPostFrontView';
+import { daysPassedSince } from '../../../../utils/helper-functions/daysPassedSince';
 
 interface PostInterface {
   post: Post;
@@ -28,6 +43,7 @@ interface PostInterface {
   isFiltering: boolean;
   user: User | undefined;
   onCommentPress: (postId: string) => void;
+  requestPhoto: () => void;
 }
 
 const isTablet = Device.isTablet();
@@ -36,6 +52,7 @@ const width = Dimensions.get('window').width;
 
 export const UserPost = (props: PostInterface) => {
   const { post, setZoomedPost, isZoomed } = props;
+  const { t } = useTranslation();
 
   const focalX = useSharedValue(0);
   const focalY = useSharedValue(0);
@@ -117,22 +134,26 @@ export const UserPost = (props: PostInterface) => {
           />
         </View>
       )}
+
       <View
         style={
           isTablet ? tabletStyles.contentContainer : styles.contentContainer
         }
       >
+        {!props.hasPremium ||
+          (daysPassedSince(
+            props.user?.lastUploadedPost ?? new Date().toISOString()
+          ) < 7 && <BluredPostFrontView />)}
         <UserLine
           user={props.user}
           date={new Date(post.creationTime).toLocaleString()}
           address={post.placeAddress}
           profileImage={post.userImageUrl}
         />
-        <View style={{ height: width }}>
+        <View style={{ height: width, position: 'relative' }}>
           <GestureDetector gesture={doubleTap}>
             <GestureDetector gesture={pinch}>
               <Animated.Image
-                blurRadius={!props.hasPremium ? 50 : 0}
                 style={[
                   isTablet ? tabletStyles.photo : styles.photo,
                   animatedStyle,
@@ -192,7 +213,7 @@ const styles = StyleSheet.create({
     flex: 10,
     width: '100%',
     height: width,
-    zIndex: 1000,
+    zIndex: 10,
   },
   photoActions: {
     flexDirection: 'row',

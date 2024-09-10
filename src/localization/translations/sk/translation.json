@@ -69,5 +69,8 @@
   "no-comments": "Žiadne komentáre",
   "add-comment": "Pridať komentár ...",
   "send": "Poslať",
-  "older-photo-info": "Fotografia z tohto miesta je staršia ako 3 hodiny."
+  "older-photo-info": "Fotografia z tohto miesta je staršia ako 3 hodiny.",
+  "take-photo": "Odfotiť",
+  "no-acitivity": "Dlhšia neaktivia účtu",
+  "no-acitivity-info": "Pre zobrazenie fotografií musíte prispieť aktuálnou fotografiou z nejakého miesta"
 }

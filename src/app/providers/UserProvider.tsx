@@ -139,7 +139,6 @@ export const UserProvider = (props: Props) => {
     const uid = auth.currentUser?.uid;
     if (uid) {
       const user = await getCurrentUser();
-      if (user.data) setUserToStore.mutateAsync(user.data);
       setUserData(user.data);
     }
     setIsLoading(false);
