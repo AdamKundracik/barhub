@@ -25,7 +25,6 @@ import { auth } from '../../../../../../firebaseConfig';
 import { getTimeAgoFromTimestampSeconds } from '../../../../utils/helper-functions/timeAgo';
 import Svg, { Path } from 'react-native-svg';
 import useOptimistic from '../../../../utils/helper-functions/useOptimistic';
-import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { useTranslation } from 'react-i18next';
 
 type Props = {

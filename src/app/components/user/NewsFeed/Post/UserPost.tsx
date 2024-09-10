@@ -1,4 +1,4 @@
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, StyleSheet, View } from 'react-native';
 import Device from 'react-native-device-info'; // Import Device
 import Animated, {
   useAnimatedStyle,
@@ -15,23 +15,10 @@ import {
 import { auth } from '../../../../../../firebaseConfig';
 import useDebounce from '../../../../utils/hooks/useDebounce';
 import PlaceNameSeparator from './PlaceNameSeparator';
-import {
-  iconInactiveColor,
-  postBgColor,
-  primaryBgColor,
-  primaryColor,
-} from '../../../../utils/styles/colors';
+import { postBgColor, primaryBgColor } from '../../../../utils/styles/colors';
 import UserLine from './UserLine';
 import InteractionBar from './InteractionBar';
 import { useTranslation } from 'react-i18next';
-import { BlurView } from 'expo-blur';
-import Svg, { Path } from 'react-native-svg';
-import Button from '../../../shared/Button';
-import { openCamera } from '../../../../utils/helper-functions/openCamera';
-import { useUserContext } from '../../../../providers/UserProvider';
-import { useUploadingStateManagement } from '../../../../utils/hooks/useUploadingStateManagement';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { UserStackList } from '../../../../utils/types/screen-types';
 import BluredPostFrontView from './BluredPostFrontView';
 import { daysPassedSince } from '../../../../utils/helper-functions/daysPassedSince';
 

@@ -2,7 +2,6 @@ import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import {
   iconInactiveColor,
   primaryBgColor,
-  primaryColor,
   warningColor,
 } from '../../../../utils/styles/colors';
 import Svg, { Path } from 'react-native-svg';
