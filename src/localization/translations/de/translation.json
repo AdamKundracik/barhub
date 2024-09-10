@@ -68,5 +68,6 @@
   "comments": "Kommentare",
   "no-comments": "Keine Kommentare",
   "add-comment": "Kommentar hinzufügen..",
-  "send": "Senden"
+  "send": "Senden",
+  "older-photo-info": "Das Foto von diesem Ort ist älter als 3 Stunden."
 }
