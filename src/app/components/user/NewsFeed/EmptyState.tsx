@@ -7,13 +7,25 @@ import {
   secondaryTextColor,
 } from '../../../utils/styles/colors';
 import RequestPhotoButton from './RequestPhotoButton';
+import { PlacePrediction } from '../../../utils/types/types';
 
 interface EmptyStateProps {
   requestPhoto: () => void;
+  place: PlacePrediction | null;
 }
 
 const EmptyState = (props: EmptyStateProps) => {
   const { t } = useTranslation();
+
+  if (!props.place) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.card}>
+          <Text style={styles.infoText}>{t('no-feed-photos')}</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -43,7 +55,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
     color: secondaryTextColor,
-    marginBottom: 16, // Adjust as needed
   },
   infoText2: {
     textAlign: 'center',

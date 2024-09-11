@@ -36,7 +36,6 @@ export const Layout = ({ children }: LayoutProps) => {
   const { userData } = useUserContext();
   const { setUploadingState } = useUploadingStateManagement();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
-  const [selectedTab, setSelectedTab] = useState<TabsTypes | null>(null);
   const route = useRoute();
 
   const handleTabPress = (tab: TabsTypes) => {

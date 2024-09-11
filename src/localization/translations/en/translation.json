@@ -72,5 +72,6 @@
   "older-photo-info": "The photo from this place is older than 3 hours.",
   "take-photo": "Take photo",
   "no-acitivity": "To view the photos, you must contribute a current photo from a location.",
-  "no-acitivity-info": "Longer account inactivity"
+  "no-acitivity-info": "Longer account inactivity",
+  "no-feed-photos": "There are no posts yet."
 }

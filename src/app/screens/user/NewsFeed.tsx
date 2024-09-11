@@ -153,7 +153,7 @@ export const NewsFeed: React.FC = () => {
           loading={loading}
         />
       ) : (
-        <EmptyState requestPhoto={requestPhoto} />
+        <EmptyState place={place} requestPhoto={requestPhoto} />
       )}
       {showComments && (
         <CommentsSlider
