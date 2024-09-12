@@ -45,8 +45,6 @@ export const UserProvider = (props: Props) => {
     latitude: 0,
     longitude: 0,
   });
-  const [initializing, setInitializing] = useState(true);
-  const { setUserToStore } = useUserManagement();
 
   const [emailVerified, setEmailVerified] = useState<boolean>(false);
   const [authUser, setAuthUser] = useState<null | boolean>(null);
@@ -63,50 +61,46 @@ export const UserProvider = (props: Props) => {
   }, [auth]);
 
   useEffect(() => {
-    if (AppState.currentState === 'active') {
-      getLocation();
-    }
-
-    async function setUserIntoDB(location: LocationType) {
-      await setUser({ location: location });
-    }
+    const setUserIntoDB = async (location: LocationType) => {
+      await setUser({ location });
+    };
 
     const onLocation = BackgroundGeolocation.onLocation(async location => {
       const currentLocation: LocationType = {
         latitude: location.coords?.latitude,
         longitude: location.coords?.longitude,
       };
+
+      // Set location to DB if speed is low (still) or after moving 50 meters
       if (location.coords.speed && location.coords.speed <= 4) {
         setLocation(currentLocation);
-        await setUser({ location: currentLocation });
+        await setUserIntoDB(currentLocation); // User is still, set location immediately
       }
     });
 
     const onActivityChange = BackgroundGeolocation.onActivityChange(event => {
       if (event.activity === 'in_vehicle') {
-        BackgroundGeolocation.stop();
+        BackgroundGeolocation.stop(); // Stops tracking if user is in vehicle
       } else {
-        BackgroundGeolocation.start();
+        BackgroundGeolocation.start(); // Start tracking in other modes
       }
     });
 
     const onMotionChange = BackgroundGeolocation.onMotionChange(async event => {
-      if (event.location.activity.type === 'still') {
-        console.log('still');
-        setLocation(event.location.coords);
-        await setUser({
-          location: {
-            latitude: event.location.coords.latitude,
-            longitude: event.location.coords.longitude,
-          },
-        });
+      const { latitude, longitude } = event.location.coords;
+      const currentLocation: LocationType = { latitude, longitude };
+
+      if (!event.isMoving) {
+        // User has stopped moving, update location immediately
+        setLocation(currentLocation);
+        await setUserIntoDB(currentLocation);
       }
     });
 
     BackgroundGeolocation.ready({
       desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
-      distanceFilter: 50,
-      stopTimeout: 5,
+      distanceFilter: 50, // Update location every 50 meters when moving
+      stopTimeout: 5, // Time (minutes) to stop after user becomes stationary
       debug: false,
       logLevel: BackgroundGeolocation.LOG_LEVEL_OFF,
       stopOnTerminate: false,
@@ -114,7 +108,7 @@ export const UserProvider = (props: Props) => {
       showsBackgroundLocationIndicator: true,
     }).then(state => {
       console.log(
-        '- BackgroundGeolocation is configured and ready: ',
+        '- BackgroundGeolocation is configured and ready:',
         state.enabled
       );
     });
@@ -125,6 +119,12 @@ export const UserProvider = (props: Props) => {
       onMotionChange.remove();
     };
   }, []);
+
+  useEffect(() => {
+    if (AppState.currentState === 'active') {
+      getLocation();
+    }
+  }, [AppState.currentState]);
 
   useEffect(() => {
     BackgroundGeolocation.start();

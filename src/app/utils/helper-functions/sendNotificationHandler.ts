@@ -34,8 +34,7 @@ export const sendNotificationHandler = async (
             placeLocation?.longitude // Correct the last parameter to placeLocation.longitude
           )
         );
-
-        if (distanceResp < 20) {
+        if (distanceResp < 25) {
           tokens.push(user.pushToken);
         }
       });

@@ -54,7 +54,9 @@ export const NewsFeed: React.FC = () => {
   ] = useState(0);
 
   useEffect(() => {
-    const numberOfDays = getDaysSince(userData?.lastUploadedPost ?? new Date());
+    const numberOfDays = getDaysSince(
+      userData?.lastUploadedPost ?? new Date().toISOString()
+    );
     setNumberOfDaysSinceLastPostedPhoto(numberOfDays);
   }, [userData]);
 

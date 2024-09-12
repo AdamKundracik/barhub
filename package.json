@@ -62,7 +62,6 @@
     "react-native": "0.74.3",
     "react-native-background-fetch": "^4.2.5",
     "react-native-background-geolocation": "^4.16.5",
-    "react-native-blur": "^3.2.2",
     "react-native-bouncy-checkbox": "^4.1.2",
     "react-native-camera": "^4.2.1",
     "react-native-device-info": "^11.1.0",

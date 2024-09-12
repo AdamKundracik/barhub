@@ -376,6 +376,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   inputContainer: {
+    position: 'absolute',
+    bottom: 0,
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 15,

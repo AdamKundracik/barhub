@@ -39,7 +39,7 @@ async function saveImageFromCamera(
       sendPushNotificationResponse(senderToken, placeId).then();
     });
     await setUser({
-      lastUploadedPost: new Date(),
+      lastUploadedPost: new Date().toISOString(),
     });
   }
 }
