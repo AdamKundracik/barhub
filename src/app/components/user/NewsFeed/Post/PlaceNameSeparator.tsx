@@ -2,8 +2,6 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { iconInactiveColor } from '../../../../utils/styles/colors';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../../utils/types/screen-types';
-import { fetchPlaceDetails } from '../../../../utils/helper-functions/fetchPlaceDetail';
-import { mapPlaceDetailToPlacePrediction } from '../../../../utils/helper-functions/mapPlaceToPlacePrediction';
 
 type Props = {
   placeName: string;
@@ -42,12 +40,13 @@ const styles = StyleSheet.create({
     borderBottomColor: iconInactiveColor,
     borderBottomWidth: 1,
     flex: 1,
-    marginHorizontal: 10,
+    paddingHorizontal: 10,
   },
   text: {
     fontSize: 24,
     color: iconInactiveColor,
     textAlign: 'center',
+    marginHorizontal: 15,
   },
 });
 

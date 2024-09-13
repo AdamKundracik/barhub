@@ -14,7 +14,11 @@ import {
   handlePlacePosts,
 } from '../../utils/helper-functions/posts-functions';
 import { getDaysSince } from '../../utils/helper-functions/getDaysSince';
-import { PlaceDetailsResponse, PlacePrediction } from '../../utils/types/types';
+import {
+  Place,
+  PlaceDetailsResponse,
+  PlacePrediction,
+} from '../../utils/types/types';
 import NotificationHandler from '../../components/user/NewsFeed/NotificationHandler';
 import LoadingIndicator from '../../components/user/NewsFeed/LoadingIndicator';
 import PostsList from '../../components/user/NewsFeed/PostList';
@@ -41,6 +45,9 @@ export const NewsFeed: React.FC = () => {
   const [postId, setPostId] = useState<string | null>(null);
   const { users } = useUserContext();
   const { t } = useTranslation();
+  const [placeDetial, setPlaceDetial] = useState<PlaceDetailsResponse | null>(
+    null
+  );
 
   // Set up state for days since the last uploaded post
   const [
@@ -52,8 +59,14 @@ export const NewsFeed: React.FC = () => {
     if (routeParams?.selectedPlaceId && routeParams.selectedPlaceName) {
       setPlaceId(routeParams.selectedPlaceId); // Set the place when passed from PlaceSearch
       setPlaceName(routeParams.selectedPlaceName);
+      fetchPlaceDetail(routeParams.selectedPlaceId);
     }
   }, [routeParams?.selectedPlaceId, routeParams?.selectedPlaceName]);
+
+  async function fetchPlaceDetail(id: string) {
+    const detail: PlaceDetailsResponse = await fetchPlaceDetails(id);
+    setPlaceDetial(detail);
+  }
 
   useEffect(() => {
     const numberOfDays = getDaysSince(
@@ -100,11 +113,10 @@ export const NewsFeed: React.FC = () => {
 
   async function requestPhoto() {
     const senderToken = userData?.pushToken;
-    if (placeId) {
-      const detail: PlaceDetailsResponse = await fetchPlaceDetails(placeId);
+    if (placeId && placeDetial) {
       const tokens = await sendNotificationHandler({
-        latitude: detail.result.geometry.location?.lat,
-        longitude: detail.result.geometry.location?.lng,
+        latitude: placeDetial?.result.geometry.location?.lat,
+        longitude: placeDetial?.result.geometry.location?.lng,
       });
       tokens.forEach(token => {
         sendPushNotification(token, placeId, senderToken ?? '');
