@@ -9,16 +9,9 @@ import {
 import { useTranslation } from 'react-i18next';
 import { UserStackList } from '../../utils/types/screen-types';
 import { useUserContext } from '../../providers/UserProvider';
-import {
-  handleFreshContent,
-  handlePlacePosts,
-} from '../../utils/helper-functions/posts-functions';
+import { handleFreshContent } from '../../utils/helper-functions/posts-functions';
 import { getDaysSince } from '../../utils/helper-functions/getDaysSince';
-import {
-  Place,
-  PlaceDetailsResponse,
-  PlacePrediction,
-} from '../../utils/types/types';
+import { PlaceDetailsResponse } from '../../utils/types/types';
 import NotificationHandler from '../../components/user/NewsFeed/NotificationHandler';
 import LoadingIndicator from '../../components/user/NewsFeed/LoadingIndicator';
 import PostsList from '../../components/user/NewsFeed/PostList';
@@ -89,9 +82,9 @@ export const NewsFeed: React.FC = () => {
     ({ pageParam = null }) => handleFreshContent(pageParam, placeId), // Handle fresh content when place is not set
     {
       getNextPageParam: lastPage => lastPage?.lastVisible || null, // Fetch more posts based on lastVisible (cursor)
-      staleTime: 5 * 60 * 1000, // Keep data fresh for 5 minutes
-      cacheTime: 10 * 60 * 1000, // Cache data for 10 minutes
-      refetchInterval: 2 * 60 * 1000,
+      staleTime: 10 * 60 * 1000, // Keep data fresh for 10 minutes
+      cacheTime: 15 * 60 * 1000, // Cache data for 15 minutes
+      refetchInterval: 4 * 60 * 1000,
       enabled: true,
       refetchOnWindowFocus: true,
       refetchOnReconnect: true,

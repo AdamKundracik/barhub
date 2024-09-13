@@ -38,10 +38,10 @@ export const setUser = async (
   return response;
 };
 
-export const getCurrentUser = async (): Promise<GetUserResult> => {
+export const getCurrentUser = async (): Promise<User | undefined> => {
   const cloudFunction = httpsCallable(functions, 'getCurrentUser');
   const response = (await cloudFunction()) as unknown as GetUserResult;
-  return response;
+  return response.data;
 };
 
 export const getAllExistingUsers = async (): Promise<GetAllUsersResult> => {

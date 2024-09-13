@@ -25,6 +25,7 @@ import { useTranslation } from 'react-i18next';
 import Svg, { Path } from 'react-native-svg';
 import LoadingIndicator from './LoadingIndicator';
 import PostOldInfo from './Post/PostOldInfo';
+import { isOlderThanMinutes } from '../../../utils/helper-functions/isOlderThanMinutes';
 
 interface PostsListProps {
   posts: Post[];
@@ -94,11 +95,13 @@ const PostsList = ({
         <RefreshControl refreshing={loading} onRefresh={onRefresh ?? loading} />
       }
       onEndReached={fetchMorePosts}
-      onEndReachedThreshold={0} // Trigger when the user scrolls close to the end
+      onEndReachedThreshold={0.5} // Trigger when the user scrolls close to the end
       ListHeaderComponent={
         <>
           {loading && <LoadingIndicator />}
-          {placeId && <PostOldInfo requestPhoto={requestPhoto} />}
+          {placeId && isOlderThanMinutes(posts[0].creationTime, 30) && (
+            <PostOldInfo requestPhoto={requestPhoto} />
+          )}
         </>
       }
     />
