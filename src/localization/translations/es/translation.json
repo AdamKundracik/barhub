@@ -73,5 +73,7 @@
   "take-photo": "Hacer foto",
   "no-acitivity": "Inactividad prolongada de la cuenta.",
   "no-acitivity-info": "Para ver las fotos, debes contribuir con una foto actual de algún lugar.",
-  "no-feed-photos": "Aún no existen publicaciones."
+  "no-feed-photos": "Aún no existen publicaciones.",
+  "feed": "feed",
+  "select-place": "Elige lugar"
 }

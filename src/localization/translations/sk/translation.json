@@ -73,5 +73,7 @@
   "take-photo": "Odfotiť",
   "no-acitivity": "Dlhšia neaktivita účtu",
   "no-acitivity-info": "Pre zobrazenie fotografií musíte prispieť aktuálnou fotografiou z ľubovoľného miesta",
-  "no-feed-photos": "Zatiaľ neexistujú žiadne príspevky"
+  "no-feed-photos": "Zatiaľ neexistujú žiadne príspevky",
+  "feed": "feed",
+  "select-place": "Vybrať miesto"
 }

@@ -73,5 +73,7 @@
   "take-photo": "Take photo",
   "no-acitivity": "To view the photos, you must contribute a current photo from a location.",
   "no-acitivity-info": "Longer account inactivity",
-  "no-feed-photos": "There are no posts yet."
+  "no-feed-photos": "There are no posts yet.",
+  "feed": "feed",
+  "select-place": "Select place"
 }

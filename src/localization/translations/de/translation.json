@@ -73,5 +73,7 @@
   "take-photo": "Foto machen",
   "no-acitivity": "Längere Inaktivität des Kontos.",
   "no-acitivity-info": "Um Fotos anzuzeigen, müssen Sie ein aktuelles Foto von einem Ort beisteuern.",
-  "no-feed-photos": "Es gibt noch keine Beiträge."
+  "no-feed-photos": "Es gibt noch keine Beiträge.",
+  "feed": "feed",
+  "select-place": "Ort auswählen"
 }

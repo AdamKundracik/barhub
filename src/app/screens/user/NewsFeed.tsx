@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Layout from '../../components/user/Shared/Layout';
-import { useQuery } from 'react-query';
+import { useInfiniteQuery } from 'react-query';
 import {
   NavigationProp,
   useNavigation,
@@ -15,7 +15,6 @@ import {
 } from '../../utils/helper-functions/posts-functions';
 import { getDaysSince } from '../../utils/helper-functions/getDaysSince';
 import { PlaceDetailsResponse, PlacePrediction } from '../../utils/types/types';
-import { Post } from '../../../../shared';
 import NotificationHandler from '../../components/user/NewsFeed/NotificationHandler';
 import LoadingIndicator from '../../components/user/NewsFeed/LoadingIndicator';
 import PostsList from '../../components/user/NewsFeed/PostList';
@@ -28,30 +27,29 @@ import CommentsSlider from '../../components/user/NewsFeed/Post/CommentsSlider';
 
 export const NewsFeed: React.FC = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
-  const { t } = useTranslation();
   const { userData } = useUserContext();
   const route = useRoute();
 
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
   const [zoomedPost, setZoomedPost] = useState<string | null>(null);
   const [place, setPlace] = useState<PlacePrediction | null>(null);
-  const [lastVisible, setLastVisible] = useState<string | null>(null);
   const [showComments, setShowComments] = useState(false);
   const routeParams = route.params as { selectedPlace?: PlacePrediction }; // Define route params
   const [postId, setPostId] = useState<string | null>(null);
+  const [isFetching, setIsFetching] = useState(false);
   const { users } = useUserContext();
+  const { t } = useTranslation();
+
+  // Set up state for days since the last uploaded post
+  const [
+    numberOfDaysSinceLastPostedPhoto,
+    setNumberOfDaysSinceLastPostedPhoto,
+  ] = useState(0);
 
   useEffect(() => {
     if (routeParams?.selectedPlace) {
       setPlace(routeParams.selectedPlace); // Set the place when passed from PlaceSearch
     }
   }, [routeParams?.selectedPlace]);
-
-  const [
-    numberOfDaysSinceLastPostedPhoto,
-    setNumberOfDaysSinceLastPostedPhoto,
-  ] = useState(0);
 
   useEffect(() => {
     const numberOfDays = getDaysSince(
@@ -60,57 +58,44 @@ export const NewsFeed: React.FC = () => {
     setNumberOfDaysSinceLastPostedPhoto(numberOfDays);
   }, [userData]);
 
-  const { data: imageUploading, refetch } = useQuery(
-    'imageUploading',
-    () => {},
-    { refetchInterval: 5000 }
+  // Fetch posts using React Query
+  const {
+    data: postsData,
+    isFetchingNextPage,
+    fetchNextPage,
+    isLoading,
+    hasNextPage,
+    refetch,
+    isRefetching,
+  } = useInfiniteQuery(
+    ['posts', place?.placeId], // Key for the query
+    ({ pageParam = null }) =>
+      place
+        ? handlePlacePosts(place.placeId, pageParam) // Pass the pageParam (lastVisible) for pagination
+        : handleFreshContent(pageParam), // Handle fresh content when place is not set
+    {
+      getNextPageParam: lastPage => lastPage?.lastVisible || null, // Fetch more posts based on lastVisible (cursor)
+      staleTime: 5 * 60 * 1000, // Keep data fresh for 5 minutes
+      cacheTime: 10 * 60 * 1000, // Cache data for 10 minutes
+      refetchInterval: 2 * 60 * 1000,
+      enabled: true,
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
+      refetchOnMount: false,
+    }
   );
 
-  useEffect(() => {
-    getFiles();
-  }, [imageUploading, refetch]);
-
-  const getFiles = async () => {
-    setLoading(true);
-    try {
-      const data = place
-        ? await handlePlacePosts(place.placeId)
-        : await handleFreshContent();
-
-      setPosts(data.posts);
-      setLastVisible(data.lastVisible);
-    } catch (error) {
-      console.error('Error getting files:', error);
-      setPosts([]);
-    } finally {
-      setLoading(false);
-    }
+  // Manual refresh function
+  const onRefresh = async () => {
+    await refetch();
   };
 
-  const onRefresh = useCallback(() => {
-    getFiles();
-  }, [place]);
-
-  const fetchMorePosts = async (lastVisible: string) => {
-    if (!lastVisible) return;
-    try {
-      const data = place
-        ? await handlePlacePosts(place.placeId, lastVisible)
-        : await handleFreshContent(lastVisible);
-
-      if (data.posts.length > 0) {
-        setPosts(prevPosts => [...prevPosts, ...data.posts]);
-        setLastVisible(data.lastVisible);
-      } else {
-      }
-    } catch (error) {
-      console.error('Error fetching more posts:', error);
+  // Function to fetch more posts for pagination
+  const fetchMorePosts = async () => {
+    if (hasNextPage) {
+      await fetchNextPage(); // Load more posts when at the bottom of the list
     }
   };
-
-  useEffect(() => {
-    getFiles();
-  }, [place]);
 
   async function requestPhoto() {
     const senderToken = userData?.pushToken;
@@ -134,29 +119,32 @@ export const NewsFeed: React.FC = () => {
   }
 
   return (
-    <Layout pageTitle="Feed">
+    <Layout pageTitle={t('feed')}>
       <FeedHeader place={place} setPlace={setPlace} />
       <NotificationHandler navigation={navigation} userData={userData} />
-      {loading ? (
+
+      {isLoading ? (
         <LoadingIndicator />
-      ) : posts.length ? (
+      ) : postsData?.pages.length ? (
         <PostsList
-          onCommentPress={postId => toggleComments(postId)}
-          isFiltering={!!place}
-          posts={posts}
+          posts={postsData.pages.flatMap(page => page.posts)}
           zoomedPost={zoomedPost}
           setZoomedPost={setZoomedPost}
           userData={userData}
           place={place}
           numberOfDaysSinceLastPostedPhoto={numberOfDaysSinceLastPostedPhoto}
           requestPhoto={requestPhoto}
-          fetchMorePosts={() => fetchMorePosts(lastVisible ?? '')}
+          onCommentPress={toggleComments}
+          isFiltering={!!place}
           onRefresh={onRefresh}
-          loading={loading}
+          loading={isRefetching}
+          isFetchingNextPage={isFetchingNextPage}
+          fetchMorePosts={fetchMorePosts} // Pagination function passed here
         />
       ) : (
         <EmptyState place={place} requestPhoto={requestPhoto} />
       )}
+
       {showComments && (
         <CommentsSlider
           users={users}

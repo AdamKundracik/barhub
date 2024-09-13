@@ -1,35 +1,23 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import Layout from '../../components/user/Shared/Layout';
 import { fetchNearbyPlaces } from '../../utils/helper-functions/fetchNearByPlaces';
 import { Place } from '../../utils/types/types';
 import { PlaceDetail } from '../../components/user/Search/PlaceDetail';
-import { radius } from '../../utils/helper-functions/constants';
-import { useTranslation } from 'react-i18next';
 import { useUserContext } from '../../providers/UserProvider';
 import { primaryColor, primaryDeepColor } from '../../utils/styles/colors';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../utils/icons/icons';
-import { openCamera } from '../../utils/helper-functions/openCamera';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { UserStackList } from '../../utils/types/screen-types';
-import { useUploadingStateManagement } from '../../utils/hooks/useUploadingStateManagement';
+import { useTranslation } from 'react-i18next';
 
 export const PhotoResolver = ({ route }: any) => {
-  const { t } = useTranslation();
-  const { userData } = useUserContext();
-  const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { location } = useUserContext();
-  const { setUploadingState } = useUploadingStateManagement();
+  const { t } = useTranslation();
 
   const [loading, setLoading] = useState(true);
   const [places, setPlaces] = useState<Place[]>();
@@ -55,7 +43,6 @@ export const PhotoResolver = ({ route }: any) => {
         console.error('Location could not be retrieved');
       }
     }
-
     getPlaces();
   }, []);
 
@@ -108,7 +95,7 @@ export const PhotoResolver = ({ route }: any) => {
   }
 
   return (
-    <Layout pageTitle={'PhotoResolver'}>
+    <Layout pageTitle={'PhotoResolver'} isBackButtonShown={true}>
       <View
         style={{
           padding: 20,
@@ -116,22 +103,11 @@ export const PhotoResolver = ({ route }: any) => {
           position: 'relative',
           display: 'flex',
           flexDirection: 'row',
-          justifyContent: 'space-between',
+          justifyContent: 'center',
         }}
       >
-        <TouchableOpacity
-          onPress={async () => {
-            navigation.navigate('Feed');
-          }}
-        >
-          <FontAwesomeIcon
-            icon={Icons.Back}
-            size={24}
-            style={{ color: primaryColor }}
-          />
-        </TouchableOpacity>
-        <Text style={{ color: 'white', fontSize: 20 }}>
-          Vyberte miesto kde sa nachadzte
+        <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>
+          {t('select-place')}
         </Text>
         <View />
       </View>
