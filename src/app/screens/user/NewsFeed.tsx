@@ -31,11 +31,14 @@ export const NewsFeed: React.FC = () => {
   const route = useRoute();
 
   const [zoomedPost, setZoomedPost] = useState<string | null>(null);
-  const [place, setPlace] = useState<PlacePrediction | null>(null);
+  const [placeId, setPlaceId] = useState<string | null>(null);
+  const [placeName, setPlaceName] = useState<string | null>(null);
   const [showComments, setShowComments] = useState(false);
-  const routeParams = route.params as { selectedPlace?: PlacePrediction }; // Define route params
+  const routeParams = route.params as {
+    selectedPlaceId?: string;
+    selectedPlaceName: string;
+  }; // Define route params
   const [postId, setPostId] = useState<string | null>(null);
-  const [isFetching, setIsFetching] = useState(false);
   const { users } = useUserContext();
   const { t } = useTranslation();
 
@@ -46,10 +49,11 @@ export const NewsFeed: React.FC = () => {
   ] = useState(0);
 
   useEffect(() => {
-    if (routeParams?.selectedPlace) {
-      setPlace(routeParams.selectedPlace); // Set the place when passed from PlaceSearch
+    if (routeParams?.selectedPlaceId && routeParams.selectedPlaceName) {
+      setPlaceId(routeParams.selectedPlaceId); // Set the place when passed from PlaceSearch
+      setPlaceName(routeParams.selectedPlaceName);
     }
-  }, [routeParams?.selectedPlace]);
+  }, [routeParams?.selectedPlaceId, routeParams?.selectedPlaceName]);
 
   useEffect(() => {
     const numberOfDays = getDaysSince(
@@ -68,11 +72,8 @@ export const NewsFeed: React.FC = () => {
     refetch,
     isRefetching,
   } = useInfiniteQuery(
-    ['posts', place?.placeId], // Key for the query
-    ({ pageParam = null }) =>
-      place
-        ? handlePlacePosts(place.placeId, pageParam) // Pass the pageParam (lastVisible) for pagination
-        : handleFreshContent(pageParam), // Handle fresh content when place is not set
+    ['posts', placeId], // Key for the query
+    ({ pageParam = null }) => handleFreshContent(pageParam, placeId), // Handle fresh content when place is not set
     {
       getNextPageParam: lastPage => lastPage?.lastVisible || null, // Fetch more posts based on lastVisible (cursor)
       staleTime: 5 * 60 * 1000, // Keep data fresh for 5 minutes
@@ -99,16 +100,14 @@ export const NewsFeed: React.FC = () => {
 
   async function requestPhoto() {
     const senderToken = userData?.pushToken;
-    if (place) {
-      const detail: PlaceDetailsResponse = await fetchPlaceDetails(
-        place.placeId
-      );
+    if (placeId) {
+      const detail: PlaceDetailsResponse = await fetchPlaceDetails(placeId);
       const tokens = await sendNotificationHandler({
         latitude: detail.result.geometry.location?.lat,
         longitude: detail.result.geometry.location?.lng,
       });
       tokens.forEach(token => {
-        sendPushNotification(token, place.placeId, senderToken ?? '');
+        sendPushNotification(token, placeId, senderToken ?? '');
       });
     }
   }
@@ -120,29 +119,33 @@ export const NewsFeed: React.FC = () => {
 
   return (
     <Layout pageTitle={t('feed')}>
-      <FeedHeader place={place} setPlace={setPlace} />
+      <FeedHeader
+        placeName={placeName}
+        setPlaceName={setPlaceName}
+        setPlaceId={setPlaceId}
+      />
       <NotificationHandler navigation={navigation} userData={userData} />
 
       {isLoading ? (
         <LoadingIndicator />
-      ) : postsData?.pages.length ? (
+      ) : postsData?.pages.flatMap(page => page.posts).length ? (
         <PostsList
           posts={postsData.pages.flatMap(page => page.posts)}
           zoomedPost={zoomedPost}
           setZoomedPost={setZoomedPost}
           userData={userData}
-          place={place}
+          placeId={placeId}
           numberOfDaysSinceLastPostedPhoto={numberOfDaysSinceLastPostedPhoto}
           requestPhoto={requestPhoto}
           onCommentPress={toggleComments}
-          isFiltering={!!place}
+          isFiltering={!!placeId}
           onRefresh={onRefresh}
           loading={isRefetching}
           isFetchingNextPage={isFetchingNextPage}
           fetchMorePosts={fetchMorePosts} // Pagination function passed here
         />
       ) : (
-        <EmptyState place={place} requestPhoto={requestPhoto} />
+        <EmptyState placeId={placeId} requestPhoto={requestPhoto} />
       )}
 
       {showComments && (

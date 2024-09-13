@@ -32,7 +32,7 @@ interface PostsListProps {
   setZoomedPost: (postId: string | null) => void;
   userData: User | null | undefined;
   numberOfDaysSinceLastPostedPhoto: number;
-  place: PlacePrediction | null;
+  placeId: string | null;
   requestPhoto: () => void;
   fetchMorePosts: () => Promise<void>;
   onRefresh: () => Promise<void>;
@@ -48,7 +48,7 @@ const PostsList = ({
   setZoomedPost,
   userData,
   numberOfDaysSinceLastPostedPhoto,
-  place,
+  placeId,
   requestPhoto,
   fetchMorePosts,
   onRefresh,
@@ -98,7 +98,7 @@ const PostsList = ({
       ListHeaderComponent={
         <>
           {loading && <LoadingIndicator />}
-          {place && <PostOldInfo requestPhoto={requestPhoto} />}
+          {placeId && <PostOldInfo requestPhoto={requestPhoto} />}
         </>
       }
     />

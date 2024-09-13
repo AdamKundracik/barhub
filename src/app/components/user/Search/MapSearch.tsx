@@ -31,7 +31,7 @@ const longitudeDelta = 0.025;
 
 type LayoutProps = {
   setIsMapShown: (isSearching: boolean) => void;
-  setPlace: (place: PlacePrediction) => void;
+  setPlaceId: (place: string) => void;
 };
 
 export const MapSearch = (props: LayoutProps) => {
@@ -53,9 +53,12 @@ export const MapSearch = (props: LayoutProps) => {
   function pickPlace() {
     if (selectedPlace) {
       const placePrediction = mapPlaceToPlacePrediction(selectedPlace);
-      props.setPlace(placePrediction);
+      props.setPlaceId(placePrediction.placeId);
       props.setIsMapShown(false);
-      navigation.navigate('Feed', { selectedPlace: placePrediction });
+      navigation.navigate('Feed', {
+        selectedPlaceId: placePrediction.placeId,
+        selectedPlaceName: placePrediction.structuredFormat.mainText.text,
+      });
     }
   }
 

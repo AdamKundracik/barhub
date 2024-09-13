@@ -1,27 +1,21 @@
 import Layout from '../../components/user/Shared/Layout';
 import {
   Animated,
-  Easing,
-  PanResponder,
   Pressable,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { commonAppStyles, formStyles } from '../../utils/styles/styles';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { formStyles } from '../../utils/styles/styles';
+import React, { useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
 import { fetchPlaceAutocomplete } from '../../utils/helper-functions/fetchPlacesAutocomplete';
 import { useUserContext } from '../../providers/UserProvider';
 import { PlacePrediction } from '../../utils/types/types';
 import MapSearch from '../../components/user/Search/MapSearch';
-import {
-  NavigationProp,
-  useFocusEffect,
-  useNavigation,
-} from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
 import {
   primaryColor,
@@ -29,54 +23,60 @@ import {
   secondaryTextColor,
 } from '../../utils/styles/colors';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from 'react-query';
+import useDebounce from '../../utils/hooks/useDebounce';
+import { generateId } from '../../utils/helper-functions/generate-hash';
 
 export const PlaceSearch = () => {
-  const { location } = useUserContext();
-  const [places, setPlaces] = useState<PlacePrediction[]>([]);
   const [isMapShown, setIsMapShown] = useState<boolean>(false);
-  const [searchText, setSearchText] = useState<string>('');
+  const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState(query);
   const navigation = useNavigation<NavigationProp<UserStackList>>();
-  const [place, setPlace] = useState<PlacePrediction>();
+  const [place, setPlace] = useState<string>();
   const { t } = useTranslation();
+  const [sessionToken] = useState(generateId()); // Generate a unique session token
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const translateY = useRef(new Animated.Value(1000)).current; // Start position is off-screen
 
   function onCancelClick() {
     navigation.goBack();
   }
 
-  // Debounce effect to optimize autocomplete function
+  const usePlaceAutocomplete = (query: string, sessionToken: string) => {
+    const { location } = useUserContext(); // Assuming location is available here
+
+    return useQuery(
+      ['places-autocomplete', query], // Query key for caching
+      () => fetchPlaceAutocomplete(query, location, sessionToken), // Fetch places using your function
+      {
+        enabled: query.length >= 2, // Enable query only if query is 3+ chars and location is available
+        staleTime: 5 * 60 * 1000, // Cache results for 5 minutes
+        refetchOnWindowFocus: false, // Do not refetch on window focus
+        retry: 2, // Retry twice on failure
+      }
+    );
+  };
   useEffect(() => {
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
     }
 
     debounceTimeoutRef.current = setTimeout(() => {
-      if (searchText) {
-        getAutocompletePlaces(searchText);
+      if (query) {
+        setDebouncedQuery(query);
       }
-    }, 300); // 300ms debounce delay
+    }, 300);
+  }, [query]);
 
-    // Cleanup timeout on component unmount or searchText change
-    return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-    };
-  }, [searchText]);
-
-  async function getAutocompletePlaces(searchText: string) {
-    const places = await fetchPlaceAutocomplete(searchText, location!);
-    if (places) {
-      const predicted = places.suggestions?.map(sugs => sugs.placePrediction);
-      setPlaces(predicted);
-    }
-  }
+  const {
+    data: places,
+    isLoading,
+    isError,
+  } = usePlaceAutocomplete(debouncedQuery, sessionToken);
 
   if (isMapShown)
     return (
       <Layout pageTitle={'Map search'}>
-        <MapSearch setIsMapShown={setIsMapShown} setPlace={setPlace} />
+        <MapSearch setIsMapShown={setIsMapShown} setPlaceId={setPlace} />
       </Layout>
     );
 
@@ -100,10 +100,10 @@ export const PlaceSearch = () => {
         <TextInput
           style={formStyles.inputPrimary}
           placeholder={t('search-place')}
-          onChangeText={text => setSearchText(text)}
+          onChangeText={text => setQuery(text)}
           placeholderTextColor={secondaryTextColor}
         />
-        {places?.map((place, index) => (
+        {places?.suggestions.map((place, index) => (
           <Pressable
             key={index}
             style={({ pressed }) => [
@@ -112,7 +112,11 @@ export const PlaceSearch = () => {
               },
             ]}
             onPress={() => {
-              navigation.navigate('Feed', { selectedPlace: place }); // Navigate back to Feed and pass place
+              navigation.navigate('Feed', {
+                selectedPlaceId: place.placePrediction.placeId,
+                selectedPlaceName:
+                  place.placePrediction.structuredFormat.mainText.text,
+              }); // Navigate back to Feed and pass place
             }}
           >
             {({ pressed }) => (
@@ -123,7 +127,7 @@ export const PlaceSearch = () => {
                     pressed ? { color: primaryColor } : { color: 'white' }, // Conditional styling
                   ]}
                 >
-                  {place.structuredFormat.mainText.text}
+                  {place.placePrediction.structuredFormat.mainText.text}
                 </Text>
                 <Text
                   style={[
@@ -131,7 +135,7 @@ export const PlaceSearch = () => {
                     pressed ? { color: primaryDeepColor } : { color: 'grey' },
                   ]}
                 >
-                  {place.structuredFormat.secondaryText.text}
+                  {place.placePrediction.structuredFormat.secondaryText.text}
                 </Text>
               </View>
             )}

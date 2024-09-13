@@ -4,17 +4,23 @@ import { PlacePrediction } from '../../../utils/types/types';
 import PlaceFilterChip from './PlaceFilterChip';
 
 interface HeaderProps {
-  place: PlacePrediction | null;
-  setPlace: (place: PlacePrediction | null) => void;
+  placeName: string | null;
+  setPlaceId: (placeId: string | null) => void;
+  setPlaceName: (placeName: string | null) => void;
 }
 
-const FeedHeader: React.FC<HeaderProps> = ({ place, setPlace }) => (
+const FeedHeader: React.FC<HeaderProps> = ({
+  placeName,
+  setPlaceName,
+  setPlaceId,
+}) => (
   <>
-    {place && (
+    {placeName && (
       <View style={{ alignSelf: 'flex-start', marginBottom: 5 }}>
         <PlaceFilterChip
-          setPlace={setPlace}
-          place={place.structuredFormat?.mainText.text}
+          setPlaceName={setPlaceName}
+          setPlaceId={setPlaceId}
+          place={placeName}
         />
       </View>
     )}

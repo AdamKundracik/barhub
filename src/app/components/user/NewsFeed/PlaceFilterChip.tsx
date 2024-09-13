@@ -1,20 +1,19 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { PlacePrediction } from '../../../utils/types/types';
 import { primaryColor, secondaryTextColor } from '../../../utils/styles/colors';
 import Svg, { Path } from 'react-native-svg';
 
 type LayoutProps = {
   place: string;
-  setPlace: (place: PlacePrediction | null) => void;
+  setPlaceName: (place: string | null) => void;
+  setPlaceId: (place: string | null) => void;
 };
 
 export const PlaceFilterChip = (props: LayoutProps) => {
   async function removeSavedPlace() {
-    await AsyncStorage.removeItem('savedPlace');
-    props.setPlace(null);
+    props.setPlaceName(null);
+    props.setPlaceId(null);
   }
 
   return (

@@ -14,10 +14,9 @@ export const PlaceNameSeparator = (props: Props) => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 
   const navigateToBar = async () => {
-    const detailData = await fetchPlaceDetails(props.placeId);
-    const place = mapPlaceDetailToPlacePrediction(detailData);
     navigation.navigate('Feed', {
-      selectedPlace: place,
+      selectedPlaceId: props.placeId,
+      selectedPlaceName: props.placeName,
     });
   };
 

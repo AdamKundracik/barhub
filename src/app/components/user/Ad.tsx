@@ -41,7 +41,7 @@ const InlineAd = () => {
           setHasError(false);
         }}
         onAdFailedToLoad={e => {
-          console.log(e);
+          console.error(e);
           setHasError(true);
           setIsAdLoaded(false);
         }}
