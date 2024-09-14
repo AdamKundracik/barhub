@@ -82,12 +82,12 @@ export const NewsFeed: React.FC = () => {
     ({ pageParam = null }) => handleFreshContent(pageParam, placeId), // Handle fresh content when place is not set
     {
       getNextPageParam: lastPage => lastPage?.lastVisible || null, // Fetch more posts based on lastVisible (cursor)
-      staleTime: 10 * 60 * 1000, // Keep data fresh for 10 minutes
+      staleTime: Infinity, // Keep data fresh for 10 minutes
       cacheTime: 15 * 60 * 1000, // Cache data for 15 minutes
       refetchInterval: 4 * 60 * 1000,
       enabled: true,
-      refetchOnWindowFocus: true,
-      refetchOnReconnect: true,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
       refetchOnMount: false,
     }
   );

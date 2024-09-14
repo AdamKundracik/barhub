@@ -7,7 +7,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { Post, User } from '../../../../../../shared';
-import { useEffect, useState } from 'react';
+import { createRef, useEffect, useRef, useState } from 'react';
 import {
   checkLikeStatus,
   toggleLike,
@@ -21,6 +21,7 @@ import InteractionBar from './InteractionBar';
 import { useTranslation } from 'react-i18next';
 import BluredPostFrontView from './BluredPostFrontView';
 import { daysPassedSince } from '../../../../utils/helper-functions/daysPassedSince';
+import FastImage from 'react-native-fast-image';
 
 interface PostInterface {
   post: Post;
@@ -39,7 +40,6 @@ const width = Dimensions.get('window').width;
 
 export const UserPost = (props: PostInterface) => {
   const { post, setZoomedPost, isZoomed } = props;
-  const { t } = useTranslation();
 
   const focalX = useSharedValue(0);
   const focalY = useSharedValue(0);
@@ -140,16 +140,16 @@ export const UserPost = (props: PostInterface) => {
         <View style={{ height: width, position: 'relative' }}>
           <GestureDetector gesture={doubleTap}>
             <GestureDetector gesture={pinch}>
-              <Animated.Image
-                style={[
-                  isTablet ? tabletStyles.photo : styles.photo,
-                  animatedStyle,
-                ]}
-                source={{
-                  uri: post.photoUrl,
-                }}
-                resizeMode="cover"
-              />
+              <Animated.View style={[styles.photoContainer, animatedStyle]}>
+                <FastImage
+                  style={[isTablet ? tabletStyles.photo : styles.photo]}
+                  source={{
+                    priority: FastImage.priority.high,
+                    uri: post.photoUrl,
+                  }}
+                  resizeMode={FastImage.resizeMode.cover}
+                />
+              </Animated.View>
             </GestureDetector>
           </GestureDetector>
         </View>
@@ -176,7 +176,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 10,
-    backgroundColor: 'grey',
     paddingVertical: 5,
   },
   placeName: {
@@ -194,6 +193,12 @@ const styles = StyleSheet.create({
     padding: 15,
     flexShrink: 1,
     marginRight: 10,
+  },
+  photoContainer: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   photo: {
     borderRadius: 20,
@@ -296,6 +301,12 @@ const tabletStyles = StyleSheet.create({
     backgroundColor: postBgColor,
     borderRadius: 20,
     overflow: 'hidden',
+  },
+  photoContainer: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   photo: {
     width: '100%',

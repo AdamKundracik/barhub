@@ -1,28 +1,10 @@
-import React from 'react';
-import {
-  FlatList,
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import RequestPhotoButton from './RequestPhotoButton';
+import React, { useState } from 'react';
+import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { Post, User } from '../../../../../shared';
-import { PlacePrediction } from '../../../utils/types/types';
 import UserPost from './Post/UserPost';
 import Ad from '../Ad';
 import { useUserContext } from '../../../providers/UserProvider';
-import {
-  iconInactiveColor,
-  primaryColor,
-  primaryGrey,
-  primaryLightGrey,
-  warningColor,
-} from '../../../utils/styles/colors';
-import { commonAppStyles } from '../../../utils/styles/styles';
-import { useTranslation } from 'react-i18next';
-import Svg, { Path } from 'react-native-svg';
+import { primaryLightGrey, warningColor } from '../../../utils/styles/colors';
 import LoadingIndicator from './LoadingIndicator';
 import PostOldInfo from './Post/PostOldInfo';
 import { isOlderThanMinutes } from '../../../utils/helper-functions/isOlderThanMinutes';
@@ -92,7 +74,7 @@ const PostsList = ({
       contentContainerStyle={styles.scrollView}
       ListFooterComponent={isFetchingNextPage ? <LoadingIndicator /> : null} // Show loading indicator when fetching more
       refreshControl={
-        <RefreshControl refreshing={loading} onRefresh={onRefresh ?? loading} />
+        <RefreshControl refreshing={loading} onRefresh={onRefresh} />
       }
       onEndReached={fetchMorePosts}
       onEndReachedThreshold={0.5} // Trigger when the user scrolls close to the end

@@ -6,7 +6,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { useMutation, useQuery } from 'react-query';
+import { useQuery, useMutation } from 'react-query';
 import {
   getAllExistingUsers,
   getCurrentUser,
@@ -126,28 +126,17 @@ export const UserProvider = (props: Props) => {
 
   useEffect(() => {
     if (AppState.currentState === 'active') {
-      refetch();
+      getLocation();
     }
   }, [AppState.currentState]);
 
-  const { data: cachedLocation, refetch } = useQuery<LocationType>(
-    'location', // The key to cache the location
-    getLocation, // The function to fetch location
-    {
-      staleTime: 1000 * 60 * 5, // Cache for 5 minutes before becoming stale
-      cacheTime: 1000 * 60 * 30, // Keep data in cache for 30 minutes
-      enabled: false, // Don't automatically fetch on mount
-    }
-  );
-
-  async function getLocation(): Promise<LocationType> {
+  async function getLocation(): Promise<void> {
     try {
       const coords: LocationType = await getCoords();
       mutation.mutate({ location: coords });
-      return coords;
+      setLocation(coords);
     } catch (e) {
       console.error(e);
-      return { longitude: 0, latitude: 0 };
     }
   }
 
@@ -155,7 +144,7 @@ export const UserProvider = (props: Props) => {
     return {
       userData: userData || null,
       isLoading: isLoadingUser,
-      cachedLocation,
+      location,
       setLocation,
       authUser,
       isLoadingAuth,
@@ -165,7 +154,7 @@ export const UserProvider = (props: Props) => {
   }, [
     userData,
     isLoadingUser,
-    cachedLocation,
+    location,
     authUser,
     isLoadingAuth,
     emailVerified,
