@@ -48,7 +48,7 @@ export const PlaceSearch = () => {
 
     return useQuery(
       ['places-autocomplete', query], // Query key for caching
-      () => fetchPlaceAutocomplete(query, location, sessionToken), // Fetch places using your function
+      () => fetchPlaceAutocomplete(query.toUpperCase(), location, sessionToken), // Fetch places using your function
       {
         enabled: query.length >= 2, // Enable query only if query is 3+ chars and location is available
         staleTime: 5 * 60 * 1000, // Cache results for 5 minutes
@@ -57,6 +57,7 @@ export const PlaceSearch = () => {
       }
     );
   };
+
   useEffect(() => {
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
@@ -105,7 +106,7 @@ export const PlaceSearch = () => {
           onChangeText={text => setQuery(text)}
           placeholderTextColor={secondaryTextColor}
         />
-        {places?.suggestions.map((place, index) => (
+        {places?.suggestions?.map((place, index) => (
           <Pressable
             key={index}
             style={({ pressed }) => [

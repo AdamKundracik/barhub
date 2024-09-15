@@ -1,4 +1,5 @@
 import { googleAPIKey } from './constants';
+import { PlaceDetailsResponse } from '../types/types';
 
 export async function fetchPlaceDetails(placeId: string) {
   const placeDetailUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${googleAPIKey}`;
@@ -11,7 +12,7 @@ export async function fetchPlaceDetails(placeId: string) {
     }
 
     const data = await response.json();
-    return data;
+    return data.result;
   } catch (error) {
     console.error('Error fetching place details:', error);
   }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {FlatList, RefreshControl, StyleSheet, Text, View} from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { Post, User } from '../../../../../shared';
 import UserPost from './Post/UserPost';
 import Ad from '../Ad';
@@ -74,7 +74,7 @@ const PostsList = ({
       renderItem={renderPostItem}
       keyExtractor={item => item.id.toString()}
       contentContainerStyle={styles.scrollView}
-      ListFooterComponent={hasMorePosts ? isFetchingNextPage ? <LoadingIndicator /> : null : <Text>No more posts</Text>} // Show loading indicator when fetching more
+      ListFooterComponent={isFetchingNextPage ? <LoadingIndicator /> : null} // Show loading indicator when fetching more
       refreshControl={
         <RefreshControl refreshing={loading} onRefresh={onRefresh} />
       }
@@ -87,7 +87,6 @@ const PostsList = ({
             <PostOldInfo requestPhoto={requestPhoto} />
           )}
         </>
-      }
       }
     />
   );

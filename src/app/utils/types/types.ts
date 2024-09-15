@@ -88,7 +88,7 @@ interface Review {
   time: number;
 }
 
-interface Result {
+export interface PlaceDetail {
   address_components: AddressComponent[];
   adr_address: string;
   business_status: string;
@@ -117,7 +117,7 @@ interface Result {
 
 export interface PlaceDetailsResponse {
   html_attributions: any[];
-  result: Result;
+  result: PlaceDetail;
   status: string;
 }
 

@@ -1,11 +1,12 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
+  iconInactiveColor,
   primaryLightGrey,
   warningColor,
 } from '../../../../utils/styles/colors';
 import Svg, { Path } from 'react-native-svg';
 import { commonAppStyles } from '../../../../utils/styles/styles';
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 type Props = {
@@ -14,12 +15,12 @@ type Props = {
 
 const PostOldInfo = (props: Props) => {
   const { t } = useTranslation();
+  const [disabled, setDisabled] = useState(false);
 
   return (
     <View
       style={{
         margin: 20,
-        height: 115,
         borderRadius: 20,
         borderWidth: 3,
         borderColor: warningColor,
@@ -43,9 +44,17 @@ const PostOldInfo = (props: Props) => {
       <View style={styles.buttonContainer}>
         <Pressable
           style={({ pressed }) => [
-            !pressed ? styles.button : styles.buttonPressed,
+            !disabled
+              ? !pressed
+                ? styles.button
+                : styles.buttonPressed
+              : styles.buttonDisabled,
           ]}
-          onPress={props.requestPhoto}
+          onPress={() => {
+            props.requestPhoto();
+            setDisabled(true);
+          }}
+          disabled={disabled}
         >
           {({ pressed }) =>
             pressed ? (
@@ -54,6 +63,16 @@ const PostOldInfo = (props: Props) => {
                   commonAppStyles.textSecondary,
                   { fontSize: 16, fontWeight: 'bold' },
                 ]}
+              >
+                {t('request-photo')}
+              </Text>
+            ) : disabled ? (
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: 'bold',
+                  color: iconInactiveColor,
+                }}
               >
                 {t('request-photo')}
               </Text>
@@ -90,6 +109,15 @@ const styles = StyleSheet.create({
     width: 180,
     borderRadius: 30,
     borderColor: warningColor,
+    borderWidth: 1,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonDisabled: {
+    width: 180,
+    borderRadius: 30,
+    borderColor: iconInactiveColor,
     borderWidth: 1,
     height: 40,
     justifyContent: 'center',

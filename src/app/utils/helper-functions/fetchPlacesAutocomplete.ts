@@ -14,14 +14,7 @@ export const fetchPlaceAutocomplete = async (
   const requestBody = {
     input: query,
     sessionToken: sessionToken,
-    includedPrimaryTypes: [
-      'restaurant',
-      'bar',
-      'cafe',
-      'bakery',
-      'bowling_alley',
-      'night_club',
-    ],
+    includedPrimaryTypes: ['restaurant', 'bar', 'cafe', 'bakery'],
     languageCode: locales[0].languageCode,
     locationRestriction: {
       circle: {
