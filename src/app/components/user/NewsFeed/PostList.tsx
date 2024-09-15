@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import {FlatList, RefreshControl, StyleSheet, Text, View} from 'react-native';
 import { Post, User } from '../../../../../shared';
 import UserPost from './Post/UserPost';
 import Ad from '../Ad';
@@ -8,6 +8,7 @@ import { primaryLightGrey, warningColor } from '../../../utils/styles/colors';
 import LoadingIndicator from './LoadingIndicator';
 import PostOldInfo from './Post/PostOldInfo';
 import { isOlderThanMinutes } from '../../../utils/helper-functions/isOlderThanMinutes';
+import { usePlaceStore } from '../../../utils/store/placesStore';
 
 interface PostsListProps {
   posts: Post[];
@@ -15,7 +16,6 @@ interface PostsListProps {
   setZoomedPost: (postId: string | null) => void;
   userData: User | null | undefined;
   numberOfDaysSinceLastPostedPhoto: number;
-  placeId: string | null;
   requestPhoto: () => void;
   fetchMorePosts: () => Promise<void>;
   onRefresh: () => Promise<void>;
@@ -23,6 +23,7 @@ interface PostsListProps {
   isFiltering: boolean;
   isFetchingNextPage: boolean;
   onCommentPress: (postId: string) => void;
+  hasMorePosts: boolean | undefined;
 }
 
 const PostsList = ({
@@ -31,7 +32,6 @@ const PostsList = ({
   setZoomedPost,
   userData,
   numberOfDaysSinceLastPostedPhoto,
-  placeId,
   requestPhoto,
   fetchMorePosts,
   onRefresh,
@@ -39,8 +39,10 @@ const PostsList = ({
   isFiltering,
   onCommentPress,
   isFetchingNextPage,
+  hasMorePosts,
 }: PostsListProps) => {
   const { users } = useUserContext();
+  const { placeId } = usePlaceStore();
 
   const renderPostItem = ({ item, index }: { item: Post; index: number }) => (
     <View
@@ -72,11 +74,11 @@ const PostsList = ({
       renderItem={renderPostItem}
       keyExtractor={item => item.id.toString()}
       contentContainerStyle={styles.scrollView}
-      ListFooterComponent={isFetchingNextPage ? <LoadingIndicator /> : null} // Show loading indicator when fetching more
+      ListFooterComponent={hasMorePosts ? isFetchingNextPage ? <LoadingIndicator /> : null : <Text>No more posts</Text>} // Show loading indicator when fetching more
       refreshControl={
         <RefreshControl refreshing={loading} onRefresh={onRefresh} />
       }
-      onEndReached={fetchMorePosts}
+      onEndReached={hasMorePosts ? fetchMorePosts : null}
       onEndReachedThreshold={0.5} // Trigger when the user scrolls close to the end
       ListHeaderComponent={
         <>
@@ -85,6 +87,7 @@ const PostsList = ({
             <PostOldInfo requestPhoto={requestPhoto} />
           )}
         </>
+      }
       }
     />
   );

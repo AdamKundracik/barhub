@@ -14,18 +14,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { persistQueryClient } from 'react-query/persistQueryClient-experimental';
 
 export default function App() {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: Infinity, // Keep data fresh for 10 minutes
-        cacheTime: 15 * 60 * 1000, // Cache data for 15 minutes
-        refetchInterval: 15 * 60 * 1000,
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: false,
-      },
-    },
-  });
-
   const locales = getLocales();
 
   switch (locales[0].languageCode) {
@@ -43,6 +31,18 @@ export default function App() {
       i18n.changeLanguage('en');
       break;
   }
+
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: Infinity, // Keep data fresh for 10 minutes
+        cacheTime: 15 * 60 * 1000, // Cache data for 15 minutes
+        refetchInterval: 15 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+      },
+    },
+  });
 
   // Create an AsyncStorage persistor
   const asyncStoragePersistor = createAsyncStoragePersistor({

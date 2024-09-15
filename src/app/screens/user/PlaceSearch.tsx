@@ -26,6 +26,7 @@ import { useTranslation } from 'react-i18next';
 import { useQuery } from 'react-query';
 import useDebounce from '../../utils/hooks/useDebounce';
 import { generateId } from '../../utils/helper-functions/generate-hash';
+import { usePlaceStore } from '../../utils/store/placesStore';
 
 export const PlaceSearch = () => {
   const [isMapShown, setIsMapShown] = useState<boolean>(false);
@@ -36,6 +37,7 @@ export const PlaceSearch = () => {
   const { t } = useTranslation();
   const [sessionToken] = useState(generateId()); // Generate a unique session token
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { setPlaceId, setPlaceName } = usePlaceStore();
 
   function onCancelClick() {
     navigation.goBack();
@@ -112,11 +114,11 @@ export const PlaceSearch = () => {
               },
             ]}
             onPress={() => {
-              navigation.navigate('Feed', {
-                selectedPlaceId: place.placePrediction.placeId,
-                selectedPlaceName:
-                  place.placePrediction.structuredFormat.mainText.text,
-              }); // Navigate back to Feed and pass place
+              navigation.navigate('Feed');
+              setPlaceId(place.placePrediction.placeId);
+              setPlaceName(
+                place.placePrediction.structuredFormat.mainText.text
+              );
             }}
           >
             {({ pressed }) => (

@@ -15,26 +15,19 @@ import { PlaceDetailsResponse } from '../../utils/types/types';
 import NotificationHandler from '../../components/user/NewsFeed/NotificationHandler';
 import LoadingIndicator from '../../components/user/NewsFeed/LoadingIndicator';
 import PostsList from '../../components/user/NewsFeed/PostList';
-import EmptyState from '../../components/user/NewsFeed/EmptyState';
 import { fetchPlaceDetails } from '../../utils/helper-functions/fetchPlaceDetail';
 import { sendNotificationHandler } from '../../utils/helper-functions/sendNotificationHandler';
 import { sendPushNotification } from '../../utils/services/notofications-handler';
 import FeedHeader from '../../components/user/NewsFeed/FeedHeader';
 import CommentsSlider from '../../components/user/NewsFeed/Post/CommentsSlider';
+import { usePlaceStore } from '../../utils/store/placesStore';
+import EmptyState from '../../components/user/NewsFeed/EmptyState';
 
-export const NewsFeed: React.FC = () => {
+export const NewsFeed = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { userData } = useUserContext();
-  const route = useRoute();
-
   const [zoomedPost, setZoomedPost] = useState<string | null>(null);
-  const [placeId, setPlaceId] = useState<string | null>(null);
-  const [placeName, setPlaceName] = useState<string | null>(null);
   const [showComments, setShowComments] = useState(false);
-  const routeParams = route.params as {
-    selectedPlaceId?: string;
-    selectedPlaceName: string;
-  }; // Define route params
   const [postId, setPostId] = useState<string | null>(null);
   const { users } = useUserContext();
   const { t } = useTranslation();
@@ -42,19 +35,13 @@ export const NewsFeed: React.FC = () => {
     null
   );
 
+  const { placeId, placeName, setPlaceId, setPlaceName } = usePlaceStore();
+
   // Set up state for days since the last uploaded post
   const [
     numberOfDaysSinceLastPostedPhoto,
     setNumberOfDaysSinceLastPostedPhoto,
   ] = useState(0);
-
-  useEffect(() => {
-    if (routeParams?.selectedPlaceId && routeParams.selectedPlaceName) {
-      setPlaceId(routeParams.selectedPlaceId); // Set the place when passed from PlaceSearch
-      setPlaceName(routeParams.selectedPlaceName);
-      fetchPlaceDetail(routeParams.selectedPlaceId);
-    }
-  }, [routeParams?.selectedPlaceId, routeParams?.selectedPlaceName]);
 
   async function fetchPlaceDetail(id: string) {
     const detail: PlaceDetailsResponse = await fetchPlaceDetails(id);
@@ -68,6 +55,7 @@ export const NewsFeed: React.FC = () => {
     setNumberOfDaysSinceLastPostedPhoto(numberOfDays);
   }, [userData]);
 
+  useEffect(() => {}, []);
   // Fetch posts using React Query
   const {
     data: postsData,
@@ -78,7 +66,7 @@ export const NewsFeed: React.FC = () => {
     refetch,
     isRefetching,
   } = useInfiniteQuery(
-    ['posts', placeId], // Key for the query
+    placeId ? ['posts', placeId] : 'posts',
     ({ pageParam = null }) => handleFreshContent(pageParam, placeId), // Handle fresh content when place is not set
     {
       getNextPageParam: lastPage => lastPage?.lastVisible || null, // Fetch more posts based on lastVisible (cursor)
@@ -91,6 +79,10 @@ export const NewsFeed: React.FC = () => {
       refetchOnMount: false,
     }
   );
+
+  useEffect(() => {
+    if (placeId) refetch(); // Manually trigger refetch when placeId changes
+  }, [placeId]);
 
   // Manual refresh function
   const onRefresh = async () => {
@@ -124,22 +116,18 @@ export const NewsFeed: React.FC = () => {
 
   return (
     <Layout pageTitle={t('feed')}>
-      <FeedHeader
-        placeName={placeName}
-        setPlaceName={setPlaceName}
-        setPlaceId={setPlaceId}
-      />
+      <FeedHeader placeName={placeName} />
       <NotificationHandler navigation={navigation} userData={userData} />
 
       {isLoading ? (
         <LoadingIndicator />
       ) : postsData?.pages.flatMap(page => page.posts).length ? (
         <PostsList
+          hasMorePosts={hasNextPage}
           posts={postsData.pages.flatMap(page => page.posts)}
           zoomedPost={zoomedPost}
           setZoomedPost={setZoomedPost}
           userData={userData}
-          placeId={placeId}
           numberOfDaysSinceLastPostedPhoto={numberOfDaysSinceLastPostedPhoto}
           requestPhoto={requestPhoto}
           onCommentPress={toggleComments}
@@ -150,7 +138,7 @@ export const NewsFeed: React.FC = () => {
           fetchMorePosts={fetchMorePosts} // Pagination function passed here
         />
       ) : (
-        <EmptyState placeId={placeId} requestPhoto={requestPhoto} />
+        <EmptyState requestPhoto={requestPhoto} />
       )}
 
       {showComments && (

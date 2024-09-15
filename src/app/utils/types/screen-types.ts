@@ -2,7 +2,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Place, PlacePrediction } from './types';
 
 export type UserStackList = {
-  Feed: { selectedPlaceId: string; selectedPlaceName: string } | undefined;
+  Feed: undefined;
 
   Account: undefined;
 

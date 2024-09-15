@@ -7,16 +7,17 @@ import {
   secondaryTextColor,
 } from '../../../utils/styles/colors';
 import RequestPhotoButton from './RequestPhotoButton';
+import { usePlaceStore } from '../../../utils/store/placesStore';
 
 interface EmptyStateProps {
   requestPhoto: () => void;
-  placeId: string | null;
 }
 
 const EmptyState = (props: EmptyStateProps) => {
   const { t } = useTranslation();
+  const { placeId } = usePlaceStore();
 
-  if (!props.placeId) {
+  if (!placeId) {
     return (
       <View style={styles.container}>
         <View style={styles.card}>

@@ -18,7 +18,6 @@ import PlaceNameSeparator from './PlaceNameSeparator';
 import { postBgColor, primaryBgColor } from '../../../../utils/styles/colors';
 import UserLine from './UserLine';
 import InteractionBar from './InteractionBar';
-import { useTranslation } from 'react-i18next';
 import BluredPostFrontView from './BluredPostFrontView';
 import { daysPassedSince } from '../../../../utils/helper-functions/daysPassedSince';
 import FastImage from 'react-native-fast-image';
@@ -116,8 +115,8 @@ export const UserPost = (props: PostInterface) => {
       {!props.isFiltering && (
         <View style={isTablet ? tabletStyles.placeName : styles.placeName}>
           <PlaceNameSeparator
-            placeName={post.placeName}
-            placeId={post.folderId}
+            placeNameLocal={post.placeName}
+            placeIdLocal={post.folderId}
           />
         </View>
       )}

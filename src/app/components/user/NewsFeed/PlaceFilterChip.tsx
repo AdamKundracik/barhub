@@ -3,17 +3,18 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
 import { primaryColor, secondaryTextColor } from '../../../utils/styles/colors';
 import Svg, { Path } from 'react-native-svg';
+import { PlaceState, usePlaceStore } from '../../../utils/store/placesStore';
 
 type LayoutProps = {
   place: string;
-  setPlaceName: (place: string | null) => void;
-  setPlaceId: (place: string | null) => void;
 };
 
 export const PlaceFilterChip = (props: LayoutProps) => {
+  const { setPlaceId, setPlaceName } = usePlaceStore();
+
   async function removeSavedPlace() {
-    props.setPlaceName(null);
-    props.setPlaceId(null);
+    setPlaceId(null);
+    setPlaceName(null);
   }
 
   return (

@@ -1,28 +1,25 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { iconInactiveColor } from '../../../../utils/styles/colors';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { UserStackList } from '../../../../utils/types/screen-types';
+import { PlaceState, usePlaceStore } from '../../../../utils/store/placesStore';
 
 type Props = {
-  placeName: string;
-  placeId: string;
+  placeNameLocal: string;
+  placeIdLocal: string;
 };
 
 export const PlaceNameSeparator = (props: Props) => {
-  const navigation = useNavigation<NavigationProp<UserStackList>>();
+  const { setPlaceId, setPlaceName } = usePlaceStore();
 
   const navigateToBar = async () => {
-    navigation.navigate('Feed', {
-      selectedPlaceId: props.placeId,
-      selectedPlaceName: props.placeName,
-    });
+    setPlaceName(props.placeNameLocal);
+    setPlaceId(props.placeIdLocal);
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.line} />
       <TouchableOpacity onPress={() => navigateToBar()}>
-        <Text style={styles.text}>{props.placeName}</Text>
+        <Text style={styles.text}>{props.placeNameLocal}</Text>
       </TouchableOpacity>
       <View style={styles.line} />
     </View>
