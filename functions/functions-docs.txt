@@ -1,0 +1,15 @@
+1. Write your function into index.ts
+
+2. run npm run-script build in functions folder
+
+3. run "firebase deploy --only functions" in functions folder (example "firebase deploy --only functions:NAME OF THE FUNCITON NAME")
+
+4. wait for deployment
+
+5. You can enjoy ur functions now
+
+NOTE: After any already deployed function change, whole function has to be redeployed
+
+
+DELETED PREDEPLOY from firebase.json
+"npm --prefix \"$RESOURCE_DIR\" run build"
