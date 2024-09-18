@@ -52,14 +52,11 @@ export const UserProvider = (props: Props) => {
     getCurrentUser,
     {
       enabled: !!auth.currentUser, // only fetch when user is authenticated
-      staleTime: 5 * 60 * 1000, // cache for 5 minutes
     }
   );
 
   // React Query: Fetch all existing users
-  const { data: users } = useQuery(['allUsers'], getAllExistingUsers, {
-    staleTime: 10 * 60 * 1000, // cache for 10 minutes
-  });
+  const { data: users } = useQuery(['allUsers'], getAllExistingUsers);
 
   // React Query: Update user location
   const mutation = useMutation(setUser);
@@ -105,7 +102,7 @@ export const UserProvider = (props: Props) => {
 
     BackgroundGeolocation.ready({
       desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
-      distanceFilter: 50,
+      distanceFilter: 25,
       stopTimeout: 5,
       stopOnTerminate: false,
       startOnBoot: true,
