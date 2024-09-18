@@ -100,8 +100,8 @@ export const UserProvider = (props: Props) => {
 
     BackgroundGeolocation.ready({
       desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
-      distanceFilter: 50, // Update location every 50 meters when moving
-      stopTimeout: 5, // Time (minutes) to stop after user becomes stationary
+      distanceFilter: 25, // Update location every 25 meters when moving
+      stopTimeout: 3, // Time (minutes) to stop after user becomes stationary
       debug: false,
       logLevel: BackgroundGeolocation.LOG_LEVEL_OFF,
       stopOnTerminate: false,
