@@ -1,4 +1,4 @@
-export function getDaysSince(date: Date): number {
+export function getDaysSince(date: string): number {
   // Parse the input date
   const givenDate = new Date(date);
 

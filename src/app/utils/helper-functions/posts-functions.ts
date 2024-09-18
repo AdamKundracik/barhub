@@ -17,7 +17,10 @@ export const handlePlacePosts = async (
   return { posts: [], lastVisible: null };
 };
 
-export const handleFreshContent = async (lastVisible?: string | null) => {
+export const handleFreshContent = async (
+  lastVisible?: string | null,
+  placeId?: string | null
+) => {
   const response = lastVisible
     ? await getFreshContent(lastVisible)
     : await getFreshContent();
@@ -25,7 +28,15 @@ export const handleFreshContent = async (lastVisible?: string | null) => {
 
   if (data.posts) {
     const postsWithUrls: Post[] = await Promise.all(data.posts); // If you need to transform posts, do it here.
-    return { posts: postsWithUrls, lastVisible: data.lastVisible };
+
+    if (placeId) {
+      const filteredPosts = postsWithUrls.filter(
+        post => post.folderId === placeId
+      );
+      return { posts: filteredPosts, lastVisible: data.lastVisible };
+    } else {
+      return { posts: postsWithUrls, lastVisible: data.lastVisible };
+    }
   }
   return { posts: [], lastVisible: null };
 };

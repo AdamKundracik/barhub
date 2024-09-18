@@ -27,7 +27,7 @@ export interface User extends UserRecord {
   dateOfBirth: string;
   location: LocationType;
   pushToken: string;
-  lastUploadedPost: Date;
+  lastUploadedPost: string;
   premium: boolean;
   acceptTermsOfUse: boolean;
 }
@@ -56,3 +56,12 @@ export type InfinityScrollPost = {
 export interface PostUrlExtended extends Post {
   url: string;
 }
+
+export type CommentProps = {
+  userName: string;
+  commentText: string;
+  creationTime: any;
+  id: string;
+  userId: string;
+  userPhotoUrl: string;
+};

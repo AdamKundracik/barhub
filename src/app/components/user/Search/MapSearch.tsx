@@ -25,13 +25,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
 import { radius } from '../../../utils/helper-functions/constants';
 import { mapPlaceToPlacePrediction } from '../../../utils/helper-functions/mapPlaceToPlacePrediction';
+import { usePlaceStore } from '../../../utils/store/placesStore';
 
 const latitudeDelta = 0.025;
 const longitudeDelta = 0.025;
 
 type LayoutProps = {
   setIsMapShown: (isSearching: boolean) => void;
-  setPlace: (place: PlacePrediction) => void;
+  setPlaceId: (place: string) => void;
 };
 
 export const MapSearch = (props: LayoutProps) => {
@@ -50,12 +51,15 @@ export const MapSearch = (props: LayoutProps) => {
     longitude: location?.longitude!,
   });
 
+  const { setPlaceId, setPlaceName } = usePlaceStore();
+
   function pickPlace() {
     if (selectedPlace) {
       const placePrediction = mapPlaceToPlacePrediction(selectedPlace);
-      props.setPlace(placePrediction);
+      setPlaceId(placePrediction.placeId);
+      setPlaceName(placePrediction.structuredFormat.mainText.text);
       props.setIsMapShown(false);
-      navigation.navigate('Feed', { selectedPlace: placePrediction });
+      navigation.navigate('Feed');
     }
   }
 

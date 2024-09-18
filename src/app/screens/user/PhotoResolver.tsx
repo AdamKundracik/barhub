@@ -1,36 +1,24 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import MapView, { Circle, Marker, PROVIDER_DEFAULT } from 'react-native-maps';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Keyboard,
+  FlatList,
+  Pressable,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import Layout from '../../components/user/Shared/Layout';
 import { fetchNearbyPlaces } from '../../utils/helper-functions/fetchNearByPlaces';
-import { Place, PlacePrediction } from '../../utils/types/types';
+import { Place } from '../../utils/types/types';
 import { PlaceDetail } from '../../components/user/Search/PlaceDetail';
-import { radius } from '../../utils/helper-functions/constants';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../utils/icons/icons';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { UserStackList } from '../../utils/types/screen-types';
-import { useTranslation } from 'react-i18next';
 import { useUserContext } from '../../providers/UserProvider';
-import { openCamera } from '../../utils/helper-functions/openCamera';
-import { useUploadingStateManagement } from '../../utils/hooks/useUploadingStateManagement';
+import { primaryColor, primaryDeepColor } from '../../utils/styles/colors';
+import { useTranslation } from 'react-i18next';
 
 export const PhotoResolver = ({ route }: any) => {
-  const { t } = useTranslation();
-  const { userData } = useUserContext();
-  const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { location } = useUserContext();
-  const { setUploadingState } = useUploadingStateManagement();
+  const { t } = useTranslation();
 
-  const mapRef = useRef<MapView>(null);
-  const [isSaving, setIsSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [places, setPlaces] = useState<Place[]>();
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
@@ -55,18 +43,44 @@ export const PhotoResolver = ({ route }: any) => {
         console.error('Location could not be retrieved');
       }
     }
-
     getPlaces();
   }, []);
 
-  const region = useMemo(() => {
-    return {
-      latitude: location?.latitude ?? 0,
-      longitude: location?.longitude ?? 0,
-      latitudeDelta: 0.003 * ((radius / 80) * 0.66),
-      longitudeDelta: 0.003 * ((radius / 80) * 0.66),
-    };
-  }, []);
+  const renderItem = ({ item, index }: { item: Place; index: number }) => (
+    <Pressable
+      key={item.id}
+      style={({ pressed }) => [
+        {
+          padding: pressed ? 16 : 16,
+        },
+      ]}
+      onPress={() => {
+        setSelectedPlace(item);
+        setDetailOpened(true);
+      }}
+    >
+      {({ pressed }) => (
+        <View>
+          <Text
+            style={[
+              { fontSize: 14, fontWeight: 'bold' },
+              pressed ? { color: primaryColor } : { color: 'white' },
+            ]}
+          >
+            {item?.displayName.text}
+          </Text>
+          <Text
+            style={[
+              { fontSize: 12 },
+              pressed ? { color: primaryDeepColor } : { color: 'grey' },
+            ]}
+          >
+            {item.formattedAddress}
+          </Text>
+        </View>
+      )}
+    </Pressable>
+  );
 
   if (loading) {
     return (
@@ -81,59 +95,29 @@ export const PhotoResolver = ({ route }: any) => {
   }
 
   return (
-    <Layout pageTitle={'PhotoResolver'}>
-      <MapView
-        style={styles.map}
-        region={region}
-        initialRegion={region}
-        provider={PROVIDER_DEFAULT}
-        ref={mapRef}
-        showsUserLocation={true}
-        showsMyLocationButton={true}
-        onPress={Keyboard.dismiss}
-        showsCompass={true}
+    <Layout pageTitle={'PhotoResolver'} isBackButtonShown={true}>
+      <View
+        style={{
+          padding: 20,
+          alignItems: 'center',
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'center',
+        }}
       >
-        <Circle
-          center={location!}
-          radius={radius}
-          strokeColor={'rgb(1,82,133)'}
-          fillColor={'rgba(117,141,166,0.49)'}
-          strokeWidth={2}
-        />
-        {places?.map((place: Place, index: number) => (
-          <Marker
-            key={index}
-            coordinate={place.location}
-            focusable={true}
-            onPress={() => {
-              setSelectedPlace(place);
-              setDetailOpened(true);
-            }}
-          ></Marker>
-        ))}
-      </MapView>
+        <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>
+          {t('select-place')}
+        </Text>
+        <View />
+      </View>
+      <FlatList data={places} renderItem={renderItem} />
       <PlaceDetail
         image={image}
         isOpen={detailOpened}
         onClose={() => setDetailOpened(false)}
         place={selectedPlace}
       />
-
-      <View style={styles.infoContainer}>
-        <Text style={{ fontWeight: 'bold', fontSize: 24 }}>
-          {t('select-location')}
-        </Text>
-      </View>
-
-      <TouchableOpacity
-        style={{ position: 'absolute', left: 20, top: 40 }}
-        onPress={async () => {
-          navigation.navigate('Feed');
-          await openCamera(userData!, setUploadingState);
-        }}
-      >
-        <FontAwesomeIcon icon={Icons.Back} color={'grey'} size={32} />
-      </TouchableOpacity>
     </Layout>
   );
 };

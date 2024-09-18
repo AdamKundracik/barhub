@@ -1,31 +1,25 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { iconInactiveColor } from '../../../../utils/styles/colors';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { UserStackList } from '../../../../utils/types/screen-types';
-import { fetchPlaceDetails } from '../../../../utils/helper-functions/fetchPlaceDetail';
-import { mapPlaceDetailToPlacePrediction } from '../../../../utils/helper-functions/mapPlaceToPlacePrediction';
+import { PlaceState, usePlaceStore } from '../../../../utils/store/placesStore';
 
 type Props = {
-  placeName: string;
-  placeId: string;
+  placeNameLocal: string;
+  placeIdLocal: string;
 };
 
 export const PlaceNameSeparator = (props: Props) => {
-  const navigation = useNavigation<NavigationProp<UserStackList>>();
+  const { setPlaceId, setPlaceName } = usePlaceStore();
 
   const navigateToBar = async () => {
-    const detailData = await fetchPlaceDetails(props.placeId);
-    const place = mapPlaceDetailToPlacePrediction(detailData);
-    navigation.navigate('Feed', {
-      selectedPlace: place,
-    });
+    setPlaceName(props.placeNameLocal);
+    setPlaceId(props.placeIdLocal);
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.line} />
       <TouchableOpacity onPress={() => navigateToBar()}>
-        <Text style={styles.text}>{props.placeName}</Text>
+        <Text style={styles.text}>{props.placeNameLocal}</Text>
       </TouchableOpacity>
       <View style={styles.line} />
     </View>
@@ -43,12 +37,13 @@ const styles = StyleSheet.create({
     borderBottomColor: iconInactiveColor,
     borderBottomWidth: 1,
     flex: 1,
-    marginHorizontal: 10,
+    paddingHorizontal: 10,
   },
   text: {
     fontSize: 24,
     color: iconInactiveColor,
     textAlign: 'center',
+    marginHorizontal: 15,
   },
 });
 

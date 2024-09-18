@@ -1,23 +1,26 @@
 import { googleAPIKey } from './constants';
 import { AutocompleteResponse, LocationType } from '../types/types';
 import { getLocales } from 'expo-localization';
+import { useUserContext } from '../../providers/UserProvider';
 
 export const fetchPlaceAutocomplete = async (
-  input: string,
-  location: LocationType
+  query: string,
+  location: LocationType | undefined,
+  sessionToken: string
 ) => {
   const locales = getLocales();
 
   const url = 'https://places.googleapis.com/v1/places:autocomplete';
   const requestBody = {
-    input: input,
+    input: query,
+    sessionToken: sessionToken,
     includedPrimaryTypes: ['restaurant', 'bar', 'cafe', 'bakery'],
     languageCode: locales[0].languageCode,
     locationRestriction: {
       circle: {
         center: {
-          latitude: location.latitude,
-          longitude: location.longitude,
+          latitude: location?.latitude,
+          longitude: location?.longitude,
         },
         radius: 5000,
       },

@@ -7,12 +7,13 @@ import {
 } from '../../../../utils/styles/colors';
 import Svg, { Path } from 'react-native-svg';
 import Device from 'react-native-device-info';
+import { User } from '../../../../../../shared';
 
 type Props = {
-  name: string;
   date: string;
   address: string;
   profileImage: string | null;
+  user: User | undefined;
 };
 
 // Check if the device is a tablet
@@ -23,8 +24,13 @@ export const UserLine = (props: Props) => {
 
   return (
     <View style={styles.container}>
-      {props.profileImage ? (
-        <Image source={{ uri: props.profileImage }} style={styles.image} />
+      {props.user?.photoURL ? (
+        <Image
+          source={{
+            uri: props.user.photoURL,
+          }}
+          style={styles.image}
+        />
       ) : (
         <View style={styles.image}>
           <Svg width="50" height="50" viewBox="0 0 50 50" fill="none">
@@ -41,7 +47,9 @@ export const UserLine = (props: Props) => {
       )}
 
       <View style={styles.textContainer}>
-        <Text style={styles.name}>{props.name}</Text>
+        <Text style={styles.name}>
+          {props.user?.displayName ?? 'Deleted user'}
+        </Text>
         <View style={styles.dateTimeContainer}>
           <Text style={styles.dateTimeText}>{props.date}</Text>
         </View>

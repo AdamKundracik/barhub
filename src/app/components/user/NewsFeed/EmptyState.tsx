@@ -7,6 +7,7 @@ import {
   secondaryTextColor,
 } from '../../../utils/styles/colors';
 import RequestPhotoButton from './RequestPhotoButton';
+import { usePlaceStore } from '../../../utils/store/placesStore';
 
 interface EmptyStateProps {
   requestPhoto: () => void;
@@ -14,6 +15,17 @@ interface EmptyStateProps {
 
 const EmptyState = (props: EmptyStateProps) => {
   const { t } = useTranslation();
+  const { placeId } = usePlaceStore();
+
+  if (!placeId) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.card}>
+          <Text style={styles.infoText}>{t('no-feed-photos')}</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -43,7 +55,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
     color: secondaryTextColor,
-    marginBottom: 16, // Adjust as needed
   },
   infoText2: {
     textAlign: 'center',

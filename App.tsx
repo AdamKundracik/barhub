@@ -9,9 +9,11 @@ import mobileAds from 'react-native-google-mobile-ads';
 import requestTrackingPermissionsAsync from 'react-native-google-mobile-ads';
 import { useEffect } from 'react';
 import { UserProvider } from './src/app/providers/UserProvider';
+import { createAsyncStoragePersistor } from 'react-query/createAsyncStoragePersistor-experimental';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { persistQueryClient } from 'react-query/persistQueryClient-experimental';
 
 export default function App() {
-  const queryClient = new QueryClient();
   const locales = getLocales();
 
   switch (locales[0].languageCode) {
@@ -30,7 +32,29 @@ export default function App() {
       break;
   }
 
-  // Go inside your component/function
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: Infinity, // Keep data fresh for 10 minutes
+        cacheTime: 15 * 60 * 1000, // Cache data for 15 minutes
+        refetchInterval: 15 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+      },
+    },
+  });
+
+  // Create an AsyncStorage persistor
+  const asyncStoragePersistor = createAsyncStoragePersistor({
+    storage: AsyncStorage,
+  });
+
+  // Persist the query client with AsyncStorage
+  persistQueryClient({
+    queryClient,
+    persistor: asyncStoragePersistor,
+    maxAge: 1000 * 60 * 15, // Cache for 24 hours
+  });
 
   // Initialize Google Mobile Ads SDK
   useEffect(() => {

@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Layout from '../../components/user/Shared/Layout';
-import { useQuery } from 'react-query';
+import { useInfiniteQuery } from 'react-query';
 import {
   NavigationProp,
   useNavigation,
@@ -9,143 +9,138 @@ import {
 import { useTranslation } from 'react-i18next';
 import { UserStackList } from '../../utils/types/screen-types';
 import { useUserContext } from '../../providers/UserProvider';
-import {
-  handleFreshContent,
-  handlePlacePosts,
-} from '../../utils/helper-functions/posts-functions';
+import { handleFreshContent } from '../../utils/helper-functions/posts-functions';
 import { getDaysSince } from '../../utils/helper-functions/getDaysSince';
-import { PlaceDetailsResponse, PlacePrediction } from '../../utils/types/types';
-import { Post } from '../../../../shared';
+import { PlaceDetail, PlaceDetailsResponse } from '../../utils/types/types';
 import NotificationHandler from '../../components/user/NewsFeed/NotificationHandler';
 import LoadingIndicator from '../../components/user/NewsFeed/LoadingIndicator';
 import PostsList from '../../components/user/NewsFeed/PostList';
-import EmptyState from '../../components/user/NewsFeed/EmptyState';
 import { fetchPlaceDetails } from '../../utils/helper-functions/fetchPlaceDetail';
 import { sendNotificationHandler } from '../../utils/helper-functions/sendNotificationHandler';
 import { sendPushNotification } from '../../utils/services/notofications-handler';
 import FeedHeader from '../../components/user/NewsFeed/FeedHeader';
+import CommentsSlider from '../../components/user/NewsFeed/Post/CommentsSlider';
+import { usePlaceStore } from '../../utils/store/placesStore';
+import EmptyState from '../../components/user/NewsFeed/EmptyState';
 
-export const NewsFeed: React.FC = () => {
+export const NewsFeed = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
-  const { t } = useTranslation();
   const { userData } = useUserContext();
-  const route = useRoute();
-
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
   const [zoomedPost, setZoomedPost] = useState<string | null>(null);
-  const [place, setPlace] = useState<PlacePrediction | null>(null);
-  const [searching, setSearching] = useState<boolean>(false);
-  const [lastVisible, setLastVisible] = useState<string | null>(null);
+  const [showComments, setShowComments] = useState(false);
+  const [postId, setPostId] = useState<string | null>(null);
+  const { users } = useUserContext();
+  const { t } = useTranslation();
 
-  const routeParams = route.params as { selectedPlace?: PlacePrediction }; // Define route params
+  const { placeId, placeName, placeDetail, setPlaceDetail } = usePlaceStore();
 
-  useEffect(() => {
-    if (routeParams?.selectedPlace) {
-      setPlace(routeParams.selectedPlace); // Set the place when passed from PlaceSearch
-    }
-  }, [routeParams?.selectedPlace]);
-
+  // Set up state for days since the last uploaded post
   const [
     numberOfDaysSinceLastPostedPhoto,
     setNumberOfDaysSinceLastPostedPhoto,
   ] = useState(0);
 
   useEffect(() => {
-    const numberOfDays = getDaysSince(userData?.lastUploadedPost ?? new Date());
+    const numberOfDays = getDaysSince(
+      userData?.lastUploadedPost ?? new Date().toISOString()
+    );
     setNumberOfDaysSinceLastPostedPhoto(numberOfDays);
   }, [userData]);
 
-  const { data: imageUploading, refetch } = useQuery(
-    'imageUploading',
-    () => {},
-    { refetchInterval: 5000 }
+  useEffect(() => {}, []);
+  // Fetch posts using React Query
+  const {
+    data: postsData,
+    isFetchingNextPage,
+    fetchNextPage,
+    isLoading,
+    hasNextPage,
+    refetch,
+    isRefetching,
+  } = useInfiniteQuery(
+    placeId ? ['posts', placeId] : 'posts',
+    ({ pageParam = null }) => handleFreshContent(pageParam, placeId), // Handle fresh content when place is not set
+    {
+      getNextPageParam: lastPage => lastPage?.lastVisible || null, // Fetch more posts based on lastVisible (cursor)
+      staleTime: Infinity, // Keep data fresh for 10 minutes
+      cacheTime: 15 * 60 * 1000, // Cache data for 15 minutes
+      refetchInterval: 4 * 60 * 1000,
+      enabled: true,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      refetchOnMount: false,
+    }
   );
 
   useEffect(() => {
-    getFiles();
-  }, [imageUploading, refetch]);
+    if (placeId) refetch(); // Manually trigger refetch when placeId changes
+  }, [placeId]);
 
-  const getFiles = async () => {
-    setLoading(true);
-    try {
-      const data = place
-        ? await handlePlacePosts(place.placeId)
-        : await handleFreshContent();
-
-      setPosts(data.posts);
-      setLastVisible(data.lastVisible);
-    } catch (error) {
-      console.error('Error getting files:', error);
-      setPosts([]);
-    } finally {
-      setLoading(false);
-    }
+  // Manual refresh function
+  const onRefresh = async () => {
+    await refetch();
   };
 
-  const onRefresh = useCallback(() => {
-    getFiles();
-  }, [place]);
-
-  const fetchMorePosts = async (lastVisible: string) => {
-    if (!lastVisible) return;
-    try {
-      const data = place
-        ? await handlePlacePosts(place.placeId, lastVisible)
-        : await handleFreshContent(lastVisible);
-
-      if (data.posts.length > 0) {
-        setPosts(prevPosts => [...prevPosts, ...data.posts]);
-        setLastVisible(data.lastVisible);
-      } else {
-      }
-    } catch (error) {
-      console.error('Error fetching more posts:', error);
+  // Function to fetch more posts for pagination
+  const fetchMorePosts = async () => {
+    if (hasNextPage) {
+      await fetchNextPage(); // Load more posts when at the bottom of the list
     }
   };
-
-  useEffect(() => {
-    getFiles();
-  }, [place]);
 
   async function requestPhoto() {
     const senderToken = userData?.pushToken;
-    if (place) {
-      const detail: PlaceDetailsResponse = await fetchPlaceDetails(
-        place.placeId
-      );
+    const detail: PlaceDetail = await fetchPlaceDetails(placeId ?? '');
+    setPlaceDetail(detail);
+    if (placeId && detail) {
       const tokens = await sendNotificationHandler({
-        latitude: detail.result.geometry.location?.lat,
-        longitude: detail.result.geometry.location?.lng,
+        latitude: detail?.geometry.location?.lat,
+        longitude: detail?.geometry.location?.lng,
       });
       tokens.forEach(token => {
-        sendPushNotification(token, place.placeId, senderToken ?? '');
+        sendPushNotification(token, placeId, senderToken ?? '');
       });
     }
   }
 
+  async function toggleComments(postId: string) {
+    setPostId(postId);
+    setShowComments(true);
+  }
+
   return (
-    <Layout pageTitle="Feed">
-      <FeedHeader place={place} setPlace={setPlace} />
+    <Layout pageTitle={t('feed')}>
+      <FeedHeader placeName={placeName} />
       <NotificationHandler navigation={navigation} userData={userData} />
-      {loading ? (
+
+      {isLoading ? (
         <LoadingIndicator />
-      ) : posts.length ? (
+      ) : postsData?.pages.flatMap(page => page.posts).length ? (
         <PostsList
-          isFiltering={!!place}
-          posts={posts}
+          hasMorePosts={hasNextPage}
+          posts={postsData.pages.flatMap(page => page.posts)}
           zoomedPost={zoomedPost}
           setZoomedPost={setZoomedPost}
           userData={userData}
-          place={place}
           numberOfDaysSinceLastPostedPhoto={numberOfDaysSinceLastPostedPhoto}
           requestPhoto={requestPhoto}
-          fetchMorePosts={() => fetchMorePosts(lastVisible ?? '')}
+          onCommentPress={toggleComments}
+          isFiltering={!!placeId}
           onRefresh={onRefresh}
-          loading={loading}
+          loading={isRefetching}
+          isFetchingNextPage={isFetchingNextPage}
+          fetchMorePosts={fetchMorePosts} // Pagination function passed here
         />
       ) : (
         <EmptyState requestPhoto={requestPhoto} />
+      )}
+
+      {showComments && (
+        <CommentsSlider
+          users={users}
+          postId={postId}
+          closeComments={() => setShowComments(false)}
+        />
       )}
     </Layout>
   );

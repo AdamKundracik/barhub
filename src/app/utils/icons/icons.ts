@@ -39,6 +39,7 @@ import {
   faX,
 } from '@fortawesome/free-solid-svg-icons';
 import { faEye, faEyeSlash } from '@fortawesome/free-regular-svg-icons';
+import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 
 export const Icons = {
   Camera: faCamera,
@@ -79,4 +80,5 @@ export const Icons = {
   Remove: faRemove,
   Ban: faBan,
   Pin: faLocationPinLock,
+  Left: faChevronLeft,
 };

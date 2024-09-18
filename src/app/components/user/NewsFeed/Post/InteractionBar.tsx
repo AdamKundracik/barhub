@@ -47,7 +47,6 @@ export const InteractionBar = (props: InteractionBarProps) => {
   );
 };
 
-// Styles for mobile devices
 const mobileStyles = StyleSheet.create({
   container: {
     flexDirection: 'row',

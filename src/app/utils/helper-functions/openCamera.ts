@@ -1,6 +1,6 @@
 import { Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { PlaceDetailsResponse } from '../types/types';
+import { PlaceDetail, PlaceDetailsResponse } from '../types/types';
 import { useUserContext } from '../../providers/UserProvider';
 import { fetchPlaceDetails } from './fetchPlaceDetail';
 import { uploadImageAsync, uploadProfilePhotoAsync } from './helperFunctions';
@@ -25,7 +25,7 @@ async function saveImageFromCamera(
 
   if (placeId && senderToken) {
     const token = userData?.pushToken;
-    const place: PlaceDetailsResponse = await fetchPlaceDetails(placeId);
+    const place: PlaceDetail = await fetchPlaceDetails(placeId);
     if (!token) {
       return;
     }
@@ -33,13 +33,13 @@ async function saveImageFromCamera(
       image,
       setUploadingState,
       placeId,
-      place.result.name,
-      place.result.formatted_address
+      place.name,
+      place.formatted_address
     ).then(() => {
       sendPushNotificationResponse(senderToken, placeId).then();
     });
     await setUser({
-      lastUploadedPost: new Date(),
+      lastUploadedPost: new Date().toISOString(),
     });
   }
 }

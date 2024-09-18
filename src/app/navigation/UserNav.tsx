@@ -25,12 +25,12 @@ export function UserNav() {
       <UserStack.Screen
         name={'Account'}
         component={Account}
-        options={{ animation: 'fade_from_bottom' }}
+        options={{ animation: 'fade_from_bottom', gestureEnabled: false }}
       />
       <UserStack.Screen
         name={'PlaceSearch'}
         component={PlaceSearch}
-        options={{ animation: 'fade_from_bottom' }}
+        options={{ animation: 'fade_from_bottom', gestureEnabled: false }}
       />
       <UserStack.Screen name={'PhotoResolver'} component={PhotoResolver} />
       <UserStack.Screen name={'Subscription'} component={Subscription} />

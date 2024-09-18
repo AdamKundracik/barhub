@@ -23,9 +23,9 @@
         "googleMapsApiKey": "AIzaSyAMoNX-aQzrjpnZ0KjYegeyhV47C8rRBVU"
       },
       "infoPlist": {
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "Barhub This app requires location in the background",
-        "NSLocationWhenInUseUsageDescription": "Barhub This app requires location while in use",
-        "NSMotionUsageDescription": "Barhub This app uses motion-detection to determine the motion-activity of the device (walking, vehicle, bicycle, etc)",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Barhub requires location in the background",
+        "NSLocationWhenInUseUsageDescription": "Barhub requires location while in use",
+        "NSMotionUsageDescription": "Barhub uses motion-detection to determine the motion-activity of the device (walking, vehicle, bicycle, etc)",
         "UIBackgroundModes": [
           "location",
           "fetch",

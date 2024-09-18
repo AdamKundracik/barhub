@@ -64,5 +64,16 @@
   "day": "day",
   "year": "year",
   "search-place": "Enter the name of the business / bar",
-  "search-surrounding": "Search surrounding"
+  "search-surrounding": "Search surrounding",
+  "comments": "Comments",
+  "no-comments": "No comments",
+  "add-comment": "Add a comment... ",
+  "send": "Send",
+  "older-photo-info": "The photo from this place is older than 3 hours.",
+  "take-photo": "Take photo",
+  "no-acitivity": "To view the photos, you must contribute a current photo from a location.",
+  "no-acitivity-info": "Longer account inactivity",
+  "no-feed-photos": "There are no posts yet.",
+  "feed": "feed",
+  "select-place": "Select place"
 }
