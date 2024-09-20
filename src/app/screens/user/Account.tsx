@@ -27,7 +27,7 @@ import { useUserContext } from '../../providers/UserProvider';
 import { DeleteUserModal } from '../../components/user/Account/DeleteUserModal';
 
 export const Account = () => {
-  const { userData, fetchUserData } = useUserContext();
+  const { userData, fetchUserData, fetchAllUsers } = useUserContext();
   const { t } = useTranslation();
   const [isSlidingViewVisible, setSlidingViewVisible] = useState(false);
   const [modalOpened, setModalOpened] = useState(false);
@@ -87,6 +87,8 @@ export const Account = () => {
       });
 
       if (fetchUserData) await fetchUserData();
+      if (fetchAllUsers) await fetchAllUsers();
+
       setSlidingViewVisible(false); // Close the sliding view after the action
     }
   };
@@ -121,6 +123,8 @@ export const Account = () => {
         displayName: auth.currentUser?.displayName,
       });
       if (fetchUserData) await fetchUserData();
+      if (fetchAllUsers) await fetchAllUsers();
+
       setSlidingViewVisible(false); // Close the sliding view after the action
     }
   };
@@ -138,6 +142,8 @@ export const Account = () => {
       displayName: auth.currentUser?.displayName,
     });
     if (fetchUserData) await fetchUserData();
+    if (fetchAllUsers) await fetchAllUsers();
+    setSlidingViewVisible(false); // Close the sliding view after the action
   };
 
   return (

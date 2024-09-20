@@ -46,6 +46,7 @@ export type Post = {
   photoUrl: string;
   likesCount: number;
   commentsCount: number;
+  isLiked: boolean;
 };
 
 export type InfinityScrollPost = {

@@ -185,8 +185,19 @@ exports.getFreshContent = functions.https.onCall(
     context: CallableContext
   ): Promise<InfinityScrollPost | null> => {
     try {
+      // Ensure that the request is authenticated
+      if (!context.auth) {
+        throw new functions.https.HttpsError(
+          'unauthenticated',
+          'User must be authenticated to fetch posts.'
+        );
+      }
+
+      // Get the user's uid
+      const uid = context.auth.uid;
+
       // Retrieve pagination parameters from the input data
-      const { pageSize = 3, lastVisible = null } = data; // Set default page size to 10
+      const { pageSize = 3, lastVisible = null } = data;
 
       // Reference to the 'posts' collection with timestamp ordering
       let query = db
@@ -219,11 +230,45 @@ exports.getFreshContent = functions.https.onCall(
         return { lastVisible: '', posts: [] } as InfinityScrollPost;
       }
 
-      // Map the fetched documents to Post objects
-      const items: Post[] = querySnapshot.docs.map(doc => ({
-        ...doc.data(),
-        id: doc.id,
-      }));
+      // Process each post and check if the user liked the post and count likes and comments
+      const items: Post[] = await Promise.all(
+        querySnapshot.docs.map(async doc => {
+          const postData = doc.data();
+
+          // Count the number of likes in the 'likes' subcollection
+          const likesSnapshot = await db
+            .collection('posts')
+            .doc(doc.id)
+            .collection('likes')
+            .get();
+          const likesCount = likesSnapshot.size;
+
+          // Count the number of comments in the 'comments' subcollection
+          const commentsSnapshot = await db
+            .collection('posts')
+            .doc(doc.id)
+            .collection('comments')
+            .get();
+          const commentsCount = commentsSnapshot.size;
+
+          // Check if the 'likes' subcollection contains the user's uid
+          const likeSnapshot = await db
+            .collection('posts')
+            .doc(doc.id)
+            .collection('likes')
+            .doc(uid)
+            .get();
+
+          // Add the `isLiked`, `likesCount`, and `commentsCount` fields
+          return {
+            ...postData,
+            id: doc.id,
+            isLiked: likeSnapshot.exists, // true if the user liked the post, otherwise false
+            likesCount,
+            commentsCount,
+          };
+        })
+      );
 
       // Get the last document to be used for the next page
       const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];

@@ -19,6 +19,7 @@ import { getCoords } from '../utils/helper-functions/get-coords';
 import { AppState } from 'react-native';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useUserManagement } from '../utils/hooks/useUserManagement';
+import { useQuery } from 'react-query';
 
 type ContextProps = {
   authUser: null | boolean;
@@ -28,7 +29,8 @@ type ContextProps = {
   userData: User | null;
   isLoading: boolean;
   emailVerified: boolean;
-  fetchUserData: () => Promise<void>;
+  fetchUserData: () => void;
+  fetchAllUsers: () => void;
   users: User[] | undefined;
 };
 
@@ -38,25 +40,57 @@ interface Props {
 
 const UserContext = createContext<Partial<ContextProps>>({});
 
+const useFetchUserData = () => {
+  const uid = auth.currentUser?.uid;
+
+  return useQuery(
+    ['userData', uid], // unique query key with dependency on uid
+    async () => {
+      const user = await getCurrentUser();
+      return user;
+    },
+    {
+      enabled: !!uid, // Only run query if uid exists
+    }
+  );
+};
+
+// Fetch all users function using React Query
+const useFetchAllUsers = () => {
+  return useQuery(
+    'allUsers', // unique key for all users
+    async () => {
+      const allUsers = await getAllExistingUsers();
+      return allUsers?.data?.users ?? [];
+    }
+  );
+};
+
 export const UserProvider = (props: Props) => {
-  const [userData, setUserData] = useState<any>();
-  const [isLoading, setIsLoading] = useState(true);
   const [location, setLocation] = useState<LocationType>({
     latitude: 0,
     longitude: 0,
   });
-  const [initializing, setInitializing] = useState(true);
-  const { setUserToStore } = useUserManagement();
 
   const [emailVerified, setEmailVerified] = useState<boolean>(false);
   const [authUser, setAuthUser] = useState<null | boolean>(null);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
-  const [users, setUsers] = useState<User[]>([]);
+
+  // Fetching user data and users with useQuery
+  const {
+    data: userData,
+    isLoading: isUserLoading,
+    refetch: refetchUserData,
+  } = useFetchUserData();
+  const {
+    data: users,
+    isLoading: isUsersLoading,
+    refetch: fetchAllUsers,
+  } = useFetchAllUsers();
 
   useEffect(() => {
     onAuthStateChanged(auth, u => {
       setAuthUser(!!u);
-      setUserData(u);
       setIsLoadingAuth(false);
       setEmailVerified(u?.emailVerified ?? false);
     });
@@ -100,8 +134,8 @@ export const UserProvider = (props: Props) => {
 
     BackgroundGeolocation.ready({
       desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
-      distanceFilter: 25, // Update location every 25 meters when moving
-      stopTimeout: 3, // Time (minutes) to stop after user becomes stationary
+      distanceFilter: 25,
+      stopTimeout: 3,
       debug: false,
       logLevel: BackgroundGeolocation.LOG_LEVEL_OFF,
       stopOnTerminate: false,
@@ -133,25 +167,8 @@ export const UserProvider = (props: Props) => {
   }, []);
 
   useEffect(() => {
-    fetchUserData();
+    refetchUserData(); // Refetch user data instead of direct call to fetchUserData
   }, [isLoadingAuth, auth]);
-
-  const fetchUserData = async () => {
-    const uid = auth.currentUser?.uid;
-    if (uid) {
-      const user = await getCurrentUser();
-      setUserData(user);
-    }
-    setIsLoading(false);
-  };
-
-  useEffect(() => {
-    async function getUsers() {
-      const allUsers = await getAllExistingUsers();
-      setUsers(allUsers.data?.users ?? []);
-    }
-    getUsers();
-  }, [auth.currentUser?.uid]);
 
   async function getLocation(): Promise<void> {
     try {
@@ -167,25 +184,28 @@ export const UserProvider = (props: Props) => {
 
   const ctx = useMemo(() => {
     return {
-      userData,
-      isLoading,
+      userData: userData ?? null,
+      isLoading: isUserLoading || isUsersLoading,
       location,
       setLocation,
       authUser,
       isLoadingAuth,
       emailVerified,
-      fetchUserData,
+      fetchAllUsers: async () => fetchAllUsers(),
+      fetchUserData: async () => refetchUserData(),
       users,
     };
   }, [
     userData,
-    isLoading,
+    isUserLoading,
+    isUsersLoading,
     location,
     setLocation,
     authUser,
     isLoadingAuth,
     emailVerified,
-    fetchUserData,
+    fetchAllUsers,
+    refetchUserData,
     users,
   ]);
 

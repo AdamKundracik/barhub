@@ -19,6 +19,8 @@ import {
   GoogleAuthProvider,
   signInWithCredential,
   signInWithEmailAndPassword,
+  setPersistence,
+  browserLocalPersistence,
 } from 'firebase/auth';
 import Svg, { Path } from 'react-native-svg';
 import { textInputPlaceholderColor } from '../../utils/styles/colors';
@@ -44,103 +46,121 @@ export const LogIn = ({ navigation }: any) => {
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
     const { idToken, user, scopes } = await GoogleSignin.signIn();
     const googleCredential = GoogleAuthProvider.credential(idToken);
-    await signInWithCredential(auth, googleCredential);
+    setPersistence(auth, browserLocalPersistence)
+      .then(async () => {
+        await signInWithCredential(auth, googleCredential);
+      })
+      .catch(error => {
+        // Handle Errors here.
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.error(errorCode, errorMessage);
+      });
   }
 
   async function onSignIn() {
     setLoading(true);
-    await signInWithEmailAndPassword(auth, email, password).catch(error => {
-      switch (error.code) {
-        case 'auth/invalid-login-credentials':
-          alert(t('wrong-password'));
-          setLoading(false);
-          break;
-        case 'auth/invalid-email':
-          alert(t('invalid-email'));
-          console.error('Invalid email');
-          setLoading(false);
-          break;
-        case 'auth/user-not-found':
-          alert(t('user-not-found'));
-          console.error('User not found');
-          setLoading(false);
-          break;
-        case 'auth/wrong-password':
-          alert(t('wrong-password'));
-          console.error('Wrong password');
-          setLoading(false);
-          break;
-        case 'auth/email-already-in-use':
-          alert(t('email-already-in-use'));
-          console.error('Email already in use');
-          setLoading(false);
-          break;
-        case 'auth/weak-password':
-          alert(t('weak-password'));
-          console.error('Weak password');
-          setLoading(false);
-          break;
-        case 'auth/operation-not-allowed':
-          alert(t('operation-not-allowed'));
-          console.error('Operation not allowed');
-          setLoading(false);
-          break;
-        case 'auth/account-exists-with-different-credential':
-          alert(t('account-exists-with-different-credential'));
-          console.error('Account exists with a different credential');
-          setLoading(false);
-          break;
-        case 'auth/credential-already-in-use':
-          alert(t('credential-already-in-use'));
-          console.error('Credential already in use');
-          setLoading(false);
-          break;
-        case 'auth/popup-closed-by-user':
-          alert(t('popup-closed-by-user'));
-          console.error('Popup closed by user');
-          setLoading(false);
-          break;
-        case 'auth/popup-blocked':
-          alert(t('popup-blocked'));
-          console.error('Popup blocked');
-          setLoading(false);
-          break;
-        case 'auth/invalid-action-code':
-          alert(t('invalid-action-code'));
-          console.error('Invalid action code');
-          setLoading(false);
-          break;
-        case 'auth/expired-action-code':
-          alert(t('expired-action-code'));
-          console.error('Expired action code');
-          setLoading(false);
-          break;
-        case 'auth/invalid-verification-code':
-          alert(t('invalid-verification-code'));
-          console.error('Invalid verification code');
-          setLoading(false);
-          break;
-        case 'auth/invalid-verification-id':
-          alert(t('invalid-verification-id'));
-          console.error('Invalid verification ID');
-          setLoading(false);
-          break;
-        case 'auth/requires-recent-login':
-          alert(t('requires-recent-login'));
-          console.error('Requires recent login');
-          setLoading(false);
-          break;
-        case 'auth/session-expired':
-          alert(t('session-expired'));
-          console.error('Session expired');
-          setLoading(false);
-          break;
-        default:
-          alert(t('unknown-error'));
-          console.error('Unknown error', error);
-          setLoading(false);
-      }
-    });
+    setPersistence(auth, browserLocalPersistence)
+      .then(async () => {
+        await signInWithEmailAndPassword(auth, email, password).catch(error => {
+          switch (error.code) {
+            case 'auth/invalid-login-credentials':
+              alert(t('wrong-password'));
+              setLoading(false);
+              break;
+            case 'auth/invalid-email':
+              alert(t('invalid-email'));
+              console.error('Invalid email');
+              setLoading(false);
+              break;
+            case 'auth/user-not-found':
+              alert(t('user-not-found'));
+              console.error('User not found');
+              setLoading(false);
+              break;
+            case 'auth/wrong-password':
+              alert(t('wrong-password'));
+              console.error('Wrong password');
+              setLoading(false);
+              break;
+            case 'auth/email-already-in-use':
+              alert(t('email-already-in-use'));
+              console.error('Email already in use');
+              setLoading(false);
+              break;
+            case 'auth/weak-password':
+              alert(t('weak-password'));
+              console.error('Weak password');
+              setLoading(false);
+              break;
+            case 'auth/operation-not-allowed':
+              alert(t('operation-not-allowed'));
+              console.error('Operation not allowed');
+              setLoading(false);
+              break;
+            case 'auth/account-exists-with-different-credential':
+              alert(t('account-exists-with-different-credential'));
+              console.error('Account exists with a different credential');
+              setLoading(false);
+              break;
+            case 'auth/credential-already-in-use':
+              alert(t('credential-already-in-use'));
+              console.error('Credential already in use');
+              setLoading(false);
+              break;
+            case 'auth/popup-closed-by-user':
+              alert(t('popup-closed-by-user'));
+              console.error('Popup closed by user');
+              setLoading(false);
+              break;
+            case 'auth/popup-blocked':
+              alert(t('popup-blocked'));
+              console.error('Popup blocked');
+              setLoading(false);
+              break;
+            case 'auth/invalid-action-code':
+              alert(t('invalid-action-code'));
+              console.error('Invalid action code');
+              setLoading(false);
+              break;
+            case 'auth/expired-action-code':
+              alert(t('expired-action-code'));
+              console.error('Expired action code');
+              setLoading(false);
+              break;
+            case 'auth/invalid-verification-code':
+              alert(t('invalid-verification-code'));
+              console.error('Invalid verification code');
+              setLoading(false);
+              break;
+            case 'auth/invalid-verification-id':
+              alert(t('invalid-verification-id'));
+              console.error('Invalid verification ID');
+              setLoading(false);
+              break;
+            case 'auth/requires-recent-login':
+              alert(t('requires-recent-login'));
+              console.error('Requires recent login');
+              setLoading(false);
+              break;
+            case 'auth/session-expired':
+              alert(t('session-expired'));
+              console.error('Session expired');
+              setLoading(false);
+              break;
+            default:
+              alert(t('unknown-error'));
+              console.error('Unknown error', error);
+              setLoading(false);
+          }
+        });
+      })
+      .catch(error => {
+        // Handle Errors here.
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.error(errorCode, errorMessage);
+      });
   }
 
   return (

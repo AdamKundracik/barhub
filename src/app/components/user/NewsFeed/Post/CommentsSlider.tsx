@@ -120,6 +120,8 @@ const CommentsSlider = (props: Props) => {
     }
   };
 
+  console.log('pending', pendingData);
+
   const handleDeleteComment = async (commentId: string) => {
     try {
       //PREPARED FOR NEXT USAGE
@@ -273,7 +275,7 @@ const CommentsSlider = (props: Props) => {
                     </View>
                   </View>
                 )}
-                keyExtractor={item => item?.id}
+                keyExtractor={(item, index) => item?.id || index.toString()}
               />
             ) : (
               <View

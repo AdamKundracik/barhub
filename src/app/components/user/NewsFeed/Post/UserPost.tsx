@@ -21,6 +21,8 @@ import InteractionBar from './InteractionBar';
 import BluredPostFrontView from './BluredPostFrontView';
 import { daysPassedSince } from '../../../../utils/helper-functions/daysPassedSince';
 import FastImage from 'react-native-fast-image';
+import useOptimistic from '../../../../utils/helper-functions/useOptimistic';
+import { handleFreshContent } from '../../../../utils/helper-functions/posts-functions';
 
 interface PostInterface {
   post: Post;
@@ -48,24 +50,18 @@ export const UserPost = (props: PostInterface) => {
 
   const [likeStatus, setLikeStatus] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (auth.currentUser?.uid) {
-      checkLikeStatus(post.id, auth.currentUser.uid).then(data =>
-        setLikeStatus(data.data)
-      );
-    }
-  }, [auth.currentUser?.uid, post.id]);
-
   const handleLikeToggle = async () => {
     if (auth.currentUser?.uid) {
       setLikeStatus(!likeStatus);
-      useDebounce(async () => {
-        await toggleLike(post.id, auth.currentUser!.uid).then(() => {
-          checkLikeStatus(post.id, auth.currentUser!.uid);
-        });
-      }, 1000);
+      await toggleLike(post.id, auth.currentUser!.uid);
     }
   };
+
+  // const { data, error, pendingData } = useOptimistic<Post>(async () => {
+  //   await toggleLike(post.id, auth.currentUser!.uid);
+  //
+  //   const updatedPosts = await handleFreshContent()
+  // });
 
   const doubleTap = Gesture.Tap()
     .maxDuration(250)
@@ -157,7 +153,7 @@ export const UserPost = (props: PostInterface) => {
           comments={post.commentsCount}
           onLikeToggle={handleLikeToggle}
           onCommentToggle={() => props.onCommentPress(props.post.id)}
-          isLiked={likeStatus}
+          isLiked={post.isLiked}
         />
       </View>
     </>

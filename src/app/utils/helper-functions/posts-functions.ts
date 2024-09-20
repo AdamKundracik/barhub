@@ -28,7 +28,6 @@ export const handleFreshContent = async (
 
   if (data.posts) {
     const postsWithUrls: Post[] = await Promise.all(data.posts); // If you need to transform posts, do it here.
-
     if (placeId) {
       const filteredPosts = postsWithUrls.filter(
         post => post.folderId === placeId
