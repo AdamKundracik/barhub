@@ -134,3 +134,9 @@ export const fetchCommentsForPost = async (postId: string) => {
   const response = await cloudFunction({ postId });
   return response?.data?.comments;
 };
+
+export const fetchPostById = async (postId: string) => {
+  const cloudFunction = httpsCallable(functions, 'getPostById');
+  const response = await cloudFunction({ postId });
+  return response.data;
+};

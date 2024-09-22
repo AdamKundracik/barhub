@@ -179,6 +179,75 @@ export const testLog = functions.https.onCall(
   }
 );
 
+exports.getPostById = functions.https.onCall(async (data, context) => {
+  const { postId } = data;
+
+  if (!postId) {
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'Post ID is required'
+    );
+  }
+
+  try {
+    const postDoc = await admin
+      .firestore()
+      .collection('posts')
+      .doc(postId)
+      .get();
+
+    if (!postDoc.exists) {
+      throw new functions.https.HttpsError('not-found', 'Post not found');
+    }
+
+    const postData = postDoc.data();
+
+    // Count the number of likes in the 'likes' subcollection
+    const likesSnapshot = await admin
+      .firestore()
+      .collection('posts')
+      .doc(postId)
+      .collection('likes')
+      .get();
+    const likesCount = likesSnapshot.size;
+
+    // Count the number of comments in the 'comments' subcollection
+    const commentsSnapshot = await admin
+      .firestore()
+      .collection('posts')
+      .doc(postId)
+      .collection('comments')
+      .get();
+    const commentsCount = commentsSnapshot.size;
+
+    // Check if the user liked the post (if authenticated)
+    let isLiked = false;
+    if (context.auth) {
+      const uid = context.auth.uid;
+      const likeSnapshot = await admin
+        .firestore()
+        .collection('posts')
+        .doc(postId)
+        .collection('likes')
+        .doc(uid)
+        .get();
+      isLiked = likeSnapshot.exists;
+    }
+
+    // Return the post data along with likes and comments count, and if the user liked it
+    return {
+      ...postData,
+      id: postId, // Add postId here
+      likesCount,
+      commentsCount,
+      isLiked,
+    };
+  } catch (error) {
+    console.error('Error fetching post:', error);
+    throw new functions.https.HttpsError('internal', 'Error fetching post');
+  }
+});
+
 exports.getFreshContent = functions.https.onCall(
   async (
     data,

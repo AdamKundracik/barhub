@@ -4,7 +4,7 @@ import { googleAPIKey, radius } from './constants';
 export const fetchNearbyPlaces = async (location: LocationType) => {
   const url = 'https://places.googleapis.com/v1/places:searchNearby';
   const requestBody = {
-    includedTypes: ['restaurant', 'bar', 'cafe'],
+    includedTypes: ['bar', 'cafe', 'bakery'],
     maxResultCount: 20,
     languageCode: 'en',
     locationRestriction: {

@@ -7,13 +7,12 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { Post, User } from '../../../../../../shared';
-import { createRef, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
-  checkLikeStatus,
+  fetchPostById,
   toggleLike,
 } from '../../../../utils/services/functions';
 import { auth } from '../../../../../../firebaseConfig';
-import useDebounce from '../../../../utils/hooks/useDebounce';
 import PlaceNameSeparator from './PlaceNameSeparator';
 import { postBgColor, primaryBgColor } from '../../../../utils/styles/colors';
 import UserLine from './UserLine';
@@ -21,8 +20,8 @@ import InteractionBar from './InteractionBar';
 import BluredPostFrontView from './BluredPostFrontView';
 import { daysPassedSince } from '../../../../utils/helper-functions/daysPassedSince';
 import FastImage from 'react-native-fast-image';
-import useOptimistic from '../../../../utils/helper-functions/useOptimistic';
-import { handleFreshContent } from '../../../../utils/helper-functions/posts-functions';
+import { useQuery, useQueryClient } from 'react-query';
+import { usePlaceStore } from '../../../../utils/store/placesStore';
 
 interface PostInterface {
   post: Post;
@@ -41,6 +40,7 @@ const width = Dimensions.get('window').width;
 
 export const UserPost = (props: PostInterface) => {
   const { post, setZoomedPost, isZoomed } = props;
+  const queryClient = useQueryClient();
 
   const focalX = useSharedValue(0);
   const focalY = useSharedValue(0);
@@ -48,26 +48,84 @@ export const UserPost = (props: PostInterface) => {
   const yCurrent = useSharedValue(0);
   const scale = useSharedValue(1);
 
-  const [likeStatus, setLikeStatus] = useState<boolean>(false);
+  const [liked, setLiked] = useState(post.isLiked);
+  const [likeCount, setLikeCount] = useState(post.likesCount); // Example initial like count
+  const [previousLikeState, setPreviousLikeState] = useState(!post.isLiked);
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const handleLikeToggle = async () => {
-    if (auth.currentUser?.uid) {
-      setLikeStatus(!likeStatus);
-      await toggleLike(post.id, auth.currentUser!.uid);
-    }
+  const { placeId } = usePlaceStore();
+
+  const optimisticUpdate = (liked: boolean) => {
+    queryClient.setQueryData(
+      placeId ? ['posts', placeId] : 'posts', // Use the appropriate query key
+      (oldData: any) => {
+        if (!oldData) return oldData;
+
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page: any) => ({
+            ...page,
+            posts: page.posts.map(
+              (p: Post) =>
+                p.id === post.id
+                  ? {
+                      ...p, // Only update the specific post that changed
+                      isLiked: !liked,
+                      likesCount: liked ? p.likesCount - 1 : p.likesCount + 1,
+                    }
+                  : p // Return unchanged posts
+            ),
+          })),
+        };
+      }
+    );
   };
 
-  // const { data, error, pendingData } = useOptimistic<Post>(async () => {
-  //   await toggleLike(post.id, auth.currentUser!.uid);
-  //
-  //   const updatedPosts = await handleFreshContent()
-  // });
+  const handleLikeToggle = async (postId: string) => {
+    if (liked) {
+      setLiked(false); // Optimistically unlike
+      setLikeCount(prevCount => prevCount - 1);
+    } else {
+      setLiked(true); // Optimistically like
+      setLikeCount(prevCount => prevCount + 1);
+    }
+
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+
+    debounceTimeout.current = setTimeout(async () => {
+      try {
+        // Check if the like state has actually changed before making the API call
+        if (liked !== previousLikeState) {
+          await toggleLike(postId, auth.currentUser?.uid!);
+
+          // Update previousLikeState to the new committed state after the API call
+          setPreviousLikeState(prevState => !prevState);
+
+          optimisticUpdate(liked);
+        }
+      } catch (error) {
+        console.error('Error updating like status:', error);
+
+        // Revert optimistic update if the API call fails
+        setLiked(previousLikeState);
+        setLikeCount(prevCount =>
+          previousLikeState ? prevCount + 1 : prevCount - 1
+        );
+      }
+    }, 700); // 700ms debounce delay
+  };
+
+  const onLikePress = () => {
+    handleLikeToggle(post.id);
+  };
 
   const doubleTap = Gesture.Tap()
     .maxDuration(250)
     .numberOfTaps(2)
     .onStart(async () => {
-      await handleLikeToggle();
+      onLikePress();
     });
 
   const pinch = Gesture.Pinch()
@@ -149,11 +207,11 @@ export const UserPost = (props: PostInterface) => {
           </GestureDetector>
         </View>
         <InteractionBar
-          likes={post.likesCount}
+          likes={likeCount}
           comments={post.commentsCount}
-          onLikeToggle={handleLikeToggle}
+          onLikeToggle={onLikePress}
           onCommentToggle={() => props.onCommentPress(props.post.id)}
-          isLiked={post.isLiked}
+          isLiked={liked}
         />
       </View>
     </>

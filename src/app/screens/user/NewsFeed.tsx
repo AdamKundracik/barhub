@@ -22,6 +22,7 @@ import FeedHeader from '../../components/user/NewsFeed/FeedHeader';
 import CommentsSlider from '../../components/user/NewsFeed/Post/CommentsSlider';
 import { usePlaceStore } from '../../utils/store/placesStore';
 import EmptyState from '../../components/user/NewsFeed/EmptyState';
+import { usePostsStore } from '../../utils/store/postStore';
 
 export const NewsFeed = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
@@ -33,6 +34,7 @@ export const NewsFeed = () => {
   const { t } = useTranslation();
 
   const { placeId, placeName, placeDetail, setPlaceDetail } = usePlaceStore();
+  const { posts, setPosts, setRefetchPosts } = usePostsStore();
 
   // Set up state for days since the last uploaded post
   const [
@@ -63,12 +65,6 @@ export const NewsFeed = () => {
     {
       getNextPageParam: lastPage => lastPage?.lastVisible || null, // Fetch more posts based on lastVisible (cursor)
       staleTime: Infinity, // Keep data fresh for 10 minutes
-      cacheTime: 15 * 60 * 1000, // Cache data for 15 minutes
-      refetchInterval: 4 * 60 * 1000,
-      enabled: true,
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-      refetchOnMount: false,
     }
   );
 
