@@ -5,13 +5,11 @@ import {
   Easing,
   FlatList,
   Image,
-  Keyboard,
   PanResponder,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
@@ -22,7 +20,7 @@ import {
   addCommentToPost,
   fetchCommentsForPost,
 } from '../../../../utils/services/functions';
-import { CommentProps, Post, User } from '../../../../../../shared';
+import { CommentProps, User } from '../../../../../../shared';
 import { auth } from '../../../../../../firebaseConfig';
 import { getTimeAgoFromTimestampSeconds } from '../../../../utils/helper-functions/timeAgo';
 import Svg, { Path } from 'react-native-svg';
@@ -281,6 +279,7 @@ const CommentsSlider = (props: Props) => {
               <View
                 style={{
                   width: '100%',
+                  height: '80%',
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -385,6 +384,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   inputContainer: {
+    height: 'auto',
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 15,

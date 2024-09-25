@@ -7,11 +7,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { Post, User } from '../../../../../../shared';
-import { useCallback, useRef, useState } from 'react';
-import {
-  fetchPostById,
-  toggleLike,
-} from '../../../../utils/services/functions';
+import { useRef, useState } from 'react';
+import { toggleLike } from '../../../../utils/services/functions';
 import { auth } from '../../../../../../firebaseConfig';
 import PlaceNameSeparator from './PlaceNameSeparator';
 import { postBgColor, primaryBgColor } from '../../../../utils/styles/colors';
@@ -20,7 +17,7 @@ import InteractionBar from './InteractionBar';
 import BluredPostFrontView from './BluredPostFrontView';
 import { daysPassedSince } from '../../../../utils/helper-functions/daysPassedSince';
 import FastImage from 'react-native-fast-image';
-import { useQuery, useQueryClient } from 'react-query';
+import { useQueryClient } from 'react-query';
 import { usePlaceStore } from '../../../../utils/store/placesStore';
 
 interface PostInterface {
