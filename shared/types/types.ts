@@ -26,6 +26,7 @@ export interface UserRecord {
 export interface User extends UserRecord {
   dateOfBirth: string;
   location: LocationType;
+  geohash: string;
   pushToken: string;
   lastUploadedPost: string;
   premium: boolean;

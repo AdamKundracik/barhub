@@ -79,6 +79,6 @@ export const Icons = {
   Image: faImage,
   Remove: faRemove,
   Ban: faBan,
-  Pin: faLocationPinLock,
+  Pin: faMapPin,
   Left: faChevronLeft,
 };

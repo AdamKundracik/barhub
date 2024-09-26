@@ -20,6 +20,7 @@ import { AppState } from 'react-native';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useUserManagement } from '../utils/hooks/useUserManagement';
 import { useQuery } from 'react-query';
+import { geohashForLocation } from 'geofire-common';
 
 type ContextProps = {
   authUser: null | boolean;
@@ -97,10 +98,6 @@ export const UserProvider = (props: Props) => {
   }, [auth]);
 
   useEffect(() => {
-    const setUserIntoDB = async (location: LocationType) => {
-      await setUser({ location });
-    };
-
     const onLocation = BackgroundGeolocation.onLocation(async location => {
       const currentLocation: LocationType = {
         latitude: location.coords?.latitude,
@@ -170,12 +167,15 @@ export const UserProvider = (props: Props) => {
     refetchUserData(); // Refetch user data instead of direct call to fetchUserData
   }, [isLoadingAuth, auth]);
 
+  const setUserIntoDB = async (location: LocationType) => {
+    const hash = geohashForLocation([location.latitude, location.longitude]);
+    await setUser({ location: location, geohash: hash });
+  };
+
   async function getLocation(): Promise<void> {
     try {
       const coords: LocationType = await getCoords();
-      await setUser({
-        location: { latitude: coords.latitude, longitude: coords.longitude },
-      });
+      await setUserIntoDB(coords);
       setLocation(coords);
     } catch (e) {
       console.error(e);

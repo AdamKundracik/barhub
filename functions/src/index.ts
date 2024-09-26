@@ -1,5 +1,10 @@
 import { CallableContext } from 'firebase-functions/lib/common/providers/https';
 import { InfinityScrollPost, Post, User } from '../../shared';
+import * as geofire from 'geofire-common';
+import { distanceBetween, geohashQueryBounds } from 'geofire-common';
+import { snapshots } from 'react-native-reanimated/lib/typescript/reanimated2/layoutReanimation/web/componentStyle';
+import { firestore } from 'firebase-admin';
+import GeoPoint = firestore.GeoPoint;
 
 const admin = require('firebase-admin');
 
@@ -46,6 +51,81 @@ export const savePost = functions.https.onCall(
       .collection('posts')
       .doc(context.auth.uid)
       .set(post, { merge: true });
+  }
+);
+
+exports.findNearbyUsers = functions.https.onCall(
+  async (data, context: CallableContext) => {
+    const { placeLocation, radius } = data;
+
+    const placeGeoPoint = new GeoPoint(
+      placeLocation.latitude,
+      placeLocation.longitude
+    );
+
+    console.error(placeGeoPoint);
+    console.error(placeLocation);
+
+    try {
+      // Generate geohash bounds for the center location and radius
+      const bounds = geohashQueryBounds(
+        [placeGeoPoint.latitude, placeGeoPoint.longitude], // Use GeoPoint getter methods
+        radius
+      );
+      const promises = [];
+
+      // Query Firestore for each geohash range (up to 9 queries based on overlap)
+      for (const b of bounds) {
+        const q = db
+          .collection('users') // Assume users are stored in a 'users' collection
+          .orderBy('geohash')
+          .startAt(b[0])
+          .endAt(b[1]);
+
+        promises.push(q.get());
+      }
+
+      // Collect all query results
+      const snapshots = await Promise.all(promises);
+
+      // List to store matching users
+      const matchingUsers = [];
+
+      // Iterate through all snapshot results
+      for (const snap of snapshots) {
+        for (const doc of snap.docs) {
+          const userData: User = doc.data();
+          const userLocation = userData.location; // Assume location is stored as GeoPoint
+
+          // Ensure userLocation exists and is a GeoPoint
+          if (userLocation && userLocation instanceof GeoPoint) {
+            // Calculate the actual distance between user and center point
+            const distanceInKm = distanceBetween(
+              [userLocation.latitude, userLocation.longitude], // Use GeoPoint getter methods
+              [placeGeoPoint.latitude, placeLocation.longitude]
+            );
+            const distanceInM = distanceInKm * 1000; // convert to meters
+
+            // Only include users within the specified radius
+            if (distanceInM <= radius) {
+              if (userData.uid !== context.auth.uid) {
+                matchingUsers.push({
+                  ...userData, // All user data (including push token, if needed)
+                });
+              }
+            }
+          }
+        }
+      }
+
+      console.info('Function result:', matchingUsers);
+
+      // Return the matching users as the response
+      return matchingUsers;
+    } catch (error) {
+      console.error('Error finding nearby users:', error);
+      return undefined;
+    }
   }
 );
 

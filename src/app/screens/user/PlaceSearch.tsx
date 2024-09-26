@@ -48,7 +48,7 @@ export const PlaceSearch = () => {
       ['places-autocomplete', query], // Query key for caching
       () => fetchPlaceAutocomplete(query.toUpperCase(), location, sessionToken), // Fetch places using your function
       {
-        enabled: query.length >= 3, // Enable query only if query is 3+ chars and location is available
+        enabled: query.length >= 2, // Enable query only if query is 3+ chars and location is available
       }
     );
   };
@@ -95,21 +95,24 @@ export const PlaceSearch = () => {
 
         <View style={{ position: 'relative' }}>
           <TextInput
-            style={formStyles.inputPrimary}
+            style={[
+              formStyles.inputPrimary,
+              { backgroundColor: 'white', color: primaryDeepColor },
+            ]}
             placeholder={t('search-place')}
             onChangeText={text => {
               setQuery(text);
               if (!text) setHasSearched(false); // Reset if input is cleared
             }}
             value={query}
-            placeholderTextColor={secondaryTextColor}
+            placeholderTextColor={primaryDeepColor}
           />
           {query.length > 0 && (
             <TouchableOpacity
               style={{
                 position: 'absolute',
                 right: 16, // Adjust according to your design
-                top: 18, // Adjust according to your design
+                top: 14, // Adjust according to your design
               }}
               onPress={() => {
                 setQuery(''); // Clear the input field
@@ -118,8 +121,8 @@ export const PlaceSearch = () => {
             >
               <FontAwesomeIcon
                 icon={Icons.Remove}
-                size={16}
-                color={textInputPlaceholderColor}
+                size={24}
+                color={primaryDeepColor}
               />
             </TouchableOpacity>
           )}

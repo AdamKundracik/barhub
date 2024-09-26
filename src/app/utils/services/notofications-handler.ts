@@ -14,13 +14,14 @@ Notifications.setNotificationHandler({
 export async function sendPushNotification(
   expoPushTokenRecipient: string,
   placeId: string,
+  placeName: string,
   senderToken: string,
   notificationTTL: number = 180 * 1000 //measured in miliseconds (1s = 1000ms) - 3min default
 ) {
   const message = {
     to: expoPushTokenRecipient,
     sound: 'default',
-    title: 'Someone is requesting photo!',
+    title: `${placeName} photo request!`,
     body: 'Will you show him how it looks inside?',
     data: {
       placeId: placeId,

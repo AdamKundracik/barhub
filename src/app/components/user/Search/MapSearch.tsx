@@ -107,11 +107,7 @@ export const MapSearch = (props: LayoutProps) => {
               }}
               title={place.displayName.text}
             >
-              <FontAwesomeIcon
-                icon={Icons.Pin}
-                size={16}
-                color={primaryColor}
-              />
+              <FontAwesomeIcon icon={Icons.Pin} size={24} color={'black'} />
             </Marker>
           ))}
         {!loading && (

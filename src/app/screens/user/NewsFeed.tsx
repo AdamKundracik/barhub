@@ -88,13 +88,14 @@ export const NewsFeed = () => {
     const senderToken = userData?.pushToken;
     const detail: PlaceDetail = await fetchPlaceDetails(placeId ?? '');
     setPlaceDetail(detail);
-    if (placeId && detail) {
+    if (placeId && placeName && detail) {
       const tokens = await sendNotificationHandler({
         latitude: detail?.geometry.location?.lat,
         longitude: detail?.geometry.location?.lng,
       });
-      tokens.forEach(token => {
-        sendPushNotification(token, placeId, senderToken ?? '');
+
+      tokens?.forEach(token => {
+        sendPushNotification(token, placeId, placeName, senderToken ?? '');
       });
     }
   }

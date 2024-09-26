@@ -118,8 +118,6 @@ const CommentsSlider = (props: Props) => {
     }
   };
 
-  console.log('pending', pendingData);
-
   const handleDeleteComment = async (commentId: string) => {
     try {
       //PREPARED FOR NEXT USAGE
