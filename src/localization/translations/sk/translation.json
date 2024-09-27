@@ -75,5 +75,10 @@
   "no-acitivity-info": "Pre zobrazenie fotografií musíte prispieť aktuálnou fotografiou z ľubovoľného miesta",
   "no-feed-photos": "Zatiaľ neexistujú žiadne príspevky",
   "feed": "feed",
-  "select-place": "Vybrať miesto"
+  "select-place": "Vybrať miesto",
+  "account": "Účet",
+  "info": "Informácie",
+  "help": "Pomoc",
+  "subscription": "Predplatné",
+  "logout": "Odhlásiť sa"
 }

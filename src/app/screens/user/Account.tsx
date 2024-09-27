@@ -25,6 +25,8 @@ import {
 import { setUser } from '../../utils/services/functions';
 import { useUserContext } from '../../providers/UserProvider';
 import { DeleteUserModal } from '../../components/user/Account/DeleteUserModal';
+import FastImage from 'react-native-fast-image';
+import { user } from 'firebase-functions/lib/v1/providers/auth';
 
 export const Account = () => {
   const { userData, fetchUserData, fetchAllUsers } = useUserContext();
@@ -33,18 +35,6 @@ export const Account = () => {
   const [modalOpened, setModalOpened] = useState(false);
 
   const navigation = useNavigation<NavigationProp<UserStackList>>();
-
-  const handleSignOut = () => {
-    signOut(auth)
-      .then(() => {
-        Alert.alert(t('Signed out'), t('You have been signed out'), [
-          { text: 'Ok' },
-        ]);
-      })
-      .catch(error => {
-        console.error(error);
-      });
-  };
 
   const toggleOpenOptions = () => {
     setSlidingViewVisible(!isSlidingViewVisible);
@@ -147,44 +137,51 @@ export const Account = () => {
   };
 
   return (
-    <Layout pageTitle="Account">
+    <Layout pageTitle="Account" showBottomTabs={false} isBackButtonShown={true}>
       <TouchableWithoutFeedback onPress={handleOutsideClick}>
-        <View style={styles.container}>
+        <View style={styles.profileSection}>
           <TouchableOpacity onPress={toggleOpenOptions}>
-            <Image
+            <FastImage
               source={
                 auth.currentUser?.photoURL
                   ? { uri: auth.currentUser.photoURL }
                   : require('../../../../assets/userIcon.png')
               }
               style={styles.profilePicture}
+              resizeMode="cover"
             />
           </TouchableOpacity>
-          <Text style={styles.userName}>{auth.currentUser?.displayName}</Text>
-          <Text style={styles.userName}>{auth.currentUser?.email}</Text>
-          {userData?.premium && (
-            <Text style={styles.picturesTaken}>PREMIUM MEMBER</Text>
-          )}
-
-          <TouchableOpacity style={styles.button} onPress={handleSignOut}>
-            <Text style={styles.buttonText}>Logout</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => navigation.navigate('Subscription')}
-          >
-            <Text style={styles.buttonText}>
-              Settings <FontAwesomeIcon icon={Icons.Gear} color="white" />
+          <Text style={styles.username}>{userData?.displayName}</Text>
+          <View style={styles.accountStatus}>
+            {userData?.premium && (
+              <FontAwesomeIcon icon={Icons.Crown} size={20} color="#FFC107" />
+            )}
+            <Text
+              style={userData?.premium ? styles.premiumText : styles.basicText}
+            >
+              {userData?.premium ? 'Premium' : 'Basic'}
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => setModalOpened(true)}
-          >
-            <Text style={{ color: 'red' }}>Delete user</Text>
-          </TouchableOpacity>
+          </View>
         </View>
       </TouchableWithoutFeedback>
+
+      {/* User Info Section */}
+      <View style={styles.infoSection}>
+        <Text style={styles.label}>Email</Text>
+        <Text style={styles.value}>{userData?.email}</Text>
+        <Text style={styles.label}>Dátum narodenia</Text>
+        <Text style={styles.value}>
+          {userData?.dateOfBirth
+            ? new Date(userData.dateOfBirth).toLocaleDateString()
+            : 'Date of Birth not available'}
+        </Text>
+
+        {/* Change Password */}
+        <TouchableOpacity onPress={() => {}}>
+          <Text style={styles.changePassword}>Zmena hesla</Text>
+        </TouchableOpacity>
+      </View>
+
       <SlidingView
         visible={isSlidingViewVisible}
         onClose={() => setSlidingViewVisible(false)}
@@ -201,36 +198,94 @@ export const Account = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   profilePicture: {
     width: 150,
     height: 150,
     borderRadius: 75,
     marginBottom: 20,
   },
-  userName: {
+  container: {
+    flex: 1,
+    backgroundColor: '#0E0F1F',
+    justifyContent: 'space-between',
+  },
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  title: {
     fontSize: 24,
-    color: '#fff',
-    marginBottom: 10,
+    color: 'white',
+    fontWeight: 'bold',
   },
-  picturesTaken: {
-    fontSize: 18,
-    color: '#fff',
-    marginBottom: 20,
+  titlePrimary: {
+    color: 'white',
   },
-  button: {
-    backgroundColor: '#333',
-    padding: 10,
-    borderRadius: 5,
-    marginVertical: 5,
+  titleSecondary: {
+    color: '#00E1C9',
   },
-  buttonText: {
+  profileSection: {
+    alignItems: 'center',
+    marginVertical: 24,
+  },
+  avatar: {
+    borderWidth: 2,
+    borderColor: '#FFC107',
+  },
+  username: {
+    color: '#00E1C9',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginVertical: 8,
+  },
+  accountStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  premiumText: {
+    color: '#FFC107',
+    marginLeft: 4,
+    fontSize: 16,
+  },
+  basicText: {
+    color: 'white',
+    marginLeft: 4,
+    fontSize: 16,
+  },
+  infoSection: {
+    paddingHorizontal: 24,
+  },
+  label: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 14,
+    marginTop: 16,
+  },
+  value: {
+    color: '#00E1C9',
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  changePassword: {
+    color: 'white',
+    textAlign: 'center',
+    marginTop: 24,
+    textDecorationLine: 'underline',
+    fontSize: 16,
+  },
+  bottomBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+  },
+  bottomAvatar: {
+    borderWidth: 2,
+    borderColor: '#FFC107',
   },
 });
 

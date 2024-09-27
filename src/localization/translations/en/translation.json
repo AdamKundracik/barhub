@@ -75,5 +75,11 @@
   "no-acitivity-info": "Longer account inactivity",
   "no-feed-photos": "There are no posts yet.",
   "feed": "feed",
-  "select-place": "Select place"
+  "select-place": "Select place",
+  "account": "Account",
+  "info": "Info",
+  "help": "Help",
+  "subscription": "Subscription",
+  "logout": "Log out"
+
 }

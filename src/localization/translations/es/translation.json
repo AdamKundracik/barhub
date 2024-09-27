@@ -75,5 +75,10 @@
   "no-acitivity-info": "Para ver las fotos, debes contribuir con una foto actual de algún lugar.",
   "no-feed-photos": "Aún no existen publicaciones.",
   "feed": "feed",
-  "select-place": "Elige lugar"
+  "select-place": "Elige lugar",
+  "account": "Cuenta",
+  "info": "Información",
+  "help": "Ayuda",
+  "subscription": "Suscripción",
+  "logout": "Cerrar sesión"
 }

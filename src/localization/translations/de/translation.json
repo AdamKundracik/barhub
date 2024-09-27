@@ -75,5 +75,10 @@
   "no-acitivity-info": "Um Fotos anzuzeigen, müssen Sie ein aktuelles Foto von einem Ort beisteuern.",
   "no-feed-photos": "Es gibt noch keine Beiträge.",
   "feed": "feed",
-  "select-place": "Ort auswählen"
+  "select-place": "Ort auswählen",
+  "account": "Konto",
+  "info": "Informationen",
+  "help": "Hilfe",
+  "subscription": "Abonnement",
+  "logout": "Abmelden"
 }
