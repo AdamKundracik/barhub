@@ -1,60 +1,26 @@
 {
   "project_info": {
-    "project_number": "995791421821",
-    "firebase_url": "https://baruj-app-cb74c-default-rtdb.europe-west1.firebasedatabase.app",
-    "project_id": "baruj-app-cb74c",
-    "storage_bucket": "baruj-app-cb74c.appspot.com"
+    "project_number": "183031933977",
+    "project_id": "baruj-android-notification",
+    "storage_bucket": "baruj-android-notification.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:995791421821:android:005cf06236c53e7937cc14",
+        "mobilesdk_app_id": "1:183031933977:android:42e9d22e007b7cad54ce88",
         "android_client_info": {
-          "package_name": "com.barhub.barhub"
+          "package_name": "com.baruj.barujNotification"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "995791421821-9nvgd0s6glecj7vvpa0mve8vnf0lafvr.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.barhub.barhub",
-            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
-          }
-        },
-        {
-          "client_id": "995791421821-brou5vlhns0135lf8srlgeql4qc7led8.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.barhub.barhub",
-            "certificate_hash": "3bb6adcc2b98cc98d0602d1a39c5593d17f8000c"
-          }
-        },
-        {
-          "client_id": "995791421821-tedjmv2vuu6coprv5ij6h5dje9io5rls.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBgGo74cbQ_-hG6-UYmPxZZ7VM48gDkM1k"
+          "current_key": "AIzaSyB4tBFlmMyLzXRLOrPS2LO00whUdw6lcQo"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "995791421821-0rg9j7p11tb7n8c204rfchjlntanat79.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "995791421821-83jcroflel19gvsl8ocili8pu4f1hq5l.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.baruj"
-              }
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }
