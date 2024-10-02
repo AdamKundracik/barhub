@@ -1,28 +1,35 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Place, PlacePrediction } from './types';
 
 export type UserStackList = {
   Feed: undefined;
 
   Account: undefined;
 
-  PhotoResolver: { image: string };
+  PasswordChangeScreen: undefined;
 
-  Camera: { placeId: string; senderToken: string } | undefined;
+  PhotoResolver: { image: string };
 
   Subscription: undefined;
 
   PlaceSearch: undefined;
+
+  Help: undefined;
+
+  Info: undefined;
 };
 
-export type FeedsScreenProps = NativeStackScreenProps<
-  UserStackList,
-  'Account',
-  'Camera'
->;
+export type FeedsScreenProps = NativeStackScreenProps<UserStackList, 'Account'>;
 
 export type CameraScreenProps = NativeStackScreenProps<
   UserStackList,
   'PhotoResolver',
   'PlaceSearch'
 >;
+
+export type AccountScreenProps = NativeStackScreenProps<
+  UserStackList,
+  'PasswordChangeScreen',
+  'Help'
+>;
+
+export type SettingsScreenProps = NativeStackScreenProps<UserStackList, 'Info'>;

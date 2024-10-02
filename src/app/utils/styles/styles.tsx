@@ -1,5 +1,10 @@
 import { StyleSheet } from 'react-native';
-import { primaryGrey, primaryColor, secondaryTextColor } from './colors';
+import {
+  primaryGrey,
+  primaryColor,
+  primaryTextColor,
+  primaryBgColor,
+} from './colors';
 
 export const formStyles = StyleSheet.create({
   inputPrimary: {
@@ -9,7 +14,7 @@ export const formStyles = StyleSheet.create({
     borderRadius: 20,
     borderColor: primaryColor,
     borderWidth: 1,
-    color: secondaryTextColor,
+    color: primaryTextColor,
   },
   buttonPrimary: {
     alignItems: 'center',
@@ -25,11 +30,13 @@ export const formStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10,
-    borderRadius: 30,
-    height: 40,
+    borderRadius: 10,
+    height: 50,
     alignSelf: 'center',
-    width: '80%',
-    backgroundColor: 'black',
+    width: 200,
+    borderWidth: 2,
+    borderColor: primaryColor,
+    backgroundColor: primaryBgColor,
   },
   buttonPrimaryDisabled: {
     alignItems: 'center',
@@ -48,11 +55,11 @@ export const formStyles = StyleSheet.create({
     color: 'rgb(27,34,40)',
   },
   buttonText: {
-    color: secondaryTextColor,
+    color: primaryTextColor,
     display: 'flex',
     margin: 'auto',
     fontWeight: 'bold',
-    fontSize: 20,
+    fontSize: 16,
   },
 });
 
@@ -61,7 +68,7 @@ export const commonAppStyles = StyleSheet.create({
     color: primaryColor,
   },
   textSecondary: {
-    color: secondaryTextColor,
+    color: primaryTextColor,
   },
 });
 

@@ -21,7 +21,7 @@ import {
 } from 'firebase/auth';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import { auth } from '../../../../firebaseConfig';
-import { primaryColor, secondaryTextColor } from '../../utils/styles/colors';
+import { primaryColor, primaryTextColor } from '../../utils/styles/colors';
 import * as ImagePicker from 'expo-image-picker';
 import Svg, { Circle, Path } from 'react-native-svg';
 import DatePicker from '../../components/shared/DatePicker';
@@ -174,7 +174,7 @@ export const Register = ({ navigation }: any) => {
           style={formStyles.inputPrimary}
           placeholder="Email"
           keyboardType={'email-address'}
-          placeholderTextColor={secondaryTextColor}
+          placeholderTextColor={primaryTextColor}
         />
       </InputWrapper>
       <InputWrapper inputLabel={t('user-name')}>
@@ -184,7 +184,7 @@ export const Register = ({ navigation }: any) => {
           style={formStyles.inputPrimary}
           placeholder={t('user-name')}
           keyboardType={'default'}
-          placeholderTextColor={secondaryTextColor}
+          placeholderTextColor={primaryTextColor}
         />
       </InputWrapper>
       <DatePicker onDateChange={handleDateChange} />
@@ -201,7 +201,7 @@ export const Register = ({ navigation }: any) => {
           style={formStyles.inputPrimary}
           placeholder={t('password')}
           keyboardType={'visible-password'}
-          placeholderTextColor={secondaryTextColor}
+          placeholderTextColor={primaryTextColor}
         />
       </InputWrapper>
       <InputWrapper
@@ -217,7 +217,7 @@ export const Register = ({ navigation }: any) => {
           style={formStyles.inputPrimary}
           placeholder={t('repeatPassword')}
           keyboardType={'visible-password'}
-          placeholderTextColor={secondaryTextColor}
+          placeholderTextColor={primaryTextColor}
         />
         {!isSamePassword() && (
           <View>

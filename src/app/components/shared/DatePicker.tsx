@@ -5,7 +5,7 @@ import { InputWrapper } from './InputWrapper';
 import {
   primaryGrey,
   primaryColor,
-  secondaryTextColor,
+  primaryTextColor,
 } from '../../utils/styles/colors';
 import { useTranslation } from 'react-i18next';
 
@@ -31,9 +31,10 @@ const DatePicker = (props: DatePickerProps) => {
     value: String(i + 1).padStart(2, '0'),
   }));
 
-  const years = Array.from({ length: 201 }, (_, i) => ({
-    label: String(1900 + i),
-    value: String(1900 + i),
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: currentYear - 1919 }, (_, i) => ({
+    label: String(1920 + i),
+    value: String(1920 + i),
   }));
 
   // Generate ISO date string whenever the user selects a complete date
@@ -78,7 +79,10 @@ const DatePicker = (props: DatePickerProps) => {
             <RNPickerSelect
               onValueChange={value => setYear(value)}
               items={years}
-              placeholder={{ label: 'YYYY', value: null }}
+              placeholder={{
+                label: currentYear.toString(),
+                value: currentYear,
+              }}
               value={year}
               style={pickerSelectStyles}
               useNativeAndroidPickerStyle={false}
@@ -115,7 +119,7 @@ const pickerSelectStyles = {
     borderWidth: 1,
     borderColor: primaryColor,
     borderRadius: 20,
-    color: secondaryTextColor,
+    color: primaryTextColor,
     paddingRight: 30,
   },
   inputAndroid: {
@@ -125,7 +129,7 @@ const pickerSelectStyles = {
     borderWidth: 1,
     borderColor: primaryColor,
     borderRadius: 20,
-    color: secondaryTextColor,
+    color: primaryTextColor,
     paddingRight: 30,
   },
 };

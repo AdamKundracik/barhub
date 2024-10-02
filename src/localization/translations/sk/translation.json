@@ -80,5 +80,11 @@
   "info": "Informácie",
   "help": "Pomoc",
   "subscription": "Predplatné",
-  "logout": "Odhlásiť sa"
+  "logout": "Odhlásiť sa",
+  "change-password-title": "Zmena hesla",
+  "old-password": "Stare heslo",
+  "new-password": "Nove heslo",
+  "confirm-password": "Zopakujte heslo",
+  "password-placeholder": "Zopakujte heslo",
+  "save-changes": "Uložiť zmeny"
 }

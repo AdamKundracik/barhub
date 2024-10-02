@@ -80,5 +80,11 @@
   "info": "Informationen",
   "help": "Hilfe",
   "subscription": "Abonnement",
-  "logout": "Abmelden"
+  "logout": "Abmelden",
+  "change-password-title": "Passwort ändern",
+  "old-password": "Altes Passwort",
+  "new-password": "Neues Passwort",
+  "confirm-password": "Passwort bestätigen",
+  "password-placeholder": "Passwort wiederholen",
+  "save-changes": "Änderungen speichern"
 }

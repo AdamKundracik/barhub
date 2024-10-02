@@ -7,7 +7,7 @@ export const fetchNearbyPlaces = async (location: LocationType) => {
 
   const url = 'https://places.googleapis.com/v1/places:searchNearby';
   const requestBody = {
-    includedTypes: ['bar', 'cafe', 'bakery'],
+    includedTypes: ['bar', 'cafe', 'bakery', 'night_club', 'restaurant'],
     maxResultCount: 20,
     languageCode: locales[0].languageCode,
     locationRestriction: {

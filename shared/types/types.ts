@@ -45,9 +45,9 @@ export type Post = {
   placeAddress: string;
   id: string;
   photoUrl: string;
-  likesCount: number;
-  commentsCount: number;
-  isLiked: boolean;
+  likesCount?: number;
+  commentsCount?: number;
+  isLiked?: boolean;
 };
 
 export type InfinityScrollPost = {

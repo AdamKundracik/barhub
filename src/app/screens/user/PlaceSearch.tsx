@@ -17,7 +17,7 @@ import { fetchPlaceAutocomplete } from '../../utils/helper-functions/fetchPlaces
 import {
   primaryColor,
   primaryDeepColor,
-  secondaryTextColor,
+  primaryTextColor,
   textInputPlaceholderColor,
 } from '../../utils/styles/colors';
 import Layout from '../../components/user/Shared/Layout';

@@ -51,8 +51,10 @@ export const sendNotificationHandler = async (
           // Filter out false positives due to GeoHash accuracy
           const distanceInKm = distanceBetween([lat, lng], locationArray);
           const distanceInM = distanceInKm * 1000;
+
+          console.log(Math.floor(distanceInM));
           if (
-            distanceInM <= 15 &&
+            Math.floor(distanceInM) <= 30 &&
             (doc.data() as User).uid !== auth.currentUser?.uid
           ) {
             matchingDocs.push(doc.data() as User);

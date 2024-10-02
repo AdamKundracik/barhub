@@ -1,4 +1,4 @@
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Text, TouchableOpacity, View } from 'react-native';
 import { ReactNode } from 'react';
 import { commonAppStyles } from '../../utils/styles/styles';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -20,7 +20,12 @@ export const InputWrapper = ({
   togglePassword,
 }: LayoutProps) => {
   return (
-    <View style={{ marginHorizontal: 12, marginTop: 8 }}>
+    <View
+      style={{
+        marginHorizontal: 12,
+        marginTop: 8,
+      }}
+    >
       {inputLabel && (
         <Text
           style={[
@@ -41,7 +46,7 @@ export const InputWrapper = ({
               }
             >
               <FontAwesomeIcon
-                icon={togglePassword ? Icons.EyeSlash : Icons.Eye}
+                icon={!togglePassword ? Icons.EyeSlash : Icons.Eye}
                 size={24}
                 color="#aaa"
               />

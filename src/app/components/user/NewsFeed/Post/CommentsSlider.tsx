@@ -168,7 +168,9 @@ const CommentsSlider = (props: Props) => {
         style={[{ transform: [{ translateY }] }, styles.container]}
       >
         <Animated.View style={styles.header} {...panResponder.panHandlers}>
-          <Text style={{ color: primaryColor }}>{allComments.length}</Text>
+          <Text style={[styles.headerText, { color: primaryColor }]}>
+            {allComments.length}
+          </Text>
           <Text style={styles.headerText}>{t('comments')}</Text>
           <TouchableOpacity onPress={onCancelClick}>
             <FontAwesomeIcon icon={Icons.Remove} size={24} color="#fff" />

@@ -80,5 +80,11 @@
   "info": "Información",
   "help": "Ayuda",
   "subscription": "Suscripción",
-  "logout": "Cerrar sesión"
+  "logout": "Cerrar sesión",
+  "change-password-title": "Cambiar Contraseña",
+  "old-password": "Contraseña Anterior",
+  "new-password": "Nueva Contraseña",
+  "confirm-password": "Confirmar Contraseña",
+  "password-placeholder": "Repetir Contraseña",
+  "save-changes": "Guardar Cambios"
 }

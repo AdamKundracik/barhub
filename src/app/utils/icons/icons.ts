@@ -7,6 +7,7 @@ import {
   faBoxesPacking,
   faCamera,
   faCancel,
+  faCheck,
   faCircleCheck,
   faCog,
   faCoins,
@@ -95,4 +96,5 @@ export const Icons = {
   Coins: faCoins,
   LogOut: faArrowRightFromBracket,
   Crown: faCrown,
+  Check: faCheck,
 };

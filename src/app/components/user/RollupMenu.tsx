@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -47,13 +48,13 @@ export const RollupMenu = (props: MenuProps) => {
       type: MenuItemType.INFO,
       title: t('info'), // Translate the title
       icon: Icons.Info,
-      function: () => navigation.navigate('Account'), // Original function
+      function: () => navigation.navigate('Info'), // Original function
     },
     {
       type: MenuItemType.HELP,
       title: t('help'), // Translate the title
       icon: Icons.Help,
-      function: () => navigation.navigate('Account'), // Original function
+      function: () => navigation.navigate('Help'), // Original function
     },
     {
       type: MenuItemType.SUBSCRIPTION,
@@ -140,12 +141,20 @@ export const RollupMenu = (props: MenuProps) => {
 
   // Define your menu items as an array
 
+  function handleOutsideClick() {
+    if (isOpen) {
+      hideMenu();
+    }
+  }
+
   return (
     <>
       {isOpen && (
-        <View style={StyleSheet.absoluteFillObject}>
-          <Animated.View style={[styles.overlay, { opacity: fadeAnim }]} />
-        </View>
+        <TouchableWithoutFeedback onPress={handleOutsideClick}>
+          <View style={StyleSheet.absoluteFillObject}>
+            <Animated.View style={[styles.overlay, { opacity: fadeAnim }]} />
+          </View>
+        </TouchableWithoutFeedback>
       )}
 
       <Animated.View

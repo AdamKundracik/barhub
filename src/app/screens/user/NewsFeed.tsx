@@ -23,6 +23,13 @@ import CommentsSlider from '../../components/user/NewsFeed/Post/CommentsSlider';
 import { usePlaceStore } from '../../utils/store/placesStore';
 import EmptyState from '../../components/user/NewsFeed/EmptyState';
 import { usePostsStore } from '../../utils/store/postStore';
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+} from 'react-native';
+import { formStyles } from '../../utils/styles/styles';
 
 export const NewsFeed = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
@@ -49,8 +56,6 @@ export const NewsFeed = () => {
     setNumberOfDaysSinceLastPostedPhoto(numberOfDays);
   }, [userData]);
 
-  useEffect(() => {}, []);
-  // Fetch posts using React Query
   const {
     data: postsData,
     isFetchingNextPage,
@@ -129,7 +134,17 @@ export const NewsFeed = () => {
           fetchMorePosts={fetchMorePosts} // Pagination function passed here
         />
       ) : (
-        <EmptyState requestPhoto={requestPhoto} />
+        <>
+          {isRefetching && <LoadingIndicator />}
+          <ScrollView
+            contentContainerStyle={styles.scrollViewContent}
+            refreshControl={
+              <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
+            }
+          >
+            <EmptyState requestPhoto={requestPhoto} />
+          </ScrollView>
+        </>
       )}
 
       {showComments && (
@@ -142,5 +157,13 @@ export const NewsFeed = () => {
     </Layout>
   );
 };
+
+const styles = StyleSheet.create({
+  scrollViewContent: {
+    flexGrow: 1,
+    justifyContent: 'center', // Center content vertically in ScrollView
+    alignItems: 'center', // Center content horizontally
+  },
+});
 
 export default NewsFeed;

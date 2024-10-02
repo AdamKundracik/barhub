@@ -1,10 +1,10 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import {
   iconInactiveColor,
   primaryColor,
-  secondaryTextColor,
+  primaryTextColor,
 } from '../../../utils/styles/colors';
 import RequestPhotoButton from './RequestPhotoButton';
 import { usePlaceStore } from '../../../utils/store/placesStore';
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
   infoText: {
     textAlign: 'center',
     fontSize: 16,
-    color: secondaryTextColor,
+    color: primaryTextColor,
   },
   infoText2: {
     textAlign: 'center',

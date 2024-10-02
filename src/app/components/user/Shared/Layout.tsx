@@ -32,15 +32,10 @@ import RollupMenu from '../RollupMenu';
 type LayoutProps = {
   children: ReactNode | ReactNode[];
   pageTitle: string;
-  isBackButtonShown?: boolean;
   showBottomTabs?: boolean;
 };
 
-export const Layout = ({
-  children,
-  isBackButtonShown = false,
-  showBottomTabs = true,
-}: LayoutProps) => {
+export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
   const { userData } = useUserContext();
   const { setUploadingState } = useUploadingStateManagement();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
@@ -81,14 +76,6 @@ export const Layout = ({
             alignItems: 'center',
           }}
         >
-          {isBackButtonShown && (
-            <TouchableOpacity
-              style={{ position: 'absolute', left: 15 }}
-              onPress={() => navigation.goBack()}
-            >
-              <FontAwesomeIcon icon={Icons.Left} size={24} color={'white'} />
-            </TouchableOpacity>
-          )}
           <View>
             <Svg width="91" height="28" viewBox="0 0 91 28" fill="none">
               <Path

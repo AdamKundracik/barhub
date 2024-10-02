@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Alert,
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -9,7 +8,7 @@ import {
   View,
 } from 'react-native';
 import Layout from '../../components/user/Shared/Layout';
-import { signOut, updateProfile } from 'firebase/auth';
+import { updateProfile } from 'firebase/auth';
 import { auth } from '../../../../firebaseConfig';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -26,7 +25,8 @@ import { setUser } from '../../utils/services/functions';
 import { useUserContext } from '../../providers/UserProvider';
 import { DeleteUserModal } from '../../components/user/Account/DeleteUserModal';
 import FastImage from 'react-native-fast-image';
-import { user } from 'firebase-functions/lib/v1/providers/auth';
+import { primaryColor } from '../../utils/styles/colors';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export const Account = () => {
   const { userData, fetchUserData, fetchAllUsers } = useUserContext();
@@ -137,32 +137,52 @@ export const Account = () => {
   };
 
   return (
-    <Layout pageTitle="Account" showBottomTabs={false} isBackButtonShown={true}>
+    <Layout pageTitle="Account" showBottomTabs={false}>
       <TouchableWithoutFeedback onPress={handleOutsideClick}>
-        <View style={styles.profileSection}>
-          <TouchableOpacity onPress={toggleOpenOptions}>
-            <FastImage
-              source={
-                auth.currentUser?.photoURL
-                  ? { uri: auth.currentUser.photoURL }
-                  : require('../../../../assets/userIcon.png')
-              }
-              style={styles.profilePicture}
-              resizeMode="cover"
-            />
-          </TouchableOpacity>
-          <Text style={styles.username}>{userData?.displayName}</Text>
-          <View style={styles.accountStatus}>
-            {userData?.premium && (
-              <FontAwesomeIcon icon={Icons.Crown} size={20} color="#FFC107" />
-            )}
-            <Text
-              style={userData?.premium ? styles.premiumText : styles.basicText}
-            >
-              {userData?.premium ? 'Premium' : 'Basic'}
-            </Text>
+        <>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <FontAwesomeIcon icon={Icons.Remove} size={24} color={'white'} />
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <FontAwesomeIcon icon={Icons.Pencil} size={16} color={'white'} />
+            </TouchableOpacity>
           </View>
-        </View>
+          <View style={styles.profileSection}>
+            <TouchableOpacity onPress={toggleOpenOptions}>
+              <FastImage
+                source={
+                  auth.currentUser?.photoURL
+                    ? { uri: auth.currentUser.photoURL }
+                    : require('../../../../assets/userIcon.png')
+                }
+                style={[
+                  styles.profilePicture,
+                  userData?.premium && {
+                    borderWidth: 1,
+                    borderColor: '#FFC107',
+                  },
+                ]}
+                resizeMode="cover"
+              />
+            </TouchableOpacity>
+            <Text style={styles.username}>{userData?.displayName}</Text>
+            <Text style={{ color: primaryColor }}>Stav účtu</Text>
+            <View style={styles.accountStatus}>
+              {userData?.premium && (
+                <FontAwesomeIcon icon={Icons.Crown} size={20} color="#FFC107" />
+              )}
+              <Text
+                style={
+                  userData?.premium ? styles.premiumText : styles.basicText
+                }
+              >
+                {userData?.premium ? 'Premium' : 'Basic'}
+              </Text>
+            </View>
+          </View>
+        </>
       </TouchableWithoutFeedback>
 
       {/* User Info Section */}
@@ -171,14 +191,22 @@ export const Account = () => {
         <Text style={styles.value}>{userData?.email}</Text>
         <Text style={styles.label}>Dátum narodenia</Text>
         <Text style={styles.value}>
-          {userData?.dateOfBirth
-            ? new Date(userData.dateOfBirth).toLocaleDateString()
-            : 'Date of Birth not available'}
+          {new Date(userData?.dateOfBirth!).toLocaleDateString()}
         </Text>
 
         {/* Change Password */}
-        <TouchableOpacity onPress={() => {}}>
+        <TouchableOpacity
+          style={{ padding: 15 }}
+          onPress={() => navigation.navigate('PasswordChangeScreen')}
+        >
           <Text style={styles.changePassword}>Zmena hesla</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={{ padding: 15 }}
+          onPress={() => setModalOpened(true)}
+        >
+          <Text style={styles.deleteAccount}>Vymazat ucet</Text>
         </TouchableOpacity>
       </View>
 
@@ -231,6 +259,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 24,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   avatar: {
     borderWidth: 2,
     borderColor: '#FFC107',
@@ -239,7 +273,8 @@ const styles = StyleSheet.create({
     color: '#00E1C9',
     fontSize: 20,
     fontWeight: 'bold',
-    marginVertical: 8,
+    paddingVertical: 8,
+    marginBottom: 10,
   },
   accountStatus: {
     flexDirection: 'row',
@@ -256,7 +291,15 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontSize: 16,
   },
+
+  deleteAccount: {
+    color: '#981a1a',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
   infoSection: {
+    justifyContent: 'center',
     paddingHorizontal: 24,
   },
   label: {

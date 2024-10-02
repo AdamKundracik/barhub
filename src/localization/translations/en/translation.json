@@ -80,6 +80,11 @@
   "info": "Info",
   "help": "Help",
   "subscription": "Subscription",
-  "logout": "Log out"
-
+  "logout": "Log out",
+  "change-password-title": "Change Password",
+  "old-password": "Old Password",
+  "new-password": "New Password",
+  "confirm-password": "Confirm Password",
+  "password-placeholder": "Repeat Password",
+  "save-changes": "Save Changes"
 }
