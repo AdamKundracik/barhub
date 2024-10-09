@@ -26,7 +26,6 @@ import { useUserContext } from '../../providers/UserProvider';
 import { DeleteUserModal } from '../../components/user/Account/DeleteUserModal';
 import FastImage from 'react-native-fast-image';
 import { primaryColor } from '../../utils/styles/colors';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export const Account = () => {
   const { userData, fetchUserData, fetchAllUsers } = useUserContext();
@@ -167,8 +166,8 @@ export const Account = () => {
                 resizeMode="cover"
               />
             </TouchableOpacity>
-            <Text style={styles.username}>{userData?.displayName}</Text>
-            <Text style={{ color: primaryColor }}>Stav účtu</Text>
+            <Text style={styles.username}>{auth.currentUser?.displayName}</Text>
+            <Text style={{ color: primaryColor }}>{t('account-state')}</Text>
             <View style={styles.accountStatus}>
               {userData?.premium && (
                 <FontAwesomeIcon icon={Icons.Crown} size={20} color="#FFC107" />
@@ -187,11 +186,13 @@ export const Account = () => {
 
       {/* User Info Section */}
       <View style={styles.infoSection}>
-        <Text style={styles.label}>Email</Text>
-        <Text style={styles.value}>{userData?.email}</Text>
-        <Text style={styles.label}>Dátum narodenia</Text>
+        <Text style={styles.label}>{t('email')}</Text>
+        <Text style={styles.value}>{auth.currentUser?.email}</Text>
+        <Text style={styles.label}>{t('date-of-birth')}</Text>
         <Text style={styles.value}>
-          {new Date(userData?.dateOfBirth!).toLocaleDateString()}
+          {userData?.dateOfBirth
+            ? new Date(userData?.dateOfBirth!).toLocaleDateString()
+            : t('date-of-birth-not-set')}
         </Text>
 
         {/* Change Password */}
@@ -199,14 +200,16 @@ export const Account = () => {
           style={{ padding: 15 }}
           onPress={() => navigation.navigate('PasswordChangeScreen')}
         >
-          <Text style={styles.changePassword}>Zmena hesla</Text>
+          <Text style={styles.changePassword}>
+            {t('change-password-title')}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={{ padding: 15 }}
           onPress={() => setModalOpened(true)}
         >
-          <Text style={styles.deleteAccount}>Vymazat ucet</Text>
+          <Text style={styles.deleteAccount}>{t('delete-account')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -264,6 +267,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
+    padding: 10,
   },
   avatar: {
     borderWidth: 2,

@@ -86,5 +86,8 @@
   "new-password": "New Password",
   "confirm-password": "Confirm Password",
   "password-placeholder": "Repeat Password",
-  "save-changes": "Save Changes"
+  "save-changes": "Save Changes",
+  "account-state": "account state",
+  "date-of-birth-not-set": "date of birth not set",
+  "delete-account": "delete account"
 }

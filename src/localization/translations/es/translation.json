@@ -86,5 +86,8 @@
   "new-password": "Nueva Contraseña",
   "confirm-password": "Confirmar Contraseña",
   "password-placeholder": "Repetir Contraseña",
-  "save-changes": "Guardar Cambios"
+  "save-changes": "Guardar Cambios",
+  "account-state": "estado de la cuenta",
+  "date-of-birth-not-set": "fecha de nacimiento no establecida",
+  "delete-account": "eliminar cuenta"
 }

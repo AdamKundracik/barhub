@@ -7,6 +7,8 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   StyleSheet,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { InputWrapper } from '../../components/shared/InputWrapper';
@@ -39,55 +41,61 @@ const HelpScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView style={styles.flex} behavior="padding">
-        <View style={styles.flexGrow}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <FontAwesomeIcon icon={Icons.Remove} size={24} color="white" />
-            </TouchableOpacity>
-            <View style={styles.headerTitle}>
-              <Text style={styles.title}>Pomoc</Text>
-              <Icon name="help-circle-outline" size={30} color={primaryColor} />
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <KeyboardAvoidingView style={styles.flex} behavior="padding">
+          <View style={styles.flexGrow}>
+            {/* Header */}
+            <View style={styles.header}>
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <FontAwesomeIcon icon={Icons.Remove} size={24} color="white" />
+              </TouchableOpacity>
+              <View style={styles.headerTitle}>
+                <Text style={styles.title}>Pomoc</Text>
+                <Icon
+                  name="help-circle-outline"
+                  size={30}
+                  color={primaryColor}
+                />
+              </View>
             </View>
-          </View>
 
-          <Text style={styles.description}>
-            Nevàhaj sa nám ozvať ohl’adom pripomienok a želaní
-          </Text>
-
-          <View style={styles.separator} />
-
-          <InputWrapper inputLabel="Zadaj svoj email">
-            <TextInput
-              value={email}
-              onChangeText={setEmail}
-              style={formStyles.inputPrimary}
-              placeholder="Email"
-              placeholderTextColor={textInputPlaceholderColor}
-            />
-          </InputWrapper>
-
-          <InputWrapper inputLabel="Pripomienka alebo dotaz">
-            <TextInput
-              value={message}
-              onChangeText={handleMessageChange}
-              style={styles.messageInput}
-              placeholder="..."
-              multiline
-              placeholderTextColor={textInputPlaceholderColor}
-            />
-            <Text style={styles.characterCount}>
-              {message.length}/{MAX_CHAR_COUNT}
+            <Text style={styles.description}>
+              Nevàhaj sa nám ozvať ohl’adom pripomienok a želaní
             </Text>
-          </InputWrapper>
 
-          {/* Submit Button */}
-          <TouchableOpacity style={formStyles.buttonPrimary}>
-            <Text style={styles.submitText}>Odoslať</Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
+            <View style={styles.separator} />
+
+            <InputWrapper inputLabel="Zadaj svoj email">
+              <TextInput
+                value={email}
+                onChangeText={setEmail}
+                style={formStyles.inputPrimary}
+                placeholder="Email"
+                placeholderTextColor={textInputPlaceholderColor}
+              />
+            </InputWrapper>
+
+            <InputWrapper inputLabel="Pripomienka alebo dotaz">
+              <TextInput
+                value={message}
+                onChangeText={handleMessageChange}
+                style={styles.messageInput}
+                placeholder="..."
+                multiline
+                placeholderTextColor={textInputPlaceholderColor}
+              />
+              <Text style={styles.characterCount}>
+                {message.length}/{MAX_CHAR_COUNT}
+              </Text>
+            </InputWrapper>
+
+            {/* Submit Button */}
+            <TouchableOpacity style={formStyles.buttonPrimary}>
+              <Text style={styles.submitText}>Odoslať</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 };

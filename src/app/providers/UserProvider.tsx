@@ -78,14 +78,6 @@ const useBackgroundGeolocation = (
       }
     });
 
-    const onActivityChange = BackgroundGeolocation.onActivityChange(event => {
-      if (event.activity === 'in_vehicle') {
-        BackgroundGeolocation.stop();
-      } else {
-        BackgroundGeolocation.start();
-      }
-    });
-
     const onMotionChange = BackgroundGeolocation.onMotionChange(async event => {
       const { latitude, longitude } = event.location.coords;
       const currentLocation: LocationType = { latitude, longitude };
@@ -104,17 +96,17 @@ const useBackgroundGeolocation = (
       logLevel: BackgroundGeolocation.LOG_LEVEL_OFF,
       stopOnTerminate: false,
       startOnBoot: true,
-      showsBackgroundLocationIndicator: true,
+      showsBackgroundLocationIndicator: false,
     }).then(state => {
+      BackgroundGeolocation.start();
       console.log('- BackgroundGeolocation configured:', state.enabled);
     });
 
     return () => {
       onLocation.remove();
-      onActivityChange.remove();
       onMotionChange.remove();
     };
-  }, [setLocation]);
+  }, []);
 };
 
 // Function to update user in DB

@@ -1,5 +1,6 @@
 import {
   faArrowLeft,
+  faArrowRight,
   faArrowRightFromBracket,
   faBan,
   faBars,
@@ -97,4 +98,5 @@ export const Icons = {
   LogOut: faArrowRightFromBracket,
   Crown: faCrown,
   Check: faCheck,
+  Right: faArrowRight,
 };

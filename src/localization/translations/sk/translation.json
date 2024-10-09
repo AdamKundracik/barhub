@@ -86,5 +86,8 @@
   "new-password": "Nove heslo",
   "confirm-password": "Zopakujte heslo",
   "password-placeholder": "Zopakujte heslo",
-  "save-changes": "Uložiť zmeny"
+  "save-changes": "Uložiť zmeny",
+  "account-state": "stav účtu",
+  "date-of-birth-not-set": "dátum narodenia nenastavený",
+  "delete-account": "vymazať účet"
 }

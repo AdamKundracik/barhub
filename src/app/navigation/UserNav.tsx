@@ -39,22 +39,21 @@ export function UserNav() {
       <UserStack.Screen
         name={'Subscription'}
         component={Subscription}
-        options={{ animation: 'fade_from_bottom', gestureEnabled: false }}
+        options={{ animation: 'fade_from_bottom' }}
       />
       <UserStack.Screen
         name={'PasswordChangeScreen'}
         component={PasswordChangeScreen}
-        options={{ animation: 'fade_from_bottom', gestureEnabled: false }}
       />
       <UserStack.Screen
         name={'Help'}
         component={Help}
-        options={{ animation: 'fade_from_bottom', gestureEnabled: false }}
+        options={{ animation: 'fade_from_bottom' }}
       />
       <UserStack.Screen
         name={'Info'}
         component={Info}
-        options={{ animation: 'fade_from_bottom', gestureEnabled: false }}
+        options={{ animation: 'fade_from_bottom' }}
       />
     </UserStack.Navigator>
   );

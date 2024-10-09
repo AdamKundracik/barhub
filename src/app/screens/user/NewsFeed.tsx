@@ -41,8 +41,6 @@ export const NewsFeed = () => {
   const { t } = useTranslation();
 
   const { placeId, placeName, placeDetail, setPlaceDetail } = usePlaceStore();
-  const { posts, setPosts, setRefetchPosts } = usePostsStore();
-
   // Set up state for days since the last uploaded post
   const [
     numberOfDaysSinceLastPostedPhoto,
@@ -151,6 +149,7 @@ export const NewsFeed = () => {
         <CommentsSlider
           users={users}
           postId={postId}
+          opened={showComments}
           closeComments={() => setShowComments(false)}
         />
       )}
