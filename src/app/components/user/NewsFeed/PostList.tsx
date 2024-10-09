@@ -72,7 +72,7 @@ const PostsList = ({
     <FlatList
       data={posts}
       renderItem={renderPostItem}
-      keyExtractor={item => item.id.toString()}
+      keyExtractor={item => item.id}
       contentContainerStyle={styles.scrollView}
       ListFooterComponent={isFetchingNextPage ? <LoadingIndicator /> : null} // Show loading indicator when fetching more
       refreshControl={

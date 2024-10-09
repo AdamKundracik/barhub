@@ -44,8 +44,6 @@ export const uploadImageAsync = async (
       placeName: placeName,
       placeAddress: placeAddress,
       photoUrl: url,
-      commentsCount: 0,
-      likesCount: 0,
     };
 
     await savePost(newPost);

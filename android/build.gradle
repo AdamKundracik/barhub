@@ -11,6 +11,9 @@ subprojects {project ->
 
 buildscript {
     ext {
+// @generated begin expo-gradle-ext-vars - expo prebuild (DO NOT MODIFY) sync-da39a3ee5e6b4b0d3255bfef95601890afd80709
+
+// @generated end expo-gradle-ext-vars
 // @generated begin expo-gradle-ext-vars - expo prebuild (DO NOT MODIFY) sync-a14167d3df9d6380c3d77a8f8070215ea8a94013
 	googlePlayServicesLocationVersion = "21.1.0"
 	appCompatVersion = "1.4.2"

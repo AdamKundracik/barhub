@@ -1,5 +1,10 @@
 import { CallableContext } from 'firebase-functions/lib/common/providers/https';
 import { InfinityScrollPost, Post, User } from '../../shared';
+import * as geofire from 'geofire-common';
+import { distanceBetween, geohashQueryBounds } from 'geofire-common';
+import { snapshots } from 'react-native-reanimated/lib/typescript/reanimated2/layoutReanimation/web/componentStyle';
+import { firestore } from 'firebase-admin';
+import GeoPoint = firestore.GeoPoint;
 
 const admin = require('firebase-admin');
 
@@ -42,10 +47,7 @@ export const savePost = functions.https.onCall(
     },
     context: CallableContext
   ) => {
-    await db
-      .collection('posts')
-      .doc(context.auth.uid)
-      .set(post, { merge: true });
+    await db.collection('posts').doc().set(post);
   }
 );
 
@@ -179,14 +181,94 @@ export const testLog = functions.https.onCall(
   }
 );
 
+exports.getPostById = functions.https.onCall(async (data, context) => {
+  const { postId } = data;
+
+  if (!postId) {
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'Post ID is required'
+    );
+  }
+
+  try {
+    const postDoc = await admin
+      .firestore()
+      .collection('posts')
+      .doc(postId)
+      .get();
+
+    if (!postDoc.exists) {
+      throw new functions.https.HttpsError('not-found', 'Post not found');
+    }
+
+    const postData = postDoc.data();
+
+    // Count the number of likes in the 'likes' subcollection
+    const likesSnapshot = await admin
+      .firestore()
+      .collection('posts')
+      .doc(postId)
+      .collection('likes')
+      .get();
+    const likesCount = likesSnapshot.size;
+
+    // Count the number of comments in the 'comments' subcollection
+    const commentsSnapshot = await admin
+      .firestore()
+      .collection('posts')
+      .doc(postId)
+      .collection('comments')
+      .get();
+    const commentsCount = commentsSnapshot.size;
+
+    // Check if the user liked the post (if authenticated)
+    let isLiked = false;
+    if (context.auth) {
+      const uid = context.auth.uid;
+      const likeSnapshot = await admin
+        .firestore()
+        .collection('posts')
+        .doc(postId)
+        .collection('likes')
+        .doc(uid)
+        .get();
+      isLiked = likeSnapshot.exists;
+    }
+
+    // Return the post data along with likes and comments count, and if the user liked it
+    return {
+      ...postData,
+      id: postId, // Add postId here
+      likesCount,
+      commentsCount,
+      isLiked,
+    };
+  } catch (error) {
+    console.error('Error fetching post:', error);
+    throw new functions.https.HttpsError('internal', 'Error fetching post');
+  }
+});
+
 exports.getFreshContent = functions.https.onCall(
   async (
     data,
     context: CallableContext
   ): Promise<InfinityScrollPost | null> => {
     try {
+      // Ensure that the request is authenticated
+      if (!context.auth) {
+        throw new functions.https.HttpsError(
+          'unauthenticated',
+          'User must be authenticated to fetch posts.'
+        );
+      }
+
+      // Get the user's uid
+      const uid = context.auth.uid;
+
       // Retrieve pagination parameters from the input data
-      const { pageSize = 3, lastVisible = null } = data; // Set default page size to 10
+      const { pageSize = 3, lastVisible = null } = data;
 
       // Reference to the 'posts' collection with timestamp ordering
       let query = db
@@ -219,11 +301,45 @@ exports.getFreshContent = functions.https.onCall(
         return { lastVisible: '', posts: [] } as InfinityScrollPost;
       }
 
-      // Map the fetched documents to Post objects
-      const items: Post[] = querySnapshot.docs.map(doc => ({
-        ...doc.data(),
-        id: doc.id,
-      }));
+      // Process each post and check if the user liked the post and count likes and comments
+      const items: Post[] = await Promise.all(
+        querySnapshot.docs.map(async doc => {
+          const postData = doc.data();
+
+          // Count the number of likes in the 'likes' subcollection
+          const likesSnapshot = await db
+            .collection('posts')
+            .doc(doc.id)
+            .collection('likes')
+            .get();
+          const likesCount = likesSnapshot.size;
+
+          // Count the number of comments in the 'comments' subcollection
+          const commentsSnapshot = await db
+            .collection('posts')
+            .doc(doc.id)
+            .collection('comments')
+            .get();
+          const commentsCount = commentsSnapshot.size;
+
+          // Check if the 'likes' subcollection contains the user's uid
+          const likeSnapshot = await db
+            .collection('posts')
+            .doc(doc.id)
+            .collection('likes')
+            .doc(uid)
+            .get();
+
+          // Add the `isLiked`, `likesCount`, and `commentsCount` fields
+          return {
+            ...postData,
+            id: doc.id,
+            isLiked: likeSnapshot.exists, // true if the user liked the post, otherwise false
+            likesCount,
+            commentsCount,
+          };
+        })
+      );
 
       // Get the last document to be used for the next page
       const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];

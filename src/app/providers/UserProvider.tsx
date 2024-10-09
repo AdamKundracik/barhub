@@ -18,7 +18,8 @@ import BackgroundGeolocation from 'react-native-background-geolocation';
 import { getCoords } from '../utils/helper-functions/get-coords';
 import { AppState } from 'react-native';
 import { onAuthStateChanged } from 'firebase/auth';
-import { useUserManagement } from '../utils/hooks/useUserManagement';
+import { useQuery } from 'react-query';
+import { geohashForLocation } from 'geofire-common';
 
 type ContextProps = {
   authUser: null | boolean;
@@ -28,7 +29,8 @@ type ContextProps = {
   userData: User | null;
   isLoading: boolean;
   emailVerified: boolean;
-  fetchUserData: () => Promise<void>;
+  fetchUserData: () => void;
+  fetchAllUsers: () => void;
   users: User[] | undefined;
 };
 
@@ -38,53 +40,41 @@ interface Props {
 
 const UserContext = createContext<Partial<ContextProps>>({});
 
-export const UserProvider = (props: Props) => {
-  const [userData, setUserData] = useState<any>();
-  const [isLoading, setIsLoading] = useState(true);
-  const [location, setLocation] = useState<LocationType>({
-    latitude: 0,
-    longitude: 0,
+const useFetchUserData = () => {
+  const uid = auth.currentUser?.uid;
+
+  return useQuery(
+    ['userData', uid],
+    async () => {
+      const user = await getCurrentUser();
+      return user;
+    },
+    {
+      enabled: !!uid,
+    }
+  );
+};
+
+const useFetchAllUsers = () => {
+  return useQuery('allUsers', async () => {
+    const allUsers = await getAllExistingUsers();
+    return allUsers?.data?.users ?? [];
   });
-  const [initializing, setInitializing] = useState(true);
-  const { setUserToStore } = useUserManagement();
+};
 
-  const [emailVerified, setEmailVerified] = useState<boolean>(false);
-  const [authUser, setAuthUser] = useState<null | boolean>(null);
-  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
-  const [users, setUsers] = useState<User[]>([]);
-
+// Hook for BackgroundGeolocation setup
+const useBackgroundGeolocation = (
+  setLocation: (location: LocationType) => void
+) => {
   useEffect(() => {
-    onAuthStateChanged(auth, u => {
-      setAuthUser(!!u);
-      setUserData(u);
-      setIsLoadingAuth(false);
-      setEmailVerified(u?.emailVerified ?? false);
-    });
-  }, [auth]);
-
-  useEffect(() => {
-    const setUserIntoDB = async (location: LocationType) => {
-      await setUser({ location });
-    };
-
     const onLocation = BackgroundGeolocation.onLocation(async location => {
       const currentLocation: LocationType = {
         latitude: location.coords?.latitude,
         longitude: location.coords?.longitude,
       };
-
-      // Set location to DB if speed is low (still) or after moving 50 meters
       if (location.coords.speed && location.coords.speed <= 4) {
         setLocation(currentLocation);
-        await setUserIntoDB(currentLocation); // User is still, set location immediately
-      }
-    });
-
-    const onActivityChange = BackgroundGeolocation.onActivityChange(event => {
-      if (event.activity === 'in_vehicle') {
-        BackgroundGeolocation.stop(); // Stops tracking if user is in vehicle
-      } else {
-        BackgroundGeolocation.start(); // Start tracking in other modes
+        await setUserIntoDB(currentLocation);
       }
     });
 
@@ -100,98 +90,110 @@ export const UserProvider = (props: Props) => {
 
     BackgroundGeolocation.ready({
       desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
-      distanceFilter: 25, // Update location every 25 meters when moving
-      stopTimeout: 3, // Time (minutes) to stop after user becomes stationary
+      distanceFilter: 25,
+      stopTimeout: 3,
       debug: false,
       logLevel: BackgroundGeolocation.LOG_LEVEL_OFF,
       stopOnTerminate: false,
       startOnBoot: true,
-      showsBackgroundLocationIndicator: true,
+      showsBackgroundLocationIndicator: false,
     }).then(state => {
-      console.log(
-        '- BackgroundGeolocation is configured and ready:',
-        state.enabled
-      );
+      BackgroundGeolocation.start();
+      console.log('- BackgroundGeolocation configured:', state.enabled);
     });
 
     return () => {
       onLocation.remove();
-      onActivityChange.remove();
       onMotionChange.remove();
     };
   }, []);
+};
 
+// Function to update user in DB
+const setUserIntoDB = async (location: LocationType) => {
+  const hash = geohashForLocation([location.latitude, location.longitude]);
+  await setUser({ location: location, geohash: hash });
+};
+
+export const UserProvider = ({ children }: Props) => {
+  const [location, setLocation] = useState<LocationType>({
+    latitude: 0,
+    longitude: 0,
+  });
+  const [emailVerified, setEmailVerified] = useState<boolean>(false);
+  const [authUser, setAuthUser] = useState<null | boolean>(null);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+
+  // Fetching user data and users with useQuery
+  const {
+    data: userData,
+    isLoading: isUserLoading,
+    refetch: refetchUserData,
+  } = useFetchUserData();
+  const {
+    data: users,
+    isLoading: isUsersLoading,
+    refetch: fetchAllUsers,
+  } = useFetchAllUsers();
+
+  // Handle Firebase auth state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, u => {
+      setAuthUser(!!u);
+      setIsLoadingAuth(false);
+      setEmailVerified(u?.emailVerified ?? false);
+    });
+    return unsubscribe;
+  }, []);
+
+  // BackgroundGeolocation setup
+  useBackgroundGeolocation(setLocation);
+
+  // Fetch location when app state changes
   useEffect(() => {
     if (AppState.currentState === 'active') {
       getLocation();
     }
   }, [AppState.currentState]);
 
-  useEffect(() => {
-    BackgroundGeolocation.start();
-    setLocation({ latitude: 0, longitude: 0 });
-  }, []);
-
-  useEffect(() => {
-    fetchUserData();
-  }, [isLoadingAuth, auth]);
-
-  const fetchUserData = async () => {
-    const uid = auth.currentUser?.uid;
-    if (uid) {
-      const user = await getCurrentUser();
-      setUserData(user);
-    }
-    setIsLoading(false);
-  };
-
-  useEffect(() => {
-    async function getUsers() {
-      const allUsers = await getAllExistingUsers();
-      setUsers(allUsers.data?.users ?? []);
-    }
-    getUsers();
-  }, [auth.currentUser?.uid]);
-
-  async function getLocation(): Promise<void> {
+  const getLocation = async () => {
     try {
       const coords: LocationType = await getCoords();
-      await setUser({
-        location: { latitude: coords.latitude, longitude: coords.longitude },
-      });
+      await setUserIntoDB(coords);
       setLocation(coords);
     } catch (e) {
       console.error(e);
     }
-  }
+  };
 
-  const ctx = useMemo(() => {
-    return {
-      userData,
-      isLoading,
+  const ctx = useMemo(
+    () => ({
+      userData: userData ?? null,
+      isLoading: isUserLoading || isUsersLoading,
       location,
       setLocation,
       authUser,
       isLoadingAuth,
       emailVerified,
-      fetchUserData,
+      fetchAllUsers: fetchAllUsers,
+      fetchUserData: refetchUserData,
       users,
-    };
-  }, [
-    userData,
-    isLoading,
-    location,
-    setLocation,
-    authUser,
-    isLoadingAuth,
-    emailVerified,
-    fetchUserData,
-    users,
-  ]);
-
-  return (
-    <UserContext.Provider value={ctx}>{props.children}</UserContext.Provider>
+    }),
+    [
+      userData,
+      isUserLoading,
+      isUsersLoading,
+      location,
+      authUser,
+      isLoadingAuth,
+      emailVerified,
+      fetchAllUsers,
+      refetchUserData,
+      users,
+    ]
   );
+
+  return <UserContext.Provider value={ctx}>{children}</UserContext.Provider>;
 };
 
 export const useUserContext = () => useContext(UserContext);

@@ -13,7 +13,7 @@ export async function getCoords(): Promise<LocationType> {
   }
 
   const locationData = await getCurrentPositionAsync({
-    accuracy: LocationAccuracy.Balanced,
+    accuracy: LocationAccuracy.High,
   });
   const { latitude, longitude } = locationData.coords;
   return { latitude: latitude, longitude: longitude };

@@ -1,48 +1,75 @@
 import { LocationType } from '../types/types';
-import { testLog } from '../services/functions';
+import { distanceBetween, geohashQueryBounds, Geopoint } from 'geofire-common';
+import { auth, db } from '../../../../firebaseConfig';
+import {
+  collection,
+  query,
+  orderBy,
+  startAt,
+  endAt,
+  getDocs,
+} from 'firebase/firestore';
 import { User } from '../../../../shared';
-import { haversineDistance } from './distanceBetweenPoints';
 
 export const sendNotificationHandler = async (
   placeLocation: LocationType
-): Promise<string[]> => {
-  const tokens: string[] = [];
-
+): Promise<string[] | undefined> => {
   try {
-    const usersResponse = await testLog();
+    // Extract latitude and longitude from Geopoint
+    const locationArray: Geopoint = [
+      placeLocation.latitude,
+      placeLocation.longitude,
+    ];
 
-    if (!usersResponse.data) {
-      console.error('No users found or data is not in the expected format');
-      return [];
+    // Get geohash query bounds for the location
+    const bounds = geohashQueryBounds(locationArray, 8000);
+    const promises = [];
+
+    for (const b of bounds) {
+      const q = query(
+        collection(db, 'users'),
+        orderBy('geohash'),
+        startAt(b[0]),
+        endAt(b[1])
+      );
+
+      promises.push(getDocs(q));
     }
 
-    const users: User[] = usersResponse.data.users;
+    // Collect all the query results together into a single list
+    const snapshots = await Promise.all(promises);
 
-    if (!Array.isArray(users)) {
-      console.error('Users data is not an array');
-      return [];
-    }
+    const matchingDocs: User[] = [];
+    for (const snap of snapshots) {
+      for (const doc of snap.docs) {
+        const location = doc.get('location'); // Access the location object
+        const lat = location?.latitude;
+        const lng = location?.longitude;
 
-    users
-      ?.filter(user => user.pushToken)
-      .forEach(user => {
-        const distanceResp = Math.round(
-          haversineDistance(
-            user?.location?.latitude,
-            user?.location?.longitude,
-            placeLocation?.latitude,
-            placeLocation?.longitude // Correct the last parameter to placeLocation.longitude
-          )
-        );
+        // Ensure lat and lng exist before calculating the distance
+        if (lat !== undefined && lng !== undefined) {
+          // Filter out false positives due to GeoHash accuracy
+          const distanceInKm = distanceBetween([lat, lng], locationArray);
+          const distanceInM = distanceInKm * 1000;
 
-        if (distanceResp < 600) {
-          tokens.push(user.pushToken);
+          console.log(Math.floor(distanceInM));
+          if (
+            Math.floor(distanceInM) <= 30 &&
+            (doc.data() as User).uid !== auth.currentUser?.uid
+          ) {
+            matchingDocs.push(doc.data() as User);
+          }
         }
-      });
+      }
+    }
+
+    if (!matchingDocs || matchingDocs.length === 0) {
+      console.error('No nearby users found.');
+      return;
+    }
+    const tokens = matchingDocs.map(user => user.pushToken);
+    return tokens;
   } catch (error) {
     console.error('Error in sendNotificationHandler:', error);
   }
-
-  tokens.filter(token => token);
-  return tokens;
 };

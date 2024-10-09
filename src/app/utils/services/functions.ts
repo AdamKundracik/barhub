@@ -11,6 +11,8 @@ import {
 } from '../helper-functions/functions-types';
 import { MISSING_REQUIRED_REQUEST_PARAMS } from '../helper-functions/constants';
 import { Post, User } from '../../../../shared';
+import { LocationType } from '../types/types';
+import { GeoPoint } from 'firebase/firestore';
 
 export const savePost = async (
   data: Partial<Post>
@@ -133,4 +135,10 @@ export const fetchCommentsForPost = async (postId: string) => {
   const cloudFunction = httpsCallable(functions, 'getComments');
   const response = await cloudFunction({ postId });
   return response?.data?.comments;
+};
+
+export const fetchPostById = async (postId: string) => {
+  const cloudFunction = httpsCallable(functions, 'getPostById');
+  const response = await cloudFunction({ postId });
+  return response.data;
 };

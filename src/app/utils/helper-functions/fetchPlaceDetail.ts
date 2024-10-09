@@ -1,5 +1,4 @@
 import { googleAPIKey } from './constants';
-import { PlaceDetailsResponse } from '../types/types';
 
 export async function fetchPlaceDetails(placeId: string) {
   const placeDetailUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${googleAPIKey}`;

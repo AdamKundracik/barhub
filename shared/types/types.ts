@@ -26,6 +26,7 @@ export interface UserRecord {
 export interface User extends UserRecord {
   dateOfBirth: string;
   location: LocationType;
+  geohash: string;
   pushToken: string;
   lastUploadedPost: string;
   premium: boolean;
@@ -44,8 +45,9 @@ export type Post = {
   placeAddress: string;
   id: string;
   photoUrl: string;
-  likesCount: number;
-  commentsCount: number;
+  likesCount?: number;
+  commentsCount?: number;
+  isLiked?: boolean;
 };
 
 export type InfinityScrollPost = {

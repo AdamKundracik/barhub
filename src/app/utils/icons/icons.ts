@@ -1,21 +1,28 @@
 import {
   faArrowLeft,
+  faArrowRight,
+  faArrowRightFromBracket,
   faBan,
   faBars,
   faBolt,
   faBoxesPacking,
   faCamera,
   faCancel,
+  faCheck,
   faCircleCheck,
   faCog,
+  faCoins,
   faComment,
   faCommenting,
   faComments,
+  faCrown,
   faFilter,
   faGear,
   faHeart,
   faHeartBroken,
   faImage,
+  faInfo,
+  faInfoCircle,
   faLocationPin,
   faLocationPinLock,
   faMap,
@@ -38,7 +45,11 @@ import {
   faUsers,
   faX,
 } from '@fortawesome/free-solid-svg-icons';
-import { faEye, faEyeSlash } from '@fortawesome/free-regular-svg-icons';
+import {
+  faEye,
+  faEyeSlash,
+  faQuestionCircle,
+} from '@fortawesome/free-regular-svg-icons';
 import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 
 export const Icons = {
@@ -79,6 +90,13 @@ export const Icons = {
   Image: faImage,
   Remove: faRemove,
   Ban: faBan,
-  Pin: faLocationPinLock,
+  Pin: faMapPin,
   Left: faChevronLeft,
+  Info: faInfoCircle,
+  Help: faQuestionCircle,
+  Coins: faCoins,
+  LogOut: faArrowRightFromBracket,
+  Crown: faCrown,
+  Check: faCheck,
+  Right: faArrowRight,
 };

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Alert,
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -9,7 +8,7 @@ import {
   View,
 } from 'react-native';
 import Layout from '../../components/user/Shared/Layout';
-import { signOut, updateProfile } from 'firebase/auth';
+import { updateProfile } from 'firebase/auth';
 import { auth } from '../../../../firebaseConfig';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -25,26 +24,16 @@ import {
 import { setUser } from '../../utils/services/functions';
 import { useUserContext } from '../../providers/UserProvider';
 import { DeleteUserModal } from '../../components/user/Account/DeleteUserModal';
+import FastImage from 'react-native-fast-image';
+import { primaryColor } from '../../utils/styles/colors';
 
 export const Account = () => {
-  const { userData, fetchUserData } = useUserContext();
+  const { userData, fetchUserData, fetchAllUsers } = useUserContext();
   const { t } = useTranslation();
   const [isSlidingViewVisible, setSlidingViewVisible] = useState(false);
   const [modalOpened, setModalOpened] = useState(false);
 
   const navigation = useNavigation<NavigationProp<UserStackList>>();
-
-  const handleSignOut = () => {
-    signOut(auth)
-      .then(() => {
-        Alert.alert(t('Signed out'), t('You have been signed out'), [
-          { text: 'Ok' },
-        ]);
-      })
-      .catch(error => {
-        console.error(error);
-      });
-  };
 
   const toggleOpenOptions = () => {
     setSlidingViewVisible(!isSlidingViewVisible);
@@ -87,6 +76,8 @@ export const Account = () => {
       });
 
       if (fetchUserData) await fetchUserData();
+      if (fetchAllUsers) await fetchAllUsers();
+
       setSlidingViewVisible(false); // Close the sliding view after the action
     }
   };
@@ -121,6 +112,8 @@ export const Account = () => {
         displayName: auth.currentUser?.displayName,
       });
       if (fetchUserData) await fetchUserData();
+      if (fetchAllUsers) await fetchAllUsers();
+
       setSlidingViewVisible(false); // Close the sliding view after the action
     }
   };
@@ -138,47 +131,88 @@ export const Account = () => {
       displayName: auth.currentUser?.displayName,
     });
     if (fetchUserData) await fetchUserData();
+    if (fetchAllUsers) await fetchAllUsers();
+    setSlidingViewVisible(false); // Close the sliding view after the action
   };
 
   return (
-    <Layout pageTitle="Account">
+    <Layout pageTitle="Account" showBottomTabs={false}>
       <TouchableWithoutFeedback onPress={handleOutsideClick}>
-        <View style={styles.container}>
-          <TouchableOpacity onPress={toggleOpenOptions}>
-            <Image
-              source={
-                auth.currentUser?.photoURL
-                  ? { uri: auth.currentUser.photoURL }
-                  : require('../../../../assets/userIcon.png')
-              }
-              style={styles.profilePicture}
-            />
-          </TouchableOpacity>
-          <Text style={styles.userName}>{auth.currentUser?.displayName}</Text>
-          <Text style={styles.userName}>{auth.currentUser?.email}</Text>
-          {userData?.premium && (
-            <Text style={styles.picturesTaken}>PREMIUM MEMBER</Text>
-          )}
+        <>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <FontAwesomeIcon icon={Icons.Remove} size={24} color={'white'} />
+            </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button} onPress={handleSignOut}>
-            <Text style={styles.buttonText}>Logout</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => navigation.navigate('Subscription')}
-          >
-            <Text style={styles.buttonText}>
-              Settings <FontAwesomeIcon icon={Icons.Gear} color="white" />
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => setModalOpened(true)}
-          >
-            <Text style={{ color: 'red' }}>Delete user</Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <FontAwesomeIcon icon={Icons.Pencil} size={16} color={'white'} />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.profileSection}>
+            <TouchableOpacity onPress={toggleOpenOptions}>
+              <FastImage
+                source={
+                  auth.currentUser?.photoURL
+                    ? { uri: auth.currentUser.photoURL }
+                    : require('../../../../assets/userIcon.png')
+                }
+                style={[
+                  styles.profilePicture,
+                  userData?.premium && {
+                    borderWidth: 1,
+                    borderColor: '#FFC107',
+                  },
+                ]}
+                resizeMode="cover"
+              />
+            </TouchableOpacity>
+            <Text style={styles.username}>{auth.currentUser?.displayName}</Text>
+            <Text style={{ color: primaryColor }}>{t('account-state')}</Text>
+            <View style={styles.accountStatus}>
+              {userData?.premium && (
+                <FontAwesomeIcon icon={Icons.Crown} size={20} color="#FFC107" />
+              )}
+              <Text
+                style={
+                  userData?.premium ? styles.premiumText : styles.basicText
+                }
+              >
+                {userData?.premium ? 'Premium' : 'Basic'}
+              </Text>
+            </View>
+          </View>
+        </>
       </TouchableWithoutFeedback>
+
+      {/* User Info Section */}
+      <View style={styles.infoSection}>
+        <Text style={styles.label}>{t('email')}</Text>
+        <Text style={styles.value}>{auth.currentUser?.email}</Text>
+        <Text style={styles.label}>{t('date-of-birth')}</Text>
+        <Text style={styles.value}>
+          {userData?.dateOfBirth
+            ? new Date(userData?.dateOfBirth!).toLocaleDateString()
+            : t('date-of-birth-not-set')}
+        </Text>
+
+        {/* Change Password */}
+        <TouchableOpacity
+          style={{ padding: 15 }}
+          onPress={() => navigation.navigate('PasswordChangeScreen')}
+        >
+          <Text style={styles.changePassword}>
+            {t('change-password-title')}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={{ padding: 15 }}
+          onPress={() => setModalOpened(true)}
+        >
+          <Text style={styles.deleteAccount}>{t('delete-account')}</Text>
+        </TouchableOpacity>
+      </View>
+
       <SlidingView
         visible={isSlidingViewVisible}
         onClose={() => setSlidingViewVisible(false)}
@@ -195,36 +229,110 @@ export const Account = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   profilePicture: {
     width: 150,
     height: 150,
     borderRadius: 75,
     marginBottom: 20,
   },
-  userName: {
+  container: {
+    flex: 1,
+    backgroundColor: '#0E0F1F',
+    justifyContent: 'space-between',
+  },
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  title: {
     fontSize: 24,
-    color: '#fff',
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  titlePrimary: {
+    color: 'white',
+  },
+  titleSecondary: {
+    color: '#00E1C9',
+  },
+  profileSection: {
+    alignItems: 'center',
+    marginVertical: 24,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    padding: 10,
+  },
+  avatar: {
+    borderWidth: 2,
+    borderColor: '#FFC107',
+  },
+  username: {
+    color: '#00E1C9',
+    fontSize: 20,
+    fontWeight: 'bold',
+    paddingVertical: 8,
     marginBottom: 10,
   },
-  picturesTaken: {
-    fontSize: 18,
-    color: '#fff',
-    marginBottom: 20,
+  accountStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
   },
-  button: {
-    backgroundColor: '#333',
-    padding: 10,
-    borderRadius: 5,
-    marginVertical: 5,
+  premiumText: {
+    color: '#FFC107',
+    marginLeft: 4,
+    fontSize: 16,
   },
-  buttonText: {
-    color: '#fff',
+  basicText: {
+    color: 'white',
+    marginLeft: 4,
+    fontSize: 16,
+  },
+
+  deleteAccount: {
+    color: '#981a1a',
     fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  infoSection: {
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  label: {
+    color: '#fff',
+    fontSize: 14,
+    marginTop: 16,
+  },
+  value: {
+    color: '#00E1C9',
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  changePassword: {
+    color: 'white',
+    textAlign: 'center',
+    marginTop: 24,
+    textDecorationLine: 'underline',
+    fontSize: 16,
+  },
+  bottomBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+  },
+  bottomAvatar: {
+    borderWidth: 2,
+    borderColor: '#FFC107',
   },
 });
 

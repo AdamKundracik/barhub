@@ -3,7 +3,7 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 import {
   postBgColor,
   primaryColor,
-  secondaryTextColor,
+  primaryTextColor,
 } from '../../../../utils/styles/colors';
 import Svg, { Path } from 'react-native-svg';
 import Device from 'react-native-device-info';
@@ -89,7 +89,7 @@ const mobileStyles = StyleSheet.create({
   },
   dateTimeText: {
     fontSize: 14,
-    color: secondaryTextColor,
+    color: primaryTextColor,
   },
   address: {
     fontSize: 14,
@@ -127,7 +127,7 @@ const tabletStyles = StyleSheet.create({
   },
   dateTimeText: {
     fontSize: 18,
-    color: secondaryTextColor,
+    color: primaryTextColor,
   },
   address: {
     fontSize: 18,

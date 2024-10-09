@@ -22,6 +22,14 @@ import FeedHeader from '../../components/user/NewsFeed/FeedHeader';
 import CommentsSlider from '../../components/user/NewsFeed/Post/CommentsSlider';
 import { usePlaceStore } from '../../utils/store/placesStore';
 import EmptyState from '../../components/user/NewsFeed/EmptyState';
+import { usePostsStore } from '../../utils/store/postStore';
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+} from 'react-native';
+import { formStyles } from '../../utils/styles/styles';
 
 export const NewsFeed = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
@@ -33,7 +41,6 @@ export const NewsFeed = () => {
   const { t } = useTranslation();
 
   const { placeId, placeName, placeDetail, setPlaceDetail } = usePlaceStore();
-
   // Set up state for days since the last uploaded post
   const [
     numberOfDaysSinceLastPostedPhoto,
@@ -47,8 +54,6 @@ export const NewsFeed = () => {
     setNumberOfDaysSinceLastPostedPhoto(numberOfDays);
   }, [userData]);
 
-  useEffect(() => {}, []);
-  // Fetch posts using React Query
   const {
     data: postsData,
     isFetchingNextPage,
@@ -63,12 +68,6 @@ export const NewsFeed = () => {
     {
       getNextPageParam: lastPage => lastPage?.lastVisible || null, // Fetch more posts based on lastVisible (cursor)
       staleTime: Infinity, // Keep data fresh for 10 minutes
-      cacheTime: 15 * 60 * 1000, // Cache data for 15 minutes
-      refetchInterval: 4 * 60 * 1000,
-      enabled: true,
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-      refetchOnMount: false,
     }
   );
 
@@ -92,13 +91,14 @@ export const NewsFeed = () => {
     const senderToken = userData?.pushToken;
     const detail: PlaceDetail = await fetchPlaceDetails(placeId ?? '');
     setPlaceDetail(detail);
-    if (placeId && detail) {
+    if (placeId && placeName && detail) {
       const tokens = await sendNotificationHandler({
         latitude: detail?.geometry.location?.lat,
         longitude: detail?.geometry.location?.lng,
       });
-      tokens.forEach(token => {
-        sendPushNotification(token, placeId, senderToken ?? '');
+
+      tokens?.forEach(token => {
+        sendPushNotification(token, placeId, placeName, senderToken ?? '');
       });
     }
   }
@@ -132,18 +132,34 @@ export const NewsFeed = () => {
           fetchMorePosts={fetchMorePosts} // Pagination function passed here
         />
       ) : (
-        <EmptyState requestPhoto={requestPhoto} />
+        <>
+          {isRefetching && <LoadingIndicator />}
+          <ScrollView
+            contentContainerStyle={styles.scrollViewContent}
+            refreshControl={
+              <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
+            }
+          >
+            <EmptyState requestPhoto={requestPhoto} />
+          </ScrollView>
+        </>
       )}
-
-      {showComments && (
-        <CommentsSlider
-          users={users}
-          postId={postId}
-          closeComments={() => setShowComments(false)}
-        />
-      )}
+      <CommentsSlider
+        users={users}
+        postId={postId}
+        opened={showComments}
+        onClose={() => setShowComments(false)}
+      />
     </Layout>
   );
 };
+
+const styles = StyleSheet.create({
+  scrollViewContent: {
+    flexGrow: 1,
+    justifyContent: 'center', // Center content vertically in ScrollView
+    alignItems: 'center', // Center content horizontally
+  },
+});
 
 export default NewsFeed;

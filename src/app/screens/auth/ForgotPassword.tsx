@@ -5,7 +5,7 @@ import { formStyles } from '../../utils/styles/styles';
 import { useState } from 'react';
 import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
 import { useTranslation } from 'react-i18next';
-import { secondaryTextColor } from '../../utils/styles/colors';
+import { primaryTextColor } from '../../utils/styles/colors';
 
 export const ForgotPassword = ({ navigation }: any) => {
   const { t } = useTranslation();
@@ -33,7 +33,7 @@ export const ForgotPassword = ({ navigation }: any) => {
           style={formStyles.inputPrimary}
           placeholder={t('email')}
           keyboardType={'email-address'}
-          placeholderTextColor={secondaryTextColor}
+          placeholderTextColor={primaryTextColor}
         />
       </InputWrapper>
       <TouchableOpacity

@@ -1,14 +1,10 @@
 import { Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { PlaceDetail, PlaceDetailsResponse } from '../types/types';
-import { useUserContext } from '../../providers/UserProvider';
+import { PlaceDetail } from '../types/types';
 import { fetchPlaceDetails } from './fetchPlaceDetail';
-import { uploadImageAsync, uploadProfilePhotoAsync } from './helperFunctions';
-import { useUploadingStateManagement } from '../hooks/useUploadingStateManagement';
+import { uploadImageAsync } from './helperFunctions';
 import { sendPushNotificationResponse } from '../services/notofications-handler';
 import { setUser } from '../services/functions';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { UserStackList } from '../types/screen-types';
 import { User } from '../../../../shared';
 
 async function saveImageFromCamera(

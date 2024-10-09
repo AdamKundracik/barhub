@@ -26,13 +26,13 @@ import { Icons } from '../../../utils/icons/icons';
 import { radius } from '../../../utils/helper-functions/constants';
 import { mapPlaceToPlacePrediction } from '../../../utils/helper-functions/mapPlaceToPlacePrediction';
 import { usePlaceStore } from '../../../utils/store/placesStore';
+import { primaryColor } from '../../../utils/styles/colors';
 
-const latitudeDelta = 0.025;
-const longitudeDelta = 0.025;
+const latitudeDelta = 0.0045;
+const longitudeDelta = 0.0045;
 
 type LayoutProps = {
   setIsMapShown: (isSearching: boolean) => void;
-  setPlaceId: (place: string) => void;
 };
 
 export const MapSearch = (props: LayoutProps) => {
@@ -102,12 +102,13 @@ export const MapSearch = (props: LayoutProps) => {
                 latitude: place.location.latitude,
                 longitude: place.location.longitude,
               }}
-              pinColor={place === selectedPlace ? 'blue' : 'red'}
               onPress={() => {
                 setSelectedPlace(place);
               }}
               title={place.displayName.text}
-            />
+            >
+              <FontAwesomeIcon icon={Icons.Pin} size={24} color={'black'} />
+            </Marker>
           ))}
         {!loading && (
           <Circle

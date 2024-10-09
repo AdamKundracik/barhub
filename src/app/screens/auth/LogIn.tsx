@@ -19,6 +19,8 @@ import {
   GoogleAuthProvider,
   signInWithCredential,
   signInWithEmailAndPassword,
+  setPersistence,
+  browserLocalPersistence,
 } from 'firebase/auth';
 import Svg, { Path } from 'react-native-svg';
 import { textInputPlaceholderColor } from '../../utils/styles/colors';
@@ -44,11 +46,18 @@ export const LogIn = ({ navigation }: any) => {
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
     const { idToken, user, scopes } = await GoogleSignin.signIn();
     const googleCredential = GoogleAuthProvider.credential(idToken);
-    await signInWithCredential(auth, googleCredential);
+
+    await signInWithCredential(auth, googleCredential).catch(error => {
+      // Handle Errors here.
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      console.error(errorCode, errorMessage);
+    });
   }
 
   async function onSignIn() {
     setLoading(true);
+
     await signInWithEmailAndPassword(auth, email, password).catch(error => {
       switch (error.code) {
         case 'auth/invalid-login-credentials':

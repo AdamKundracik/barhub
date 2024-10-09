@@ -1,7 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
-import { primaryColor, secondaryTextColor } from '../../../utils/styles/colors';
+import { primaryColor, primaryTextColor } from '../../../utils/styles/colors';
 import Svg, { Path } from 'react-native-svg';
 import { PlaceState, usePlaceStore } from '../../../utils/store/placesStore';
 
@@ -33,7 +33,7 @@ export const PlaceFilterChip = (props: LayoutProps) => {
           onPress={() => removeSavedPlace()}
         >
           <View style={styles.chipText}>
-            <Text style={{ color: secondaryTextColor }}>{props.place}</Text>
+            <Text style={{ color: primaryTextColor }}>{props.place}</Text>
           </View>
           <View style={styles.deleteIcon}>
             <FontAwesomeIcon icon={Icons.Remove} size={10} color={'white'} />

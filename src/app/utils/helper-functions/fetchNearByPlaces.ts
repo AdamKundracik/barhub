@@ -1,12 +1,15 @@
 import { LocationType } from '../types/types';
 import { googleAPIKey, radius } from './constants';
+import { getLocales } from 'expo-localization';
 
 export const fetchNearbyPlaces = async (location: LocationType) => {
+  const locales = getLocales();
+
   const url = 'https://places.googleapis.com/v1/places:searchNearby';
   const requestBody = {
-    includedTypes: ['restaurant', 'bar', 'cafe'],
+    includedTypes: ['bar', 'cafe', 'bakery', 'night_club', 'restaurant'],
     maxResultCount: 20,
-    languageCode: 'en',
+    languageCode: locales[0].languageCode,
     locationRestriction: {
       circle: {
         center: {
