@@ -24,23 +24,31 @@ import { getTimeAgoFromTimestampSeconds } from '../../../../utils/helper-functio
 import Svg, { Path } from 'react-native-svg';
 import useOptimistic from '../../../../utils/helper-functions/useOptimistic';
 import { useTranslation } from 'react-i18next';
-import BottomSheet, { BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import BottomSheet, {
+  BottomSheetModal,
+  BottomSheetTextInput,
+} from '@gorhom/bottom-sheet';
 
 type Props = {
   postId: string | null;
-  closeComments: () => void;
   opened: boolean;
   users: User[] | undefined;
+  onClose: () => void;
 };
 
 const CommentsSlider = (props: Props) => {
   const { t } = useTranslation(); // Initialize useTranslation
-  const bottomSheetRef = useRef(null);
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
 
   const [newComment, setNewComment] = useState('');
   const [inputHeight, setInputHeight] = useState(40); // Default height for the input field
   const [areCommentsLoading, setAreCommentsLoading] = useState(false);
   const [allComments, setAllComments] = useState<CommentProps[]>([]);
+  const [commentsOpened, setCommentsOpened] = useState(props.opened);
+
+  useEffect(() => {
+    setCommentsOpened(props.opened);
+  }, [props.opened]);
 
   const {
     data: comments,
@@ -60,8 +68,12 @@ const CommentsSlider = (props: Props) => {
     return updatedComments;
   }, []);
 
-  if (props.opened && bottomSheetRef.current) {
-    bottomSheetRef.current.expand();
+  if (bottomSheetRef.current) {
+    if (commentsOpened) {
+      bottomSheetRef.current.expand();
+    } else {
+      bottomSheetRef.current.close();
+    }
   }
 
   const handleAddComment = () => {
@@ -83,6 +95,12 @@ const CommentsSlider = (props: Props) => {
       optimisticUpdate([...comments, optimisticComment]);
       setNewComment('');
     }
+  };
+
+  const handleCloseComments = () => {
+    bottomSheetRef.current?.close();
+    setCommentsOpened(false);
+    props.onClose();
   };
 
   const handleDeleteComment = async (commentId: string) => {
@@ -119,10 +137,11 @@ const CommentsSlider = (props: Props) => {
   }, [comments]);
 
   return (
-    <BlurView style={StyleSheet.absoluteFillObject}>
+    <>
+      {commentsOpened && <BlurView style={StyleSheet.absoluteFillObject} />}
       <BottomSheet
         backgroundStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
-        onClose={() => props.closeComments()}
+        onClose={handleCloseComments}
         ref={bottomSheetRef}
         snapPoints={['70%']}
         index={-1}
@@ -139,7 +158,7 @@ const CommentsSlider = (props: Props) => {
               {allComments.length}
             </Text>
             <Text style={styles.headerText}>{t('comments')}</Text>
-            <TouchableOpacity onPress={props.closeComments}>
+            <TouchableOpacity onPress={handleCloseComments}>
               <FontAwesomeIcon icon={Icons.Remove} size={24} color="#fff" />
             </TouchableOpacity>
           </View>
@@ -302,7 +321,7 @@ const CommentsSlider = (props: Props) => {
           </View>
         </KeyboardAvoidingView>
       </BottomSheet>
-    </BlurView>
+    </>
   );
 };
 

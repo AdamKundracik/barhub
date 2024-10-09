@@ -144,15 +144,12 @@ export const NewsFeed = () => {
           </ScrollView>
         </>
       )}
-
-      {showComments && (
-        <CommentsSlider
-          users={users}
-          postId={postId}
-          opened={showComments}
-          closeComments={() => setShowComments(false)}
-        />
-      )}
+      <CommentsSlider
+        users={users}
+        postId={postId}
+        opened={showComments}
+        onClose={() => setShowComments(false)}
+      />
     </Layout>
   );
 };
