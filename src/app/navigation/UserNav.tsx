@@ -7,7 +7,7 @@ import NewsFeed from '../screens/user/NewsFeed';
 import PlaceSearch from '../screens/user/PlaceSearch';
 import Account from '../screens/user/Account';
 import PasswordChangeScreen from '../screens/user/ChangePassword';
-import Help from '../screens/user/Help';
+import Help from '../screens/user/Help/Help';
 import Info from '../screens/user/Info/Info';
 
 const UserStack = createNativeStackNavigator();

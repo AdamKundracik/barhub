@@ -16,8 +16,10 @@ import {
   primaryColor,
   secondaryTextColor,
 } from '../../../utils/styles/colors';
+import { useTranslation } from 'react-i18next';
 
 const InfoScreen = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 
   return (
@@ -30,7 +32,7 @@ const InfoScreen = () => {
           </TouchableOpacity>
 
           <View style={styles.headerText}>
-            <Text style={styles.title}>Informácie</Text>
+            <Text style={styles.title}>{t('info')}</Text>
             <Icon
               style={styles.infoIcon}
               name="information-outline"
@@ -40,22 +42,20 @@ const InfoScreen = () => {
           </View>
         </View>
 
-        <Text style={styles.description}>
-          Tu nájdeš všetky dodatočné a potrebné informácie o aplikácii
-        </Text>
+        <Text style={styles.description}>{t('app-info-description')}</Text>
 
         <View style={styles.separator} />
 
         <TouchableOpacity style={styles.infoLink}>
-          <Text style={styles.infoText}>O aplikácii</Text>
+          <Text style={styles.infoText}>{t('about-app')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.infoLink}>
-          <Text style={styles.infoText}>Zmluvné podmienky</Text>
+          <Text style={styles.infoText}>{t('terms-of-use')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.infoLink}>
-          <Text style={styles.infoText}>Podpor nás</Text>
+          <Text style={styles.infoText}>{t('support-us')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: secondaryTextColor,
     marginBottom: 16,
-    textAlign: 'center',
+    textAlign: 'right',
   },
   separator: {
     height: 1,

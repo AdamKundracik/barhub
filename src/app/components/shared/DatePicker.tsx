@@ -11,16 +11,28 @@ import { useTranslation } from 'react-i18next';
 
 type DatePickerProps = {
   onDateChange: (date: string) => void;
+  initialValue?: Date | null;
 };
 
 const DatePicker = (props: DatePickerProps) => {
-  // Accept a prop from the parent component
   const { t } = useTranslation();
 
-  const [month, setMonth] = useState('');
-  const [day, setDay] = useState('');
-  const [year, setYear] = useState('');
+  // Initialize state for month, day, year with local state
+  const [month, setMonth] = useState<string>('');
+  const [day, setDay] = useState<string>('');
+  const [year, setYear] = useState<string>('');
 
+  // Set the initial values based on initialValue once (when component mounts)
+  useEffect(() => {
+    if (props.initialValue) {
+      const initDate = props.initialValue;
+      setMonth(String(initDate.getMonth() + 1).padStart(2, '0')); // Months are 0-indexed in JS
+      setDay(String(initDate.getDate()).padStart(2, '0'));
+      setYear(String(initDate.getFullYear()));
+    }
+  }, []); // Empty dependency array ensures this effect only runs once on mount
+
+  // Generate date objects for the picker values
   const days = Array.from({ length: 31 }, (_, i) => ({
     label: String(i + 1).padStart(2, '0'),
     value: String(i + 1).padStart(2, '0'),
@@ -37,53 +49,58 @@ const DatePicker = (props: DatePickerProps) => {
     value: String(1920 + i),
   }));
 
-  // Generate ISO date string whenever the user selects a complete date
+  // Call onDateChange only when all three fields (month, day, year) are selected
   useEffect(() => {
     if (month && day && year) {
       const date = new Date(`${year}-${month}-${day}T00:00:00Z`);
-      props.onDateChange(date.toISOString()); // Pass the ISO string to the parent
+      if (!isNaN(date.getTime())) {
+        props.onDateChange(date.toISOString());
+      }
     }
-  }, [month, day, year]);
+  }, [month, day, year]); // Removed props from dependency array
 
   return (
     <View style={styles.container}>
       <View style={styles.datePickerContainer}>
+        {/* Month Picker */}
         <View style={styles.inputWrapper}>
           <InputWrapper inputLabel={t('month')}>
             <RNPickerSelect
-              onValueChange={value => setMonth(value)}
+              onValueChange={value => setMonth(value)} // Update state on picker change
               items={months}
               placeholder={{ label: 'MM', value: null }}
-              value={month}
+              value={month || null} // Dynamically bind the state to the picker
               style={pickerSelectStyles}
               useNativeAndroidPickerStyle={false}
             />
           </InputWrapper>
         </View>
 
+        {/* Day Picker */}
         <View style={styles.inputWrapper}>
           <InputWrapper inputLabel={t('day')}>
             <RNPickerSelect
-              onValueChange={value => setDay(value)}
+              onValueChange={value => setDay(value)} // Update state on picker change
               items={days}
               placeholder={{ label: 'DD', value: null }}
-              value={day}
+              value={day || null} // Dynamically bind the state to the picker
               style={pickerSelectStyles}
               useNativeAndroidPickerStyle={false}
             />
           </InputWrapper>
         </View>
 
+        {/* Year Picker */}
         <View style={styles.inputWrapper}>
           <InputWrapper inputLabel={t('year')}>
             <RNPickerSelect
-              onValueChange={value => setYear(value)}
+              onValueChange={value => setYear(value)} // Update state on picker change
               items={years}
               placeholder={{
-                label: currentYear.toString(),
-                value: currentYear,
+                label: 'YYYY',
+                value: null,
               }}
-              value={year}
+              value={year || null} // Dynamically bind the state to the picker
               style={pickerSelectStyles}
               useNativeAndroidPickerStyle={false}
             />
@@ -110,7 +127,6 @@ const styles = StyleSheet.create({
   },
 });
 
-// Custom styles for the picker select component
 const pickerSelectStyles = {
   inputIOS: {
     backgroundColor: primaryGrey,

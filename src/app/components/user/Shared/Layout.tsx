@@ -125,11 +125,7 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
             {userData?.photoURL ? (
               <Image
                 source={{ uri: userData?.photoURL }}
-                style={
-                  route.name !== TabsTypes.account
-                    ? styles.profileIconInactive
-                    : styles.profileIcon
-                }
+                style={styles.profileIcon}
               />
             ) : (
               <Svg width="50" height="50" viewBox="0 0 50 50" fill="none">

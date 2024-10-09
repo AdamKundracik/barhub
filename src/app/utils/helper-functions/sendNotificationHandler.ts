@@ -52,7 +52,6 @@ export const sendNotificationHandler = async (
           const distanceInKm = distanceBetween([lat, lng], locationArray);
           const distanceInM = distanceInKm * 1000;
 
-          console.log(Math.floor(distanceInM));
           if (
             Math.floor(distanceInM) <= 30 &&
             (doc.data() as User).uid !== auth.currentUser?.uid

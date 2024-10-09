@@ -54,7 +54,7 @@ const PasswordChangeScreen = () => {
     const user = auth.currentUser;
 
     if (!user) {
-      console.log('No user is currently logged in.');
+      console.error('No user is currently logged in.');
       return null;
     }
 
@@ -62,16 +62,13 @@ const PasswordChangeScreen = () => {
     const providers = user.providerData.map(provider => provider.providerId);
 
     if (providers.includes('google.com')) {
-      console.log('User is logged in with Google.');
       return 'google';
     }
 
     if (providers.includes('password')) {
-      console.log('User is logged in with Email/Password.');
       return 'email';
     }
 
-    console.log('User signed in with another provider.');
     return 'other';
   };
 

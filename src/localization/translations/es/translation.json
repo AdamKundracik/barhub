@@ -69,7 +69,7 @@
   "no-comments": "Sin comentarios",
   "add-comment": "Añadir un comentario...",
   "send": "Enviar",
-  "older-photo-info": "La foto de este lugar tiene más de 45 minutos.",
+  "older-photo-info": "La foto de este lugar tiene más de 30 minutos.",
   "take-photo": "Hacer foto",
   "no-acitivity": "Inactividad prolongada de la cuenta.",
   "no-acitivity-info": "Para ver las fotos, debes contribuir con una foto actual de algún lugar.",
@@ -89,5 +89,12 @@
   "save-changes": "Guardar Cambios",
   "account-state": "estado de la cuenta",
   "date-of-birth-not-set": "fecha de nacimiento no establecida",
-  "delete-account": "eliminar cuenta"
+  "delete-account": "eliminar cuenta",
+  "contact-us": "No dudes en contactarnos con sugerencias y solicitudes",
+  "input-email": "Introduce tu correo electrónico",
+  "any-questions": "Sugerencia o pregunta",
+  "app-info-description": "Aquí encontrarás toda la información adicional y necesaria sobre la aplicación",
+  "about-app": "Acerca de la aplicación",
+  "terms-of-use": "Términos de uso",
+  "support-us": "Apóyanos"
 }

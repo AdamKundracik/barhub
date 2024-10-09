@@ -11,9 +11,9 @@ import {
   Keyboard,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { InputWrapper } from '../../components/shared/InputWrapper';
+import { InputWrapper } from '../../../components/shared/InputWrapper';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../utils/icons/icons';
+import { Icons } from '../../../utils/icons/icons';
 import {
   primaryBgColor,
   primaryColor,
@@ -21,15 +21,18 @@ import {
   primaryTextColor,
   secondaryTextColor,
   textInputPlaceholderColor,
-} from '../../utils/styles/colors';
-import { formStyles } from '../../utils/styles/styles';
+} from '../../../utils/styles/colors';
+import { formStyles } from '../../../utils/styles/styles';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { UserStackList } from '../../utils/types/screen-types';
+import { UserStackList } from '../../../utils/types/screen-types';
+import { useTranslation } from 'react-i18next';
 
 const MAX_CHAR_COUNT = 300;
 
 const HelpScreen = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
+  const { t } = useTranslation();
+
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
 
@@ -50,7 +53,7 @@ const HelpScreen = () => {
                 <FontAwesomeIcon icon={Icons.Remove} size={24} color="white" />
               </TouchableOpacity>
               <View style={styles.headerTitle}>
-                <Text style={styles.title}>Pomoc</Text>
+                <Text style={styles.title}>{t('help')}</Text>
                 <Icon
                   name="help-circle-outline"
                   size={30}
@@ -59,13 +62,11 @@ const HelpScreen = () => {
               </View>
             </View>
 
-            <Text style={styles.description}>
-              Nevàhaj sa nám ozvať ohl’adom pripomienok a želaní
-            </Text>
+            <Text style={styles.description}>{t('contact-us')}</Text>
 
             <View style={styles.separator} />
 
-            <InputWrapper inputLabel="Zadaj svoj email">
+            <InputWrapper inputLabel={t('input-email')}>
               <TextInput
                 value={email}
                 onChangeText={setEmail}
@@ -75,7 +76,7 @@ const HelpScreen = () => {
               />
             </InputWrapper>
 
-            <InputWrapper inputLabel="Pripomienka alebo dotaz">
+            <InputWrapper inputLabel={t('any-questions')}>
               <TextInput
                 value={message}
                 onChangeText={handleMessageChange}
@@ -91,7 +92,7 @@ const HelpScreen = () => {
 
             {/* Submit Button */}
             <TouchableOpacity style={formStyles.buttonPrimary}>
-              <Text style={styles.submitText}>Odoslať</Text>
+              <Text style={styles.submitText}>{t('send')}</Text>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
@@ -131,7 +132,7 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 14,
     color: secondaryTextColor,
-    textAlign: 'center',
+    textAlign: 'right',
     marginBottom: 16,
   },
   separator: {

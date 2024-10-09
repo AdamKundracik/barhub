@@ -1,17 +1,18 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import {
-  Animated,
-  Dimensions,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  TouchableWithoutFeedback,
+  Dimensions,
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
 import { useTranslation } from 'react-i18next';
+import BottomSheet, { BottomSheetModal } from '@gorhom/bottom-sheet';
 
-const { height } = Dimensions.get('window'); // Get the screen height
+const { width } = Dimensions.get('window'); // Get screen width for dynamic sizing
 
 type SlidingViewProps = {
   visible: boolean;
@@ -22,75 +23,79 @@ type SlidingViewProps = {
 };
 
 export const SlidingView = (props: SlidingViewProps) => {
-  const slideAnim = useRef(new Animated.Value(height)).current; // Start off-screen
   const { t } = useTranslation();
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
+
+  // Dynamically calculate the snap points based on content height
 
   useEffect(() => {
     if (props.visible) {
-      // Slide up
-      Animated.timing(slideAnim, {
-        toValue: 0, // Final position: on-screen
-        duration: 300, // Animation duration
-        useNativeDriver: true,
-      }).start();
+      bottomSheetRef.current?.expand(); // Open bottom sheet
     } else {
-      // Slide down
-      Animated.timing(slideAnim, {
-        toValue: height, // Move off-screen
-        duration: 300,
-        useNativeDriver: true,
-      }).start(() => {
-        props.onClose(); // Call onClose after animation completes
-      });
+      bottomSheetRef.current?.close(); // Close bottom sheet
     }
   }, [props.visible]);
 
+  // Function to close BottomSheet when clicking outside
+  const handleCloseOnClickOutside = () => {
+    props.onClose();
+  };
+
   return (
-    <Animated.View
-      style={[styles.container, { transform: [{ translateY: slideAnim }] }]}
-    >
-      <TouchableOpacity style={styles.option} onPress={props.openGallery}>
-        <FontAwesomeIcon icon={Icons.Image} size={24} color={'white'} />
-        <Text style={styles.text}>{t('pick-from-gallery')}</Text>
-      </TouchableOpacity>
-      <View style={styles.seperator}></View>
-      <TouchableOpacity style={styles.option} onPress={props.openCamera}>
-        <FontAwesomeIcon icon={Icons.Camera} size={24} color={'white'} />
-        <Text style={styles.text}>{t('take-new-picture')}</Text>
-      </TouchableOpacity>
-      <View style={styles.seperator}></View>
-      <TouchableOpacity style={styles.option} onPress={props.removePicture}>
-        <FontAwesomeIcon icon={Icons.Ban} size={24} color={'white'} />
-        <Text style={styles.text}>{t('remove-picture')}</Text>
-      </TouchableOpacity>
-    </Animated.View>
+    props.visible && (
+      <>
+        <TouchableWithoutFeedback onPress={handleCloseOnClickOutside}>
+          <View style={styles.overlay} />
+        </TouchableWithoutFeedback>
+        <BottomSheet
+          ref={bottomSheetRef}
+          snapPoints={['35%']} // Use dynamic snap points
+          onClose={props.onClose}
+          backgroundStyle={{ backgroundColor: 'grey' }}
+          handleHeight={50}
+          enablePanDownToClose
+        >
+          <TouchableOpacity style={styles.option} onPress={props.openGallery}>
+            <FontAwesomeIcon icon={Icons.Image} size={24} color={'white'} />
+            <Text style={styles.text}>{t('pick-from-gallery')}</Text>
+          </TouchableOpacity>
+          <View style={styles.seperator}></View>
+          <TouchableOpacity style={styles.option} onPress={props.openCamera}>
+            <FontAwesomeIcon icon={Icons.Camera} size={24} color={'white'} />
+            <Text style={styles.text}>{t('take-new-picture')}</Text>
+          </TouchableOpacity>
+          <View style={styles.seperator}></View>
+          <TouchableOpacity style={styles.option} onPress={props.removePicture}>
+            <FontAwesomeIcon icon={Icons.Ban} size={24} color={'white'} />
+            <Text style={styles.text}>{t('remove-picture')}</Text>
+          </TouchableOpacity>
+        </BottomSheet>
+      </>
+    )
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    width: '100%',
-    backgroundColor: 'grey',
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
+  overlay: {
+    ...StyleSheet.absoluteFillObject, // Covers the whole screen
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent black
   },
   option: {
-    padding: 25,
+    paddingVertical: 20, // Vertical padding (adjust based on content)
+    paddingHorizontal: width * 0.05, // Horizontal padding, 5% of screen width
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 10,
   },
   seperator: {
     height: 1,
     backgroundColor: '#434343',
-    marginVertical: 1,
+    marginVertical: 5, // Give some space between options
   },
   text: {
     color: 'white',
-    marginLeft: 10,
-    fontSize: 16,
+    fontSize: 16, // Base font size
+    flexShrink: 1, // Text will shrink if necessary for longer content
   },
 });
 
