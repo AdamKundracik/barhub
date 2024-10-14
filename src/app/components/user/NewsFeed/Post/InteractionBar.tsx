@@ -38,7 +38,7 @@ export const InteractionBar = (props: InteractionBarProps) => {
 
   return (
     <View style={styles.container}>
-      <View style={{ flexDirection: 'column' }}>
+      <View style={{ flex: 1 }}>
         <FontAwesomeIcon
           style={{ alignSelf: 'center' }}
           icon={Icons.Group}
@@ -49,28 +49,32 @@ export const InteractionBar = (props: InteractionBarProps) => {
           {getOccupancyTranslation(props.occupancy ?? '')}
         </Text>
       </View>
-      <TouchableOpacity
-        onPress={props.onLikeToggle}
-        style={styles.iconContainer}
-      >
-        <FontAwesomeIcon
-          icon={Icons.Heart}
-          size={isTablet ? 30 : 24}
-          color={props.isLiked ? 'red' : '#32d7b7'}
-        />
-        <Text style={styles.count}>{props.likes}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={props.onCommentToggle}
-        style={styles.iconContainer}
-      >
-        <FontAwesomeIcon
-          icon={Icons.Comment}
-          size={isTablet ? 30 : 24}
-          color="#32d7b7"
-        />
-        <Text style={styles.count}>{props.comments}</Text>
-      </TouchableOpacity>
+      <View style={{ flex: 1 }}>
+        <TouchableOpacity
+          onPress={props.onLikeToggle}
+          style={styles.iconContainer}
+        >
+          <FontAwesomeIcon
+            icon={Icons.Heart}
+            size={isTablet ? 30 : 24}
+            color={props.isLiked ? 'red' : '#32d7b7'}
+          />
+          <Text style={styles.count}>{props.likes}</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={{ flex: 1 }}>
+        <TouchableOpacity
+          onPress={props.onCommentToggle}
+          style={styles.iconContainer}
+        >
+          <FontAwesomeIcon
+            icon={Icons.Comment}
+            size={isTablet ? 30 : 24}
+            color="#32d7b7"
+          />
+          <Text style={styles.count}>{props.comments}</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -92,6 +96,7 @@ const mobileStyles = StyleSheet.create({
     marginTop: 5,
     fontSize: 12,
     color: '#a0a0a0',
+    textAlign: 'center',
   },
 });
 
@@ -112,6 +117,7 @@ const tabletStyles = StyleSheet.create({
     marginTop: 8,
     fontSize: 18,
     color: '#a0a0a0',
+    textAlign: 'center',
   },
 });
 
