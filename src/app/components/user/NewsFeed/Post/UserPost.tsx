@@ -37,6 +37,7 @@ const width = Dimensions.get('window').width;
 
 export const UserPost = (props: PostInterface) => {
   const { post, setZoomedPost, isZoomed } = props;
+
   const queryClient = useQueryClient();
 
   const focalX = useSharedValue(0);
@@ -209,6 +210,7 @@ export const UserPost = (props: PostInterface) => {
           onLikeToggle={onLikePress}
           onCommentToggle={() => props.onCommentPress(props.post.id)}
           isLiked={liked}
+          occupancy={post.occupancy}
         />
       </View>
     </>

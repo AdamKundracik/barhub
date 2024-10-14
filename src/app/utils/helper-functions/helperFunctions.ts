@@ -16,7 +16,8 @@ export const uploadImageAsync = async (
   hook: UseMutationResult<boolean, unknown, boolean, unknown>,
   placeId: string,
   placeName: string,
-  placeAddress: string
+  placeAddress: string,
+  occupancy?: string
 ): Promise<void> => {
   try {
     if (!auth.currentUser) {
@@ -38,6 +39,7 @@ export const uploadImageAsync = async (
       name: auth.currentUser.displayName ?? '',
       userImageUrl: auth.currentUser.photoURL ?? null,
       fileId: fileId.split('/')[1],
+      occupancy: occupancy ?? '',
       folderId: placeId,
       creationTime: new Date().toISOString(),
       timestamp: Date.now(),

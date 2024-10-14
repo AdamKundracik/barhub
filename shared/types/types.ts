@@ -48,6 +48,7 @@ export type Post = {
   likesCount?: number;
   commentsCount?: number;
   isLiked?: boolean;
+  occupancy: string;
 };
 
 export type InfinityScrollPost = {

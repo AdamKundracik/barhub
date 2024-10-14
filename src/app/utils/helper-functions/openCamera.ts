@@ -1,11 +1,12 @@
 import { Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { PlaceDetail } from '../types/types';
+import { Place, PlaceDetail } from '../types/types';
 import { fetchPlaceDetails } from './fetchPlaceDetail';
 import { uploadImageAsync } from './helperFunctions';
 import { sendPushNotificationResponse } from '../services/notofications-handler';
 import { setUser } from '../services/functions';
 import { User } from '../../../../shared';
+import { mapPlaceDetailToPlace } from './mapPlaceDetailToPlace';
 
 async function saveImageFromCamera(
   image: string,
@@ -58,7 +59,6 @@ export const openCamera = async (
       return;
     }
 
-    // Launch the camera
     const result = await ImagePicker.launchCameraAsync({
       quality: 1,
       allowsEditing: true,
@@ -67,15 +67,14 @@ export const openCamera = async (
 
     if (!result.canceled) {
       if (placeId && senderToken) {
-        await saveImageFromCamera(
-          result.assets[0].uri,
-          userData,
-          setUploadingState,
-          placeId,
-          senderToken
-        );
+        const placeDetail = await fetchPlaceDetails(placeId);
+        const place: Place = mapPlaceDetailToPlace(placeDetail);
+        navigation.navigate('PostSummary', {
+          image: result.assets[0].uri ?? '',
+          place: place,
+          senderToken: senderToken,
+        });
       } else {
-        // Navigate to PhotoResolver if no placeId and senderToken
         navigation?.navigate('PhotoResolver', { image: result.assets[0].uri });
       }
     }

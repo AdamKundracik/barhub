@@ -9,27 +9,24 @@ import {
   faCamera,
   faCancel,
   faCheck,
+  faChevronLeft,
   faCircleCheck,
   faCog,
   faCoins,
-  faComment,
   faCommenting,
   faComments,
   faCrown,
   faFilter,
   faGear,
-  faHeart,
   faHeartBroken,
   faImage,
-  faInfo,
   faInfoCircle,
-  faLocationPin,
-  faLocationPinLock,
   faMap,
   faMapLocationDot,
   faMapPin,
   faPaperPlane,
   faPencil,
+  faPeopleGroup,
   faPlusSquare,
   faRemove,
   faRotateBack,
@@ -46,11 +43,13 @@ import {
   faX,
 } from '@fortawesome/free-solid-svg-icons';
 import {
+  faComment,
   faEye,
   faEyeSlash,
+  faFlag,
+  faHeart,
   faQuestionCircle,
 } from '@fortawesome/free-regular-svg-icons';
-import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 
 export const Icons = {
   Camera: faCamera,
@@ -99,4 +98,6 @@ export const Icons = {
   Crown: faCrown,
   Check: faCheck,
   Right: faArrowRight,
+  Flag: faFlag,
+  Group: faPeopleGroup,
 };

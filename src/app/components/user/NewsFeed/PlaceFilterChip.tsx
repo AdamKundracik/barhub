@@ -19,7 +19,12 @@ export const PlaceFilterChip = (props: LayoutProps) => {
 
   return (
     <>
-      <View style={{ display: 'flex', flexDirection: 'row' }}>
+      <View
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+        }}
+      >
         <View style={{ alignSelf: 'center', paddingHorizontal: 15 }}>
           <Svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <Path
@@ -49,10 +54,10 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     borderWidth: 2,
     borderColor: primaryColor,
-    display: 'flex',
     flexDirection: 'row',
     paddingHorizontal: 10,
     paddingVertical: 5,
+    maxWidth: '90%',
   },
   deleteIcon: {
     marginLeft: 10,
@@ -62,6 +67,11 @@ const styles = StyleSheet.create({
   chipText: {
     justifyContent: 'center',
     alignItems: 'center',
+    flexShrink: 1,
+  },
+  text: {
+    color: primaryTextColor,
+    flexWrap: 'wrap',
   },
 });
 

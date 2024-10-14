@@ -86,7 +86,7 @@ export const PlaceSearch = () => {
           }}
         >
           <TouchableOpacity onPress={onCancelClick}>
-            <FontAwesomeIcon icon={Icons.Remove} size={24} color={'white'} />
+            <FontAwesomeIcon icon={Icons.Remove} size={28} color={'white'} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setIsMapShown(true)}>
             <FontAwesomeIcon icon={Icons.Map} size={24} color={'white'} />
@@ -172,7 +172,7 @@ export const PlaceSearch = () => {
             ))
           : hasSearched && (
               <View style={{ padding: 16 }}>
-                <Text style={{ color: 'white' }}>No results</Text>
+                <Text style={{ color: 'white' }}>{t('no-results')}</Text>
               </View>
             )}
       </View>

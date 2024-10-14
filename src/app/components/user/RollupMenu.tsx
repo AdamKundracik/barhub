@@ -86,7 +86,7 @@ export const RollupMenu = (props: MenuProps) => {
 
   const showMenu = () => {
     Animated.timing(fadeAnim, {
-      toValue: 0.8,
+      toValue: 0.9,
       duration: 300,
       useNativeDriver: true,
     }).start();

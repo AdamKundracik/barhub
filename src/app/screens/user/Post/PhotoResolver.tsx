@@ -5,24 +5,27 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
-import Layout from '../../components/user/Shared/Layout';
-import { fetchNearbyPlaces } from '../../utils/helper-functions/fetchNearByPlaces';
-import { Place } from '../../utils/types/types';
-import { PlaceDetail } from '../../components/user/Search/PlaceDetail';
-import { useUserContext } from '../../providers/UserProvider';
-import { primaryColor, primaryDeepColor } from '../../utils/styles/colors';
+import Layout from '../../../components/user/Shared/Layout';
+import { fetchNearbyPlaces } from '../../../utils/helper-functions/fetchNearByPlaces';
+import { Place } from '../../../utils/types/types';
+import { useUserContext } from '../../../providers/UserProvider';
+import { primaryColor, primaryDeepColor } from '../../../utils/styles/colors';
 import { useTranslation } from 'react-i18next';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { Icons } from '../../../utils/icons/icons';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { UserStackList } from '../../../utils/types/screen-types';
 
 export const PhotoResolver = ({ route }: any) => {
   const { location } = useUserContext();
   const { t } = useTranslation();
+  const navigation = useNavigation<NavigationProp<UserStackList>>();
 
   const [loading, setLoading] = useState(true);
   const [places, setPlaces] = useState<Place[]>();
-  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
-  const [detailOpened, setDetailOpened] = useState(false);
   const routeParams = route.params as { image?: string }; // Define route params
   const [image, setImage] = useState<string | null>(null);
 
@@ -55,8 +58,7 @@ export const PhotoResolver = ({ route }: any) => {
         },
       ]}
       onPress={() => {
-        setSelectedPlace(item);
-        setDetailOpened(true);
+        navigation.navigate('PostSummary', { image: image ?? '', place: item });
       }}
     >
       {({ pressed }) => (
@@ -95,7 +97,12 @@ export const PhotoResolver = ({ route }: any) => {
   }
 
   return (
-    <Layout pageTitle={'PhotoResolver'} isBackButtonShown={true}>
+    <Layout pageTitle={'PhotoResolver'}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <FontAwesomeIcon icon={Icons.Left} size={24} color={'white'} />
+        </TouchableOpacity>
+      </View>
       <View
         style={{
           padding: 20,
@@ -112,12 +119,6 @@ export const PhotoResolver = ({ route }: any) => {
         <View />
       </View>
       <FlatList data={places} renderItem={renderItem} />
-      <PlaceDetail
-        image={image}
-        isOpen={detailOpened}
-        onClose={() => setDetailOpened(false)}
-        place={selectedPlace}
-      />
     </Layout>
   );
 };
@@ -134,6 +135,11 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     borderWidth: 2,
     borderColor: 'grey',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
   },
 });
 
