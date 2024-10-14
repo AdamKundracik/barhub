@@ -30,6 +30,7 @@ import {
   faMapPin,
   faPaperPlane,
   faPencil,
+  faPeopleGroup,
   faPlusSquare,
   faRemove,
   faRotateBack,
@@ -101,4 +102,5 @@ export const Icons = {
   Check: faCheck,
   Right: faArrowRight,
   Flag: faFlag,
+  Group: faPeopleGroup,
 };

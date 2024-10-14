@@ -4,6 +4,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../../utils/icons/icons';
 import { postBgColor } from '../../../../utils/styles/colors';
 import Device from 'react-native-device-info';
+import { useTranslation } from 'react-i18next';
+import { occupacyOptions } from '../../../../utils/types/types';
 
 type InteractionBarProps = {
   likes: number | undefined;
@@ -11,16 +13,42 @@ type InteractionBarProps = {
   onLikeToggle: () => void;
   onCommentToggle: () => void;
   isLiked: boolean | undefined;
+  occupancy: string;
 };
 
 const isTablet = Device.isTablet();
 
 export const InteractionBar = (props: InteractionBarProps) => {
+  const { t } = useTranslation();
   const styles = isTablet ? tabletStyles : mobileStyles;
+
+  const occupancyLabels = {
+    [occupacyOptions.FULL]: t('full'),
+    [occupacyOptions.HALP_FULL]: t('half-full'),
+    [occupacyOptions.HALF_EMPTY]: t('half-empty'),
+    [occupacyOptions.EMPTY]: t('empty'),
+  };
+
+  function getOccupancyTranslation(occupancyOption: string): string {
+    if (occupancyOption in occupancyLabels) {
+      return occupancyLabels[occupancyOption as keyof typeof occupancyLabels];
+    }
+    return ''; // Return empty string if the option is not valid
+  }
 
   return (
     <View style={styles.container}>
-      <View style={{ width: 24, height: 24 }} />
+      <View style={{ flexDirection: 'column' }}>
+        <FontAwesomeIcon
+          style={{ alignSelf: 'center' }}
+          icon={Icons.Group}
+          size={isTablet ? 30 : 24}
+          color={'white'}
+        />
+        <Text style={styles.count}>
+          {getOccupancyTranslation(props.occupancy ?? '')}
+        </Text>
+      </View>
       <TouchableOpacity
         onPress={props.onLikeToggle}
         style={styles.iconContainer}
