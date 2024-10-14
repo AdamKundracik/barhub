@@ -26,7 +26,6 @@ export const PhotoResolver = ({ route }: any) => {
 
   const [loading, setLoading] = useState(true);
   const [places, setPlaces] = useState<Place[]>();
-  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const routeParams = route.params as { image?: string }; // Define route params
   const [image, setImage] = useState<string | null>(null);
 
@@ -59,7 +58,6 @@ export const PhotoResolver = ({ route }: any) => {
         },
       ]}
       onPress={() => {
-        setSelectedPlace(item);
         navigation.navigate('PostSummary', { image: image ?? '', place: item });
       }}
     >

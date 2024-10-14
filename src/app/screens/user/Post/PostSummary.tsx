@@ -27,10 +27,12 @@ import { useUploadingStateManagement } from '../../../utils/hooks/useUploadingSt
 import { uploadImageAsync } from '../../../utils/helper-functions/helperFunctions';
 import { setUser } from '../../../utils/services/functions';
 import LoadingIndicator from '../../../components/user/NewsFeed/LoadingIndicator';
+import { sendPushNotificationResponse } from '../../../utils/services/notofications-handler';
 
 type SummaryProps = {
   image: string;
   place: Place;
+  senderToken?: string;
 };
 
 const isTablet = Device.isTablet();
@@ -48,17 +50,19 @@ export const PostSummary = ({ route }: any) => {
   const [image, setImage] = useState<string | null>(null);
   const [place, setPlace] = useState<Place | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [senderToken, setSenderToken] = useState<string | null>(null);
 
   useEffect(() => {
     if (routeParams?.image && routeParams?.place) {
       setImage(routeParams.image); // Set the place when passed from PlaceSearch
       setPlace(routeParams.place);
+      setSenderToken(routeParams.senderToken ?? null);
     }
   }, [routeParams]);
 
   const occupancyLabels = {
     [occupacyOptions.FULL]: t('full'),
-    [occupacyOptions.HALP_FULL]: t('half-full'),
+    [occupacyOptions.HALF_FULL]: t('half-full'),
     [occupacyOptions.HALF_EMPTY]: t('half-empty'),
     [occupacyOptions.EMPTY]: t('empty'),
   };
@@ -92,6 +96,9 @@ export const PostSummary = ({ route }: any) => {
           place.formattedAddress,
           selectedOccupancy
         ).then(() => {
+          if (senderToken) {
+            sendPushNotificationResponse(senderToken, place?.id);
+          }
           navigation.navigate('Feed');
         });
         setUser({ lastUploadedPost: new Date().toISOString() });

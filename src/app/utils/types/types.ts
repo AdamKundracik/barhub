@@ -22,7 +22,7 @@ export type Settings = {
 
 export enum occupacyOptions {
   FULL = 'FULL',
-  HALP_FULL = 'HALP_FULL',
+  HALF_FULL = 'HALF_FULL',
   HALF_EMPTY = 'HALF_EMPTY',
   EMPTY = 'EMPTY',
 }
@@ -131,28 +131,6 @@ export interface PlaceDetailsResponse {
 export type LocationType = {
   latitude: number;
   longitude: number;
-};
-
-export interface DistanceMatrixResponse {
-  status: string;
-  rows: {
-    elements: {
-      distance: {
-        text: string;
-        value: number;
-      };
-      duration: {
-        text: string;
-        value: number;
-      };
-      status: string;
-    }[];
-  }[];
-}
-
-export type GetDistanceDataRequest = {
-  startLocation: LocationType;
-  endLocation: LocationType;
 };
 
 export interface Match {

@@ -24,7 +24,7 @@ export const InteractionBar = (props: InteractionBarProps) => {
 
   const occupancyLabels = {
     [occupacyOptions.FULL]: t('full'),
-    [occupacyOptions.HALP_FULL]: t('half-full'),
+    [occupacyOptions.HALF_FULL]: t('half-full'),
     [occupacyOptions.HALF_EMPTY]: t('half-empty'),
     [occupacyOptions.EMPTY]: t('empty'),
   };
@@ -90,7 +90,7 @@ const mobileStyles = StyleSheet.create({
   count: {
     fontWeight: 'bold',
     marginTop: 5,
-    fontSize: 14,
+    fontSize: 12,
     color: '#a0a0a0',
   },
 });
