@@ -96,5 +96,14 @@
   "app-info-description": "Tu nájdeš všetky dodatočné a potrebné informácie o aplikácii",
   "about-app": "O aplikácii",
   "terms-of-use": "Zmluvné podmienky",
-  "support-us": "Podpor nás"
+  "support-us": "Podpor nás",
+  "full": "Plné",
+  "half-full": "Poloplné",
+  "half-empty": "Poloprázdne",
+  "empty": "Prázdne",
+  "location": "Poloha",
+  "name": "Názov",
+  "occupancy": "Obsadenosť",
+  "new-post": "Nový príspevok",
+  "no-results": "Žiadne výsledky"
 }

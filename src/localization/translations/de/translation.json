@@ -96,5 +96,14 @@
   "app-info-description": "Hier findest du alle zusätzlichen und notwendigen Informationen zur App",
   "about-app": "Über die App",
   "terms-of-use": "Nutzungsbedingungen",
-  "support-us": "Unterstütze uns"
+  "support-us": "Unterstütze uns",
+  "full": "Voll",
+  "half-full": "Halbvoll",
+  "half-empty": "Halb Leer",
+  "empty": "Leer",
+  "location": "Standort",
+  "name": "Name",
+  "occupancy": "Belegung",
+  "new-post": "Neuer Beitrag",
+  "no-results": "Keine Ergebnisse"
 }

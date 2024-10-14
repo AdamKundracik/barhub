@@ -8,17 +8,16 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Layout from '../../components/user/Shared/Layout';
-import { fetchNearbyPlaces } from '../../utils/helper-functions/fetchNearByPlaces';
-import { Place } from '../../utils/types/types';
-import { PlaceDetail } from '../../components/user/Search/PlaceDetail';
-import { useUserContext } from '../../providers/UserProvider';
-import { primaryColor, primaryDeepColor } from '../../utils/styles/colors';
+import Layout from '../../../components/user/Shared/Layout';
+import { fetchNearbyPlaces } from '../../../utils/helper-functions/fetchNearByPlaces';
+import { Place } from '../../../utils/types/types';
+import { useUserContext } from '../../../providers/UserProvider';
+import { primaryColor, primaryDeepColor } from '../../../utils/styles/colors';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../utils/icons/icons';
+import { Icons } from '../../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { UserStackList } from '../../utils/types/screen-types';
+import { UserStackList } from '../../../utils/types/screen-types';
 
 export const PhotoResolver = ({ route }: any) => {
   const { location } = useUserContext();
@@ -28,7 +27,6 @@ export const PhotoResolver = ({ route }: any) => {
   const [loading, setLoading] = useState(true);
   const [places, setPlaces] = useState<Place[]>();
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
-  const [detailOpened, setDetailOpened] = useState(false);
   const routeParams = route.params as { image?: string }; // Define route params
   const [image, setImage] = useState<string | null>(null);
 
@@ -62,7 +60,7 @@ export const PhotoResolver = ({ route }: any) => {
       ]}
       onPress={() => {
         setSelectedPlace(item);
-        setDetailOpened(true);
+        navigation.navigate('PostSummary', { image: image ?? '', place: item });
       }}
     >
       {({ pressed }) => (
@@ -123,12 +121,6 @@ export const PhotoResolver = ({ route }: any) => {
         <View />
       </View>
       <FlatList data={places} renderItem={renderItem} />
-      <PlaceDetail
-        image={image}
-        isOpen={detailOpened}
-        onClose={() => setDetailOpened(false)}
-        place={selectedPlace}
-      />
     </Layout>
   );
 };

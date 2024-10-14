@@ -1,4 +1,5 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Place } from './types';
 
 export type UserStackList = {
   Feed: undefined;
@@ -16,6 +17,8 @@ export type UserStackList = {
   Help: undefined;
 
   Info: undefined;
+
+  PostSummary: { image: string; place: Place };
 };
 
 export type FeedsScreenProps = NativeStackScreenProps<UserStackList, 'Account'>;
@@ -32,4 +35,8 @@ export type AccountScreenProps = NativeStackScreenProps<
   'Help'
 >;
 
-export type SettingsScreenProps = NativeStackScreenProps<UserStackList, 'Info'>;
+export type SettingsScreenProps = NativeStackScreenProps<
+  UserStackList,
+  'Info',
+  'PostSummary'
+>;

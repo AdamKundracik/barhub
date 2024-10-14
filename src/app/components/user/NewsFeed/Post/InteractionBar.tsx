@@ -6,11 +6,11 @@ import { postBgColor } from '../../../../utils/styles/colors';
 import Device from 'react-native-device-info';
 
 type InteractionBarProps = {
-  likes: number;
-  comments: number;
+  likes: number | undefined;
+  comments: number | undefined;
   onLikeToggle: () => void;
   onCommentToggle: () => void;
-  isLiked: boolean;
+  isLiked: boolean | undefined;
 };
 
 const isTablet = Device.isTablet();

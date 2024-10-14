@@ -1,26 +1,24 @@
 import React, { useState } from 'react';
 import {
   Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
-import Layout from '../Shared/Layout';
 import DatePicker from '../../shared/DatePicker';
 import { User } from '../../../../../shared';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
 import FastImage from 'react-native-fast-image';
 import { auth } from '../../../../../firebaseConfig';
-import { primaryColor, primaryTextColor } from '../../../utils/styles/colors';
+import { primaryBgColor, primaryColor } from '../../../utils/styles/colors';
 import { formStyles } from '../../../utils/styles/styles';
 import { useTranslation } from 'react-i18next';
-import SlidingView from '../../shared/SlidingView';
 import * as ImagePicker from 'expo-image-picker';
 import {
   deleteProfilePicture,
@@ -160,102 +158,89 @@ const ProfileEditScreen = (props: EditProfileProps) => {
   };
 
   return (
-    <Layout pageTitle={'Edit profile'} showBottomTabs={false}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-          {/* Header with back button */}
-          <View style={styles.header}>
-            <TouchableOpacity onPress={props.onEditCLose}>
-              <FontAwesomeIcon icon={Icons.Left} size={24} color={'white'} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Profile Picture Section */}
-          <View style={styles.profileSection}>
-            <TouchableOpacity onPress={() => setOpenImageOptions(true)}>
-              <FastImage
-                source={
-                  auth.currentUser?.photoURL
-                    ? { uri: auth.currentUser.photoURL }
-                    : require('../../../../../assets/userIcon.png')
-                }
-                style={[
-                  styles.profilePicture,
-                  props.user?.premium && {
-                    borderWidth: 1,
-                    borderColor: '#FFC107',
-                  },
-                ]}
-                resizeMode="cover"
-              />
-              {/* Edit badge (pencil icon) */}
-              <View style={styles.editIconContainer}>
-                <FontAwesomeIcon
-                  icon={Icons.Pencil}
-                  size={20}
-                  color={'white'}
-                />
-              </View>
-            </TouchableOpacity>
-          </View>
-
-          {/* Username input */}
-          <View style={styles.inputRow}>
-            <Text style={styles.label}>{t('user-name')}</Text>
-            <TextInput
-              value={username ?? ''}
-              onChangeText={setUsername}
-              style={formStyles.inputPrimary}
-            />
-          </View>
-
-          {/* Email input (non-editable) */}
-          <View style={styles.inputRow}>
-            <Text style={styles.label}>{t('email')}</Text>
-            <TextInput
-              value={email ?? ''}
-              editable={false}
-              style={[formStyles.inputPrimary, styles.nonEditable]}
-            />
-          </View>
-
-          {/* Birthdate picker */}
-          <View style={styles.birthDateContainer}>
-            <Text style={styles.label}>Birthdate</Text>
-            <DatePicker
-              onDateChange={date => setBirthDate(new Date(date))}
-              initialValue={
-                new Date(props.user ? props.user.dateOfBirth : '') ?? null
+    <KeyboardAvoidingView
+      style={{ flex: 1 }} // Add this back
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} // Adjust this offset if needed
+    >
+      <View style={styles.header}>
+        <TouchableOpacity onPress={props.onEditCLose}>
+          <FontAwesomeIcon icon={Icons.Left} size={24} color={'white'} />
+        </TouchableOpacity>
+      </View>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        {/* Profile Picture Section */}
+        <View style={styles.profileSection}>
+          <TouchableOpacity onPress={() => setOpenImageOptions(true)}>
+            <FastImage
+              source={
+                auth.currentUser?.photoURL
+                  ? { uri: auth.currentUser.photoURL }
+                  : require('../../../../../assets/userIcon.png')
               }
+              style={[
+                styles.profilePicture,
+                props.user?.premium && {
+                  borderWidth: 1,
+                  borderColor: '#FFC107',
+                },
+              ]}
+              resizeMode="cover"
             />
-          </View>
-
-          {/* Save button */}
-          <TouchableOpacity
-            style={formStyles.buttonSecondary}
-            onPress={handleUpdateUser}
-          >
-            {isSaving ? (
-              <LoadingIndicator />
-            ) : (
-              <Text style={styles.saveButtonText}>{t('save')}</Text>
-            )}
+            <View style={styles.editIconContainer}>
+              <FontAwesomeIcon
+                icon={Icons.Pencil}
+                size={18}
+                color={primaryBgColor}
+              />
+            </View>
           </TouchableOpacity>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </View>
 
-      {/* Sliding view for image options */}
-      <SlidingView
-        visible={openImageOptions}
-        onClose={() => setOpenImageOptions(false)}
-        openGallery={openGallery}
-        openCamera={openCamera}
-        removePicture={removePicture}
-      />
-    </Layout>
+        {/* Username input */}
+        <View style={styles.inputRow}>
+          <Text style={styles.label}>{t('user-name')}</Text>
+          <TextInput
+            value={username ?? ''}
+            onChangeText={setUsername}
+            style={[styles.input, formStyles.inputPrimary]}
+          />
+        </View>
+
+        {/* Email input (non-editable) */}
+        <View style={styles.inputRow}>
+          <Text style={styles.label}>{t('email')}</Text>
+          <TextInput
+            value={email ?? ''}
+            editable={false}
+            style={[styles.input, formStyles.inputPrimary, styles.nonEditable]}
+          />
+        </View>
+
+        {/* Birthdate picker */}
+        <View style={styles.birthDateContainer}>
+          <Text style={styles.birthDateLabel}>{t('date-of-birth')}</Text>
+          <DatePicker
+            onDateChange={date => setBirthDate(new Date(date))}
+            initialValue={
+              new Date(props.user ? props.user.dateOfBirth : '') ?? null
+            }
+          />
+        </View>
+
+        {/* Save button */}
+        <TouchableOpacity
+          style={formStyles.buttonSecondary}
+          onPress={handleUpdateUser}
+        >
+          {isSaving ? (
+            <LoadingIndicator />
+          ) : (
+            <Text style={styles.saveButtonText}>{t('save')}</Text>
+          )}
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -263,12 +248,12 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
+    paddingVertical: 10,
     marginBottom: 16,
   },
   profileSection: {
     alignItems: 'center',
-    marginVertical: 24,
+    marginBottom: 15,
     position: 'relative',
   },
   profilePicture: {
@@ -283,7 +268,7 @@ const styles = StyleSheet.create({
     right: 10,
     backgroundColor: primaryColor,
     borderRadius: 20,
-    padding: 4,
+    padding: 7,
   },
   inputRow: {
     flexDirection: 'row',
@@ -292,14 +277,22 @@ const styles = StyleSheet.create({
   },
   label: {
     color: 'white',
-    flex: 1,
+    width: 100, // Fixed width for label (for email and username)
     fontSize: 16,
-    textAlignVertical: 'center',
+    marginRight: 12,
+  },
+  input: {
+    flex: 1, // Flexible space for input
+    fontSize: 16,
+    padding: 10,
   },
   birthDateContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
     marginBottom: 16,
+  },
+  birthDateLabel: {
+    color: 'white',
+    fontSize: 16,
+    marginBottom: 10,
   },
   nonEditable: {
     backgroundColor: '#333',

@@ -96,5 +96,14 @@
   "app-info-description": "Aquí encontrarás toda la información adicional y necesaria sobre la aplicación",
   "about-app": "Acerca de la aplicación",
   "terms-of-use": "Términos de uso",
-  "support-us": "Apóyanos"
+  "support-us": "Apóyanos",
+  "full": "Lleno",
+  "half-full": "Medio Lleno",
+  "half-empty": "Medio Vacío",
+  "empty": "Vacío",
+  "location": "Ubicación",
+  "name": "Nombre",
+  "occupancy": "Ocupación",
+  "new-post": "Nueva Publicación",
+  "no-results": "No hay resultados"
 }

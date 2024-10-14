@@ -159,7 +159,7 @@ const CommentsSlider = (props: Props) => {
             </Text>
             <Text style={styles.headerText}>{t('comments')}</Text>
             <TouchableOpacity onPress={handleCloseComments}>
-              <FontAwesomeIcon icon={Icons.Remove} size={24} color="#fff" />
+              <FontAwesomeIcon icon={Icons.Remove} size={28} color="#fff" />
             </TouchableOpacity>
           </View>
 

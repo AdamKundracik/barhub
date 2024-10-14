@@ -28,7 +28,7 @@ const InfoScreen = () => {
         {/* Header with title, back icon, and info icon */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <FontAwesomeIcon icon={Icons.Remove} size={24} color={'white'} />
+            <FontAwesomeIcon icon={Icons.Remove} size={28} color={'white'} />
           </TouchableOpacity>
 
           <View style={styles.headerText}>

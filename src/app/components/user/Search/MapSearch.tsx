@@ -13,9 +13,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Place, PlacePrediction } from '../../../utils/types/types';
-import Layout from '../Shared/Layout';
-import { useEffect, useRef, useState } from 'react';
+import { Place } from '../../../utils/types/types';
+import { useRef, useState } from 'react';
 import { fetchNearbyPlaces } from '../../../utils/helper-functions/fetchNearByPlaces';
 import { useTranslation } from 'react-i18next';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -26,7 +25,6 @@ import { Icons } from '../../../utils/icons/icons';
 import { radius } from '../../../utils/helper-functions/constants';
 import { mapPlaceToPlacePrediction } from '../../../utils/helper-functions/mapPlaceToPlacePrediction';
 import { usePlaceStore } from '../../../utils/store/placesStore';
-import { primaryColor } from '../../../utils/styles/colors';
 
 const latitudeDelta = 0.0045;
 const longitudeDelta = 0.0045;
@@ -132,7 +130,7 @@ export const MapSearch = (props: LayoutProps) => {
         onPress={() => props.setIsMapShown(false)}
         style={styles.closeButton}
       >
-        <FontAwesomeIcon icon={Icons.Remove} size={32} color={'black'} />
+        <FontAwesomeIcon icon={Icons.Remove} size={28} color={'black'} />
       </TouchableOpacity>
       <TouchableOpacity style={styles.infoContainer} onPress={pickPlace}>
         <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 18 }}>

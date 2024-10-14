@@ -31,10 +31,12 @@ export const Account = () => {
 
   if (isEditing) {
     return (
-      <EditProfile
-        user={userData ?? null}
-        onEditCLose={() => setIsEditing(false)}
-      />
+      <Layout pageTitle="Edit Account" showBottomTabs={false}>
+        <EditProfile
+          user={userData ?? null}
+          onEditCLose={() => setIsEditing(false)}
+        />
+      </Layout>
     );
   }
 
@@ -43,7 +45,7 @@ export const Account = () => {
       <>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <FontAwesomeIcon icon={Icons.Remove} size={24} color={'white'} />
+            <FontAwesomeIcon icon={Icons.Remove} size={28} color={'white'} />
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => setIsEditing(true)}>
@@ -96,7 +98,7 @@ export const Account = () => {
 
         {/* Change Password */}
         <TouchableOpacity
-          style={{ padding: 15 }}
+          style={{ marginBottom: 15 }}
           onPress={() => navigation.navigate('PasswordChangeScreen')}
         >
           <Text style={styles.changePassword}>
@@ -104,10 +106,7 @@ export const Account = () => {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={{ padding: 15 }}
-          onPress={() => setModalOpened(true)}
-        >
+        <TouchableOpacity onPress={() => setModalOpened(true)}>
           <Text style={styles.deleteAccount}>{t('delete-account')}</Text>
         </TouchableOpacity>
       </View>
@@ -151,14 +150,14 @@ const styles = StyleSheet.create({
   },
   profileSection: {
     alignItems: 'center',
-    marginVertical: 24,
+    marginBottom: 15,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
-    padding: 10,
+    paddingVertical: 10,
   },
   avatar: {
     borderWidth: 2,
@@ -188,15 +187,14 @@ const styles = StyleSheet.create({
   },
 
   deleteAccount: {
-    color: '#981a1a',
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: '#FE7878',
+    fontSize: 16,
     textAlign: 'center',
   },
   infoSection: {
     justifyContent: 'center',
-    paddingHorizontal: 24,
   },
+
   label: {
     color: '#fff',
     fontSize: 14,

@@ -48,6 +48,7 @@ import {
 import {
   faEye,
   faEyeSlash,
+  faFlag,
   faQuestionCircle,
 } from '@fortawesome/free-regular-svg-icons';
 import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
@@ -99,4 +100,5 @@ export const Icons = {
   Crown: faCrown,
   Check: faCheck,
   Right: faArrowRight,
+  Flag: faFlag,
 };

@@ -20,6 +20,13 @@ export type Settings = {
   // FOR ADDITIONAL SETTINGS
 };
 
+export enum occupacyOptions {
+  FULL = 'FULL',
+  HALP_FULL = 'HALP_FULL',
+  HALF_EMPTY = 'HALF_EMPTY',
+  EMPTY = 'EMPTY',
+}
+
 export type DisplayName = {
   languageCode: string;
   text: string;
