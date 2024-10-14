@@ -17,12 +17,9 @@ type Props = {
   user: User | undefined;
 };
 
-// Check if the device is a tablet
-
 export const UserLine = (props: Props) => {
   return (
     <View style={styles.container}>
-      {/* Left section for image and text */}
       <View style={styles.leftSection}>
         {props.user?.photoURL ? (
           <Image
@@ -67,8 +64,8 @@ export const UserLine = (props: Props) => {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    justifyContent: 'space-between', // Align items horizontally between the left and right
-    alignItems: 'center', // Align items vertically centered
+    justifyContent: 'space-between',
+    alignItems: 'center',
     backgroundColor: postBgColor,
     padding: 10,
     borderRadius: 10,
@@ -77,7 +74,7 @@ const styles = StyleSheet.create({
   leftSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1, // Ensures the left section takes up available space
+    flex: 1,
   },
   image: {
     width: 50,
@@ -86,7 +83,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   textContainer: {
-    flex: 1, // Allows the text to take up available space
+    flex: 1,
   },
   name: {
     fontSize: 18,

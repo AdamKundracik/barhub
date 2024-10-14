@@ -26,8 +26,6 @@ export const SlidingView = (props: SlidingViewProps) => {
   const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 
-  // Dynamically calculate the snap points based on content height
-
   useEffect(() => {
     if (props.visible) {
       bottomSheetRef.current?.expand(); // Open bottom sheet
@@ -36,7 +34,6 @@ export const SlidingView = (props: SlidingViewProps) => {
     }
   }, [props.visible]);
 
-  // Function to close BottomSheet when clicking outside
   const handleCloseOnClickOutside = () => {
     props.onClose();
   };
@@ -77,12 +74,12 @@ export const SlidingView = (props: SlidingViewProps) => {
 
 const styles = StyleSheet.create({
   overlay: {
-    ...StyleSheet.absoluteFillObject, // Covers the whole screen
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent black
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   option: {
-    paddingVertical: 20, // Vertical padding (adjust based on content)
-    paddingHorizontal: width * 0.05, // Horizontal padding, 5% of screen width
+    paddingVertical: 20,
+    paddingHorizontal: width * 0.05,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
@@ -90,12 +87,12 @@ const styles = StyleSheet.create({
   seperator: {
     height: 1,
     backgroundColor: '#434343',
-    marginVertical: 5, // Give some space between options
+    marginVertical: 5,
   },
   text: {
     color: 'white',
-    fontSize: 16, // Base font size
-    flexShrink: 1, // Text will shrink if necessary for longer content
+    fontSize: 16,
+    flexShrink: 1,
   },
 });
 

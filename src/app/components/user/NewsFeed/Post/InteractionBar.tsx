@@ -33,7 +33,7 @@ export const InteractionBar = (props: InteractionBarProps) => {
     if (occupancyOption in occupancyLabels) {
       return occupancyLabels[occupancyOption as keyof typeof occupancyLabels];
     }
-    return ''; // Return empty string if the option is not valid
+    return '';
   }
 
   return (
@@ -104,7 +104,7 @@ const tabletStyles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 20, // Increased padding for tablets
+    paddingVertical: 20,
     backgroundColor: postBgColor,
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,

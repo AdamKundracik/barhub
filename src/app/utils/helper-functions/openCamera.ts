@@ -59,7 +59,6 @@ export const openCamera = async (
       return;
     }
 
-    // Launch the camera
     const result = await ImagePicker.launchCameraAsync({
       quality: 1,
       allowsEditing: true,
@@ -76,7 +75,6 @@ export const openCamera = async (
           senderToken: senderToken,
         });
       } else {
-        // Navigate to PhotoResolver if no placeId and senderToken
         navigation?.navigate('PhotoResolver', { image: result.assets[0].uri });
       }
     }

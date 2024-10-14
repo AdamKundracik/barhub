@@ -154,11 +154,9 @@ export const PostSummary = ({ route }: any) => {
                 </Text>
               </View>
 
-              {/* Unified Dropdown and Input Container */}
               <View style={[styles.textContainer, styles.dropdownContainer]}>
                 <Text style={styles.label}>{t('occupancy')}:</Text>
 
-                {/* Input with Fixed Width */}
                 <View style={styles.dropdownWrapper}>
                   <TouchableOpacity
                     onPress={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -172,7 +170,6 @@ export const PostSummary = ({ route }: any) => {
                     </Text>
                   </TouchableOpacity>
 
-                  {/* Dropdown Options */}
                   {isDropdownOpen && (
                     <View style={styles.dropdownList}>
                       {Object.values(occupacyOptions).map(option => (
@@ -228,7 +225,6 @@ export const PostSummary = ({ route }: any) => {
   );
 };
 
-// Define the styles for mobile devices
 const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
@@ -297,7 +293,7 @@ const styles = StyleSheet.create({
     borderColor: 'white',
     borderWidth: 1,
     zIndex: 30,
-    width: '100%', // Same width as the input
+    width: '100%',
   },
   dropdownItem: {
     padding: 10,
@@ -310,7 +306,6 @@ const styles = StyleSheet.create({
   },
 });
 
-// Define the styles for tablets
 const tabletStyles = StyleSheet.create({
   header: {
     flexDirection: 'row',

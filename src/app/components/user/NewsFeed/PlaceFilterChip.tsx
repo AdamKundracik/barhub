@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 10,
     paddingVertical: 5,
-    maxWidth: '90%', // Optionally limit the maximum width of the chip
+    maxWidth: '90%',
   },
   deleteIcon: {
     marginLeft: 10,
@@ -67,12 +67,11 @@ const styles = StyleSheet.create({
   chipText: {
     justifyContent: 'center',
     alignItems: 'center',
-    flexShrink: 1, // Allows the text to shrink but still allows wrapping
+    flexShrink: 1,
   },
   text: {
     color: primaryTextColor,
-    flexWrap: 'wrap', // Allow text to wrap
-    // If you want to allow multiple lines, remove numberOfLines={1} from the Text component
+    flexWrap: 'wrap',
   },
 });
 

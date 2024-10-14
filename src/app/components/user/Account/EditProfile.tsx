@@ -82,7 +82,7 @@ const ProfileEditScreen = (props: EditProfileProps) => {
       if (fetchUserData) await fetchUserData();
       if (fetchAllUsers) await fetchAllUsers();
 
-      setOpenImageOptions(false); // Close the sliding view after the action
+      setOpenImageOptions(false);
     }
   };
 
@@ -135,7 +135,7 @@ const ProfileEditScreen = (props: EditProfileProps) => {
       if (fetchUserData) await fetchUserData();
       if (fetchAllUsers) await fetchAllUsers();
 
-      setOpenImageOptions(false); // Close the sliding view after the action
+      setOpenImageOptions(false);
     }
   };
 
@@ -153,7 +153,7 @@ const ProfileEditScreen = (props: EditProfileProps) => {
     });
     if (fetchUserData) await fetchUserData();
     if (fetchAllUsers) await fetchAllUsers();
-    setOpenImageOptions(false); // Close the sliding view after the action
+    setOpenImageOptions(false);
   };
 
   return (
@@ -289,12 +289,12 @@ const styles = StyleSheet.create({
   },
   label: {
     color: 'white',
-    width: 100, // Fixed width for label (for email and username)
+    width: 100,
     fontSize: 16,
     marginRight: 12,
   },
   input: {
-    flex: 1, // Flexible space for input
+    flex: 1,
     fontSize: 16,
     padding: 10,
   },

@@ -17,12 +17,10 @@ type DatePickerProps = {
 const DatePicker = (props: DatePickerProps) => {
   const { t } = useTranslation();
 
-  // Initialize state for month, day, year with local state
   const [month, setMonth] = useState<string>('');
   const [day, setDay] = useState<string>('');
   const [year, setYear] = useState<string>('');
 
-  // Set the initial values based on initialValue once (when component mounts)
   useEffect(() => {
     if (props.initialValue) {
       const initDate = props.initialValue;
@@ -30,9 +28,8 @@ const DatePicker = (props: DatePickerProps) => {
       setDay(String(initDate.getDate()).padStart(2, '0'));
       setYear(String(initDate.getFullYear()));
     }
-  }, []); // Empty dependency array ensures this effect only runs once on mount
+  }, []);
 
-  // Generate date objects for the picker values
   const days = Array.from({ length: 31 }, (_, i) => ({
     label: String(i + 1).padStart(2, '0'),
     value: String(i + 1).padStart(2, '0'),
@@ -49,7 +46,6 @@ const DatePicker = (props: DatePickerProps) => {
     value: String(1920 + i),
   }));
 
-  // Call onDateChange only when all three fields (month, day, year) are selected
   useEffect(() => {
     if (month && day && year) {
       const date = new Date(`${year}-${month}-${day}T00:00:00Z`);
@@ -57,12 +53,11 @@ const DatePicker = (props: DatePickerProps) => {
         props.onDateChange(date.toISOString());
       }
     }
-  }, [month, day, year]); // Removed props from dependency array
+  }, [month, day, year]);
 
   return (
     <View style={styles.container}>
       <View style={styles.datePickerContainer}>
-        {/* Month Picker */}
         <View style={styles.inputWrapper}>
           <InputWrapper inputLabel={t('month')}>
             <RNPickerSelect
@@ -76,7 +71,6 @@ const DatePicker = (props: DatePickerProps) => {
           </InputWrapper>
         </View>
 
-        {/* Day Picker */}
         <View style={styles.inputWrapper}>
           <InputWrapper inputLabel={t('day')}>
             <RNPickerSelect
@@ -90,7 +84,6 @@ const DatePicker = (props: DatePickerProps) => {
           </InputWrapper>
         </View>
 
-        {/* Year Picker */}
         <View style={styles.inputWrapper}>
           <InputWrapper inputLabel={t('year')}>
             <RNPickerSelect
