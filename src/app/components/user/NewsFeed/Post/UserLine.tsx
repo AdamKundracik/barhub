@@ -19,7 +19,6 @@ type Props = {
 };
 
 // Check if the device is a tablet
-const isTablet = Device.isTablet();
 
 export const UserLine = (props: Props) => {
   return (
@@ -112,43 +111,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 10,
-  },
-});
-
-const tabletStyles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: postBgColor,
-    padding: 20,
-    borderRadius: 10,
-  },
-  image: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    marginRight: 20,
-  },
-  textContainer: {
-    flex: 1,
-  },
-  name: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: primaryColor,
-  },
-  dateTimeContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: 4,
-  },
-  dateTimeText: {
-    fontSize: 18,
-    color: primaryTextColor,
-  },
-  address: {
-    fontSize: 18,
-    color: '#999999',
   },
 });
 

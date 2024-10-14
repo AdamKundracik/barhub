@@ -14,7 +14,7 @@ import { primaryColor } from '../../utils/styles/colors';
 import EditProfile from '../../components/user/Account/EditProfile';
 
 export const Account = () => {
-  const { userData, fetchUserData, fetchAllUsers } = useUserContext();
+  const { userData } = useUserContext();
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
 

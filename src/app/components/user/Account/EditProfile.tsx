@@ -37,15 +37,13 @@ type EditProfileProps = {
 
 const ProfileEditScreen = (props: EditProfileProps) => {
   const { t } = useTranslation();
-  const { userData, fetchUserData, fetchAllUsers } = useUserContext();
+  const { fetchUserData, fetchAllUsers } = useUserContext();
 
   const [openImageOptions, setOpenImageOptions] = useState(false);
   const [username, setUsername] = useState<string | null | undefined>(
     auth.currentUser?.displayName
   );
-  const [email, setEmail] = useState<string | null | undefined>(
-    auth.currentUser?.email
-  );
+  const [email] = useState<string | null | undefined>(auth.currentUser?.email);
   const [birthDate, setBirthDate] = useState<Date>(
     props.user?.dateOfBirth ? new Date(props.user?.dateOfBirth) : new Date()
   );
