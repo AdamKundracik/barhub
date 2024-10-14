@@ -1,11 +1,5 @@
-import React, { useRef, useState } from 'react';
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Layout from '../../components/user/Shared/Layout';
 import { auth } from '../../../../firebaseConfig';
 import { useTranslation } from 'react-i18next';
@@ -17,7 +11,6 @@ import { useUserContext } from '../../providers/UserProvider';
 import { DeleteUserModal } from '../../components/user/Account/DeleteUserModal';
 import FastImage from 'react-native-fast-image';
 import { primaryColor } from '../../utils/styles/colors';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import EditProfile from '../../components/user/Account/EditProfile';
 
 export const Account = () => {
@@ -49,7 +42,7 @@ export const Account = () => {
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => setIsEditing(true)}>
-            <FontAwesomeIcon icon={Icons.Pencil} size={16} color={'white'} />
+            <FontAwesomeIcon icon={Icons.Pencil} size={20} color={'white'} />
           </TouchableOpacity>
         </View>
         <View style={styles.profileSection}>
@@ -85,7 +78,6 @@ export const Account = () => {
         </View>
       </>
 
-      {/* User Info Section */}
       <View style={styles.infoSection}>
         <Text style={styles.label}>{t('email')}</Text>
         <Text style={styles.value}>{auth.currentUser?.email}</Text>

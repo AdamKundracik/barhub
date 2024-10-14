@@ -59,7 +59,6 @@ export const UserLine = (props: Props) => {
         </View>
       </View>
 
-      {/* Right-aligned flag icon */}
       <TouchableOpacity style={styles.iconContainer}>
         <FontAwesomeIcon icon={Icons.Flag} size={20} color={'#FE7878'} />
       </TouchableOpacity>
@@ -67,7 +66,6 @@ export const UserLine = (props: Props) => {
   );
 };
 
-// Styles for mobile devices
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
@@ -113,11 +111,10 @@ const styles = StyleSheet.create({
   iconContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    paddingRight: 5, // Optional: adjust padding to create space between flag and screen edge
+    paddingHorizontal: 10,
   },
 });
 
-// Styles for tablets
 const tabletStyles = StyleSheet.create({
   container: {
     flexDirection: 'row',

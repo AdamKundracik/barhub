@@ -12,13 +12,11 @@ import {
   faCircleCheck,
   faCog,
   faCoins,
-  faComment,
   faCommenting,
   faComments,
   faCrown,
   faFilter,
   faGear,
-  faHeart,
   faHeartBroken,
   faImage,
   faInfo,
@@ -50,6 +48,8 @@ import {
   faEye,
   faEyeSlash,
   faFlag,
+  faHeart,
+  faComment,
   faQuestionCircle,
 } from '@fortawesome/free-regular-svg-icons';
 import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';

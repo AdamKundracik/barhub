@@ -28,6 +28,7 @@ import { setUser } from '../../../utils/services/functions';
 import { updateProfile } from 'firebase/auth';
 import { useUserContext } from '../../../providers/UserProvider';
 import LoadingIndicator from '../NewsFeed/LoadingIndicator';
+import SlidingView from '../../shared/SlidingView';
 
 type EditProfileProps = {
   user: User | null;
@@ -158,89 +159,102 @@ const ProfileEditScreen = (props: EditProfileProps) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }} // Add this back
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} // Adjust this offset if needed
-    >
-      <View style={styles.header}>
-        <TouchableOpacity onPress={props.onEditCLose}>
-          <FontAwesomeIcon icon={Icons.Left} size={24} color={'white'} />
-        </TouchableOpacity>
-      </View>
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        {/* Profile Picture Section */}
-        <View style={styles.profileSection}>
-          <TouchableOpacity onPress={() => setOpenImageOptions(true)}>
-            <FastImage
-              source={
-                auth.currentUser?.photoURL
-                  ? { uri: auth.currentUser.photoURL }
-                  : require('../../../../../assets/userIcon.png')
-              }
-              style={[
-                styles.profilePicture,
-                props.user?.premium && {
-                  borderWidth: 1,
-                  borderColor: '#FFC107',
-                },
-              ]}
-              resizeMode="cover"
-            />
-            <View style={styles.editIconContainer}>
-              <FontAwesomeIcon
-                icon={Icons.Pencil}
-                size={18}
-                color={primaryBgColor}
-              />
-            </View>
+    <>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }} // Add this back
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} // Adjust this offset if needed
+      >
+        <View style={styles.header}>
+          <TouchableOpacity onPress={props.onEditCLose}>
+            <FontAwesomeIcon icon={Icons.Left} size={24} color={'white'} />
           </TouchableOpacity>
         </View>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+          {/* Profile Picture Section */}
+          <View style={styles.profileSection}>
+            <TouchableOpacity onPress={() => setOpenImageOptions(true)}>
+              <FastImage
+                source={
+                  auth.currentUser?.photoURL && auth.currentUser.photoURL !== ''
+                    ? { uri: auth.currentUser.photoURL }
+                    : require('../../../../../assets/userIcon.png')
+                }
+                style={[
+                  styles.profilePicture,
+                  props.user?.premium && {
+                    borderWidth: 1,
+                    borderColor: '#FFC107',
+                  },
+                ]}
+                resizeMode="cover"
+              />
+              <View style={styles.editIconContainer}>
+                <FontAwesomeIcon
+                  icon={Icons.Pencil}
+                  size={18}
+                  color={primaryBgColor}
+                />
+              </View>
+            </TouchableOpacity>
+          </View>
 
-        {/* Username input */}
-        <View style={styles.inputRow}>
-          <Text style={styles.label}>{t('user-name')}</Text>
-          <TextInput
-            value={username ?? ''}
-            onChangeText={setUsername}
-            style={[styles.input, formStyles.inputPrimary]}
-          />
-        </View>
+          {/* Username input */}
+          <View style={styles.inputRow}>
+            <Text style={styles.label}>{t('user-name')}</Text>
+            <TextInput
+              value={username ?? ''}
+              onChangeText={setUsername}
+              style={[styles.input, formStyles.inputPrimary]}
+            />
+          </View>
 
-        {/* Email input (non-editable) */}
-        <View style={styles.inputRow}>
-          <Text style={styles.label}>{t('email')}</Text>
-          <TextInput
-            value={email ?? ''}
-            editable={false}
-            style={[styles.input, formStyles.inputPrimary, styles.nonEditable]}
-          />
-        </View>
+          {/* Email input (non-editable) */}
+          <View style={styles.inputRow}>
+            <Text style={styles.label}>{t('email')}</Text>
+            <TextInput
+              value={email ?? ''}
+              editable={false}
+              style={[
+                styles.input,
+                formStyles.inputPrimary,
+                styles.nonEditable,
+              ]}
+            />
+          </View>
 
-        {/* Birthdate picker */}
-        <View style={styles.birthDateContainer}>
-          <Text style={styles.birthDateLabel}>{t('date-of-birth')}</Text>
-          <DatePicker
-            onDateChange={date => setBirthDate(new Date(date))}
-            initialValue={
-              new Date(props.user ? props.user.dateOfBirth : '') ?? null
-            }
-          />
-        </View>
+          {/* Birthdate picker */}
+          <View style={styles.birthDateContainer}>
+            <Text style={styles.birthDateLabel}>{t('date-of-birth')}</Text>
+            <DatePicker
+              onDateChange={date => setBirthDate(new Date(date))}
+              initialValue={
+                new Date(props.user ? props.user.dateOfBirth : '') ?? null
+              }
+            />
+          </View>
 
-        {/* Save button */}
-        <TouchableOpacity
-          style={formStyles.buttonSecondary}
-          onPress={handleUpdateUser}
-        >
-          {isSaving ? (
-            <LoadingIndicator />
-          ) : (
-            <Text style={styles.saveButtonText}>{t('save')}</Text>
-          )}
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          {/* Save button */}
+          <TouchableOpacity
+            style={formStyles.buttonSecondary}
+            onPress={handleUpdateUser}
+          >
+            {isSaving ? (
+              <LoadingIndicator />
+            ) : (
+              <Text style={styles.saveButtonText}>{t('save')}</Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+      <SlidingView
+        visible={openImageOptions}
+        onClose={() => setOpenImageOptions(false)}
+        openGallery={openGallery}
+        openCamera={openCamera}
+        removePicture={removePicture}
+      />
+    </>
   );
 };
 
