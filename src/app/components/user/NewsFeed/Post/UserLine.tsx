@@ -6,7 +6,6 @@ import {
   primaryTextColor,
 } from '../../../../utils/styles/colors';
 import Svg, { Path } from 'react-native-svg';
-import Device from 'react-native-device-info';
 import { User } from '../../../../../../shared';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../../utils/icons/icons';
