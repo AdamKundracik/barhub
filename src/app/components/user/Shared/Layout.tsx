@@ -116,7 +116,7 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
             />
           </TouchableOpacity>
 
-          <Pressable
+          <TouchableOpacity
             style={styles.profileIconWrapper}
             onPress={() => {
               handleTabPress(TabsTypes.account);
@@ -147,7 +147,7 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
                 />
               </Svg>
             )}
-          </Pressable>
+          </TouchableOpacity>
 
           <Pressable
             style={styles.tabButton}
