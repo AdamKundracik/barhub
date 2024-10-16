@@ -19,6 +19,7 @@ import { daysPassedSince } from '../../../../utils/helper-functions/daysPassedSi
 import FastImage from 'react-native-fast-image';
 import { useQueryClient } from 'react-query';
 import { usePlaceStore } from '../../../../utils/store/placesStore';
+import { trimPlaceName } from '../../../../utils/helper-functions/trimPlaceName';
 
 interface PostInterface {
   post: Post;
@@ -167,7 +168,7 @@ export const UserPost = (props: PostInterface) => {
       {!props.isFiltering && (
         <View style={isTablet ? tabletStyles.placeName : styles.placeName}>
           <PlaceNameSeparator
-            placeNameLocal={post.placeName}
+            placeNameLocal={trimPlaceName(post.placeName)}
             placeIdLocal={post.folderId}
           />
         </View>

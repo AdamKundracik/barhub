@@ -11,8 +11,6 @@ import {
 } from '../helper-functions/functions-types';
 import { MISSING_REQUIRED_REQUEST_PARAMS } from '../helper-functions/constants';
 import { Post, User } from '../../../../shared';
-import { LocationType } from '../types/types';
-import { GeoPoint } from 'firebase/firestore';
 
 export const savePost = async (
   data: Partial<Post>
