@@ -10,7 +10,6 @@ import React, { ReactNode, useState } from 'react';
 import {
   iconInactiveColor,
   primaryBgColor,
-  primaryColor,
   primaryGrey,
 } from '../../../utils/styles/colors';
 import Svg, { Path } from 'react-native-svg';
@@ -25,7 +24,6 @@ import {
 } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { openCamera } from '../../../utils/helper-functions/openCamera';
-import { useUploadingStateManagement } from '../../../utils/hooks/useUploadingStateManagement';
 import { auth } from '../../../../../firebaseConfig';
 import RollupMenu from '../RollupMenu';
 
@@ -37,19 +35,16 @@ type LayoutProps = {
 
 export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
   const { userData } = useUserContext();
-  const { setUploadingState } = useUploadingStateManagement();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const route = useRoute();
 
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleTabPress = (tab: TabsTypes) => {
-    // If the same tab is selected again, reset it to null and navigate to Feed
     if (route.name === tab) {
       navigation.navigate('Feed');
       return null; // Reset the selected tab
     } else {
-      // Set the new tab and navigate accordingly
       switch (tab) {
         case TabsTypes.account:
           setMenuOpen(true);
@@ -60,7 +55,7 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
         default:
           navigation.navigate('Feed');
       }
-      return tab; // Update the selected tab
+      return tab;
     }
   };
 
@@ -98,13 +93,7 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
           <TouchableOpacity
             style={styles.tabButton}
             onPress={async () => {
-              await openCamera(
-                userData!,
-                setUploadingState,
-                null,
-                auth.currentUser?.uid,
-                navigation
-              );
+              await openCamera(null, auth.currentUser?.uid, navigation);
             }}
           >
             <FontAwesomeIcon

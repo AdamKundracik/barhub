@@ -62,53 +62,6 @@ const useFetchAllUsers = () => {
   });
 };
 
-// Hook for BackgroundGeolocation setup
-const useBackgroundGeolocation = (
-  setLocation: (location: LocationType) => void
-) => {
-  useEffect(() => {
-    const onLocation = BackgroundGeolocation.onLocation(async location => {
-      const currentLocation: LocationType = {
-        latitude: location.coords?.latitude,
-        longitude: location.coords?.longitude,
-      };
-      if (location.coords.speed && location.coords.speed <= 4) {
-        setLocation(currentLocation);
-        await setUserIntoDB(currentLocation);
-      }
-    });
-
-    const onMotionChange = BackgroundGeolocation.onMotionChange(async event => {
-      const { latitude, longitude } = event.location.coords;
-      const currentLocation: LocationType = { latitude, longitude };
-
-      if (!event.isMoving) {
-        setLocation(currentLocation);
-        await setUserIntoDB(currentLocation);
-      }
-    });
-
-    BackgroundGeolocation.ready({
-      desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
-      distanceFilter: 25,
-      stopTimeout: 3,
-      debug: false,
-      logLevel: BackgroundGeolocation.LOG_LEVEL_OFF,
-      stopOnTerminate: false,
-      startOnBoot: true,
-      showsBackgroundLocationIndicator: false,
-    }).then(state => {
-      BackgroundGeolocation.start();
-      console.log('- BackgroundGeolocation configured:', state.enabled);
-    });
-
-    return () => {
-      onLocation.remove();
-      onMotionChange.remove();
-    };
-  }, []);
-};
-
 // Function to update user in DB
 const setUserIntoDB = async (location: LocationType) => {
   const hash = geohashForLocation([location.latitude, location.longitude]);
@@ -146,9 +99,6 @@ export const UserProvider = ({ children }: Props) => {
     return unsubscribe;
   }, []);
 
-  // BackgroundGeolocation setup
-  useBackgroundGeolocation(setLocation);
-
   // Fetch location when app state changes
   useEffect(() => {
     if (AppState.currentState === 'active') {
@@ -165,6 +115,49 @@ export const UserProvider = ({ children }: Props) => {
       console.error(e);
     }
   };
+
+  // Hook for BackgroundGeolocation setup
+  useEffect(() => {
+    const onLocation = BackgroundGeolocation.onLocation(async location => {
+      const currentLocation: LocationType = {
+        latitude: location.coords?.latitude,
+        longitude: location.coords?.longitude,
+      };
+      if (location.coords.speed && location.coords.speed <= 4) {
+        setLocation(currentLocation);
+        await setUserIntoDB(currentLocation);
+      }
+    });
+
+    const onMotionChange = BackgroundGeolocation.onMotionChange(async event => {
+      const { latitude, longitude } = event.location.coords;
+      const currentLocation: LocationType = { latitude, longitude };
+
+      if (!event.isMoving) {
+        setLocation(currentLocation);
+        await setUserIntoDB(currentLocation);
+      }
+    });
+
+    BackgroundGeolocation.ready({
+      desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_NAVIGATION,
+      distanceFilter: 25,
+      stopTimeout: 3,
+      debug: false,
+      logLevel: BackgroundGeolocation.LOG_LEVEL_OFF,
+      stopOnTerminate: false,
+      startOnBoot: true,
+      showsBackgroundLocationIndicator: false,
+    }).then(state => {
+      BackgroundGeolocation.start();
+      console.log('- BackgroundGeolocation configured:', state.enabled);
+    });
+
+    return () => {
+      onLocation.remove();
+      onMotionChange.remove();
+    };
+  }, []);
 
   const ctx = useMemo(
     () => ({

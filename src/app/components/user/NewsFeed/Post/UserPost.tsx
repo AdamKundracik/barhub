@@ -48,7 +48,7 @@ export const UserPost = (props: PostInterface) => {
   const scale = useSharedValue(1);
 
   const [liked, setLiked] = useState(post.isLiked);
-  const [likeCount, setLikeCount] = useState(post.likesCount); // Example initial like count
+  const [likeCount, setLikeCount] = useState<number>(post.likesCount ?? 0); // Example initial like count
   const [previousLikeState, setPreviousLikeState] = useState(!post.isLiked);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -145,7 +145,6 @@ export const UserPost = (props: PostInterface) => {
       }
     })
     .onEnd(() => {
-      // Animate values back to original states
       scale.value = withTiming(1);
       xCurrent.value = withTiming(0);
       yCurrent.value = withTiming(0);

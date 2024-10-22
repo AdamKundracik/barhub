@@ -1,17 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '../../components/user/Shared/Layout';
 import { useInfiniteQuery } from 'react-query';
-import {
-  NavigationProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { UserStackList } from '../../utils/types/screen-types';
 import { useUserContext } from '../../providers/UserProvider';
 import { handleFreshContent } from '../../utils/helper-functions/posts-functions';
 import { getDaysSince } from '../../utils/helper-functions/getDaysSince';
-import { PlaceDetail, PlaceDetailsResponse } from '../../utils/types/types';
+import { PlaceDetail } from '../../utils/types/types';
 import NotificationHandler from '../../components/user/NewsFeed/NotificationHandler';
 import LoadingIndicator from '../../components/user/NewsFeed/LoadingIndicator';
 import PostsList from '../../components/user/NewsFeed/PostList';
@@ -22,14 +18,7 @@ import FeedHeader from '../../components/user/NewsFeed/FeedHeader';
 import CommentsSlider from '../../components/user/NewsFeed/Post/CommentsSlider';
 import { usePlaceStore } from '../../utils/store/placesStore';
 import EmptyState from '../../components/user/NewsFeed/EmptyState';
-import { usePostsStore } from '../../utils/store/postStore';
-import {
-  ActivityIndicator,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-} from 'react-native';
-import { formStyles } from '../../utils/styles/styles';
+import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 
 export const NewsFeed = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
@@ -41,7 +30,6 @@ export const NewsFeed = () => {
   const { t } = useTranslation();
 
   const { placeId, placeName, placeDetail, setPlaceDetail } = usePlaceStore();
-  // Set up state for days since the last uploaded post
   const [
     numberOfDaysSinceLastPostedPhoto,
     setNumberOfDaysSinceLastPostedPhoto,
@@ -67,23 +55,20 @@ export const NewsFeed = () => {
     ({ pageParam = null }) => handleFreshContent(pageParam, placeId), // Handle fresh content when place is not set
     {
       getNextPageParam: lastPage => lastPage?.lastVisible || null, // Fetch more posts based on lastVisible (cursor)
-      staleTime: Infinity, // Keep data fresh for 10 minutes
     }
   );
 
   useEffect(() => {
-    if (placeId) refetch(); // Manually trigger refetch when placeId changes
+    if (placeId) refetch();
   }, [placeId]);
 
-  // Manual refresh function
   const onRefresh = async () => {
     await refetch();
   };
 
-  // Function to fetch more posts for pagination
   const fetchMorePosts = async () => {
     if (hasNextPage) {
-      await fetchNextPage(); // Load more posts when at the bottom of the list
+      await fetchNextPage();
     }
   };
 
@@ -97,9 +82,14 @@ export const NewsFeed = () => {
         longitude: detail?.geometry.location?.lng,
       });
 
-      tokens?.forEach(token => {
-        sendPushNotification(token, placeId, placeName, senderToken ?? '');
-      });
+      // tokens?.forEach(token => {
+      sendPushNotification(
+        'ExponentPushToken[vVQF0SCUsZZ6gDZEhuAawd]',
+        placeId,
+        placeName,
+        senderToken ?? ''
+      );
+      // });
     }
   }
 
