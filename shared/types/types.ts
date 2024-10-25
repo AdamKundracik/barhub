@@ -37,7 +37,7 @@ export type Post = {
   userImageUrl: string | null;
   creationTime: string;
   timestamp: number;
-  user_id: string;
+  userId: string;
   fileId: string;
   folderId: string;
   name: string;

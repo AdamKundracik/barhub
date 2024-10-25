@@ -54,7 +54,7 @@ const PostsList = ({
     >
       <UserPost
         requestPhoto={requestPhoto}
-        user={users?.find(user => user.uid === item.user_id)}
+        user={users?.find(user => user.uid === item.userId)}
         onCommentPress={postId => onCommentPress(postId)}
         isFiltering={isFiltering}
         hasPremium={

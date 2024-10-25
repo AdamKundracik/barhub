@@ -53,11 +53,10 @@ export const PostSummary = ({ route }: any) => {
   const { t } = useTranslation();
   const routeParams = route.params as SummaryProps; // Define route params
   const navigation = useNavigation<NavigationProp<UserStackList>>();
-  const { placeId } = usePlaceStore();
 
   const [selectedOccupancy, setSelectedOccupancy] = useState(
     occupacyOptions.FULL
-  ); // Default value using enum
+  );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Dropdown toggle state
   const [image, setImage] = useState<string | null>(null);
   const [place, setPlace] = useState<Place | null>(null);
@@ -84,7 +83,6 @@ export const PostSummary = ({ route }: any) => {
     setIsDropdownOpen(false);
   };
 
-  // Function to handle outside clicks
   const handleOutsideClick = () => {
     if (isDropdownOpen) {
       setIsDropdownOpen(false); // Close dropdown
@@ -144,14 +142,16 @@ export const PostSummary = ({ route }: any) => {
 
   const handleSavePost = async () => {
     setIsSaving(true);
+
     if (image) {
       const url = await uploadImageAsync(image);
+
       if (url) {
         const fileId = `${auth.currentUser?.uid}/${new Date().getTime()}`;
 
         const newPost: Post = {
           id: '',
-          user_id: auth.currentUser?.uid!,
+          userId: auth.currentUser?.uid!,
           name: auth.currentUser?.displayName ?? '',
           userImageUrl: auth.currentUser?.photoURL ?? null,
           fileId: fileId.split('/')[1] ?? '',

@@ -147,7 +147,7 @@ const CommentsSlider = (props: Props) => {
         opacity={0.7}
         disappearsOnIndex={-1}
         appearsOnIndex={0}
-      ></BottomSheetBackdrop>
+      />
     ),
     []
   );

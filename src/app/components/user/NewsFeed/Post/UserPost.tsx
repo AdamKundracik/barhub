@@ -48,7 +48,7 @@ export const UserPost = (props: PostInterface) => {
   const scale = useSharedValue(1);
 
   const [liked, setLiked] = useState(post.isLiked);
-  const [likeCount, setLikeCount] = useState<number>(post.likesCount ?? 0); // Example initial like count
+  const [likeCount, setLikeCount] = useState<number>(post.likesCount ?? 0);
   const [previousLikeState, setPreviousLikeState] = useState(!post.isLiked);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -56,7 +56,7 @@ export const UserPost = (props: PostInterface) => {
 
   const optimisticUpdate = (liked: boolean) => {
     queryClient.setQueryData(
-      placeId ? ['posts', placeId] : 'posts', // Use the appropriate query key
+      placeId ? ['posts', placeId] : 'posts', // appropriate query key
       (oldData: any) => {
         if (!oldData) return oldData;
 
@@ -64,15 +64,14 @@ export const UserPost = (props: PostInterface) => {
           ...oldData,
           pages: oldData.pages.map((page: any) => ({
             ...page,
-            posts: page.posts.map(
-              (p: Post) =>
-                p.id === post.id
-                  ? {
-                      ...p, // Only update the specific post that changed
-                      isLiked: !liked,
-                      likesCount: liked ? p.likesCount - 1 : p.likesCount + 1,
-                    }
-                  : p // Return unchanged posts
+            posts: page.posts.map((p: Post) =>
+              p.id === post.id
+                ? {
+                    ...p, // Only update the specific post that changed
+                    isLiked: !liked,
+                    likesCount: liked ? p.likesCount - 1 : p.likesCount + 1,
+                  }
+                : p
             ),
           })),
         };
@@ -107,7 +106,6 @@ export const UserPost = (props: PostInterface) => {
       } catch (error) {
         console.error('Error updating like status:', error);
 
-        // Revert optimistic update if the API call fails
         setLiked(previousLikeState);
         setLikeCount(prevCount =>
           previousLikeState ? prevCount + 1 : prevCount - 1
