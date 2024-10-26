@@ -19,6 +19,7 @@ import { daysPassedSince } from '../../../../utils/helper-functions/daysPassedSi
 import FastImage from 'react-native-fast-image';
 import { useQueryClient } from 'react-query';
 import { usePlaceStore } from '../../../../utils/store/placesStore';
+import { trimPlaceName } from '../../../../utils/helper-functions/trimPlaceName';
 
 interface PostInterface {
   post: Post;
@@ -47,7 +48,7 @@ export const UserPost = (props: PostInterface) => {
   const scale = useSharedValue(1);
 
   const [liked, setLiked] = useState(post.isLiked);
-  const [likeCount, setLikeCount] = useState(post.likesCount); // Example initial like count
+  const [likeCount, setLikeCount] = useState<number>(post.likesCount ?? 0);
   const [previousLikeState, setPreviousLikeState] = useState(!post.isLiked);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -55,7 +56,7 @@ export const UserPost = (props: PostInterface) => {
 
   const optimisticUpdate = (liked: boolean) => {
     queryClient.setQueryData(
-      placeId ? ['posts', placeId] : 'posts', // Use the appropriate query key
+      placeId ? ['posts', placeId] : 'posts', // appropriate query key
       (oldData: any) => {
         if (!oldData) return oldData;
 
@@ -63,15 +64,14 @@ export const UserPost = (props: PostInterface) => {
           ...oldData,
           pages: oldData.pages.map((page: any) => ({
             ...page,
-            posts: page.posts.map(
-              (p: Post) =>
-                p.id === post.id
-                  ? {
-                      ...p, // Only update the specific post that changed
-                      isLiked: !liked,
-                      likesCount: liked ? p.likesCount - 1 : p.likesCount + 1,
-                    }
-                  : p // Return unchanged posts
+            posts: page.posts.map((p: Post) =>
+              p.id === post.id
+                ? {
+                    ...p, // Only update the specific post that changed
+                    isLiked: !liked,
+                    likesCount: liked ? p.likesCount - 1 : p.likesCount + 1,
+                  }
+                : p
             ),
           })),
         };
@@ -106,7 +106,6 @@ export const UserPost = (props: PostInterface) => {
       } catch (error) {
         console.error('Error updating like status:', error);
 
-        // Revert optimistic update if the API call fails
         setLiked(previousLikeState);
         setLikeCount(prevCount =>
           previousLikeState ? prevCount + 1 : prevCount - 1
@@ -144,7 +143,6 @@ export const UserPost = (props: PostInterface) => {
       }
     })
     .onEnd(() => {
-      // Animate values back to original states
       scale.value = withTiming(1);
       xCurrent.value = withTiming(0);
       yCurrent.value = withTiming(0);
@@ -167,7 +165,7 @@ export const UserPost = (props: PostInterface) => {
       {!props.isFiltering && (
         <View style={isTablet ? tabletStyles.placeName : styles.placeName}>
           <PlaceNameSeparator
-            placeNameLocal={post.placeName}
+            placeNameLocal={trimPlaceName(post.placeName)}
             placeIdLocal={post.folderId}
           />
         </View>

@@ -23,11 +23,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
-import { useUploadingStateManagement } from '../../../utils/hooks/useUploadingStateManagement';
 import { uploadImageAsync } from '../../../utils/helper-functions/helperFunctions';
-import { setUser } from '../../../utils/services/functions';
+import { savePost, setUser } from '../../../utils/services/functions';
 import LoadingIndicator from '../../../components/user/NewsFeed/LoadingIndicator';
-import { sendPushNotificationResponse } from '../../../utils/services/notofications-handler';
+import { useMutation, useQueryClient } from 'react-query';
+import { Post } from '../../../../../shared';
+import { usePlaceStore } from '../../../utils/store/placesStore';
+import { auth } from '../../../../../firebaseConfig';
 
 type SummaryProps = {
   image: string;
@@ -35,17 +37,26 @@ type SummaryProps = {
   senderToken?: string;
 };
 
+interface OldPostsData {
+  pageParams: unknown[];
+  pages: {
+    lastVisible: string;
+    posts: Post[];
+  }[];
+}
+
 const isTablet = Device.isTablet();
 const width = Dimensions.get('window').width;
 
 export const PostSummary = ({ route }: any) => {
+  const queryClient = useQueryClient();
   const { t } = useTranslation();
   const routeParams = route.params as SummaryProps; // Define route params
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 
   const [selectedOccupancy, setSelectedOccupancy] = useState(
     occupacyOptions.FULL
-  ); // Default value using enum
+  );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Dropdown toggle state
   const [image, setImage] = useState<string | null>(null);
   const [place, setPlace] = useState<Place | null>(null);
@@ -67,46 +78,100 @@ export const PostSummary = ({ route }: any) => {
     [occupacyOptions.EMPTY]: t('empty'),
   };
 
-  const options = Object.values(occupancyLabels); // Dropdown options
-
   const handleSelect = (option: occupacyOptions) => {
-    setSelectedOccupancy(option); // Set selected option
-    setIsDropdownOpen(false); // Close dropdown after selection
+    setSelectedOccupancy(option);
+    setIsDropdownOpen(false);
   };
 
-  // Function to handle outside clicks
   const handleOutsideClick = () => {
     if (isDropdownOpen) {
       setIsDropdownOpen(false); // Close dropdown
     }
   };
 
-  const { setUploadingState } = useUploadingStateManagement();
+  const { mutate } = useMutation({
+    mutationFn: save,
+    onMutate: async (newPost: Post) => {
+      await queryClient.cancelQueries({ queryKey: 'posts' });
 
-  async function savePost() {
-    try {
-      if (image && place?.id) {
-        setIsSaving(true);
-        setUploadingState.mutate(true);
-        uploadImageAsync(
-          image,
-          setUploadingState,
-          place?.id,
-          place.displayName.text,
-          place.formattedAddress,
-          selectedOccupancy
-        ).then(() => {
-          if (senderToken) {
-            sendPushNotificationResponse(senderToken, place?.id);
+      const previousPosts = queryClient.getQueryData<{
+        pageParams: unknown[];
+        pages: { lastVisible: string; posts: Post[] }[];
+      }>('posts');
+
+      const tempId = Date.now().toString();
+      const newPostWithTempId: Post = {
+        ...newPost,
+        id: tempId,
+        commentsCount: 0,
+        likesCount: 0,
+      };
+
+      queryClient.setQueryData('posts', (oldData: any) => {
+        const updatedPages = oldData?.pages.map((page: any, index: number) => {
+          if (index === 0) {
+            return {
+              ...page,
+              posts: [newPostWithTempId, ...page.posts],
+            };
           }
-          navigation.navigate('Feed');
+          return page;
         });
-        setUser({ lastUploadedPost: new Date().toISOString() });
+
+        return {
+          ...oldData,
+          pages: updatedPages,
+        };
+      });
+
+      return { previousPosts };
+    },
+    onError: (err, newPost, context) => {
+      if (context?.previousPosts) {
+        queryClient.setQueryData('posts', context.previousPosts);
       }
-    } catch (errors) {
-      console.error(errors);
+    },
+  });
+
+  async function save() {
+    if (!image || !place?.id) {
+      console.error('Image or place ID is missing');
+      return null;
     }
   }
+
+  const handleSavePost = async () => {
+    setIsSaving(true);
+
+    if (image) {
+      const url = await uploadImageAsync(image);
+
+      if (url) {
+        const fileId = `${auth.currentUser?.uid}/${new Date().getTime()}`;
+
+        const newPost: Post = {
+          id: '',
+          userId: auth.currentUser?.uid!,
+          name: auth.currentUser?.displayName ?? '',
+          userImageUrl: auth.currentUser?.photoURL ?? null,
+          fileId: fileId.split('/')[1] ?? '',
+          occupancy: selectedOccupancy ?? '',
+          folderId: place?.id ?? '',
+          creationTime: new Date().toISOString(),
+          timestamp: Date.now(),
+          placeName: place?.displayName.text ?? '',
+          placeAddress: place?.formattedAddress ?? '',
+          photoUrl: url,
+        };
+        await savePost(newPost);
+
+        mutate(newPost);
+        navigation.navigate('Feed');
+        await setUser({ lastUploadedPost: new Date().toISOString() });
+        setIsSaving(false);
+      }
+    }
+  };
 
   return (
     <Layout pageTitle={'Summary'} showBottomTabs={false}>
@@ -208,7 +273,7 @@ export const PostSummary = ({ route }: any) => {
 
               <TouchableOpacity
                 style={formStyles.buttonPrimary}
-                onPress={savePost}
+                onPress={handleSavePost}
                 disabled={isSaving}
               >
                 {isSaving ? (

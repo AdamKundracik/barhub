@@ -9,8 +9,6 @@ import Button from '../../../shared/Button';
 import { openCamera } from '../../../../utils/helper-functions/openCamera';
 import { auth } from '../../../../../../firebaseConfig';
 import { BlurView } from 'expo-blur';
-import { useUserContext } from '../../../../providers/UserProvider';
-import { useUploadingStateManagement } from '../../../../utils/hooks/useUploadingStateManagement';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../../utils/types/screen-types';
 import { useTranslation } from 'react-i18next';
@@ -18,8 +16,6 @@ import { useTranslation } from 'react-i18next';
 const width = Dimensions.get('window').width;
 
 export const BluredPostFrontView = () => {
-  const { userData } = useUserContext();
-  const { setUploadingState } = useUploadingStateManagement();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
 
@@ -42,13 +38,7 @@ export const BluredPostFrontView = () => {
             color={warningColor}
             text={t('take-photo')}
             clickFuntion={async () => {
-              await openCamera(
-                userData!,
-                setUploadingState,
-                null,
-                auth.currentUser?.uid,
-                navigation
-              );
+              await openCamera(null, auth.currentUser?.uid, navigation);
             }}
           />
         </View>

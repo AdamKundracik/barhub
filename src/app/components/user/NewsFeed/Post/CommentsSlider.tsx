@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -25,8 +25,12 @@ import Svg, { Path } from 'react-native-svg';
 import useOptimistic from '../../../../utils/helper-functions/useOptimistic';
 import { useTranslation } from 'react-i18next';
 import BottomSheet, {
+  BottomSheetBackdrop,
+  BottomSheetBackdropProps,
+  BottomSheetFlatList,
   BottomSheetModal,
   BottomSheetTextInput,
+  BottomSheetView,
 } from '@gorhom/bottom-sheet';
 
 type Props = {
@@ -136,16 +140,28 @@ const CommentsSlider = (props: Props) => {
     setAllComments(comments);
   }, [comments]);
 
+  const renderBackdrop = useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...props}
+        opacity={0.7}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+      />
+    ),
+    []
+  );
+
   return (
     <>
-      {commentsOpened && <BlurView style={StyleSheet.absoluteFillObject} />}
       <BottomSheet
         backgroundStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
         onClose={handleCloseComments}
         ref={bottomSheetRef}
         snapPoints={['70%']}
         index={-1}
-        handleHeight={50}
+        backdropComponent={renderBackdrop}
+        handleHeight={60}
         enablePanDownToClose
         keyboardBehavior="interactive" // Added for handling keyboard
       >
@@ -153,7 +169,7 @@ const CommentsSlider = (props: Props) => {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={{ flex: 1, justifyContent: 'space-between' }}
         >
-          <View style={styles.header}>
+          <BottomSheetView style={styles.header}>
             <Text style={[styles.headerText, { color: primaryColor }]}>
               {allComments.length}
             </Text>
@@ -161,14 +177,14 @@ const CommentsSlider = (props: Props) => {
             <TouchableOpacity onPress={handleCloseComments}>
               <FontAwesomeIcon icon={Icons.Remove} size={28} color="#fff" />
             </TouchableOpacity>
-          </View>
+          </BottomSheetView>
 
           {areCommentsLoading ? (
             <ActivityIndicator />
           ) : (
             <>
               {allComments.length ? (
-                <FlatList
+                <BottomSheetFlatList
                   data={
                     [
                       ...(allComments || []),
@@ -176,8 +192,8 @@ const CommentsSlider = (props: Props) => {
                     ] as CommentProps[]
                   }
                   renderItem={({ item }) => (
-                    <View style={styles.commentItem}>
-                      <View
+                    <BottomSheetView style={styles.commentItem}>
+                      <BottomSheetView
                         style={{
                           flexDirection: 'row',
                           flex: 1,
@@ -196,7 +212,7 @@ const CommentsSlider = (props: Props) => {
                             }}
                           />
                         ) : (
-                          <View style={styles.image}>
+                          <BottomSheetView style={styles.image}>
                             <Svg
                               width="32"
                               height="32"
@@ -212,10 +228,10 @@ const CommentsSlider = (props: Props) => {
                                 fill={'white'}
                               />
                             </Svg>
-                          </View>
+                          </BottomSheetView>
                         )}
 
-                        <View style={styles.commentContent}>
+                        <BottomSheetView style={styles.commentContent}>
                           <Text style={styles.commentBy}>
                             {props.users?.find(
                               user => user.uid === item?.userId
@@ -224,10 +240,10 @@ const CommentsSlider = (props: Props) => {
                           <Text style={styles.commentText}>
                             {item?.commentText}
                           </Text>
-                        </View>
-                      </View>
+                        </BottomSheetView>
+                      </BottomSheetView>
 
-                      <View
+                      <BottomSheetView
                         style={{
                           alignItems: 'flex-end',
                           justifyContent: 'center',
@@ -257,13 +273,13 @@ const CommentsSlider = (props: Props) => {
                             />
                           </TouchableOpacity>
                         )}
-                      </View>
-                    </View>
+                      </BottomSheetView>
+                    </BottomSheetView>
                   )}
                   keyExtractor={(item, index) => item?.id || index.toString()}
                 />
               ) : (
-                <View
+                <BottomSheetView
                   style={{
                     width: '100%',
                     flexDirection: 'row',
@@ -271,7 +287,7 @@ const CommentsSlider = (props: Props) => {
                     justifyContent: 'center',
                   }}
                 >
-                  <View
+                  <BottomSheetView
                     style={{ alignItems: 'center', justifyContent: 'center' }}
                   >
                     <Text
@@ -283,13 +299,13 @@ const CommentsSlider = (props: Props) => {
                     >
                       {t('no-comments')}
                     </Text>
-                  </View>
-                </View>
+                  </BottomSheetView>
+                </BottomSheetView>
               )}
             </>
           )}
 
-          <View
+          <BottomSheetView
             style={{
               flexDirection: 'row',
               padding: 15,
@@ -318,7 +334,7 @@ const CommentsSlider = (props: Props) => {
             >
               <FontAwesomeIcon icon={Icons.Right} size={16} color={'white'} />
             </TouchableOpacity>
-          </View>
+          </BottomSheetView>
         </KeyboardAvoidingView>
       </BottomSheet>
     </>
