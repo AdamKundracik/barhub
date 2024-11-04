@@ -1,28 +1,24 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
-  FlatList,
   Image,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../../../utils/icons/icons';
-import { primaryColor } from '../../../../utils/styles/colors';
+import { Icons } from '../../../../../utils/icons/icons';
+import { primaryColor } from '../../../../../utils/styles/colors';
 import {
   addCommentToPost,
   fetchCommentsForPost,
-} from '../../../../utils/services/functions';
-import { CommentProps, User } from '../../../../../../shared';
-import { auth } from '../../../../../../firebaseConfig';
-import { getTimeAgoFromTimestampSeconds } from '../../../../utils/helper-functions/timeAgo';
+} from '../../../../../utils/services/functions';
+import { CommentProps, User } from '../../../../../../../shared';
+import { auth } from '../../../../../../../firebaseConfig';
+import { getTimeAgoFromTimestampSeconds } from '../../../../../utils/helper-functions/timeAgo';
 import Svg, { Path } from 'react-native-svg';
-import useOptimistic from '../../../../utils/helper-functions/useOptimistic';
+import useOptimistic from '../../../../../utils/helper-functions/useOptimistic';
 import { useTranslation } from 'react-i18next';
 import BottomSheet, {
   BottomSheetBackdrop,
@@ -32,6 +28,7 @@ import BottomSheet, {
   BottomSheetTextInput,
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
+import CommentsLoaderView from '../Loaders/CommentsLoaderView';
 
 type Props = {
   postId: string | null;
@@ -180,7 +177,7 @@ const CommentsSlider = (props: Props) => {
           </BottomSheetView>
 
           {areCommentsLoading ? (
-            <ActivityIndicator />
+            <CommentsLoaderView />
           ) : (
             <>
               {allComments.length ? (

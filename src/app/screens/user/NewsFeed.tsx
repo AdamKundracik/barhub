@@ -15,10 +15,11 @@ import { fetchPlaceDetails } from '../../utils/helper-functions/fetchPlaceDetail
 import { sendNotificationHandler } from '../../utils/helper-functions/sendNotificationHandler';
 import { sendPushNotification } from '../../utils/services/notofications-handler';
 import FeedHeader from '../../components/user/NewsFeed/FeedHeader';
-import CommentsSlider from '../../components/user/NewsFeed/Post/CommentsSlider';
+import CommentsSlider from '../../components/user/NewsFeed/Post/Comments/CommentsSlider';
 import { usePlaceStore } from '../../utils/store/placesStore';
 import EmptyState from '../../components/user/NewsFeed/EmptyState';
 import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
+import PostLoaderView from '../../components/user/NewsFeed/Post/Loaders/PostLoaderView';
 
 export const NewsFeed = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
@@ -29,7 +30,7 @@ export const NewsFeed = () => {
   const { users } = useUserContext();
   const { t } = useTranslation();
 
-  const { placeId, placeName, placeDetail, setPlaceDetail } = usePlaceStore();
+  const { placeId, placeName, setPlaceDetail } = usePlaceStore();
   const [
     numberOfDaysSinceLastPostedPhoto,
     setNumberOfDaysSinceLastPostedPhoto,
@@ -99,7 +100,7 @@ export const NewsFeed = () => {
       <NotificationHandler navigation={navigation} userData={userData} />
 
       {isLoading ? (
-        <LoadingIndicator />
+        <PostLoaderView />
       ) : postsData?.pages.flatMap(page => page.posts).length ? (
         <PostsList
           hasMorePosts={hasNextPage}
