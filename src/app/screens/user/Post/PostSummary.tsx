@@ -85,7 +85,7 @@ export const PostSummary = ({ route }: any) => {
 
   const handleOutsideClick = () => {
     if (isDropdownOpen) {
-      setIsDropdownOpen(false); // Close dropdown
+      setIsDropdownOpen(false);
     }
   };
 

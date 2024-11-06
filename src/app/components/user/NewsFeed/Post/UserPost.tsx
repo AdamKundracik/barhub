@@ -56,7 +56,7 @@ export const UserPost = (props: PostInterface) => {
 
   const optimisticUpdate = (liked: boolean) => {
     queryClient.setQueryData(
-      placeId ? ['posts', placeId] : 'posts', // appropriate query key
+      placeId ? ['posts', placeId] : 'posts',
       (oldData: any) => {
         if (!oldData) return oldData;
 
@@ -81,10 +81,10 @@ export const UserPost = (props: PostInterface) => {
 
   const handleLikeToggle = async (postId: string) => {
     if (liked) {
-      setLiked(false); // Optimistically unlike
+      setLiked(false);
       setLikeCount(prevCount => prevCount - 1);
     } else {
-      setLiked(true); // Optimistically like
+      setLiked(true);
       setLikeCount(prevCount => prevCount + 1);
     }
 
@@ -94,18 +94,13 @@ export const UserPost = (props: PostInterface) => {
 
     debounceTimeout.current = setTimeout(async () => {
       try {
-        // Check if the like state has actually changed before making the API call
         if (liked !== previousLikeState) {
           await toggleLike(postId, auth.currentUser?.uid!);
-
-          // Update previousLikeState to the new committed state after the API call
           setPreviousLikeState(prevState => !prevState);
-
           optimisticUpdate(liked);
         }
       } catch (error) {
         console.error('Error updating like status:', error);
-
         setLiked(previousLikeState);
         setLikeCount(prevCount =>
           previousLikeState ? prevCount + 1 : prevCount - 1

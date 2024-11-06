@@ -44,7 +44,7 @@ const useFetchUserData = () => {
   const uid = auth.currentUser?.uid;
 
   return useQuery(
-    ['userData', uid],
+    'userData',
     async () => {
       const user = await getCurrentUser();
       return user;

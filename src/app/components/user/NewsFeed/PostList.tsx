@@ -74,12 +74,12 @@ const PostsList = ({
       renderItem={renderPostItem}
       keyExtractor={item => item.id}
       contentContainerStyle={styles.scrollView}
-      ListFooterComponent={isFetchingNextPage ? <LoadingIndicator /> : null} // Show loading indicator when fetching more
+      ListFooterComponent={isFetchingNextPage ? <LoadingIndicator /> : null}
       refreshControl={
         <RefreshControl refreshing={loading} onRefresh={onRefresh} />
       }
       onEndReached={hasMorePosts ? fetchMorePosts : null}
-      onEndReachedThreshold={0.5} // Trigger when the user scrolls close to the end
+      onEndReachedThreshold={0.5}
       ListHeaderComponent={
         <>
           {loading && <LoadingIndicator />}

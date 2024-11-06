@@ -1,36 +1,41 @@
-import { MotiView } from 'moti';
+import { MotiScrollView, MotiView } from 'moti';
 import { Skeleton } from 'moti/skeleton';
 import { Dimensions, StyleSheet } from 'react-native';
 import { postBgColor } from '../../../../../utils/styles/colors';
 
 const Spacer = ({ height = 16 }) => <MotiView style={{ height }} />;
+const TextSpacer = ({ height = 8 }) => <MotiView style={{ height }} />;
+
 const { width } = Dimensions.get('window');
 
 export const PostLoaderView = () => {
   return (
-    <MotiView
-      transition={{
-        type: 'timing',
-      }}
-      style={[styles.container]}
-      animate={{ backgroundColor: postBgColor }}
-    >
-      {/* User Line Skeleton */}
-      <MotiView style={styles.userLineContainer}>
-        <Skeleton height={50} width={50} radius={25} />
-        <MotiView style={styles.userInfo}>
-          <Skeleton width={150} height={15} radius={4} />
-          <Spacer />
-          <Skeleton width={100} height={15} radius={4} />
-          <Spacer />
-          <Skeleton width={200} height={15} radius={4} />
-        </MotiView>
-      </MotiView>
+    <MotiScrollView>
+      {Array.from({ length: 4 }).map((_, index) => (
+        <MotiView
+          key={index}
+          transition={{
+            type: 'timing',
+          }}
+          style={[styles.container]}
+          animate={{ backgroundColor: postBgColor }}
+        >
+          <MotiView style={styles.userLineContainer}>
+            <Skeleton height={50} width={50} radius={25} />
+            <MotiView style={styles.userInfo}>
+              <Skeleton width={150} height={15} radius={4} />
+              <TextSpacer />
+              <Skeleton width={100} height={15} radius={4} />
+              <TextSpacer />
+              <Skeleton width={200} height={15} radius={4} />
+            </MotiView>
+          </MotiView>
 
-      {/* Blurred Post Front View Skeleton */}
-      <Skeleton width="100%" height={width} radius={8} />
-      <Spacer />
-    </MotiView>
+          <Skeleton width="100%" height={width} radius={8} />
+          <Spacer />
+        </MotiView>
+      ))}
+    </MotiScrollView>
   );
 };
 

@@ -115,7 +115,7 @@ export const NewsFeed = () => {
           onRefresh={onRefresh}
           loading={isRefetching}
           isFetchingNextPage={isFetchingNextPage}
-          fetchMorePosts={fetchMorePosts} // Pagination function passed here
+          fetchMorePosts={fetchMorePosts}
         />
       ) : (
         <>
@@ -143,8 +143,8 @@ export const NewsFeed = () => {
 const styles = StyleSheet.create({
   scrollViewContent: {
     flexGrow: 1,
-    justifyContent: 'center', // Center content vertically in ScrollView
-    alignItems: 'center', // Center content horizontally
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
