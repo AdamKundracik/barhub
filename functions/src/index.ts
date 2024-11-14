@@ -1,10 +1,8 @@
 import { CallableContext } from 'firebase-functions/lib/common/providers/https';
 import { InfinityScrollPost, Post, User } from '../../shared';
-import * as geofire from 'geofire-common';
-import { distanceBetween, geohashQueryBounds } from 'geofire-common';
-import { snapshots } from 'react-native-reanimated/lib/typescript/reanimated2/layoutReanimation/web/componentStyle';
 import { firestore } from 'firebase-admin';
-import GeoPoint = firestore.GeoPoint;
+import CommentService from './services/CommentService';
+import { PostComment } from '../../common/types/commentTypes';
 
 const admin = require('firebase-admin');
 
@@ -13,6 +11,8 @@ admin.initializeApp();
 const db = admin.firestore();
 const functions = require('firebase-functions');
 const bucket = admin.storage().bucket();
+
+const commentService = new CommentService();
 
 // TODO: FINISH FUNCTION
 export const createUser = functions.auth.user().onCreate(user => {
@@ -177,6 +177,11 @@ export const testLog = functions.https.onCall(
       return { users };
     } catch (error) {
       console.error('Error getting users collection: ', error);
+
+      throw new functions.https.HttpsError(
+        'internal',
+        'Unknown error occurred.'
+      );
     }
   }
 );
@@ -457,59 +462,16 @@ exports.deleteOldPostsAndImages = functions.pubsub
   });
 
 exports.addComment = functions.https.onCall(async (data, context) => {
-  const { postId, userId, userName, userPhotoUrl, commentText } = data;
-
-  if (!postId || !userId || !userName || !userPhotoUrl || !commentText) {
-    throw new functions.https.HttpsError(
-      'invalid-argument',
-      'Missing postId, userId, userName, userPhotoUrl, or commentText'
-    );
-  }
-
-  try {
-    const comment = {
-      userId,
-      userName,
-      userPhotoUrl,
-      commentText,
-      creationTime: admin.firestore.FieldValue.serverTimestamp(),
-    };
-
-    await db
-      .collection('posts')
-      .doc(postId)
-      .collection('comments')
-      .add(comment);
-  } catch (error) {
-    console.error('Error adding comment: ', error);
-  }
+  const { postId, userId, commentText } = data;
+  return await commentService.addComment(postId, userId, commentText);
 });
 
-exports.getComments = functions.https.onCall(async (data, context) => {
-  const { postId } = data;
-
-  if (!postId) {
-    throw new functions.https.HttpsError('invalid-argument', 'Missing postId');
+exports.getPostComments = functions.https.onCall(
+  async (data, context): Promise<{ comments: PostComment[] }> => {
+    const { postId } = data;
+    return await commentService.getPostComments(postId);
   }
-
-  try {
-    const commentsSnapshot = await db
-      .collection('posts')
-      .doc(postId)
-      .collection('comments')
-      .orderBy('creationTime', 'asc')
-      .get();
-
-    const comments = commentsSnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-
-    return { comments };
-  } catch (error) {
-    console.error('Error fetching comments: ', error);
-  }
-});
+);
 
 async function deleteSubcollection(postRef, subcollectionName) {
   const subcollectionSnapshot = await postRef

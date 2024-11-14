@@ -145,7 +145,6 @@ export const NewsFeed = () => {
         </>
       )}
       <CommentsSlider
-        users={users}
         postId={postId}
         opened={showComments}
         onClose={() => setShowComments(false)}

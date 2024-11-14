@@ -59,12 +59,3 @@ export type InfinityScrollPost = {
 export interface PostUrlExtended extends Post {
   url: string;
 }
-
-export type CommentProps = {
-  userName: string;
-  commentText: string;
-  creationTime: any;
-  id: string;
-  userId: string;
-  userPhotoUrl: string;
-};

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -14,11 +14,6 @@ import { BlurView } from 'expo-blur';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../../utils/icons/icons';
 import { primaryColor } from '../../../../utils/styles/colors';
-import {
-  addCommentToPost,
-  fetchCommentsForPost,
-} from '../../../../utils/services/functions';
-import { CommentProps, User } from '../../../../../../shared';
 import { auth } from '../../../../../../firebaseConfig';
 import { getTimeAgoFromTimestampSeconds } from '../../../../utils/helper-functions/timeAgo';
 import Svg, { Path } from 'react-native-svg';
@@ -28,11 +23,12 @@ import BottomSheet, {
   BottomSheetModal,
   BottomSheetTextInput,
 } from '@gorhom/bottom-sheet';
+import { PostComment } from '../../../../../../common/types/commentTypes';
+import commentService from '../../../../utils/services/comment.service';
 
 type Props = {
   postId: string | null;
   opened: boolean;
-  users: User[] | undefined;
   onClose: () => void;
 };
 
@@ -43,7 +39,7 @@ const CommentsSlider = (props: Props) => {
   const [newComment, setNewComment] = useState('');
   const [inputHeight, setInputHeight] = useState(40); // Default height for the input field
   const [areCommentsLoading, setAreCommentsLoading] = useState(false);
-  const [allComments, setAllComments] = useState<CommentProps[]>([]);
+  const [allComments, setAllComments] = useState<PostComment[]>([]);
   const [commentsOpened, setCommentsOpened] = useState(props.opened);
 
   useEffect(() => {
@@ -54,17 +50,27 @@ const CommentsSlider = (props: Props) => {
     data: comments,
     pendingData,
     optimisticUpdate,
-  } = useOptimistic<CommentProps[]>(async (newComments: CommentProps[]) => {
+  } = useOptimistic<PostComment[]>(async (newComments: PostComment[]) => {
+    if (!props.postId) return [];
+
+    // Make call to Backend and persist new (last added) comment
     const lastComment = newComments[newComments.length - 1];
-    await addCommentToPost(
-      props.postId ?? '',
+    const addedComment = await commentService.addCommentToPost(
+      props.postId,
       lastComment.userId,
-      lastComment.userName,
-      lastComment.userPhotoUrl,
-      lastComment.commentText
+      lastComment.text
     );
 
-    const updatedComments = await fetchCommentsForPost(props.postId ?? '');
+    // Add user related data to comment that we have locally on FE
+    addedComment.userName = lastComment.userName;
+    addedComment.userPhotoUrl = lastComment.userPhotoUrl;
+
+    // Replace new (last added) comment with new object which contains backend generated ID and creationTime
+    const updatedComments = [...newComments];
+    updatedComments[updatedComments.length - 1] = {
+      ...addedComment,
+    };
+
     return updatedComments;
   }, []);
 
@@ -76,43 +82,52 @@ const CommentsSlider = (props: Props) => {
     }
   }
 
-  const handleAddComment = () => {
+  const handleAddComment = useCallback(async () => {
     if (
-      newComment &&
-      auth.currentUser?.displayName &&
-      auth.currentUser?.photoURL &&
-      props.postId
-    ) {
-      const optimisticComment: CommentProps = {
-        id: Math.random().toString(),
-        userId: auth.currentUser?.uid!,
-        userName: auth.currentUser?.displayName,
-        userPhotoUrl: auth.currentUser?.photoURL,
-        commentText: newComment.trim(),
-        creationTime: { _seconds: Math.floor(Date.now() / 1000) },
-      };
+      !newComment ||
+      !auth?.currentUser ||
+      !auth.currentUser?.uid ||
+      !auth.currentUser?.displayName ||
+      !props.postId
+    )
+      return;
 
-      optimisticUpdate([...comments, optimisticComment]);
+    const optimisticComment: PostComment = {
+      id: '', // Note: Will be generated on backend and replaced upon adding comment
+      userId: auth.currentUser.uid,
+      userName: auth.currentUser.displayName,
+      userPhotoUrl: auth.currentUser?.photoURL ?? '',
+      text: newComment.trim(),
+    };
+
+    try {
+      await optimisticUpdate([...comments, optimisticComment]);
       setNewComment('');
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      // TODO add some notification maybe?
     }
-  };
+  }, [newComment, auth, comments, props.postId, optimisticUpdate]);
 
-  const handleCloseComments = () => {
+  const handleCloseComments = useCallback(() => {
     bottomSheetRef.current?.close();
     setCommentsOpened(false);
     props.onClose();
-  };
+  }, [bottomSheetRef, props]);
 
-  const handleDeleteComment = async (commentId: string) => {
-    try {
-      //PREPARED FOR NEXT USAGE
-      // await deleteCommentFromPost(props.postId ?? '', commentId);
-      // const updatedComments = await fetchCommentsForPost(props.postId ?? '');
-      // optimisticUpdate(updatedComments);
-    } catch (error) {
-      console.error('Error deleting comment:', error);
-    }
-  };
+  const handleDeleteComment = useCallback(
+    async (commentId: string) => {
+      try {
+        //PREPARED FOR NEXT USAGE
+        // await deleteCommentFromPost(props.postId ?? '', commentId);
+        // const updatedComments = await fetchCommentsForPost(props.postId ?? '');
+        // optimisticUpdate(updatedComments);
+      } catch (error) {
+        console.error('Error deleting comment:', error);
+      }
+    },
+    [props.postId]
+  );
 
   useEffect(() => {
     async function getComments() {
@@ -120,8 +135,10 @@ const CommentsSlider = (props: Props) => {
 
       setAreCommentsLoading(true);
       try {
-        const fetchedComments = await fetchCommentsForPost(props.postId);
-        setAllComments(fetchedComments);
+        const fetchedComments = await commentService.getCommentsForPost(
+          props.postId
+        );
+        if (fetchedComments) setAllComments(fetchedComments);
       } catch (e) {
         console.error(e);
       } finally {
@@ -129,7 +146,7 @@ const CommentsSlider = (props: Props) => {
       }
     }
 
-    getComments();
+    getComments().then();
   }, [props.postId]);
 
   useEffect(() => {
@@ -173,7 +190,7 @@ const CommentsSlider = (props: Props) => {
                     [
                       ...(allComments || []),
                       ...(pendingData ? [pendingData] : []),
-                    ] as CommentProps[]
+                    ] as PostComment[]
                   }
                   renderItem={({ item }) => (
                     <View style={styles.commentItem}>
@@ -184,15 +201,11 @@ const CommentsSlider = (props: Props) => {
                           alignItems: 'center',
                         }}
                       >
-                        {props.users?.find(user => user.uid === item?.userId)
-                          ?.photoURL ? (
+                        {item.userPhotoUrl ? (
                           <Image
                             style={styles.profilePicture}
                             source={{
-                              uri:
-                                props.users?.find(
-                                  user => user.uid === item?.userId
-                                )?.photoURL ?? '',
+                              uri: item.userPhotoUrl ?? '',
                             }}
                           />
                         ) : (
@@ -217,13 +230,9 @@ const CommentsSlider = (props: Props) => {
 
                         <View style={styles.commentContent}>
                           <Text style={styles.commentBy}>
-                            {props.users?.find(
-                              user => user.uid === item?.userId
-                            )?.displayName ?? 'Deleted user'}
+                            {item.userName ?? 'Deleted User'}
                           </Text>
-                          <Text style={styles.commentText}>
-                            {item?.commentText}
-                          </Text>
+                          <Text style={styles.commentText}>{item?.text}</Text>
                         </View>
                       </View>
 
@@ -242,7 +251,7 @@ const CommentsSlider = (props: Props) => {
                           ]}
                         >
                           {getTimeAgoFromTimestampSeconds(
-                            item?.creationTime?._seconds
+                            item?.creationTime?.seconds ?? 0
                           )}
                         </Text>
                         {item?.userId === auth.currentUser?.uid && (
@@ -314,7 +323,7 @@ const CommentsSlider = (props: Props) => {
             />
             <TouchableOpacity
               style={styles.sendButton}
-              onPress={() => handleAddComment()}
+              onPress={handleAddComment}
             >
               <FontAwesomeIcon icon={Icons.Right} size={16} color={'white'} />
             </TouchableOpacity>
