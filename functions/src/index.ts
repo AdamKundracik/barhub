@@ -1,10 +1,7 @@
 import { CallableContext } from 'firebase-functions/lib/common/providers/https';
 import { InfinityScrollPost, Post, User } from '../../shared';
-import * as geofire from 'geofire-common';
-import { distanceBetween, geohashQueryBounds } from 'geofire-common';
-import { snapshots } from 'react-native-reanimated/lib/typescript/reanimated2/layoutReanimation/web/componentStyle';
 import { firestore } from 'firebase-admin';
-import GeoPoint = firestore.GeoPoint;
+import PostService, { SavePostResponse } from './services/postService';
 
 const admin = require('firebase-admin');
 
@@ -13,6 +10,8 @@ admin.initializeApp();
 const db = admin.firestore();
 const functions = require('firebase-functions');
 const bucket = admin.storage().bucket();
+
+const postService = new PostService();
 
 // TODO: FINISH FUNCTION
 export const createUser = functions.auth.user().onCreate(user => {
@@ -37,24 +36,16 @@ export const setUser = functions.https.onCall(
 );
 
 export const savePost = functions.https.onCall(
-  async (
-    post: {
-      creationTime: Date;
-      fileId: string;
-      folderId: string;
-      name: string;
-      uid: string;
-    },
-    context: CallableContext
-  ) => {
-    await db.collection('posts').doc().set(post);
+  async (data, context: CallableContext): Promise<SavePostResponse> => {
+    const { post } = data;
+    const uploadedPost = await postService.savePost(context.auth.uid, post);
+    return uploadedPost;
   }
 );
 
 exports.getAllExistingUsers = functions.https.onCall(
   async (data: any, context: CallableContext) => {
     const usersCollection = db.collection('users');
-
     try {
       const snapshot = await usersCollection.get();
       const users: User[] = snapshot.docs.map(doc => ({

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Alert,
   Dimensions,
   StyleSheet,
   Text,
@@ -24,12 +25,13 @@ import { Icons } from '../../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { uploadImageAsync } from '../../../utils/helper-functions/helperFunctions';
-import { savePost, setUser } from '../../../utils/services/functions';
+import { setUser } from '../../../utils/services/functions';
 import LoadingIndicator from '../../../components/user/NewsFeed/LoadingIndicator';
 import { useMutation, useQueryClient } from 'react-query';
 import { Post } from '../../../../../shared';
-import { usePlaceStore } from '../../../utils/store/placesStore';
 import { auth } from '../../../../../firebaseConfig';
+import postService from '../../../utils/services/post.service';
+import { geohashForLocation } from 'geofire-common';
 
 type SummaryProps = {
   image: string;
@@ -99,10 +101,8 @@ export const PostSummary = ({ route }: any) => {
         pages: { lastVisible: string; posts: Post[] }[];
       }>('posts');
 
-      const tempId = Date.now().toString();
       const newPostWithTempId: Post = {
         ...newPost,
-        id: tempId,
         commentsCount: 0,
         likesCount: 0,
       };
@@ -147,14 +147,19 @@ export const PostSummary = ({ route }: any) => {
       const url = await uploadImageAsync(image);
 
       if (url) {
-        const fileId = `${auth.currentUser?.uid}/${new Date().getTime()}`;
+        const hash = geohashForLocation([
+          place?.location.latitude ?? 0,
+          place?.location.longitude ?? 0,
+        ]);
 
         const newPost: Post = {
+          geohash: hash,
           id: '',
-          userId: auth.currentUser?.uid!,
-          name: auth.currentUser?.displayName ?? '',
-          userImageUrl: auth.currentUser?.photoURL ?? null,
-          fileId: fileId.split('/')[1] ?? '',
+          userId: '',
+          fileId: '',
+          isLiked: false,
+          likesCount: 0,
+          commentsCount: 0,
           occupancy: selectedOccupancy ?? '',
           folderId: place?.id ?? '',
           creationTime: new Date().toISOString(),
@@ -163,12 +168,18 @@ export const PostSummary = ({ route }: any) => {
           placeAddress: place?.formattedAddress ?? '',
           photoUrl: url,
         };
-        await savePost(newPost);
 
-        mutate(newPost);
-        navigation.navigate('Feed');
-        await setUser({ lastUploadedPost: new Date().toISOString() });
-        setIsSaving(false);
+        try {
+          const postResponse = await postService.savePost(newPost);
+          mutate(postResponse);
+          navigation.navigate('Feed');
+          await setUser({ lastUploadedPost: new Date().toISOString() });
+        } catch (e) {
+          console.error(e);
+          Alert.alert('Failed to save post');
+        } finally {
+          setIsSaving(false);
+        }
       }
     }
   };

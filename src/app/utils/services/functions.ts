@@ -12,19 +12,6 @@ import {
 import { MISSING_REQUIRED_REQUEST_PARAMS } from '../helper-functions/constants';
 import { Post, User } from '../../../../shared';
 
-export const savePost = async (
-  data: Partial<Post>
-): Promise<EmptyDataResult> => {
-  if (!data) return MISSING_REQUIRED_REQUEST_PARAMS;
-  const cloudFunction = httpsCallable<
-    SetDocumentFromCollectionRequest['data']['data']
-  >(functions, 'savePost');
-  const { data: response } = (await cloudFunction({
-    ...data,
-  })) as unknown as EmptyDataResponse;
-  return response;
-};
-
 export const setUser = async (
   data: Partial<User>
 ): Promise<EmptyDataResult> => {
