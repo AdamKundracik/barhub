@@ -1,6 +1,5 @@
 import { CallableContext } from 'firebase-functions/lib/common/providers/https';
 import { InfinityScrollPost, Post, User } from '../../shared';
-import { firestore } from 'firebase-admin';
 import PostService, { SavePostResponse } from './services/postService';
 
 const admin = require('firebase-admin');

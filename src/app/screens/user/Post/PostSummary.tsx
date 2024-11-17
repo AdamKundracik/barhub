@@ -29,7 +29,6 @@ import { setUser } from '../../../utils/services/functions';
 import LoadingIndicator from '../../../components/user/NewsFeed/LoadingIndicator';
 import { useMutation, useQueryClient } from 'react-query';
 import { Post } from '../../../../../shared';
-import { auth } from '../../../../../firebaseConfig';
 import postService from '../../../utils/services/post.service';
 import { geohashForLocation } from 'geofire-common';
 

@@ -10,7 +10,7 @@ import {
   SetDocumentFromCollectionRequest,
 } from '../helper-functions/functions-types';
 import { MISSING_REQUIRED_REQUEST_PARAMS } from '../helper-functions/constants';
-import { Post, User } from '../../../../shared';
+import { User } from '../../../../shared';
 
 export const setUser = async (
   data: Partial<User>
@@ -78,18 +78,6 @@ export const toggleLike = async (
   userId: string
 ): Promise<any> => {
   const cloudFunction = httpsCallable(functions, 'toggleLike');
-  const response = await cloudFunction({
-    postId,
-    userId,
-  });
-  return response;
-};
-
-export const checkLikeStatus = async (
-  postId: string,
-  userId: string
-): Promise<any> => {
-  const cloudFunction = httpsCallable(functions, 'getLikeStatus');
   const response = await cloudFunction({
     postId,
     userId,

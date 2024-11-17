@@ -1,5 +1,5 @@
 import { Dimensions, StyleSheet, View } from 'react-native';
-import Device from 'react-native-device-info'; // Import Device
+import Device from 'react-native-device-info';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
