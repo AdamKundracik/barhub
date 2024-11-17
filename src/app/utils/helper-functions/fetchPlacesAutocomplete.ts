@@ -1,7 +1,6 @@
 import { googleAPIKey } from './constants';
 import { AutocompleteResponse, LocationType } from '../types/types';
 import { getLocales } from 'expo-localization';
-import { useUserContext } from '../../providers/UserProvider';
 
 export const fetchPlaceAutocomplete = async (
   query: string,

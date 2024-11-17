@@ -3,7 +3,6 @@ import {
   getAuth,
   GoogleAuthProvider,
   reauthenticateWithCredential,
-  reauthenticateWithPopup,
   updatePassword,
 } from 'firebase/auth';
 
@@ -17,7 +16,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useTranslation } from 'react-i18next'; // Import useTranslation
+import { useTranslation } from 'react-i18next';
 import Layout from '../../components/user/Shared/Layout';
 import { InputWrapper } from '../../components/shared/InputWrapper';
 import { formStyles } from '../../utils/styles/styles';
@@ -27,9 +26,9 @@ import { primaryColor, primaryTextColor } from '../../utils/styles/colors';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
 import firebase from 'firebase/compat';
-import EmailAuthProvider = firebase.auth.EmailAuthProvider;
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { auth } from '../../../../firebaseConfig';
+import EmailAuthProvider = firebase.auth.EmailAuthProvider;
 
 const PasswordChangeScreen = () => {
   const { t } = useTranslation(); // Initialize useTranslation
@@ -42,7 +41,6 @@ const PasswordChangeScreen = () => {
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [oldPasswordVisible, setOldPasswordVisible] = useState(false);
 
-  // Check if passwords match
   const passwordsMatch = password === confirmPassword && password !== '';
 
   const hasPasswordLogin = auth.currentUser?.providerData
@@ -58,7 +56,6 @@ const PasswordChangeScreen = () => {
       return null;
     }
 
-    // Loop through the providerData array to find the sign-in method
     const providers = user.providerData.map(provider => provider.providerId);
 
     if (providers.includes('google.com')) {
@@ -72,7 +69,6 @@ const PasswordChangeScreen = () => {
     return 'other';
   };
 
-  // Function to re-authenticate and change password
   const reauthenticateAndChangePassword = async (
     currentPassword: string,
     newPassword: string

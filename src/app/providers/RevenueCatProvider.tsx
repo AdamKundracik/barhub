@@ -9,7 +9,6 @@ import { User } from '../../../shared';
 import { setUser } from '../utils/services/functions';
 import { useUserContext } from './UserProvider';
 
-// Use your RevenueCat API keys
 const APIKeys = {
   apple: 'appl_LBCUSpmuKrFDpsDAngQHiPdmGKN',
   google: 'your_google_api_key_here',
@@ -26,7 +25,6 @@ export interface UserState {
   premiun: boolean;
 }
 
-// Provide RevenueCat functions to our app
 export const RevenueCatProvider = ({ children }: any) => {
   const [currentUser, setCurrentUser] = useState<Partial<User>>({
     premium: false,

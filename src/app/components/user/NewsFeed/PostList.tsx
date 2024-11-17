@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { Post, User } from '../../../../../shared';
 import UserPost from './Post/UserPost';
 import Ad from '../Ad';
@@ -46,7 +46,7 @@ const PostsList = ({
 
   const renderPostItem = ({ item, index }: { item: Post; index: number }) => (
     <View
-      key={item.id} // Use `id` if available to avoid index-based keys.
+      key={item.id}
       style={{
         marginVertical: 10,
         zIndex: zoomedPost === item.photoUrl ? 1 : 0,
@@ -74,12 +74,12 @@ const PostsList = ({
       renderItem={renderPostItem}
       keyExtractor={item => item.id}
       contentContainerStyle={styles.scrollView}
-      ListFooterComponent={isFetchingNextPage ? <LoadingIndicator /> : null} // Show loading indicator when fetching more
+      ListFooterComponent={isFetchingNextPage ? <LoadingIndicator /> : null}
       refreshControl={
         <RefreshControl refreshing={loading} onRefresh={onRefresh} />
       }
       onEndReached={hasMorePosts ? fetchMorePosts : null}
-      onEndReachedThreshold={0.5} // Trigger when the user scrolls close to the end
+      onEndReachedThreshold={0.5}
       ListHeaderComponent={
         <>
           {loading && <LoadingIndicator />}

@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
 import { primaryColor, primaryTextColor } from '../../../utils/styles/colors';
 import Svg, { Path } from 'react-native-svg';
-import { PlaceState, usePlaceStore } from '../../../utils/store/placesStore';
+import { usePlaceStore } from '../../../utils/store/placesStore';
 
 type LayoutProps = {
   place: string;

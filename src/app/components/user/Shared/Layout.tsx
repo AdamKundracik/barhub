@@ -113,7 +113,7 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
           >
             {userData?.photoURL ? (
               <Image
-                source={{ uri: userData?.photoURL }}
+                source={{ uri: auth.currentUser?.photoURL ?? '' }}
                 style={styles.profileIcon}
               />
             ) : (
