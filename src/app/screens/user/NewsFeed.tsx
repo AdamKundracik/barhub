@@ -83,14 +83,9 @@ export const NewsFeed = () => {
         longitude: detail?.geometry.location?.lng,
       });
 
-      // tokens?.forEach(token => {
-      sendPushNotification(
-        'ExponentPushToken[vVQF0SCUsZZ6gDZEhuAawd]',
-        placeId,
-        placeName,
-        senderToken ?? ''
-      );
-      // });
+      tokens?.forEach(token => {
+        sendPushNotification(token, placeId, placeName, senderToken ?? '');
+      });
     }
   }
 
