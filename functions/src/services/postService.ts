@@ -31,19 +31,17 @@ class PostService {
     }
 
     try {
-      const fileId = `${userId}/${new Date().getTime()}`;
+      const fileId = `${new Date().getTime()}_${userId}`;
 
       const postDoc: PostDocument = {
         ...post,
-        userId: userId ?? 'TEST',
-        fileId: fileId.split('/')[1] ?? 'TEST FILEID',
+        userId: userId ?? '',
+        fileId: fileId ?? '',
         creationTime: new Date().toISOString(),
         timestamp: Date.now(),
-        commentsCount: 0,
-        likesCount: 0,
       };
 
-      // Add comment to DB and get the object representing added comment with generated ID etc... adn convert it to Document
+      // Add post to DB and get the object representing added post with generated ID etc... adn convert it to Document
       const addedPostReference = await this.db.collection('posts').add(postDoc);
 
       const addedPostSnapshot = await addedPostReference.get();

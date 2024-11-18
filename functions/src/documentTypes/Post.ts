@@ -9,7 +9,5 @@ export interface PostDocument {
   placeAddress: string;
   id: string;
   photoUrl: string;
-  likesCount?: number;
-  commentsCount?: number;
   occupancy: string;
 }

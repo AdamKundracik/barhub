@@ -24,7 +24,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
-import { uploadImageAsync } from '../../../utils/helper-functions/helperFunctions';
+import { uploadImageAsync } from '../../../utils/helper-functions/imageUploadFunctions';
 import { setUser } from '../../../utils/services/functions';
 import LoadingIndicator from '../../../components/user/NewsFeed/LoadingIndicator';
 import { useMutation, useQueryClient } from 'react-query';
@@ -102,6 +102,7 @@ export const PostSummary = ({ route }: any) => {
 
       const newPostWithTempId: Post = {
         ...newPost,
+        isLiked: false,
         commentsCount: 0,
         likesCount: 0,
       };
@@ -156,9 +157,6 @@ export const PostSummary = ({ route }: any) => {
           id: '',
           userId: '',
           fileId: '',
-          isLiked: false,
-          likesCount: 0,
-          commentsCount: 0,
           occupancy: selectedOccupancy ?? '',
           folderId: place?.id ?? '',
           creationTime: new Date().toISOString(),
