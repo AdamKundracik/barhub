@@ -37,7 +37,7 @@ const isTablet = Device.isTablet();
 const width = Dimensions.get('window').width;
 
 export const UserPost = (props: PostInterface) => {
-  const { post, setZoomedPost, isZoomed } = props;
+  const { post, setZoomedPost } = props;
 
   const queryClient = useQueryClient();
 
@@ -176,10 +176,10 @@ export const UserPost = (props: PostInterface) => {
             props.user?.lastUploadedPost ?? new Date().toISOString()
           ) >= 14 && <BluredPostFrontView />)}
         <UserLine
-          user={props.user}
+          user={post.user}
           date={new Date(post.creationTime).toLocaleString()}
           address={post.placeAddress}
-          profileImage={post.userImageUrl}
+          profileImage={post.user?.photoUrl ?? ''}
         />
         <View style={{ height: width, position: 'relative' }}>
           <GestureDetector gesture={doubleTap}>

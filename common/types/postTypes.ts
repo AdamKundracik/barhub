@@ -12,4 +12,16 @@ export interface Post {
   occupancy: string;
   likesCount?: number;
   commentsCount?: number;
+  user?: UserInfo;
 }
+
+interface UserInfo {
+  id: string;
+  displayName: string;
+  photoUrl: string;
+}
+
+export type InfinityScrollPost = {
+  posts: Post[];
+  lastVisible: string;
+};
