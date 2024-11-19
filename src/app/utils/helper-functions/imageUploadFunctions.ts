@@ -8,7 +8,10 @@ import {
 import { auth, storage } from '../../../../firebaseConfig';
 import * as ImageManipulator from 'expo-image-manipulator';
 
-export const uploadImageAsync = async (uri: string): Promise<string | null> => {
+export const uploadImageAsync = async (
+  uri: string,
+  placeId: string
+): Promise<string | null> => {
   try {
     if (!auth.currentUser) {
       console.error('No current user');
@@ -16,7 +19,7 @@ export const uploadImageAsync = async (uri: string): Promise<string | null> => {
     }
 
     const blob: Blob = await uriToBlob(uri);
-    const fileId = `${auth.currentUser.uid}/${new Date().getTime()}`; // Unique file ID
+    const fileId = `${placeId}/${new Date().getTime().toString() + '_' + auth.currentUser?.uid}`;
     const storageRef = ref(storage, fileId);
 
     await uploadBytes(storageRef, blob);

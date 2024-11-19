@@ -143,8 +143,8 @@ export const PostSummary = ({ route }: any) => {
   const handleSavePost = async () => {
     setIsSaving(true);
 
-    if (image) {
-      const url = await uploadImageAsync(image);
+    if (image && place) {
+      const url = await uploadImageAsync(image, place?.id);
 
       if (url) {
         const hash = geohashForLocation([
