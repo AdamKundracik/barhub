@@ -101,7 +101,7 @@ export const PostSummary = ({ route }: any) => {
         pages: { lastVisible: string; posts: Post[] }[];
       }>('posts');
 
-      const newPostWithTempId: Post = {
+      const newCachedPost: Post = {
         ...newPost,
         isLiked: false,
         commentsCount: 0,
@@ -118,7 +118,7 @@ export const PostSummary = ({ route }: any) => {
           if (index === 0) {
             return {
               ...page,
-              posts: [newPostWithTempId, ...page.posts],
+              posts: [newCachedPost, ...page.posts],
             };
           }
           return page;
