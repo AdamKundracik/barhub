@@ -31,6 +31,7 @@ import { useMutation, useQueryClient } from 'react-query';
 import { Post } from '../../../../../shared';
 import postService from '../../../utils/services/post.service';
 import { geohashForLocation } from 'geofire-common';
+import { auth } from '../../../../../firebaseConfig';
 
 type SummaryProps = {
   image: string;
@@ -105,6 +106,11 @@ export const PostSummary = ({ route }: any) => {
         isLiked: false,
         commentsCount: 0,
         likesCount: 0,
+        user: {
+          id: auth.currentUser?.uid ?? '',
+          displayName: auth.currentUser?.displayName ?? '',
+          photoUrl: auth.currentUser?.photoURL ?? '',
+        },
       };
 
       queryClient.setQueryData('posts', (oldData: any) => {
