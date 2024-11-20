@@ -1,10 +1,6 @@
 import { CallableContext } from 'firebase-functions/lib/common/providers/https';
 import { InfinityScrollPost, Post, User } from '../../shared';
-import * as geofire from 'geofire-common';
-import { distanceBetween, geohashQueryBounds } from 'geofire-common';
-import { snapshots } from 'react-native-reanimated/lib/typescript/reanimated2/layoutReanimation/web/componentStyle';
-import { firestore } from 'firebase-admin';
-import GeoPoint = firestore.GeoPoint;
+import PostService, { SavePostResponse } from './services/postService';
 
 const admin = require('firebase-admin');
 
@@ -13,6 +9,8 @@ admin.initializeApp();
 const db = admin.firestore();
 const functions = require('firebase-functions');
 const bucket = admin.storage().bucket();
+
+const postService = new PostService();
 
 // TODO: FINISH FUNCTION
 export const createUser = functions.auth.user().onCreate(user => {
@@ -37,41 +35,31 @@ export const setUser = functions.https.onCall(
 );
 
 export const savePost = functions.https.onCall(
-  async (
-    post: {
-      creationTime: Date;
-      fileId: string;
-      folderId: string;
-      name: string;
-      uid: string;
-    },
-    context: CallableContext
-  ) => {
-    await db.collection('posts').doc().set(post);
+  async (data, context: CallableContext): Promise<SavePostResponse> => {
+    const { post } = data;
+    const uploadedPost = await postService.savePost(context.auth.uid, post);
+    return uploadedPost;
   }
 );
 
-exports.getAllExistingUsers = functions.https.onCall(
-  async (data: any, context: CallableContext) => {
-    const usersCollection = db.collection('users');
+exports.getAllExistingUsers = functions.https.onCall(async () => {
+  const usersCollection = db.collection('users');
+  try {
+    const snapshot = await usersCollection.get();
+    const users: User[] = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
 
-    try {
-      const snapshot = await usersCollection.get();
-      const users: User[] = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      return { users };
-    } catch (error) {
-      console.error('Error getting users collection: ', error);
-      throw new functions.https.HttpsError(
-        'internal',
-        'Unable to retrieve users'
-      );
-    }
+    return { users };
+  } catch (error) {
+    console.error('Error getting users collection: ', error);
+    throw new functions.https.HttpsError(
+      'internal',
+      'Unable to retrieve users'
+    );
   }
-);
+});
 
 export const getCurrentUser = functions.https.onCall(
   async (data, context: CallableContext) => {
@@ -98,61 +86,57 @@ export const getCurrentUser = functions.https.onCall(
   }
 );
 
-exports.toggleLike = functions.https.onCall(
-  async (data, context: CallableContext) => {
-    const { postId, userId } = data;
+exports.toggleLike = functions.https.onCall(async data => {
+  const { postId, userId } = data;
 
-    if (!postId || !userId) {
-      throw new functions.https.HttpsError(
-        'invalid-argument',
-        'Missing postId or userId'
-      );
-    }
-
-    try {
-      const likeDocRef = db
-        .collection('posts')
-        .doc(postId)
-        .collection('likes')
-        .doc(userId);
-      const likeDoc = await likeDocRef.get();
-
-      if (likeDoc.exists) {
-        await likeDocRef.delete();
-      } else {
-        await likeDocRef.set({});
-      }
-    } catch (error) {
-      console.error('Error toggling like: ', error);
-    }
+  if (!postId || !userId) {
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'Missing postId or userId'
+    );
   }
-);
 
-exports.getLikeStatus = functions.https.onCall(
-  async (data, context: CallableContext) => {
-    const { postId, userId } = data;
+  try {
+    const likeDocRef = db
+      .collection('posts')
+      .doc(postId)
+      .collection('likes')
+      .doc(userId);
+    const likeDoc = await likeDocRef.get();
 
-    if (!postId || !userId) {
-      throw new functions.https.HttpsError(
-        'invalid-argument',
-        'Missing postId or userId'
-      );
+    if (likeDoc.exists) {
+      await likeDocRef.delete();
+    } else {
+      await likeDocRef.set({});
     }
-
-    try {
-      const likeDocRef = db
-        .collection('posts')
-        .doc(postId)
-        .collection('likes')
-        .doc(userId);
-      const likeDoc = await likeDocRef.get();
-
-      return await likeDoc.exists;
-    } catch (error) {
-      console.error('Error getting like status: ', error);
-    }
+  } catch (error) {
+    console.error('Error toggling like: ', error);
   }
-);
+});
+
+exports.getLikeStatus = functions.https.onCall(async data => {
+  const { postId, userId } = data;
+
+  if (!postId || !userId) {
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'Missing postId or userId'
+    );
+  }
+
+  try {
+    const likeDocRef = db
+      .collection('posts')
+      .doc(postId)
+      .collection('likes')
+      .doc(userId);
+    const likeDoc = await likeDocRef.get();
+
+    return await likeDoc.exists;
+  } catch (error) {
+    console.error('Error getting like status: ', error);
+  }
+});
 
 export const testLog = functions.https.onCall(
   async (data, context: CallableContext) => {
@@ -252,11 +236,10 @@ exports.getPostById = functions.https.onCall(async (data, context) => {
 
 exports.getFreshContent = functions.https.onCall(
   async (
-    data,
+    data: { pageSize?: number; lastVisible?: string },
     context: CallableContext
-  ): Promise<InfinityScrollPost | null> => {
+  ) => {
     try {
-      // Ensure that the request is authenticated
       if (!context.auth) {
         throw new functions.https.HttpsError(
           'unauthenticated',
@@ -264,94 +247,21 @@ exports.getFreshContent = functions.https.onCall(
         );
       }
 
-      // Get the user's uid
+      const { pageSize = 3, lastVisible = null } = data;
       const uid = context.auth.uid;
 
-      // Retrieve pagination parameters from the input data
-      const { pageSize = 3, lastVisible = null } = data;
-
-      // Reference to the 'posts' collection with timestamp ordering
-      let query = db
-        .collection('posts')
-        .orderBy('timestamp', 'desc') // Order by the most recent posts first
-        .limit(pageSize);
-
-      // Validate the `lastVisible` parameter
-      if (lastVisible) {
-        // Fetch the document that corresponds to `lastVisible`
-        const lastVisibleDoc = await db
-          .collection('posts')
-          .doc(lastVisible)
-          .get();
-
-        // If the document exists, use it as the starting point for the next query
-        if (lastVisibleDoc.exists) {
-          query = query.startAfter(lastVisibleDoc);
-        } else {
-          console.error('Invalid lastVisible document.');
-          return { lastVisible: '', posts: [] } as InfinityScrollPost;
-        }
-      }
-
-      // Execute the query
-      const querySnapshot = await query.get();
-
-      // Check if the result is empty
-      if (querySnapshot.empty) {
-        return { lastVisible: '', posts: [] } as InfinityScrollPost;
-      }
-
-      // Process each post and check if the user liked the post and count likes and comments
-      const items: Post[] = await Promise.all(
-        querySnapshot.docs.map(async doc => {
-          const postData = doc.data();
-
-          // Count the number of likes in the 'likes' subcollection
-          const likesSnapshot = await db
-            .collection('posts')
-            .doc(doc.id)
-            .collection('likes')
-            .get();
-          const likesCount = likesSnapshot.size;
-
-          // Count the number of comments in the 'comments' subcollection
-          const commentsSnapshot = await db
-            .collection('posts')
-            .doc(doc.id)
-            .collection('comments')
-            .get();
-          const commentsCount = commentsSnapshot.size;
-
-          // Check if the 'likes' subcollection contains the user's uid
-          const likeSnapshot = await db
-            .collection('posts')
-            .doc(doc.id)
-            .collection('likes')
-            .doc(uid)
-            .get();
-
-          // Add the `isLiked`, `likesCount`, and `commentsCount` fields
-          return {
-            ...postData,
-            id: doc.id,
-            isLiked: likeSnapshot.exists, // true if the user liked the post, otherwise false
-            likesCount,
-            commentsCount,
-          };
-        })
+      const result = await postService.getFreshContent(
+        uid,
+        pageSize,
+        lastVisible
       );
-
-      // Get the last document to be used for the next page
-      const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
-
-      // Return the fetched posts and the last visible document's ID
-      return {
-        posts: items,
-        lastVisible: lastDoc.id, // Use the ID of the last document for pagination
-      } as InfinityScrollPost;
+      return result;
     } catch (error) {
-      console.error('Error fetching fresh content:', error);
-      return null;
+      functions.logger.error('Error in getFreshContent:', error);
+      throw new functions.https.HttpsError(
+        'internal',
+        `Error in getFreshContent: ${error.message || 'Unknown error'}`
+      );
     }
   }
 );

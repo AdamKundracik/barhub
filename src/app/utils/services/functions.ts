@@ -10,20 +10,7 @@ import {
   SetDocumentFromCollectionRequest,
 } from '../helper-functions/functions-types';
 import { MISSING_REQUIRED_REQUEST_PARAMS } from '../helper-functions/constants';
-import { Post, User } from '../../../../shared';
-
-export const savePost = async (
-  data: Partial<Post>
-): Promise<EmptyDataResult> => {
-  if (!data) return MISSING_REQUIRED_REQUEST_PARAMS;
-  const cloudFunction = httpsCallable<
-    SetDocumentFromCollectionRequest['data']['data']
-  >(functions, 'savePost');
-  const { data: response } = (await cloudFunction({
-    ...data,
-  })) as unknown as EmptyDataResponse;
-  return response;
-};
+import { User } from '../../../../shared';
 
 export const setUser = async (
   data: Partial<User>
@@ -62,17 +49,6 @@ export const getPosts = async (): Promise<GetAllPostsResult> => {
   return response;
 };
 
-export const getFreshContent = async (
-  lastVisible?: string
-): Promise<GetFreshnessContentResult> => {
-  const cloudFunction = httpsCallable(functions, 'getFreshContent');
-  const response = (await cloudFunction({
-    pageSize: 10,
-    lastVisible: lastVisible,
-  })) as unknown as GetFreshnessContentResult;
-  return response;
-};
-
 export const getPostsByPlaceID = async (
   placeId: string,
   lastVisible?: string
@@ -91,18 +67,6 @@ export const toggleLike = async (
   userId: string
 ): Promise<any> => {
   const cloudFunction = httpsCallable(functions, 'toggleLike');
-  const response = await cloudFunction({
-    postId,
-    userId,
-  });
-  return response;
-};
-
-export const checkLikeStatus = async (
-  postId: string,
-  userId: string
-): Promise<any> => {
-  const cloudFunction = httpsCallable(functions, 'getLikeStatus');
   const response = await cloudFunction({
     postId,
     userId,

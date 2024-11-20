@@ -1,5 +1,5 @@
 import { InfinityScrollPost, Post } from '../../../../shared';
-import { getFreshContent } from '../services/functions';
+import { getFreshContent } from '../services/post.service';
 
 export const handleFreshContent = async (
   lastVisible?: string | null,
@@ -9,7 +9,6 @@ export const handleFreshContent = async (
     ? await getFreshContent(lastVisible)
     : await getFreshContent();
   const data = response.data as InfinityScrollPost;
-
   if (data.posts) {
     const postsWithUrls: Post[] = await Promise.all(data.posts); // If you need to transform posts, do it here.
     if (placeId) {

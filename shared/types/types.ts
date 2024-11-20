@@ -34,13 +34,12 @@ export interface User extends UserRecord {
 }
 
 export type Post = {
-  userImageUrl: string | null;
+  geohash: string;
   creationTime: string;
   timestamp: number;
-  userId: string;
+  userId?: string;
   fileId: string;
   folderId: string;
-  name: string;
   placeName: string;
   placeAddress: string;
   id: string;
@@ -49,7 +48,14 @@ export type Post = {
   commentsCount?: number;
   isLiked?: boolean;
   occupancy: string;
+  user?: UserInfo;
 };
+
+export interface UserInfo {
+  id: string;
+  displayName: string;
+  photoUrl: string;
+}
 
 export type InfinityScrollPost = {
   posts: Post[];
