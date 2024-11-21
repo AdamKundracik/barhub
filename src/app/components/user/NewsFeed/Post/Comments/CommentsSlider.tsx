@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  FlatList,
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -46,6 +48,7 @@ const CommentsSlider = (props: Props) => {
   const [areCommentsLoading, setAreCommentsLoading] = useState(false);
   const [allComments, setAllComments] = useState<CommentProps[]>([]);
   const [commentsOpened, setCommentsOpened] = useState(props.opened);
+  const [snapPoint, setSnapPoint] = useState<string | number>('70%'); // State to track snapPoint
 
   useEffect(() => {
     setCommentsOpened(props.opened);
@@ -98,10 +101,31 @@ const CommentsSlider = (props: Props) => {
     }
   };
 
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        setSnapPoint('100%');
+      }
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setSnapPoint('70%');
+      }
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
+
   const handleCloseComments = () => {
     bottomSheetRef.current?.close();
     setCommentsOpened(false);
     props.onClose();
+    setNewComment('');
   };
 
   const handleDeleteComment = async (commentId: string) => {
@@ -151,15 +175,16 @@ const CommentsSlider = (props: Props) => {
 
   return (
     <BottomSheet
-      backgroundStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
+      backgroundStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
       onClose={handleCloseComments}
       ref={bottomSheetRef}
-      snapPoints={['70%']}
+      snapPoints={[snapPoint]}
       index={-1}
       backdropComponent={renderBackdrop}
       handleHeight={60}
       enablePanDownToClose
-      keyboardBehavior="interactive" // Added for handling keyboard
+      keyboardBehavior="extend"
+      keyboardBlurBehavior="restore"
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -178,9 +203,9 @@ const CommentsSlider = (props: Props) => {
         {areCommentsLoading ? (
           <CommentsLoaderView />
         ) : (
-          <>
+          <BottomSheetView style={{ flex: 1 }}>
             {allComments.length ? (
-              <BottomSheetFlatList
+              <FlatList
                 data={
                   [
                     ...(allComments || []),
@@ -297,7 +322,7 @@ const CommentsSlider = (props: Props) => {
                 </BottomSheetView>
               </BottomSheetView>
             )}
-          </>
+          </BottomSheetView>
         )}
 
         <BottomSheetView
@@ -305,6 +330,7 @@ const CommentsSlider = (props: Props) => {
             flexDirection: 'row',
             padding: 15,
             alignItems: 'center',
+            marginBottom: 10,
           }}
         >
           <Image
@@ -395,7 +421,7 @@ const styles = StyleSheet.create({
     borderColor: '#444',
     borderWidth: 1,
     borderRadius: 30,
-    paddingHorizontal: 20,
+    paddingHorizontal: 25,
     paddingVertical: 12,
     marginRight: 10,
     color: '#fff',
