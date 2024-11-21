@@ -69,7 +69,7 @@ const CommentsSlider = (props: Props) => {
     );
 
     const updatedComments = await fetchCommentsForPost(props.postId ?? '');
-    return updatedComments;
+    return updatedComments.reverse();
   }, []);
 
   if (bottomSheetRef.current) {
@@ -146,7 +146,7 @@ const CommentsSlider = (props: Props) => {
       setAreCommentsLoading(true);
       try {
         const fetchedComments = await fetchCommentsForPost(props.postId);
-        setAllComments(fetchedComments);
+        setAllComments(fetchedComments.reverse());
       } catch (e) {
         console.error(e);
       } finally {
