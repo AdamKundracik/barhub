@@ -180,6 +180,11 @@ const CommentsSlider = (props: Props) => {
       ref={bottomSheetRef}
       snapPoints={[snapPoint]}
       index={-1}
+      onChange={index => {
+        if (index === -1) {
+          Keyboard.dismiss(); // Dismiss the keyboard immediately when the bottom sheet starts closing
+        }
+      }}
       backdropComponent={renderBackdrop}
       handleHeight={60}
       enablePanDownToClose
