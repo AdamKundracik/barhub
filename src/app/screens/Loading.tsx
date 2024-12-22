@@ -1,13 +1,5 @@
-import React, {
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import React, { SafeAreaView, StyleSheet, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { authPageStyles } from '../utils/styles/styles';
 
 export const Loading = () => {
   return (

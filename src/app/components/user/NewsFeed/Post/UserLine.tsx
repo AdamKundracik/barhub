@@ -6,7 +6,7 @@ import {
   primaryTextColor,
 } from '../../../../utils/styles/colors';
 import Svg, { Path } from 'react-native-svg';
-import { User } from '../../../../../../shared';
+import { UserInfo } from '../../../../../../shared';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../../utils/icons/icons';
 import { auth } from '../../../../../../firebaseConfig';
@@ -15,17 +15,17 @@ type Props = {
   date: string;
   address: string;
   profileImage: string | null;
-  user: User | undefined;
+  user: UserInfo | undefined;
 };
 
 export const UserLine = (props: Props) => {
   return (
     <View style={styles.container}>
       <View style={styles.leftSection}>
-        {props.user?.photoURL ? (
+        {props.user?.photoUrl ? (
           <Image
             source={{
-              uri: props.user.photoURL,
+              uri: props.user.photoUrl,
             }}
             style={styles.image}
           />
@@ -45,9 +45,7 @@ export const UserLine = (props: Props) => {
         )}
 
         <View style={styles.textContainer}>
-          <Text style={styles.name}>
-            {props.user?.displayName ?? 'Deleted user'}
-          </Text>
+          <Text style={styles.name}>{props.user?.displayName}</Text>
           <View style={styles.dateTimeContainer}>
             <Text style={styles.dateTimeText}>{props.date}</Text>
           </View>

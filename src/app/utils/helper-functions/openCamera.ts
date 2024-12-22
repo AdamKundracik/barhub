@@ -1,49 +1,10 @@
 import { Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { Place, PlaceDetail } from '../types/types';
+import { Place } from '../types/types';
 import { fetchPlaceDetails } from './fetchPlaceDetail';
-import { uploadImageAsync } from './helperFunctions';
-import { sendPushNotificationResponse } from '../services/notofications-handler';
-import { setUser } from '../services/functions';
-import { User } from '../../../../shared';
 import { mapPlaceDetailToPlace } from './mapPlaceDetailToPlace';
 
-async function saveImageFromCamera(
-  image: string,
-  userData: User,
-  setUploadingState: any,
-  placeId?: string,
-  senderToken?: string
-): Promise<void> {
-  if (!image) {
-    console.error('No image');
-    return;
-  }
-
-  if (placeId && senderToken) {
-    const token = userData?.pushToken;
-    const place: PlaceDetail = await fetchPlaceDetails(placeId);
-    if (!token) {
-      return;
-    }
-    await uploadImageAsync(
-      image,
-      setUploadingState,
-      placeId,
-      place.name,
-      place.formatted_address
-    ).then(() => {
-      sendPushNotificationResponse(senderToken, placeId).then();
-    });
-    await setUser({
-      lastUploadedPost: new Date().toISOString(),
-    });
-  }
-}
-
 export const openCamera = async (
-  userData: User,
-  setUploadingState: any,
   placeId?: string | null,
   senderToken?: string,
   navigation?: any

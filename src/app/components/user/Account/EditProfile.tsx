@@ -23,7 +23,7 @@ import * as ImagePicker from 'expo-image-picker';
 import {
   deleteProfilePicture,
   uploadProfilePhotoAsync,
-} from '../../../utils/helper-functions/helperFunctions';
+} from '../../../utils/helper-functions/imageUploadFunctions';
 import { setUser } from '../../../utils/services/functions';
 import { updateProfile } from 'firebase/auth';
 import { useUserContext } from '../../../providers/UserProvider';

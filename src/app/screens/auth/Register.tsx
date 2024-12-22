@@ -27,7 +27,7 @@ import Svg, { Circle, Path } from 'react-native-svg';
 import DatePicker from '../../components/shared/DatePicker';
 import { setUser } from '../../utils/services/functions';
 import * as url from 'node:url';
-import { uploadProfilePhotoAsync } from '../../utils/helper-functions/helperFunctions';
+import { uploadProfilePhotoAsync } from '../../utils/helper-functions/imageUploadFunctions';
 
 export const Register = ({ navigation }: any) => {
   const { t } = useTranslation();

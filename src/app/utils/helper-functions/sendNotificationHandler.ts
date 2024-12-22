@@ -66,7 +66,10 @@ export const sendNotificationHandler = async (
       console.error('No nearby users found.');
       return;
     }
-    const tokens = matchingDocs.map(user => user.pushToken);
+    // If I am at same place, filter my ID so notification insnt sent to me as well
+    const tokens = matchingDocs
+      .map(user => user.pushToken)
+      .filter(token => token != auth.currentUser?.uid);
     return tokens;
   } catch (error) {
     console.error('Error in sendNotificationHandler:', error);

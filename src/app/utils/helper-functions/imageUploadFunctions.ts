@@ -6,51 +6,30 @@ import {
   uploadBytes,
 } from 'firebase/storage';
 import { auth, storage } from '../../../../firebaseConfig';
-import { savePost } from '../services/functions';
-import { UseMutationResult } from 'react-query';
 import * as ImageManipulator from 'expo-image-manipulator';
-import { Post } from '../../../../shared';
 
 export const uploadImageAsync = async (
   uri: string,
-  hook: UseMutationResult<boolean, unknown, boolean, unknown>,
-  placeId: string,
-  placeName: string,
-  placeAddress: string,
-  occupancy?: string
-): Promise<void> => {
+  placeId: string
+): Promise<string | null> => {
   try {
     if (!auth.currentUser) {
       console.error('No current user');
-      return;
+      return null;
     }
 
     const blob: Blob = await uriToBlob(uri);
     const fileId = `${placeId}/${new Date().getTime().toString() + '_' + auth.currentUser?.uid}`;
-
     const storageRef = ref(storage, fileId);
+
     await uploadBytes(storageRef, blob);
-    await hook.mutateAsync(false);
     const url = await getDownloadURL(storageRef);
 
-    const newPost: Post = {
-      id: '',
-      user_id: auth.currentUser?.uid,
-      name: auth.currentUser.displayName ?? '',
-      userImageUrl: auth.currentUser.photoURL ?? null,
-      fileId: fileId.split('/')[1],
-      occupancy: occupancy ?? '',
-      folderId: placeId,
-      creationTime: new Date().toISOString(),
-      timestamp: Date.now(),
-      placeName: placeName,
-      placeAddress: placeAddress,
-      photoUrl: url,
-    };
-
-    await savePost(newPost);
+    // If newPost is not provided, return the URL
+    return url; // Return the URL of the uploaded image
   } catch (error) {
     console.error('Error uploading image:', error);
+    return null;
   }
 };
 

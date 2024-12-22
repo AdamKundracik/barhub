@@ -10,7 +10,6 @@ import { BannerAd, TestIds } from 'react-native-google-mobile-ads';
 import { osName } from 'expo-device'; // Import Device
 import { warningColor } from '../../utils/styles/colors';
 import Device from 'react-native-device-info';
-import { has } from 'react-native-reanimated/lib/typescript/createAnimatedComponent/utils';
 
 const width = Dimensions.get('window').width;
 const isTablet = Device.isTablet();

@@ -14,12 +14,7 @@ import { usePlaceStore } from '../../utils/store/placesStore';
 import { useUserContext } from '../../providers/UserProvider';
 import { useQuery } from 'react-query';
 import { fetchPlaceAutocomplete } from '../../utils/helper-functions/fetchPlacesAutocomplete';
-import {
-  primaryColor,
-  primaryDeepColor,
-  primaryTextColor,
-  textInputPlaceholderColor,
-} from '../../utils/styles/colors';
+import { primaryColor, primaryDeepColor } from '../../utils/styles/colors';
 import Layout from '../../components/user/Shared/Layout';
 import MapSearch from '../../components/user/Search/MapSearch';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -42,13 +37,13 @@ export const PlaceSearch = () => {
   }
 
   const usePlaceAutocomplete = (query: string, sessionToken: string) => {
-    const { location } = useUserContext(); // Assuming location is available here
+    const { location } = useUserContext();
 
     return useQuery(
-      ['places-autocomplete', query], // Query key for caching
-      () => fetchPlaceAutocomplete(query.toUpperCase(), location, sessionToken), // Fetch places using your function
+      ['places-autocomplete', query],
+      () => fetchPlaceAutocomplete(query.toUpperCase(), location, sessionToken),
       {
-        enabled: query.length >= 2, // Enable query only if query is 3+ chars and location is available
+        enabled: query.length >= 2,
       }
     );
   };
@@ -102,7 +97,7 @@ export const PlaceSearch = () => {
             placeholder={t('search-place')}
             onChangeText={text => {
               setQuery(text);
-              if (!text) setHasSearched(false); // Reset if input is cleared
+              if (!text) setHasSearched(false);
             }}
             value={query}
             placeholderTextColor={primaryDeepColor}
@@ -111,12 +106,12 @@ export const PlaceSearch = () => {
             <TouchableOpacity
               style={{
                 position: 'absolute',
-                right: 16, // Adjust according to your design
-                top: 14, // Adjust according to your design
+                right: 16,
+                top: 14,
               }}
               onPress={() => {
-                setQuery(''); // Clear the input field
-                setHasSearched(false); // Reset search state
+                setQuery('');
+                setHasSearched(false);
               }}
             >
               <FontAwesomeIcon

@@ -1,5 +1,5 @@
-import React, { createRef, LegacyRef, useState } from 'react';
-import { Pressable, PressableProps, StyleSheet, Text } from 'react-native';
+import React, { useState } from 'react';
+import { Pressable, StyleSheet, Text } from 'react-native';
 import { commonAppStyles } from '../../../utils/styles/styles';
 import { useTranslation } from 'react-i18next';
 import { iconInactiveColor, primaryColor } from '../../../utils/styles/colors';

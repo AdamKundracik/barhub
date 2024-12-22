@@ -10,6 +10,7 @@ import {
   SetDocumentFromCollectionRequest,
 } from '../helper-functions/functions-types';
 import { MISSING_REQUIRED_REQUEST_PARAMS } from '../helper-functions/constants';
+import { User } from '../../../../shared';
 import { Post, User } from '../../../../shared';
 import { LocationType } from '../types/types';
 import { GeoPoint } from 'firebase/firestore';
@@ -68,17 +69,6 @@ export const getPosts = async (): Promise<GetAllPostsResult> => {
   return response;
 };
 
-export const getFreshContent = async (
-  lastVisible?: string
-): Promise<GetFreshnessContentResult> => {
-  const cloudFunction = httpsCallable(functions, 'getFreshContent');
-  const response = (await cloudFunction({
-    pageSize: 10,
-    lastVisible: lastVisible,
-  })) as unknown as GetFreshnessContentResult;
-  return response;
-};
-
 export const getPostsByPlaceID = async (
   placeId: string,
   lastVisible?: string
@@ -104,6 +94,20 @@ export const toggleLike = async (
   return response;
 };
 
+export const addCommentToPost = async (
+  postId: string,
+  userId: string,
+  userName: string,
+  userPhotoUrl: string,
+  commentText: string
+) => {
+  const cloudFunction = httpsCallable(functions, 'addComment');
+  const response = await cloudFunction({
+    postId,
+    userId,
+    userName,
+    userPhotoUrl,
+    commentText,
 export const checkLikeStatus = async (
   postId: string,
   userId: string
@@ -114,6 +118,13 @@ export const checkLikeStatus = async (
     userId,
   });
   return response;
+};
+
+// Function to fetch comments for a post
+export const fetchCommentsForPost = async (postId: string) => {
+  const cloudFunction = httpsCallable(functions, 'getComments');
+  const response = await cloudFunction({ postId });
+  return response?.data?.comments;
 };
 
 export const fetchPostById = async (postId: string) => {
