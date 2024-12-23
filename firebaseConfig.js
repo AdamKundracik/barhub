@@ -29,15 +29,19 @@ export const auth = initializeAuth(app, {
 
 export const provider = new GoogleAuthProvider();
 
-export const db = getFirestore(app);
-export const storage = getStorage(app);
-export const functions = getFunctions(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+const functions = getFunctions(app);
 
 // Connect to the emulators if in development mode
-//if (__DEV__) {
-// if (true) {
-//     connectFirestoreEmulator(db, 'localhost', 8080);
-//     //connectAuthEmulator(auth, 'http://127.0.0.1:9099');
-//     connectFunctionsEmulator(functions, 'localhost', 5001);
-//     connectStorageEmulator(storage, 'localhost', 9199);
-// }
+// Note: Comment this out when developing locally without emulator set up
+if (__DEV__) {
+    connectFirestoreEmulator(db, 'localhost', 8080);
+    //connectAuthEmulator(auth, 'http://127.0.0.1:9099');
+    connectFunctionsEmulator(functions, 'localhost', 5001);
+    connectStorageEmulator(storage, 'localhost', 9199);
+
+    console.log("SUCCESSFULLY connected to FIREBASE LOCAL EMULATOR");
+}
+
+export { db, storage, functions };
