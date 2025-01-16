@@ -1,5 +1,9 @@
+import firebase from 'firebase/compat';
+import { GeoPoint } from 'firebase/firestore';
+
 export interface Post {
   geohash: string;
+  location: GeoPoint;
   creationTime: string;
   timestamp: number;
   userId: string;

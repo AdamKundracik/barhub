@@ -32,6 +32,7 @@ import { Post } from '../../../../../shared';
 import postService from '../../../utils/services/post.service';
 import { geohashForLocation } from 'geofire-common';
 import { auth } from '../../../../../firebaseConfig';
+import { GeoPoint } from 'firebase/firestore';
 
 type SummaryProps = {
   image: string;
@@ -160,6 +161,10 @@ export const PostSummary = ({ route }: any) => {
 
         const newPost: Post = {
           geohash: hash,
+          location: new GeoPoint(
+            place?.location.latitude ?? 0,
+            place?.location.longitude ?? 0
+          ),
           id: '',
           userId: '',
           fileId: '',
