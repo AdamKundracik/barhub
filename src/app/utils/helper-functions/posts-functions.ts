@@ -1,13 +1,19 @@
 import { InfinityScrollPost, Post } from '../../../../shared';
 import { getFreshContent } from '../services/post.service';
+import { GeoPointType, LocationType } from '../types/types';
+import { logger } from 'firebase-functions';
 
 export const handleFreshContent = async (
   lastVisible?: string | null,
-  placeId?: string | null
+  placeId?: string | null,
+  location?: LocationType
 ) => {
+  const geoPoint = locationTypeToGeoPointType(
+    location ?? { latitude: 0, longitude: 0 }
+  );
   const response = lastVisible
-    ? await getFreshContent(lastVisible)
-    : await getFreshContent();
+    ? await getFreshContent(geoPoint, lastVisible)
+    : await getFreshContent(geoPoint);
   const data = response.data as InfinityScrollPost;
   if (data.posts) {
     const postsWithUrls: Post[] = await Promise.all(data.posts); // If you need to transform posts, do it here.
@@ -21,4 +27,8 @@ export const handleFreshContent = async (
     }
   }
   return { posts: [], lastVisible: null };
+};
+
+const locationTypeToGeoPointType = (location: LocationType): GeoPointType => {
+  return { _lat: location.latitude, _long: location.longitude };
 };

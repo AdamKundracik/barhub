@@ -3,6 +3,7 @@ import { functions } from '../../../../firebaseConfig';
 import { SavePostResponse } from '../../../../functions/src/services/postService';
 import { Post } from '../../../../shared';
 import { GetFreshnessContentResult } from '../helper-functions/functions-types';
+import { GeoPointType } from '../types/types';
 
 class PostService {
   public savePost = async (post: Post) => {
@@ -16,10 +17,12 @@ class PostService {
 }
 
 export const getFreshContent = async (
+  geoPoint: GeoPointType,
   lastVisible?: string
 ): Promise<GetFreshnessContentResult> => {
   const cloudFunction = httpsCallable(functions, 'getFreshContent');
   const response = (await cloudFunction({
+    geoPoint,
     pageSize: 10,
     lastVisible: lastVisible,
   })) as unknown as GetFreshnessContentResult;

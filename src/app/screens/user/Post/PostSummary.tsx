@@ -161,10 +161,10 @@ export const PostSummary = ({ route }: any) => {
 
         const newPost: Post = {
           geohash: hash,
-          location: new GeoPoint(
-            place?.location.latitude ?? 0,
-            place?.location.longitude ?? 0
-          ),
+          location: {
+            _lat: place?.location.latitude ?? 0,
+            _long: place?.location.longitude ?? 0,
+          },
           id: '',
           userId: '',
           fileId: '',

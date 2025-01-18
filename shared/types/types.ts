@@ -36,7 +36,10 @@ export interface User extends UserRecord {
 
 export type Post = {
   geohash: string;
-  location: GeoPoint;
+  location: {
+    _lat: number;
+    _long: number;
+  };
   creationTime: string;
   timestamp: number;
   userId?: string;

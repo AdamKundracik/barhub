@@ -1,7 +1,7 @@
 import * as admin from 'firebase-admin';
 import functions, { https } from 'firebase-functions';
 import { InfinityScrollPost, Post } from '../../../common/types/postTypes';
-import { PostDocument } from '../documentTypes/Post';
+import { GeoPointType, PostDocument } from '../documentTypes/Post';
 import * as geofire from 'geofire-common';
 import { logger } from 'firebase-functions';
 export interface SavePostResponse {
@@ -69,14 +69,15 @@ class PostService {
    * @returns An object containing the posts and the last visible document ID.
    */
   async getFreshContent(
+    geoPoint: GeoPointType,
     uid: string,
     pageSize: number = 3,
     lastVisible: string | null = null
   ): Promise<InfinityScrollPost> {
     try {
       // logger.info('Starting getFreshContent');
-      const center: [number, number] = [48.7256946, 21.246195399999998];
-      const radiusInM = 100;
+      const center: [number, number] = [geoPoint._lat, geoPoint._long];
+      const radiusInM = 2;
 
       // First get all documents
       let query = this.db
