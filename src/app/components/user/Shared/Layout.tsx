@@ -65,10 +65,9 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
         <View
           style={{
             display: 'flex',
-            alignSelf: 'center',
-            position: 'relative',
-            width: '100%',
-            alignItems: 'center',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            paddingHorizontal: 20,
           }}
         >
           <View>
@@ -82,6 +81,22 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
                 fill="#10D9B9"
               />
             </Svg>
+          </View>
+          <View style={{ gap: 20, display: 'flex', flexDirection: 'row' }}>
+            <TouchableOpacity>
+              <FontAwesomeIcon
+                icon={Icons.Bell}
+                color={iconInactiveColor}
+                size={24}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <FontAwesomeIcon
+                icon={Icons.Sliders}
+                color={iconInactiveColor}
+                size={24}
+              />
+            </TouchableOpacity>
           </View>
         </View>
       </>

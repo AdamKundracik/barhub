@@ -123,7 +123,7 @@ export const UserProvider = ({ children }: Props) => {
         latitude: location.coords?.latitude,
         longitude: location.coords?.longitude,
       };
-      if (location.coords.speed && location.coords.speed <= 4) {
+      if (location.coords?.speed && location.coords?.speed <= 4) {
         setLocation(currentLocation);
         await setUserIntoDB(currentLocation);
       }

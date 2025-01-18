@@ -13,14 +13,7 @@ export const fetchPlaceAutocomplete = async (
   const requestBody = {
     input: query,
     sessionToken: sessionToken,
-    includedPrimaryTypes: [
-      'bar',
-      'cafe',
-      'bakery',
-      'night_club',
-      'restaurant',
-      'bowling_alley',
-    ],
+    includedPrimaryTypes: ['bar', 'cafe', 'bakery', 'night_club', 'restaurant'],
     languageCode: locales[0].languageCode,
     locationRestriction: {
       circle: {
@@ -28,7 +21,7 @@ export const fetchPlaceAutocomplete = async (
           latitude: location?.latitude,
           longitude: location?.longitude,
         },
-        radius: 7500,
+        radius: 2500,
       },
     },
   };

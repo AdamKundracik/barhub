@@ -4,6 +4,7 @@ import { InfinityScrollPost, Post } from '../../../common/types/postTypes';
 import { GeoPointType, PostDocument } from '../documentTypes/Post';
 import * as geofire from 'geofire-common';
 import { logger } from 'firebase-functions';
+import { PostCommentsResponse } from '../../../common/types/commentTypes';
 export interface SavePostResponse {
   post: Post;
 }
@@ -77,7 +78,7 @@ class PostService {
     try {
       // logger.info('Starting getFreshContent');
       const center: [number, number] = [geoPoint._lat, geoPoint._long];
-      const radiusInM = 2;
+      const radiusInM = 2000;
 
       // First get all documents
       let query = this.db
@@ -125,35 +126,12 @@ class PostService {
           const lat = Number(data.location._lat);
           const lng = Number(data.location._long);
 
-          // Validate coordinates
-          if (
-            isNaN(lat) ||
-            isNaN(lng) ||
-            lat < -90 ||
-            lat > 90 ||
-            lng < -180 ||
-            lng > 180
-          ) {
-            // logger.warn('Invalid coordinates for document:', {
-            //   id: doc.id,
-            //   lat,
-            //   lng,
-            // });
-            continue;
-          }
-
           const distanceInKm = geofire.distanceBetween(
             [lat, lng] as [number, number],
             center
           );
           const distanceInM = distanceInKm * 1000;
           console.log('distance in M: ', distanceInM);
-
-          // logger.debug('Distance calculated:', {
-          //   id: doc.id,
-          //   distanceInM,
-          //   withinRadius: distanceInM <= radiusInM,
-          // });
 
           if (distanceInM <= radiusInM) {
             matchingDocs.push(doc);
@@ -232,6 +210,109 @@ class PostService {
       throw new https.HttpsError(
         'internal',
         `Error fetching fresh content: ${error.message || 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Retrieves posts for a specific place with pagination.
+   *
+   * @param uid - User ID of the authenticated user.
+   * @param placeId - ID of the place to filter posts.
+   * @param pageSize - Number of posts to retrieve per page.
+   * @param lastVisible - ID of the last post from the previous query.
+   * @returns An object containing the posts and the last visible document ID.
+   */
+  async getPostsByPlaceId(
+    uid: string,
+    placeId: string,
+    pageSize: number = 3,
+    lastVisible: string | null = null
+  ): Promise<InfinityScrollPost> {
+    try {
+      // First get posts filtered by placeId
+      let query = this.db
+        .collection('posts')
+        .where('folderId', '==', placeId)
+        .orderBy('timestamp', 'desc');
+
+      // Handle pagination if last visible document is provided
+      if (lastVisible) {
+        const lastVisibleDoc = await this.db
+          .collection('posts')
+          .doc(lastVisible)
+          .get();
+
+        if (lastVisibleDoc.exists) {
+          query = query.startAfter(lastVisibleDoc);
+        }
+      }
+
+      // Execute the query
+      const querySnapshot = await query.limit(pageSize).get();
+
+      // If no documents found
+      if (querySnapshot.empty) {
+        return { posts: [], lastVisible: '' };
+      }
+
+      // Process each document to get full post details
+      const posts = await Promise.all(
+        querySnapshot.docs.map(async doc => {
+          const postData = doc.data() as Post;
+
+          const [likesSnapshot, commentsSnapshot, likeSnapshot, userSnapshot] =
+            await Promise.all([
+              this.db.collection('posts').doc(doc.id).collection('likes').get(),
+              this.db
+                .collection('posts')
+                .doc(doc.id)
+                .collection('comments')
+                .get(),
+              this.db
+                .collection('posts')
+                .doc(doc.id)
+                .collection('likes')
+                .doc(uid)
+                .get(),
+              this.db.collection('users').doc(postData.userId).get(),
+            ]);
+
+          const user = userSnapshot.exists
+            ? {
+                id: userSnapshot.id,
+                displayName: userSnapshot.data()?.displayName || 'Missing name',
+                photoUrl: userSnapshot.data()?.photoURL || '',
+              }
+            : {
+                id: '',
+                displayName: 'Deleted user',
+                photoUrl: '',
+              };
+
+          return {
+            ...postData,
+            id: doc.id,
+            isLiked: likeSnapshot.exists,
+            likesCount: likesSnapshot.size,
+            commentsCount: commentsSnapshot.size,
+            user: user,
+          };
+        })
+      );
+
+      return {
+        posts,
+        lastVisible:
+          querySnapshot.docs.length > 0
+            ? querySnapshot.docs[querySnapshot.docs.length - 1].id
+            : '',
+      };
+    } catch (error) {
+      logger.error('Error fetching posts by place ID:', error);
+      throw new https.HttpsError(
+        'internal',
+        `Error fetching posts by place ID: ${error.message || 'Unknown error'}`
       );
     }
   }

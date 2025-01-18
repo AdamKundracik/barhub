@@ -4,6 +4,7 @@ import {
   faArrowRightFromBracket,
   faBan,
   faBars,
+  faBell,
   faBolt,
   faBoxesPacking,
   faCamera,
@@ -35,6 +36,7 @@ import {
   faSearchPlus,
   faShare,
   faShareAlt,
+  faSliders,
   faThumbsDown,
   faThumbsUp,
   faUser,
@@ -100,4 +102,6 @@ export const Icons = {
   Right: faArrowRight,
   Flag: faFlag,
   Group: faPeopleGroup,
+  Bell: faBell,
+  Sliders: faSliders,
 };

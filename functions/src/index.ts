@@ -4,6 +4,7 @@ import PostService, { SavePostResponse } from './services/postService';
 import { firestore } from 'firebase-admin';
 import CommentService from './services/CommentService';
 import { PostComment } from '../../common/types/commentTypes';
+import { GeoPointType } from './documentTypes/Post';
 
 const admin = require('firebase-admin');
 
@@ -245,7 +246,7 @@ exports.getPostById = functions.https.onCall(async (data, context) => {
 
 exports.getFreshContent = functions.https.onCall(
   async (
-    data: { pageSize?: number; lastVisible?: string },
+    data: { geoPoint: GeoPointType; pageSize?: number; lastVisible?: string },
     context: CallableContext
   ) => {
     try {
@@ -256,10 +257,11 @@ exports.getFreshContent = functions.https.onCall(
         );
       }
 
-      const { pageSize = 3, lastVisible = null } = data;
+      const { geoPoint, pageSize = 3, lastVisible = null } = data;
       const uid = context.auth.uid;
 
       const result = await postService.getFreshContent(
+        geoPoint,
         uid,
         pageSize,
         lastVisible
@@ -277,61 +279,37 @@ exports.getFreshContent = functions.https.onCall(
 
 exports.getPostsByPlaceId = functions.https.onCall(
   async (
-    data,
+    data: {
+      placeId: string;
+      pageSize?: number;
+      lastVisible?: string;
+    },
     context: CallableContext
-  ): Promise<InfinityScrollPost | null> => {
+  ) => {
     try {
-      const { pageSize = 1, lastVisible = null, placeId = null } = data;
-
-      // Reference to the 'posts' collection with timestamp ordering
-      let query = db
-        .collection('posts')
-        .where('folderId', '==', placeId)
-        .orderBy('timestamp', 'desc')
-        .limit(pageSize);
-
-      // Validate the `lastVisible` parameter
-      if (lastVisible) {
-        // Fetch the document that corresponds to `lastVisible`
-        const lastVisibleDoc = await db
-          .collection('posts')
-          .doc(lastVisible)
-          .get();
-
-        // If the document exists, use it as the starting point for the next query
-        if (lastVisibleDoc.exists) {
-          query = query.startAfter(lastVisibleDoc);
-        } else {
-          console.error('Invalid lastVisible document.');
-          return { lastVisible: '', posts: [] } as InfinityScrollPost;
-        }
+      if (!context.auth) {
+        throw new functions.https.HttpsError(
+          'unauthenticated',
+          'User must be authenticated to fetch posts.'
+        );
       }
 
-      // Execute the query
-      const querySnapshot = await query.get();
+      const { placeId, pageSize = 3, lastVisible = null } = data;
+      const uid = context.auth.uid;
 
-      // Check if the result is empty
-      if (querySnapshot.empty) {
-        return { lastVisible: '', posts: [] } as InfinityScrollPost;
-      }
-
-      // Map the fetched documents to Post objects
-      const items: Post[] = querySnapshot.docs.map(doc => ({
-        ...doc.data(),
-        id: doc.id,
-      }));
-
-      // Get the last document to be used for the next page
-      const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
-
-      // Return the fetched posts and the last visible document's ID
-      return {
-        posts: items,
-        lastVisible: lastDoc.id, // Use the ID of the last document for pagination
-      } as InfinityScrollPost;
+      const result = await postService.getPostsByPlaceId(
+        uid,
+        placeId,
+        pageSize,
+        lastVisible
+      );
+      return result;
     } catch (error) {
-      console.error('Error fetching fresh content:', error);
-      return null;
+      functions.logger.error('Error in getPostsByPlaceId:', error);
+      throw new functions.https.HttpsError(
+        'internal',
+        `Error in getPostsByPlaceId: ${error.message || 'Unknown error'}`
+      );
     }
   }
 );

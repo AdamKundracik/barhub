@@ -29,5 +29,18 @@ export const getFreshContent = async (
   return response;
 };
 
+export const getPostsByPlaceId = async (
+  placeId: string,
+  lastVisible?: string
+): Promise<GetFreshnessContentResult> => {
+  const cloudFunction = httpsCallable(functions, 'getPostsByPlaceId');
+  const response = (await cloudFunction({
+    placeId,
+    pageSize: 10,
+    lastVisible: lastVisible,
+  })) as unknown as GetFreshnessContentResult;
+  return response;
+};
+
 const postService = new PostService();
 export default postService;
