@@ -3,7 +3,10 @@ import { GeoPoint } from 'firebase/firestore';
 
 export interface Post {
   geohash: string;
-  location: GeoPoint;
+  location: {
+    _lat: number;
+    _long: number;
+  };
   creationTime: string;
   timestamp: number;
   userId: string;
@@ -16,6 +19,7 @@ export interface Post {
   occupancy: string;
   likesCount?: number;
   commentsCount?: number;
+  isLiked?: boolean;
   user?: UserInfo;
 }
 

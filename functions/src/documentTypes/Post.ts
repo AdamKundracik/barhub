@@ -4,7 +4,10 @@ import { GeoPoint } from 'firebase/firestore';
 export interface PostDocument {
   creationTime: string;
   geohash: string;
-  location: GeoPoint;
+  location: {
+    _lat: number;
+    _long: number;
+  };
   timestamp: number;
   userId: string;
   fileId: string;

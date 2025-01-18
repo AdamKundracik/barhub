@@ -1,7 +1,9 @@
 import * as admin from 'firebase-admin';
-import functions from 'firebase-functions';
+import functions, { https } from 'firebase-functions';
 import { InfinityScrollPost, Post } from '../../../common/types/postTypes';
 import { PostDocument } from '../documentTypes/Post';
+import * as geofire from 'geofire-common';
+import { logger } from 'firebase-functions';
 export interface SavePostResponse {
   post: Post;
 }
@@ -72,10 +74,15 @@ class PostService {
     lastVisible: string | null = null
   ): Promise<InfinityScrollPost> {
     try {
+      // logger.info('Starting getFreshContent');
+      const center: [number, number] = [48.7256946, 21.246195399999998];
+      const radiusInM = 100;
+
+      // First get all documents
       let query = this.db
         .collection('posts')
-        .orderBy('timestamp', 'desc')
-        .limit(pageSize);
+        .orderBy('geohash')
+        .orderBy('timestamp', 'desc');
 
       if (lastVisible) {
         const lastVisibleDoc = await this.db
@@ -88,41 +95,106 @@ class PostService {
         }
       }
 
+      // Get the initial documents
       const querySnapshot = await query.get();
+      // logger.debug('Total documents found:', querySnapshot.size);
 
-      if (querySnapshot.empty) {
+      // Filter documents by distance
+      const matchingDocs: FirebaseFirestore.QueryDocumentSnapshot[] = [];
+
+      for (const doc of querySnapshot.docs) {
+        try {
+          const data = doc.data();
+          logger.debug('Document data:', {
+            id: doc.id,
+            location: data.location,
+            geohash: data.geohash,
+          });
+
+          // Validate location data
+          if (
+            !data.location ||
+            typeof data.location._lat !== 'number' ||
+            typeof data.location._long !== 'number'
+          ) {
+            logger.warn('Invalid location data for document:', doc.id);
+            continue;
+          }
+
+          const lat = Number(data.location._lat);
+          const lng = Number(data.location._long);
+
+          // Validate coordinates
+          if (
+            isNaN(lat) ||
+            isNaN(lng) ||
+            lat < -90 ||
+            lat > 90 ||
+            lng < -180 ||
+            lng > 180
+          ) {
+            // logger.warn('Invalid coordinates for document:', {
+            //   id: doc.id,
+            //   lat,
+            //   lng,
+            // });
+            continue;
+          }
+
+          const distanceInKm = geofire.distanceBetween(
+            [lat, lng] as [number, number],
+            center
+          );
+          const distanceInM = distanceInKm * 1000;
+          console.log('distance in M: ', distanceInM);
+
+          // logger.debug('Distance calculated:', {
+          //   id: doc.id,
+          //   distanceInM,
+          //   withinRadius: distanceInM <= radiusInM,
+          // });
+
+          if (distanceInM <= radiusInM) {
+            matchingDocs.push(doc);
+          }
+        } catch (docError) {
+          logger.warn('Error processing document:', {
+            id: doc.id,
+            error: docError.message,
+          });
+          continue;
+        }
+      }
+
+      if (matchingDocs.length === 0) {
+        logger.info('No documents found within radius');
         return { posts: [], lastVisible: '' };
       }
 
-      const posts: Post[] = await Promise.all(
-        querySnapshot.docs.map(async doc => {
+      // Already sorted by timestamp due to the initial query
+      const paginatedDocs = matchingDocs.slice(0, pageSize);
+
+      // Get additional data for matching docs
+      const posts = await Promise.all(
+        paginatedDocs.map(async doc => {
           const postData = doc.data() as Post;
 
-          const likesSnapshot = await this.db
-            .collection('posts')
-            .doc(doc.id)
-            .collection('likes')
-            .get();
-          const likesCount = likesSnapshot.size;
-
-          const commentsSnapshot = await this.db
-            .collection('posts')
-            .doc(doc.id)
-            .collection('comments')
-            .get();
-          const commentsCount = commentsSnapshot.size;
-
-          const likeSnapshot = await this.db
-            .collection('posts')
-            .doc(doc.id)
-            .collection('likes')
-            .doc(uid)
-            .get();
-
-          const userSnapshot = await this.db
-            .collection('users')
-            .doc(postData.userId)
-            .get();
+          const [likesSnapshot, commentsSnapshot, likeSnapshot, userSnapshot] =
+            await Promise.all([
+              this.db.collection('posts').doc(doc.id).collection('likes').get(),
+              this.db
+                .collection('posts')
+                .doc(doc.id)
+                .collection('comments')
+                .get(),
+              this.db
+                .collection('posts')
+                .doc(doc.id)
+                .collection('likes')
+                .doc(uid)
+                .get(),
+              this.db.collection('users').doc(postData.userId).get(),
+            ]);
 
           const user = userSnapshot.exists
             ? {
@@ -140,22 +212,23 @@ class PostService {
             ...postData,
             id: doc.id,
             isLiked: likeSnapshot.exists,
-            likesCount,
-            commentsCount,
+            likesCount: likesSnapshot.size,
+            commentsCount: commentsSnapshot.size,
             user: user,
           };
         })
       );
 
-      const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
-
       return {
-        posts: posts,
-        lastVisible: lastDoc.id,
+        posts,
+        lastVisible:
+          paginatedDocs.length > 0
+            ? paginatedDocs[paginatedDocs.length - 1].id
+            : '',
       };
     } catch (error) {
-      functions.logger.error('Error fetching fresh content:', error);
-      throw new functions.https.HttpsError(
+      logger.error('Error fetching fresh content:', error);
+      throw new https.HttpsError(
         'internal',
         `Error fetching fresh content: ${error.message || 'Unknown error'}`
       );
