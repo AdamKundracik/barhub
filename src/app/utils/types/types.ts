@@ -133,6 +133,11 @@ export type LocationType = {
   longitude: number;
 };
 
+export type GeoPointType = {
+  _lat: number;
+  _long: number;
+};
+
 export interface Match {
   endOffset: number;
 }

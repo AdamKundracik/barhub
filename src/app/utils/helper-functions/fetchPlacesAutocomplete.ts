@@ -21,7 +21,7 @@ export const fetchPlaceAutocomplete = async (
           latitude: location?.latitude,
           longitude: location?.longitude,
         },
-        radius: 7500,
+        radius: 2500,
       },
     },
   };

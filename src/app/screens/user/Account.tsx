@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Layout from '../../components/user/Shared/Layout';
 import { auth } from '../../../../firebaseConfig';
 import { useTranslation } from 'react-i18next';
@@ -10,7 +16,7 @@ import { UserStackList } from '../../utils/types/screen-types';
 import { useUserContext } from '../../providers/UserProvider';
 import { DeleteUserModal } from '../../components/user/Account/DeleteUserModal';
 import FastImage from 'react-native-fast-image';
-import { primaryColor } from '../../utils/styles/colors';
+import { primaryBgColor, primaryColor } from '../../utils/styles/colors';
 import EditProfile from '../../components/user/Account/EditProfile';
 
 export const Account = () => {
@@ -24,18 +30,18 @@ export const Account = () => {
 
   if (isEditing) {
     return (
-      <Layout pageTitle="Edit Account" showBottomTabs={false}>
+      <SafeAreaView style={styles.safeArea}>
         <EditProfile
           user={userData ?? null}
           onEditCLose={() => setIsEditing(false)}
         />
-      </Layout>
+      </SafeAreaView>
     );
   }
 
   return (
-    <Layout pageTitle="Account" showBottomTabs={false}>
-      <>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <FontAwesomeIcon icon={Icons.Remove} size={28} color={'white'} />
@@ -76,7 +82,7 @@ export const Account = () => {
             </Text>
           </View>
         </View>
-      </>
+      </View>
 
       <View style={styles.infoSection}>
         <Text style={styles.label}>{t('email')}</Text>
@@ -106,44 +112,34 @@ export const Account = () => {
         isOpen={modalOpened}
         onClose={() => setModalOpened(false)}
       />
-    </Layout>
+    </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
-  profilePicture: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    marginBottom: 20,
+const commonColors = {
+  white: '#fff',
+  primaryTeal: '#00E1C9',
+  premium: '#FFC107',
+  deleteRed: '#FE7878',
+};
+
+const commonTypography = {
+  baseSize: 16,
+  smallSize: 14,
+};
+
+export const styles = StyleSheet.create({
+  // Container and Layout
+  safeArea: {
+    flex: 1,
+    backgroundColor: primaryBgColor,
   },
   container: {
-    flex: 1,
-    backgroundColor: '#0E0F1F',
-    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    paddingVertical: 32,
   },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  title: {
-    fontSize: 24,
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  titlePrimary: {
-    color: 'white',
-  },
-  titleSecondary: {
-    color: '#00E1C9',
-  },
-  profileSection: {
-    alignItems: 'center',
-    marginBottom: 15,
-  },
+
+  // Header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -151,12 +147,26 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingVertical: 10,
   },
-  avatar: {
-    borderWidth: 2,
-    borderColor: '#FFC107',
+
+  // Profile Section
+  profileSection: {
+    alignItems: 'center',
+    marginBottom: 15,
   },
+  profilePicture: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    marginBottom: 20,
+  },
+  premiumBorder: {
+    borderWidth: 1,
+    borderColor: commonColors.premium,
+  },
+
+  // Username and Status
   username: {
-    color: '#00E1C9',
+    color: commonColors.primaryTeal,
     fontSize: 20,
     fontWeight: 'bold',
     paddingVertical: 8,
@@ -168,53 +178,44 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   premiumText: {
-    color: '#FFC107',
+    color: commonColors.premium,
     marginLeft: 4,
-    fontSize: 16,
+    fontSize: commonTypography.baseSize,
   },
   basicText: {
     color: 'white',
     marginLeft: 4,
-    fontSize: 16,
+    fontSize: commonTypography.baseSize,
   },
 
-  deleteAccount: {
-    color: '#FE7878',
-    fontSize: 16,
-    textAlign: 'center',
-  },
+  // Info Section
   infoSection: {
+    paddingHorizontal: 15,
     justifyContent: 'center',
   },
-
   label: {
-    color: '#fff',
-    fontSize: 14,
+    color: commonColors.white,
+    fontSize: commonTypography.smallSize,
     marginTop: 16,
   },
   value: {
-    color: '#00E1C9',
-    fontSize: 16,
+    color: commonColors.primaryTeal,
+    fontSize: commonTypography.baseSize,
     marginBottom: 8,
   },
+
+  // Action Buttons
   changePassword: {
     color: 'white',
     textAlign: 'center',
     marginTop: 24,
     textDecorationLine: 'underline',
-    fontSize: 16,
+    fontSize: commonTypography.baseSize,
   },
-  bottomBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingBottom: 24,
-  },
-  bottomAvatar: {
-    borderWidth: 2,
-    borderColor: '#FFC107',
+  deleteAccount: {
+    color: commonColors.deleteRed,
+    fontSize: commonTypography.baseSize,
+    textAlign: 'center',
   },
 });
-
 export default Account;

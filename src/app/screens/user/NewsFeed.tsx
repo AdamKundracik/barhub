@@ -53,7 +53,8 @@ export const NewsFeed = () => {
     isRefetching,
   } = useInfiniteQuery(
     placeId ? ['posts', placeId] : 'posts',
-    ({ pageParam = null }) => handleFreshContent(pageParam, placeId), // Handle fresh content when place is not set
+    ({ pageParam = null }) =>
+      handleFreshContent(pageParam, placeId, userData?.location), // Handle fresh content when place is not set
     {
       getNextPageParam: lastPage => lastPage?.lastVisible || null, // Fetch more posts based on lastVisible (cursor)
     }
@@ -131,7 +132,6 @@ export const NewsFeed = () => {
         </>
       )}
       <CommentsSlider
-        users={users}
         postId={postId}
         opened={showComments}
         onClose={() => setShowComments(false)}

@@ -1,4 +1,5 @@
 import { LocationType } from '../../src/app/utils/types/types';
+import { GeoPoint } from 'firebase/firestore';
 
 export interface UserRecord {
   customClaims: { [key: string]: any };
@@ -35,6 +36,10 @@ export interface User extends UserRecord {
 
 export type Post = {
   geohash: string;
+  location: {
+    _lat: number;
+    _long: number;
+  };
   creationTime: string;
   timestamp: number;
   userId?: string;
@@ -65,12 +70,3 @@ export type InfinityScrollPost = {
 export interface PostUrlExtended extends Post {
   url: string;
 }
-
-export type CommentProps = {
-  userName: string;
-  commentText: string;
-  creationTime: any;
-  id: string;
-  userId: string;
-  userPhotoUrl: string;
-};

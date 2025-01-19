@@ -11,6 +11,26 @@ import {
 } from '../helper-functions/functions-types';
 import { MISSING_REQUIRED_REQUEST_PARAMS } from '../helper-functions/constants';
 import { User } from '../../../../shared';
+import { Post } from '../../../../shared';
+import { LocationType } from '../types/types';
+import { GeoPoint } from 'firebase/firestore';
+import {
+  AddedCommentResponse,
+  PostCommentsResponse,
+} from '../../../../common/types/commentTypes';
+
+export const savePost = async (
+  data: Partial<Post>
+): Promise<EmptyDataResult> => {
+  if (!data) return MISSING_REQUIRED_REQUEST_PARAMS;
+  const cloudFunction = httpsCallable<
+    SetDocumentFromCollectionRequest['data']['data']
+  >(functions, 'savePost');
+  const { data: response } = (await cloudFunction({
+    ...data,
+  })) as unknown as EmptyDataResponse;
+  return response;
+};
 
 export const setUser = async (
   data: Partial<User>
@@ -74,31 +94,7 @@ export const toggleLike = async (
   return response;
 };
 
-export const addCommentToPost = async (
-  postId: string,
-  userId: string,
-  userName: string,
-  userPhotoUrl: string,
-  commentText: string
-) => {
-  const cloudFunction = httpsCallable(functions, 'addComment');
-  const response = await cloudFunction({
-    postId,
-    userId,
-    userName,
-    userPhotoUrl,
-    commentText,
-  });
-  return response;
-};
-
 // Function to fetch comments for a post
-export const fetchCommentsForPost = async (postId: string) => {
-  const cloudFunction = httpsCallable(functions, 'getComments');
-  const response = await cloudFunction({ postId });
-  return response?.data?.comments;
-};
-
 export const fetchPostById = async (postId: string) => {
   const cloudFunction = httpsCallable(functions, 'getPostById');
   const response = await cloudFunction({ postId });

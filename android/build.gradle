@@ -1,19 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
-subprojects {project ->
-    if (project.name.contains('react-native-fetch-blob')) {
-        buildscript {
-            repositories {
-                maven { url "https://dl.bintray.com/android/android-tools/"  }
-            }
-        }
-    }
-}
 
 buildscript {
     ext {
-// @generated begin expo-gradle-ext-vars - expo prebuild (DO NOT MODIFY) sync-da39a3ee5e6b4b0d3255bfef95601890afd80709
-
-// @generated end expo-gradle-ext-vars
 // @generated begin expo-gradle-ext-vars - expo prebuild (DO NOT MODIFY) sync-a14167d3df9d6380c3d77a8f8070215ea8a94013
 	googlePlayServicesLocationVersion = "21.1.0"
 	appCompatVersion = "1.4.2"
@@ -31,7 +19,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.google.gms:google-services:4.4.2'
+        classpath 'com.google.gms:google-services:4.3.3'
         classpath('com.android.tools.build:gradle')
         classpath('com.facebook.react:react-native-gradle-plugin')
         classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')

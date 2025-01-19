@@ -9,6 +9,10 @@
     "target": "es2017"
   },
   "compileOnSave": true,
-  "include": ["src"],
+  "include": [
+    "src/**/*",
+    "../common/types/**/*",
+    "*.ts"
+  ],
   "extends": "expo/tsconfig.base"
 }

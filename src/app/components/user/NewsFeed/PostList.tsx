@@ -64,7 +64,7 @@ const PostsList = ({
         setZoomedPost={setZoomedPost}
         isZoomed={zoomedPost === item.photoUrl}
       />
-      {index % 2 === 0 && index !== 0 && <Ad />}
+      {/*{index % 2 === 0 && index !== 0 && <Ad />}*/}
     </View>
   );
 
