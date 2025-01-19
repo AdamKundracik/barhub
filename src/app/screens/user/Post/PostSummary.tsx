@@ -165,6 +165,7 @@ export const PostSummary = ({ route }: any) => {
             _lat: place?.location.latitude ?? 0,
             _long: place?.location.longitude ?? 0,
           },
+          placeTypes: place.types,
           id: '',
           userId: '',
           fileId: '',

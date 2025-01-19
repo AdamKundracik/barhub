@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Layout from '../../components/user/Shared/Layout';
 import { useInfiniteQuery } from 'react-query';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -7,7 +7,7 @@ import { UserStackList } from '../../utils/types/screen-types';
 import { useUserContext } from '../../providers/UserProvider';
 import { handleFreshContent } from '../../utils/services/posts-functions';
 import { getDaysSince } from '../../utils/helper-functions/getDaysSince';
-import { PlaceDetail } from '../../utils/types/types';
+import { PlaceDetail, PlaceType } from '../../utils/types/types';
 import NotificationHandler from '../../components/user/NewsFeed/NotificationHandler';
 import LoadingIndicator from '../../components/user/NewsFeed/LoadingIndicator';
 import PostsList from '../../components/user/NewsFeed/PostList';
@@ -20,19 +20,18 @@ import { usePlaceStore } from '../../utils/store/placesStore';
 import EmptyState from '../../components/user/NewsFeed/EmptyState';
 import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import PostLoaderView from '../../components/user/NewsFeed/Post/Loaders/PostLoaderView';
-import FilterSlider from '../../components/user/NewsFeed/Filters/FilterSlider';
+import { useFiltersStore } from '../../utils/store/filtersStorage';
 
 export const NewsFeed = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { userData } = useUserContext();
   const [zoomedPost, setZoomedPost] = useState<string | null>(null);
   const [showComments, setShowComments] = useState(false);
-  const [showFilter, setShowFilters] = useState(false);
   const [postId, setPostId] = useState<string | null>(null);
-  const { users } = useUserContext();
   const { t } = useTranslation();
 
   const { placeId, placeName, setPlaceDetail } = usePlaceStore();
+  const { distance, selectedPlaces } = useFiltersStore();
   const [
     numberOfDaysSinceLastPostedPhoto,
     setNumberOfDaysSinceLastPostedPhoto,
@@ -56,15 +55,33 @@ export const NewsFeed = () => {
   } = useInfiniteQuery(
     placeId ? ['posts', placeId] : 'posts',
     ({ pageParam = null }) =>
-      handleFreshContent(pageParam, placeId, userData?.location), // Handle fresh content when place is not set
+      handleFreshContent(distance, pageParam, placeId, userData?.location),
     {
-      getNextPageParam: lastPage => lastPage?.lastVisible || null, // Fetch more posts based on lastVisible (cursor)
+      getNextPageParam: lastPage => lastPage?.lastVisible || null,
     }
   );
+
+  const filteredPosts = useMemo(() => {
+    if (!postsData?.pages || selectedPlaces.length === 0) {
+      return postsData?.pages.flatMap(page => page.posts);
+    }
+
+    return postsData.pages.flatMap(page =>
+      page.posts.filter(post =>
+        post.placeTypes?.some(type =>
+          selectedPlaces.includes(type as PlaceType)
+        )
+      )
+    );
+  }, [postsData?.pages, selectedPlaces]);
 
   useEffect(() => {
     if (placeId) refetch();
   }, [placeId]);
+
+  useEffect(() => {
+    refetch();
+  }, [distance]);
 
   const onRefresh = async () => {
     await refetch();
@@ -104,10 +121,10 @@ export const NewsFeed = () => {
 
       {isLoading ? (
         <PostLoaderView />
-      ) : postsData?.pages.flatMap(page => page.posts).length ? (
+      ) : filteredPosts?.length ? (
         <PostsList
           hasMorePosts={hasNextPage}
-          posts={postsData.pages.flatMap(page => page.posts)}
+          posts={filteredPosts}
           zoomedPost={zoomedPost}
           setZoomedPost={setZoomedPost}
           userData={userData}

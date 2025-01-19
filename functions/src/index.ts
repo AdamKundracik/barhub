@@ -246,7 +246,12 @@ exports.getPostById = functions.https.onCall(async (data, context) => {
 
 exports.getFreshContent = functions.https.onCall(
   async (
-    data: { geoPoint: GeoPointType; pageSize?: number; lastVisible?: string },
+    data: {
+      geoPoint: GeoPointType;
+      radius: number;
+      pageSize?: number;
+      lastVisible?: string;
+    },
     context: CallableContext
   ) => {
     try {
@@ -257,11 +262,12 @@ exports.getFreshContent = functions.https.onCall(
         );
       }
 
-      const { geoPoint, pageSize = 3, lastVisible = null } = data;
+      const { geoPoint, radius, pageSize = 3, lastVisible = null } = data;
       const uid = context.auth.uid;
 
       const result = await postService.getFreshContent(
         geoPoint,
+        radius,
         uid,
         pageSize,
         lastVisible

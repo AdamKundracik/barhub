@@ -1,16 +1,18 @@
 import { InfinityScrollPost, Post } from '../../../../shared';
 import { getFreshContent, getPostsByPlaceId } from './post.service';
-import { GeoPointType, LocationType } from '../types/types';
-import { logger } from 'firebase-functions';
+import { GeoPointType, LocationType, PlaceType } from '../types/types';
 
 export const handleFreshContent = async (
+  radius: number,
   lastVisible?: string | null,
   placeId?: string | null,
-  location?: LocationType
+  location?: LocationType,
+  selectedPlaceTypes?: PlaceType[]
 ): Promise<{ posts: Post[]; lastVisible: string | null }> => {
   const geoPoint = locationTypeToGeoPointType(
     location ?? { latitude: 0, longitude: 0 }
   );
+
   try {
     let response;
     if (placeId) {
@@ -19,24 +21,39 @@ export const handleFreshContent = async (
         : await getPostsByPlaceId(placeId);
     } else {
       response = lastVisible
-        ? await getFreshContent(geoPoint, lastVisible)
-        : await getFreshContent(geoPoint);
+        ? await getFreshContent(geoPoint, radius, lastVisible)
+        : await getFreshContent(geoPoint, radius);
     }
 
-    // Ensure response exists and has posts
     const data = response.data as InfinityScrollPost;
     if (!data?.posts?.length) {
       return { posts: [], lastVisible: null };
     }
 
-    // Process and return posts
-    const postsWithUrls = await Promise.all(data.posts);
+    // If no place types are selected, return all posts
+    if (!selectedPlaceTypes?.length) {
+      return {
+        posts: data.posts,
+        lastVisible: data.lastVisible || null,
+      };
+    }
+
+    // Filter posts based on selected place types
+    const filteredPosts = data.posts.filter(post => {
+      const postTypes = post.placeTypes || [];
+      return selectedPlaceTypes.some(selectedType =>
+        postTypes.includes(selectedType)
+      );
+    });
+
     return {
-      posts: postsWithUrls,
-      lastVisible: data.lastVisible || null,
+      posts: filteredPosts,
+      lastVisible:
+        filteredPosts.length > 0
+          ? filteredPosts[filteredPosts.length - 1].id
+          : null,
     };
   } catch (error) {
-    console.error('Error in handleFreshContent:', error);
     return { posts: [], lastVisible: null };
   }
 };

@@ -23,11 +23,10 @@ import { geohashForLocation } from 'geofire-common';
 
 type ContextProps = {
   authUser: null | boolean;
-  isLoadingAuth: boolean;
+  isLoading: boolean;
   location: LocationType;
   setLocation: (value: LocationType) => void;
   userData: User | null;
-  isLoading: boolean;
   emailVerified: boolean;
   fetchUserData: () => void;
   fetchAllUsers: () => void;
@@ -40,17 +39,17 @@ interface Props {
 
 const UserContext = createContext<Partial<ContextProps>>({});
 
-const useFetchUserData = () => {
-  const uid = auth.currentUser?.uid;
-
+const useFetchUserData = (uid: string | undefined) => {
   return useQuery(
-    'userData',
+    ['userData', uid],
     async () => {
       const user = await getCurrentUser();
       return user;
     },
     {
       enabled: !!uid,
+      retry: 2,
+      staleTime: 1000 * 60 * 5, // 5 minutes
     }
   );
 };
@@ -62,7 +61,6 @@ const useFetchAllUsers = () => {
   });
 };
 
-// Function to update user in DB
 const setUserIntoDB = async (location: LocationType) => {
   const hash = geohashForLocation([location.latitude, location.longitude]);
   await setUser({ location: location, geohash: hash });
@@ -75,31 +73,32 @@ export const UserProvider = ({ children }: Props) => {
   });
   const [emailVerified, setEmailVerified] = useState<boolean>(false);
   const [authUser, setAuthUser] = useState<null | boolean>(null);
-  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
-  // Fetching user data and users with useQuery
   const {
     data: userData,
     isLoading: isUserLoading,
     refetch: refetchUserData,
-  } = useFetchUserData();
+  } = useFetchUserData(auth.currentUser?.uid);
+
   const {
     data: users,
     isLoading: isUsersLoading,
     refetch: fetchAllUsers,
   } = useFetchAllUsers();
 
-  // Handle Firebase auth state changes
+  // Calculate overall loading state
+  const isLoading = isAuthLoading || isUserLoading || isUsersLoading;
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, u => {
-      setAuthUser(!!u);
-      setIsLoadingAuth(false);
-      setEmailVerified(u?.emailVerified ?? false);
+    const unsubscribe = onAuthStateChanged(auth, user => {
+      setAuthUser(!!user);
+      setEmailVerified(user?.emailVerified ?? false);
+      setIsAuthLoading(false);
     });
     return unsubscribe;
   }, []);
 
-  // Fetch location when app state changes
   useEffect(() => {
     if (AppState.currentState === 'active') {
       getLocation();
@@ -112,73 +111,74 @@ export const UserProvider = ({ children }: Props) => {
       await setUserIntoDB(coords);
       setLocation(coords);
     } catch (e) {
-      console.error(e);
+      console.error('Error getting location:', e);
     }
   };
 
-  // Hook for BackgroundGeolocation setup
   useEffect(() => {
-    const onLocation = BackgroundGeolocation.onLocation(async location => {
-      const currentLocation: LocationType = {
-        latitude: location.coords?.latitude,
-        longitude: location.coords?.longitude,
-      };
-      if (location.coords?.speed && location.coords?.speed <= 4) {
-        setLocation(currentLocation);
-        await setUserIntoDB(currentLocation);
-      }
-    });
+    const setupBackgroundGeolocation = async () => {
+      const onLocation = BackgroundGeolocation.onLocation(async location => {
+        const currentLocation: LocationType = {
+          latitude: location.coords?.latitude,
+          longitude: location.coords?.longitude,
+        };
+        if (location.coords?.speed && location.coords?.speed <= 4) {
+          setLocation(currentLocation);
+          await setUserIntoDB(currentLocation);
+        }
+      });
 
-    const onMotionChange = BackgroundGeolocation.onMotionChange(async event => {
-      const { latitude, longitude } = event.location.coords;
-      const currentLocation: LocationType = { latitude, longitude };
+      const onMotionChange = BackgroundGeolocation.onMotionChange(
+        async event => {
+          const { latitude, longitude } = event.location.coords;
+          const currentLocation: LocationType = { latitude, longitude };
 
-      if (!event.isMoving) {
-        setLocation(currentLocation);
-        await setUserIntoDB(currentLocation);
-      }
-    });
+          if (!event.isMoving) {
+            setLocation(currentLocation);
+            await setUserIntoDB(currentLocation);
+          }
+        }
+      );
 
-    BackgroundGeolocation.ready({
-      desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_NAVIGATION,
-      distanceFilter: 25,
-      stopTimeout: 3,
-      debug: false,
-      logLevel: BackgroundGeolocation.LOG_LEVEL_OFF,
-      stopOnTerminate: false,
-      startOnBoot: true,
-      showsBackgroundLocationIndicator: false,
-    }).then(state => {
+      await BackgroundGeolocation.ready({
+        desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_NAVIGATION,
+        distanceFilter: 25,
+        stopTimeout: 3,
+        debug: false,
+        logLevel: BackgroundGeolocation.LOG_LEVEL_OFF,
+        stopOnTerminate: false,
+        startOnBoot: true,
+        showsBackgroundLocationIndicator: false,
+      });
+
       BackgroundGeolocation.start();
-      console.log('- BackgroundGeolocation configured:', state.enabled);
-    });
 
-    return () => {
-      onLocation.remove();
-      onMotionChange.remove();
+      return () => {
+        onLocation.remove();
+        onMotionChange.remove();
+      };
     };
+
+    setupBackgroundGeolocation();
   }, []);
 
-  const ctx = useMemo(
+  const contextValue = useMemo(
     () => ({
       userData: userData ?? null,
-      isLoading: isUserLoading || isUsersLoading,
+      isLoading,
       location,
       setLocation,
       authUser,
-      isLoadingAuth,
       emailVerified,
-      fetchAllUsers: fetchAllUsers,
+      fetchAllUsers,
       fetchUserData: refetchUserData,
       users,
     }),
     [
       userData,
-      isUserLoading,
-      isUsersLoading,
+      isLoading,
       location,
       authUser,
-      isLoadingAuth,
       emailVerified,
       fetchAllUsers,
       refetchUserData,
@@ -186,7 +186,15 @@ export const UserProvider = ({ children }: Props) => {
     ]
   );
 
-  return <UserContext.Provider value={ctx}>{children}</UserContext.Provider>;
+  return (
+    <UserContext.Provider value={contextValue}>{children}</UserContext.Provider>
+  );
 };
 
-export const useUserContext = () => useContext(UserContext);
+export const useUserContext = () => {
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new Error('useUserContext must be used within a UserProvider');
+  }
+  return context;
+};

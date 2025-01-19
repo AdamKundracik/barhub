@@ -5,6 +5,7 @@ export interface PostDocument {
   creationTime: string;
   geohash: string;
   location: GeoPointType;
+  placeTypes: string[];
   timestamp: number;
   userId: string;
   fileId: string;

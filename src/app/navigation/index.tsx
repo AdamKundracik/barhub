@@ -7,9 +7,9 @@ import NotVerifiedNav from './NotVerifiedNav';
 import { UserNav } from './UserNav';
 
 export const Navigation = () => {
-  const { authUser, isLoadingAuth, userData, emailVerified } = useUserContext();
+  const { authUser, isLoading, userData, emailVerified } = useUserContext();
 
-  if (isLoadingAuth) {
+  if (isLoading && !userData) {
     return <Loading />;
   }
 
