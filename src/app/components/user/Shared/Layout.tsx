@@ -25,7 +25,8 @@ import {
 import { UserStackList } from '../../../utils/types/screen-types';
 import { openCamera } from '../../../utils/helper-functions/openCamera';
 import { auth } from '../../../../../firebaseConfig';
-import RollupMenu from '../RollupMenu';
+import RollupMenu, { MenuItemType } from '../RollupMenu';
+import { useTranslation } from 'react-i18next';
 
 type LayoutProps = {
   children: ReactNode | ReactNode[];
@@ -37,6 +38,7 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
   const { userData } = useUserContext();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const route = useRoute();
+  const { t } = useTranslation();
 
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -68,6 +70,7 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
             flexDirection: 'row',
             justifyContent: 'space-between',
             paddingHorizontal: 20,
+            paddingVertical: 5,
           }}
         >
           <View>
@@ -87,15 +90,20 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
               <FontAwesomeIcon
                 icon={Icons.Bell}
                 color={iconInactiveColor}
-                size={24}
+                size={22}
               />
             </TouchableOpacity>
             <TouchableOpacity>
               <FontAwesomeIcon
                 icon={Icons.Sliders}
                 color={iconInactiveColor}
-                size={24}
+                size={22}
               />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Subscription')}
+            >
+              <FontAwesomeIcon icon={Icons.Coins} color={'#FBBC05'} size={22} />
             </TouchableOpacity>
           </View>
         </View>

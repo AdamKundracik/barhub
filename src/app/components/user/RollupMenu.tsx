@@ -56,12 +56,13 @@ export const RollupMenu = (props: MenuProps) => {
       icon: Icons.Help,
       function: () => navigation.navigate('Help'), // Original function
     },
-    {
-      type: MenuItemType.SUBSCRIPTION,
-      title: t('subscription'), // Translate the title
-      icon: Icons.Coins,
-      function: () => navigation.navigate('Subscription'), // Original function
-    },
+    //For later use if needed
+    // {
+    //   type: MenuItemType.SUBSCRIPTION,
+    //   title: t('subscription'), // Translate the title
+    //   icon: Icons.Coins,
+    //   function: () => navigation.navigate('Subscription'), // Original function
+    // },
     {
       type: MenuItemType.LOGOUT,
       title: t('logout'), // Translate the title
@@ -187,9 +188,10 @@ export const RollupMenu = (props: MenuProps) => {
                   style={styles.icon}
                   icon={item.icon}
                   color={
-                    item.type === MenuItemType.SUBSCRIPTION
-                      ? '#FBBC05'
-                      : 'white'
+                    'white'
+                    // item.type === MenuItemType.SUBSCRIPTION
+                    //   ? '#FBBC05'
+                    //   : 'white'
                   }
                   size={20}
                 />
