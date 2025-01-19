@@ -5,7 +5,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { UserStackList } from '../../utils/types/screen-types';
 import { useUserContext } from '../../providers/UserProvider';
-import { handleFreshContent } from '../../utils/helper-functions/posts-functions';
+import { handleFreshContent } from '../../utils/services/posts-functions';
 import { getDaysSince } from '../../utils/helper-functions/getDaysSince';
 import { PlaceDetail } from '../../utils/types/types';
 import NotificationHandler from '../../components/user/NewsFeed/NotificationHandler';
@@ -20,12 +20,14 @@ import { usePlaceStore } from '../../utils/store/placesStore';
 import EmptyState from '../../components/user/NewsFeed/EmptyState';
 import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import PostLoaderView from '../../components/user/NewsFeed/Post/Loaders/PostLoaderView';
+import FilterSlider from '../../components/user/NewsFeed/Filters/FilterSlider';
 
 export const NewsFeed = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { userData } = useUserContext();
   const [zoomedPost, setZoomedPost] = useState<string | null>(null);
   const [showComments, setShowComments] = useState(false);
+  const [showFilter, setShowFilters] = useState(false);
   const [postId, setPostId] = useState<string | null>(null);
   const { users } = useUserContext();
   const { t } = useTranslation();

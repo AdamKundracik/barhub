@@ -174,3 +174,13 @@ export interface Suggestion {
 export interface AutocompleteResponse {
   suggestions: Suggestion[];
 }
+
+export type PlaceType =
+  | 'bar'
+  | 'bakery'
+  | 'bowling_alley'
+  | 'cafe'
+  | 'casino'
+  | 'night_club'
+  | 'restaurant'
+  | 'tourist_attraction';
