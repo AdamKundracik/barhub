@@ -168,7 +168,9 @@ const ProfileEditScreen = (props: EditProfileProps) => {
             <FontAwesomeIcon icon={Icons.Left} size={24} color={'white'} />
           </TouchableOpacity>
         </View>
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 10 }}
+        >
           {/* Profile Picture Section */}
           <View style={styles.profileSection}>
             <TouchableOpacity onPress={() => setOpenImageOptions(true)}>
@@ -256,23 +258,48 @@ const ProfileEditScreen = (props: EditProfileProps) => {
   );
 };
 
-const styles = StyleSheet.create({
+const colors = {
+  white: 'white',
+  darkBackground: '#333',
+  premiumBorder: '#FFC107',
+};
+
+const typography = {
+  baseSize: 16,
+  labelColor: colors.white,
+};
+
+const dimensions = {
+  profilePictureSize: 150,
+  profilePictureBorderRadius: 75,
+  editIconSize: 20,
+  editIconPadding: 7,
+};
+
+export const styles = StyleSheet.create({
+  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
     marginBottom: 16,
   },
+
+  // Profile Picture Section
   profileSection: {
     alignItems: 'center',
     marginBottom: 15,
     position: 'relative',
   },
   profilePicture: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
+    width: dimensions.profilePictureSize,
+    height: dimensions.profilePictureSize,
+    borderRadius: dimensions.profilePictureBorderRadius,
     marginBottom: 20,
+  },
+  premiumBorder: {
+    borderWidth: 1,
+    borderColor: colors.premiumBorder,
   },
   editIconContainer: {
     position: 'absolute',
@@ -280,38 +307,44 @@ const styles = StyleSheet.create({
     right: 10,
     backgroundColor: primaryColor,
     borderRadius: 20,
-    padding: 7,
+    padding: dimensions.editIconPadding,
   },
+
+  // Input Styles
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
   },
   label: {
-    color: 'white',
+    color: typography.labelColor,
     width: 100,
-    fontSize: 16,
+    fontSize: typography.baseSize,
     marginRight: 12,
   },
   input: {
     flex: 1,
-    fontSize: 16,
+    fontSize: typography.baseSize,
     padding: 10,
   },
+  nonEditable: {
+    backgroundColor: colors.darkBackground,
+  },
+
+  // Birth Date Styles
   birthDateContainer: {
     marginBottom: 16,
   },
   birthDateLabel: {
-    color: 'white',
-    fontSize: 16,
+    color: typography.labelColor,
+    fontSize: typography.baseSize,
     marginBottom: 10,
   },
-  nonEditable: {
-    backgroundColor: '#333',
-  },
+
+  // Button Styles
   saveButtonText: {
-    color: 'white',
-    fontSize: 16,
+    color: colors.white,
+    fontSize: typography.baseSize,
     fontWeight: 'bold',
   },
 });
