@@ -25,7 +25,7 @@ const FilterSlider = (props: Props) => {
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 
   const [filtersOpened, setFiltersOpened] = useState(props.opened);
-  const [snapPoint, setSnapPoint] = useState<string[]>(['90%', '70%']);
+  const [snapPoint] = useState<string[]>(['90%', '70%']);
   const [distance, setDistance] = useState(1);
   const [selectedPlaces, setSelectedPlaces] = useState<PlaceType[]>(['bar']);
 
@@ -69,7 +69,7 @@ const FilterSlider = (props: Props) => {
       distance,
       placeTypes: selectedPlaces,
     });
-    console.log(selectedPlaces);
+
     handleCloseFilters();
   }, [distance, selectedPlaces, props.onSave, handleCloseFilters]);
 
@@ -137,7 +137,7 @@ const FilterSlider = (props: Props) => {
             value={distance}
             minimumValue={1}
             maximumValue={30}
-            onSlidingComplete={value => setDistance(Number(value.toFixed(0)))}
+            onValueChange={value => setDistance(Number(value.toFixed(0)))}
           />
         </View>
 
@@ -157,7 +157,7 @@ const FilterSlider = (props: Props) => {
 const styles = StyleSheet.create({
   content: {
     flex: 1,
-    paddingHorizontal: 10,
+    paddingHorizontal: 15,
   },
   section: {
     marginVertical: 10,
