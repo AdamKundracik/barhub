@@ -117,5 +117,9 @@
   "filters": "Filtros",
   "error": "Error",
   "please-select-place": "Debe seleccionar al menos un tipo de lugar para guardar los cambios.",
-  "ok": "Ok"
+  "ok": "Ok",
+  "edit-profile": "Dditar perfil",
+  "notification-deleted": "Notificación eliminada",
+  "undo": "Deshacer",
+  "notifications": "Notificaciones"
 }

@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Layout from '../../components/user/Shared/Layout';
 import { auth } from '../../../../firebaseConfig';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -32,7 +31,7 @@ export const Account = () => {
   if (isEditing) {
     return (
       <ScreenLayout
-        title={'Edit Profile'}
+        title={t('edit-profile')}
         clickFunction={() => setIsEditing(false)}
       >
         <EditProfile

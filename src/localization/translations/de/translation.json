@@ -117,5 +117,9 @@
   "filters": "Filter",
   "error": "Fehler",
   "please-select-place": "Um Änderungen zu speichern, muss mindestens ein Ortstyp ausgewählt werden.",
-  "ok": "Ok"
+  "ok": "Ok",
+  "edit-profile": "Profil bearbeiten",
+  "notification-deleted": "Benachrichtigung gelöscht",
+  "undo": "rückgängig",
+  "notifications": "Benachrichtigungen"
 }

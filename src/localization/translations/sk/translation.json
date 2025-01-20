@@ -117,5 +117,9 @@
   "filters": "Filtre",
   "error": "Chyba",
   "please-select-place": "Pre uloženie zmien musí byť vybraný aspoň jeden typ miesta.",
-  "ok": "Ok"
+  "ok": "Ok",
+  "edit-profile": "Upraviť profil",
+  "notification-deleted": "Oznámenie vymazané",
+  "undo": "Späť",
+  "notifications": "Oznámenia"
 }

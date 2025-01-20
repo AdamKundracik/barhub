@@ -16,6 +16,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
+import { useTranslation } from 'react-i18next';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = -150;
@@ -141,6 +142,7 @@ interface UndoMessageProps {
 
 const UndoMessage: React.FC<UndoMessageProps> = ({ onUndo, onHide }) => {
   const translateY = useRef(new Animated.Value(100)).current;
+  const { t } = useTranslation();
 
   useEffect(() => {
     Animated.spring(translateY, {
@@ -173,9 +175,9 @@ const UndoMessage: React.FC<UndoMessageProps> = ({ onUndo, onHide }) => {
     <Animated.View
       style={[styles.undoContainer, { transform: [{ translateY }] }]}
     >
-      <Text style={styles.undoText}>Notification deleted</Text>
+      <Text style={styles.undoText}>{t('notification-deleted')}</Text>
       <TouchableOpacity onPress={handleUndo} style={styles.undoButton}>
-        <Text style={styles.undoButtonText}>UNDO</Text>
+        <Text style={styles.undoButtonText}>{t('undo')}</Text>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -219,6 +221,8 @@ const generateMockData = (): Notification[] => {
 
 export const NotificationsList: React.FC = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
+  const { t } = useTranslation();
+
   const [notifications, setNotifications] = useState(generateMockData);
   const [isScrollEnabled, setIsScrollEnabled] = useState(true);
   const [lastDeletedItem, setLastDeletedItem] = useState<Notification | null>(
@@ -263,7 +267,7 @@ export const NotificationsList: React.FC = () => {
 
   return (
     <ScreenLayout
-      title="Notifications"
+      title={t('notifications')}
       clickFunction={() => navigation.goBack()}
     >
       <View style={styles.container}>

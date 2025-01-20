@@ -117,5 +117,9 @@
   "filters": "Filters",
   "error": "Error",
   "please-select-place": "At least one place type must be selected to save changes.",
-  "ok": "Ok"
+  "ok": "Ok",
+  "edit-profile": "Edit profile",
+  "notification-deleted": "Notification deleted",
+  "undo": "Undo",
+  "notifications": "Notifications"
 }

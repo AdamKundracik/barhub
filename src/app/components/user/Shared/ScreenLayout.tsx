@@ -25,8 +25,6 @@ export const ScreenLayout = ({
   clickFunction,
   showTitle = true,
 }: ScreenLayoutProps) => {
-  const navigation = useNavigation<NavigationProp<UserStackList>>();
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.mainContainer}>
