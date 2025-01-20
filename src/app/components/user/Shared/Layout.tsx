@@ -88,7 +88,9 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
             </Svg>
           </View>
           <View style={{ gap: 20, display: 'flex', flexDirection: 'row' }}>
-            <TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('NotificationsList')}
+            >
               <FontAwesomeIcon
                 icon={Icons.Bell}
                 color={iconInactiveColor}

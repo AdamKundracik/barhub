@@ -163,11 +163,6 @@ const ProfileEditScreen = (props: EditProfileProps) => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} // Adjust this offset if needed
       >
-        <View style={styles.header}>
-          <TouchableOpacity onPress={props.onEditCLose}>
-            <FontAwesomeIcon icon={Icons.Left} size={24} color={'white'} />
-          </TouchableOpacity>
-        </View>
         <ScrollView
           contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 10 }}
         >

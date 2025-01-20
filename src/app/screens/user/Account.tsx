@@ -18,6 +18,7 @@ import { DeleteUserModal } from '../../components/user/Account/DeleteUserModal';
 import FastImage from 'react-native-fast-image';
 import { primaryBgColor, primaryColor } from '../../utils/styles/colors';
 import EditProfile from '../../components/user/Account/EditProfile';
+import { ScreenLayout } from '../../components/user/Shared/ScreenLayout';
 
 export const Account = () => {
   const { userData } = useUserContext();
@@ -30,12 +31,15 @@ export const Account = () => {
 
   if (isEditing) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <ScreenLayout
+        title={'Edit Profile'}
+        clickFunction={() => setIsEditing(false)}
+      >
         <EditProfile
           user={userData ?? null}
           onEditCLose={() => setIsEditing(false)}
         />
-      </SafeAreaView>
+      </ScreenLayout>
     );
   }
 
