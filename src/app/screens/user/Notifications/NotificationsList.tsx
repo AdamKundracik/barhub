@@ -1,22 +1,24 @@
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  Animated,
+  Dimensions,
   FlatList,
-  SafeAreaView,
+  PanResponder,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Animated,
-  PanResponder,
-  Dimensions,
 } from 'react-native';
 import { Timestamp } from 'firebase/firestore';
-import React, { useMemo, useState, useRef } from 'react';
-import { primaryBgColor, primaryColor } from '../../../utils/styles/colors';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../../utils/icons/icons';
+import { primaryColor } from '../../../utils/styles/colors';
+import { ScreenLayout } from '../../../components/user/Shared/ScreenLayout';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
-import { ScreenLayout } from '../../../components/user/Shared/ScreenLayout';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { Icons } from '../../../utils/icons/icons';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const SWIPE_THRESHOLD = -150;
 
 type Notification = {
   postId: string;
@@ -25,55 +27,71 @@ type Notification = {
   creationTime: Timestamp;
 };
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const SWIPE_THRESHOLD = -200;
-
-const NotificationItem = ({
-  item,
-  onDelete,
-}: {
+interface NotificationItemProps {
   item: Notification;
   onDelete: () => void;
+  onSwipeStart: () => void;
+  onSwipeEnd: () => void;
+}
+
+const NotificationItem: React.FC<NotificationItemProps> = ({
+  item,
+  onDelete,
+  onSwipeStart,
+  onSwipeEnd,
 }) => {
-  const position = useRef(new Animated.Value(0)).current;
+  const translateX = useRef(new Animated.Value(0)).current;
+  const isDeleting = useRef(false);
+
+  // Create interpolated value for delete icon opacity
+  const deleteIconOpacity = translateX.interpolate({
+    inputRange: [-150, 0],
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  });
 
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
-    onPanResponderMove: (_, gesture) => {
-      if (gesture.dx < 0) {
-        // Only allow left swipe
-        position.setValue(gesture.dx);
-      }
+    onPanResponderGrant: () => {
+      onSwipeStart();
     },
-    onPanResponderRelease: (_, gesture) => {
-      if (gesture.dx < SWIPE_THRESHOLD) {
-        Animated.timing(position, {
+    onPanResponderMove: (_, { dx }) => {
+      if (dx < 0) translateX.setValue(dx);
+    },
+    onPanResponderRelease: (_, { dx }) => {
+      if (dx < SWIPE_THRESHOLD && !isDeleting.current) {
+        isDeleting.current = true;
+        Animated.timing(translateX, {
           toValue: -SCREEN_WIDTH,
-          duration: 250,
+          duration: 200,
           useNativeDriver: true,
-        }).start(onDelete);
+        }).start(() => {
+          onDelete();
+          isDeleting.current = false;
+          onSwipeEnd();
+        });
       } else {
-        Animated.spring(position, {
+        Animated.spring(translateX, {
           toValue: 0,
           useNativeDriver: true,
-        }).start();
+          friction: 6,
+        }).start(() => {
+          onSwipeEnd();
+        });
       }
+    },
+    onPanResponderTerminate: () => {
+      onSwipeEnd();
+      Animated.spring(translateX, {
+        toValue: 0,
+        useNativeDriver: true,
+        friction: 6,
+      }).start();
     },
   });
 
-  const getTransformStyle = () => {
-    return {
-      transform: [
-        {
-          translateX: position,
-        },
-      ],
-    };
-  };
-
   const formatTime = (timestamp: Timestamp) => {
-    const date = timestamp.toDate();
-    return date.toLocaleDateString('en-US', {
+    return timestamp.toDate().toLocaleDateString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       month: 'short',
@@ -82,152 +100,283 @@ const NotificationItem = ({
   };
 
   return (
-    <View style={styles.notificationContainer}>
+    <View style={styles.itemContainer}>
+      {/* Delete icon container - positioned absolutely behind the notification */}
       <Animated.View
-        style={[styles.notificationContent, getTransformStyle()]}
+        style={[styles.deleteIconContainer, { opacity: deleteIconOpacity }]}
+      >
+        <FontAwesomeIcon icon={Icons.Remove} size={24} color="red" />
+      </Animated.View>
+
+      {/* Main notification content */}
+      <Animated.View
+        style={[styles.notificationItem, { transform: [{ translateX }] }]}
         {...panResponder.panHandlers}
       >
-        <View style={styles.contentContainer}>
-          <Text style={styles.label}>{item.label}</Text>
-          <Text style={styles.text}>{item.text}</Text>
-          <Text style={styles.time}>{formatTime(item.creationTime)}</Text>
+        <View style={styles.notificationContent}>
+          <View style={styles.contentRow}>
+            <View style={styles.iconContainer}>
+              <FontAwesomeIcon
+                icon={Icons.Bell}
+                size={20}
+                color={primaryColor}
+              />
+            </View>
+            <View style={styles.textContainer}>
+              <Text style={styles.label}>{item.label}</Text>
+              <Text style={styles.text}>{item.text}</Text>
+              <Text style={styles.time}>{formatTime(item.creationTime)}</Text>
+            </View>
+          </View>
         </View>
       </Animated.View>
     </View>
   );
 };
 
-export const NotificationsList = () => {
-  const navigation = useNavigation<NavigationProp<UserStackList>>();
-  const [notifications, setNotifications] = useState(() => {
-    const generatePostId = () => Math.random().toString(36).substring(2, 8);
-    const generateRecentTimestamp = () => {
-      const end = new Date();
-      const start = new Date();
-      start.setDate(start.getDate() - 7);
-      const randomTime =
-        start.getTime() + Math.random() * (end.getTime() - start.getTime());
-      return Timestamp.fromMillis(randomTime);
-    };
+interface UndoMessageProps {
+  onUndo: () => void;
+  onHide: () => void;
+}
 
-    const notifs: Notification[] = [
-      {
-        postId: generatePostId(),
-        text: 'New comment on your recent post',
-        label: 'Comment Notification',
-        creationTime: generateRecentTimestamp(),
-      },
-      {
-        postId: generatePostId(),
-        text: 'Your post has been trending in your area',
-        label: 'Trending Alert',
-        creationTime: generateRecentTimestamp(),
-      },
-      {
-        postId: generatePostId(),
-        text: 'Someone mentioned you in their post',
-        label: 'Mention Alert',
-        creationTime: generateRecentTimestamp(),
-      },
-      {
-        postId: generatePostId(),
-        text: 'Your post received 100+ likes',
-        label: 'Achievement Notification',
-        creationTime: generateRecentTimestamp(),
-      },
-    ].sort((a, b) => b.creationTime.seconds - a.creationTime.seconds);
+const UndoMessage: React.FC<UndoMessageProps> = ({ onUndo, onHide }) => {
+  const translateY = useRef(new Animated.Value(100)).current;
 
-    return notifs;
-  });
+  useEffect(() => {
+    Animated.spring(translateY, {
+      toValue: 0,
+      useNativeDriver: true,
+      friction: 8,
+    }).start();
 
-  const handleDelete = (postId: string) => {
-    setNotifications(prev => prev.filter(notif => notif.postId !== postId));
+    const timer = setTimeout(() => {
+      hide();
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const hide = () => {
+    Animated.timing(translateY, {
+      toValue: 100,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(onHide);
   };
 
-  const renderNotification = ({ item }: { item: Notification }) => (
-    <NotificationItem item={item} onDelete={() => handleDelete(item.postId)} />
-  );
+  const handleUndo = () => {
+    onUndo();
+    hide();
+  };
 
   return (
-    <ScreenLayout title={'Notifications'} clickFunction={navigation.goBack}>
-      <FlatList
-        data={notifications}
-        renderItem={renderNotification}
-        keyExtractor={item => item.postId}
-        contentContainerStyle={styles.listContainer}
-        style={styles.flatList}
-        showsVerticalScrollIndicator={false}
-      />
+    <Animated.View
+      style={[styles.undoContainer, { transform: [{ translateY }] }]}
+    >
+      <Text style={styles.undoText}>Notification deleted</Text>
+      <TouchableOpacity onPress={handleUndo} style={styles.undoButton}>
+        <Text style={styles.undoButtonText}>UNDO</Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
+const generateMockData = (): Notification[] => {
+  const generatePostId = () => Math.random().toString(36).substring(2, 8);
+  const generateTimestamp = () => {
+    const date = new Date();
+    date.setDate(date.getDate() - Math.floor(Math.random() * 7));
+    return Timestamp.fromDate(date);
+  };
+
+  return [
+    {
+      postId: generatePostId(),
+      text: 'New comment on your recent post',
+      label: 'Comment',
+      creationTime: generateTimestamp(),
+    },
+    {
+      postId: generatePostId(),
+      text: 'Your post has been trending in your area',
+      label: 'Trending',
+      creationTime: generateTimestamp(),
+    },
+    {
+      postId: generatePostId(),
+      text: 'Someone mentioned you in their post',
+      label: 'Mention',
+      creationTime: generateTimestamp(),
+    },
+    {
+      postId: generatePostId(),
+      text: 'Your post received 100+ likes',
+      label: 'Achievement',
+      creationTime: generateTimestamp(),
+    },
+  ].sort((a, b) => b.creationTime.seconds - a.creationTime.seconds);
+};
+
+export const NotificationsList: React.FC = () => {
+  const navigation = useNavigation<NavigationProp<UserStackList>>();
+  const [notifications, setNotifications] = useState(generateMockData);
+  const [isScrollEnabled, setIsScrollEnabled] = useState(true);
+  const [lastDeletedItem, setLastDeletedItem] = useState<Notification | null>(
+    null
+  );
+  const [showUndo, setShowUndo] = useState(false);
+
+  const handleDelete = (postId: string) => {
+    const deletedItem = notifications.find(n => n.postId === postId);
+    if (deletedItem) {
+      setLastDeletedItem(deletedItem);
+      setShowUndo(true);
+    }
+    setNotifications(current =>
+      current.filter(notification => notification.postId !== postId)
+    );
+  };
+
+  const handleUndo = () => {
+    if (lastDeletedItem) {
+      setNotifications(current =>
+        [...current, lastDeletedItem].sort(
+          (a, b) => b.creationTime.seconds - a.creationTime.seconds
+        )
+      );
+      setLastDeletedItem(null);
+    }
+  };
+
+  const handleUndoHide = () => {
+    setShowUndo(false);
+    setLastDeletedItem(null);
+  };
+
+  const handleSwipeStart = () => {
+    setIsScrollEnabled(false);
+  };
+
+  const handleSwipeEnd = () => {
+    setIsScrollEnabled(true);
+  };
+
+  return (
+    <ScreenLayout
+      title="Notifications"
+      clickFunction={() => navigation.goBack()}
+    >
+      <View style={styles.container}>
+        <FlatList
+          data={notifications}
+          scrollEnabled={isScrollEnabled}
+          renderItem={({ item }) => (
+            <NotificationItem
+              item={item}
+              onDelete={() => handleDelete(item.postId)}
+              onSwipeStart={handleSwipeStart}
+              onSwipeEnd={handleSwipeEnd}
+            />
+          )}
+          keyExtractor={item => item.postId}
+          contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false}
+        />
+        {showUndo && (
+          <UndoMessage onUndo={handleUndo} onHide={handleUndoHide} />
+        )}
+      </View>
     </ScreenLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: primaryBgColor,
-  },
-  mainContainer: {
-    flex: 1,
-  },
-  flatList: {
+  container: {
     flex: 1,
   },
   listContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 20,
+    paddingBottom: 100, // Extra padding for undo message
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    marginBottom: 10,
-  },
-  notificationContainer: {
+  itemContainer: {
     position: 'relative',
-    height: 100, // Adjust based on your content
+    marginBottom: 12,
+  },
+  deleteIconContainer: {
+    position: 'absolute',
+    right: 20,
+    top: '50%',
+    transform: [{ translateY: -12 }], // Half of icon size
+    zIndex: 1,
+  },
+  notificationItem: {
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    borderBottomWidth: 1,
+    overflow: 'hidden',
+    zIndex: 2,
   },
   notificationContent: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
-    zIndex: 1,
-    borderColor: primaryColor,
-    borderWidth: 1,
-  },
-  deleteContainer: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    bottom: 0,
-    width: SWIPE_THRESHOLD * -1,
-    backgroundColor: 'rgba(255, 0, 0, 0.2)',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  contentContainer: {
     padding: 16,
   },
   label: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginBottom: 4,
-    textTransform: 'uppercase',
+    fontSize: 14,
+    fontWeight: '700',
     color: 'white',
+    textTransform: 'uppercase',
+    marginBottom: 4,
   },
   text: {
     fontSize: 14,
-    marginBottom: 4,
     color: 'white',
+    marginBottom: 4,
   },
   time: {
     fontSize: 12,
     color: 'rgba(255, 255, 255, 0.7)',
+  },
+  undoContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+    backgroundColor: 'rgba(0, 0, 0, 1)',
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  undoText: {
+    color: 'white',
+    fontSize: 14,
+  },
+  undoButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  undoButtonText: {
+    color: primaryColor,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+
+  contentRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  iconContainer: {
+    marginRight: 12,
+    alignSelf: 'center',
+  },
+  textContainer: {
+    flex: 1,
   },
 });
 

@@ -2,6 +2,7 @@ import {
   faArrowLeft,
   faArrowRight,
   faArrowRightFromBracket,
+  faArrowUp,
   faBan,
   faBars,
   faBell,
@@ -104,4 +105,5 @@ export const Icons = {
   Group: faPeopleGroup,
   Bell: faBell,
   Sliders: faSliders,
+  Up: faArrowUp,
 };
