@@ -1,0 +1,49 @@
+// notification-types.ts
+
+import { Timestamp } from 'firebase/firestore';
+
+export enum NotificationType {
+  REQUEST = 'REQUEST',
+  RESPONSE = 'RESPONSE',
+  LIKE = 'LIKE',
+  COMMENT = 'COMMENT',
+}
+
+export interface NotificationItem {
+  id: string;
+  postId: string;
+  label: string;
+  text: string;
+  creationTime: Timestamp;
+  userId: string;
+  notificationType: NotificationType;
+}
+
+export interface NotificationItemProps {
+  item: NotificationItem;
+  onDelete: () => void;
+  onSwipeStart: () => void;
+  onSwipeEnd: () => void;
+  isBeingSwiped?: boolean;
+}
+
+export interface GetUserNotificationsResponse {
+  notifications: NotificationItem[];
+  hasNewNotifications: boolean;
+  newNotificationsCount: number;
+}
+
+export interface GetNotificationsResult {
+  data: GetUserNotificationsResponse;
+}
+
+// For backend/admin usage
+export type AdminNotificationItem = Omit<NotificationItem, 'creationTime'> & {
+  creationTime: FirebaseFirestore.Timestamp;
+};
+
+export interface SaveNotificationRequest extends NotificationItem {
+  userId: string;
+}
+
+export interface SaveNotificationResponse extends NotificationItem {}

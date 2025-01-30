@@ -1,5 +1,5 @@
 import { InfinityScrollPost, Post } from '../../../../shared';
-import { getFreshContent, getPostsByPlaceId } from './post.service';
+import { getFreshContent, getPostsByPlaceId } from '../services/post.service';
 import { GeoPointType, LocationType } from '../types/types';
 import { logger } from 'firebase-functions';
 

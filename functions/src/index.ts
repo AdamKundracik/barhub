@@ -5,6 +5,11 @@ import { firestore } from 'firebase-admin';
 import CommentService from './services/CommentService';
 import { PostComment } from '../../common/types/commentTypes';
 import { GeoPointType } from './documentTypes/Post';
+import {
+  GetUserNotificationsResponse,
+  SaveNotificationResponse,
+} from '../../common/types/notificationTypes';
+import NotifiationService from './services/notifiationService';
 
 const admin = require('firebase-admin');
 
@@ -16,6 +21,7 @@ const bucket = admin.storage().bucket();
 
 const postService = new PostService();
 const commentService = new CommentService();
+const notificationService = new NotifiationService();
 
 // TODO: FINISH FUNCTION
 export const createUser = functions.auth.user().onCreate(user => {
@@ -116,30 +122,6 @@ exports.toggleLike = functions.https.onCall(async data => {
     }
   } catch (error) {
     console.error('Error toggling like: ', error);
-  }
-});
-
-exports.getLikeStatus = functions.https.onCall(async data => {
-  const { postId, userId } = data;
-
-  if (!postId || !userId) {
-    throw new functions.https.HttpsError(
-      'invalid-argument',
-      'Missing postId or userId'
-    );
-  }
-
-  try {
-    const likeDocRef = db
-      .collection('posts')
-      .doc(postId)
-      .collection('likes')
-      .doc(userId);
-    const likeDoc = await likeDocRef.get();
-
-    return await likeDoc.exists;
-  } catch (error) {
-    console.error('Error getting like status: ', error);
   }
 });
 
@@ -320,6 +302,51 @@ exports.getPostsByPlaceId = functions.https.onCall(
   }
 );
 
+exports.saveNotification = functions.https.onCall(
+  async (data, context): Promise<SaveNotificationResponse> => {
+    // Ensure user is authenticated
+    if (!context.auth) {
+      throw new functions.https.HttpsError(
+        'unauthenticated',
+        'User must be authenticated to save notifications'
+      );
+    }
+
+    const userId = context.auth.uid;
+    return await notificationService.saveNotification({
+      userId,
+      ...data,
+    });
+  }
+);
+
+exports.getUserNotifications = functions.https.onCall(
+  async (data, context): Promise<GetUserNotificationsResponse> => {
+    // Ensure user is authenticated
+    if (!context.auth) {
+      throw new functions.https.HttpsError(
+        'unauthenticated',
+        'User must be authenticated to get notifications'
+      );
+    }
+
+    const userId = context.auth.uid;
+    return await notificationService.getUserNotifications(userId);
+  }
+);
+
+exports.addComment = functions.https.onCall(async (data, context) => {
+  const { postId, userId, commentText } = data;
+  return await commentService.addComment(postId, userId, commentText);
+});
+
+exports.getPostComments = functions.https.onCall(
+  async (data, context): Promise<{ comments: PostComment[] }> => {
+    const { postId } = data;
+    return await commentService.getPostComments(postId);
+  }
+);
+
 // SCHEDULE FUNCTIONS
 
 exports.deleteOldPostsAndImages = functions.pubsub
@@ -358,18 +385,6 @@ exports.deleteOldPostsAndImages = functions.pubsub
       console.error('Error deleting old posts and images:', error);
     }
   });
-
-exports.addComment = functions.https.onCall(async (data, context) => {
-  const { postId, userId, commentText } = data;
-  return await commentService.addComment(postId, userId, commentText);
-});
-
-exports.getPostComments = functions.https.onCall(
-  async (data, context): Promise<{ comments: PostComment[] }> => {
-    const { postId } = data;
-    return await commentService.getPostComments(postId);
-  }
-);
 
 async function deleteSubcollection(postRef, subcollectionName) {
   const subcollectionSnapshot = await postRef

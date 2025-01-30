@@ -1,3 +1,9 @@
+import { Timestamp } from 'firebase/firestore';
+import {
+  GetUserNotificationsResponse,
+  SaveNotificationResponse,
+} from '../../../../common/types/notificationTypes';
+
 export type AuthStackParamList = {
   LoginDriver: undefined;
   RegisterDriver: { id: string };

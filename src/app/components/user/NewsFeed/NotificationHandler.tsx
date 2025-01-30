@@ -2,11 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { useTranslation } from 'react-i18next';
-import { NavigationProp } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { setUser } from '../../../utils/services/functions';
 import { registerForPushNotificationsAsync } from '../../../utils/services/notofications-handler';
 import { openCamera } from '../../../utils/helper-functions/openCamera';
+import { saveNotification } from '../../../utils/services/notifications-service';
+import { NotificationType } from '../../../utils/types/types';
+import { NavigationProp } from '@react-navigation/native';
 
 interface NotificationHandlerProps {
   navigation: NavigationProp<UserStackList>;
@@ -36,6 +38,19 @@ const NotificationHandler: React.FC<NotificationHandlerProps> = ({
 
     notificationListener.current =
       Notifications.addNotificationReceivedListener(notification => {
+        const {
+          placeId,
+          senderToken,
+          notificationTTL,
+          sentAt,
+          notificationType,
+        } = notification.request.content.data;
+        console.log('called', notification.request.content.data);
+        saveNotification({
+          label: notification.request.content.title ?? 'No title text',
+          text: notification.request.content.body ?? 'no body text',
+          notificationType: notificationType,
+        });
         console.log(notification);
       });
 

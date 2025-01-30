@@ -5,9 +5,13 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { UserStackList } from '../../utils/types/screen-types';
 import { useUserContext } from '../../providers/UserProvider';
-import { handleFreshContent } from '../../utils/services/posts-functions';
+import { handleFreshContent } from '../../utils/functions/posts-functions';
 import { getDaysSince } from '../../utils/helper-functions/getDaysSince';
-import { PlaceDetail, PlaceType } from '../../utils/types/types';
+import {
+  NotificationType,
+  PlaceDetail,
+  PlaceType,
+} from '../../utils/types/types';
 import NotificationHandler from '../../components/user/NewsFeed/NotificationHandler';
 import LoadingIndicator from '../../components/user/NewsFeed/LoadingIndicator';
 import PostsList from '../../components/user/NewsFeed/PostList';
@@ -102,10 +106,15 @@ export const NewsFeed = () => {
         latitude: detail?.geometry.location?.lat,
         longitude: detail?.geometry.location?.lng,
       });
-
-      tokens?.forEach(token => {
-        sendPushNotification(token, placeId, placeName, senderToken ?? '');
-      });
+      // tokens?.forEach(token => {
+      sendPushNotification(
+        'ExponentPushToken[vVQF0SCUsZZ6gDZEhuAawd]',
+        placeId,
+        placeName,
+        senderToken ?? '',
+        NotificationType.COMMENT
+      );
+      // });
     }
   }
 

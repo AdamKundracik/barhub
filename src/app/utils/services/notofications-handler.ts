@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
+import { NotificationType } from '../types/types';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -15,6 +16,7 @@ export async function sendPushNotification(
   placeId: string,
   placeName: string,
   senderToken: string,
+  notificationType: NotificationType,
   notificationTTL: number = 180 * 1000 //measured in miliseconds (1s = 1000ms) - 3min default
 ) {
   const message = {
@@ -27,6 +29,7 @@ export async function sendPushNotification(
       senderToken: senderToken,
       notificationTTL: notificationTTL,
       sentAt: new Date().getTime(),
+      notificationType: notificationType,
     },
   };
 
