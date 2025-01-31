@@ -121,5 +121,6 @@
   "edit-profile": "Edit profile",
   "notification-deleted": "Notification deleted",
   "undo": "Undo",
-  "notifications": "Notifications"
+  "notifications": "Notifications",
+  "no-notifications": "No notifications"
 }

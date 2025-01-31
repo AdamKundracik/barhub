@@ -121,5 +121,6 @@
   "edit-profile": "Profil bearbeiten",
   "notification-deleted": "Benachrichtigung gelöscht",
   "undo": "rückgängig",
-  "notifications": "Benachrichtigungen"
+  "notifications": "Benachrichtigungen",
+  "no-notifications": "keine Benachrichtigungen"
 }

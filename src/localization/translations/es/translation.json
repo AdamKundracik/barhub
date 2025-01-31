@@ -121,5 +121,6 @@
   "edit-profile": "Dditar perfil",
   "notification-deleted": "Notificación eliminada",
   "undo": "Deshacer",
-  "notifications": "Notificaciones"
+  "notifications": "Notificaciones",
+  "no-notifications": "Sin notificaciones"
 }

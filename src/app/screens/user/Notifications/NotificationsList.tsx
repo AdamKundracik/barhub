@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQuery } from 'react-query';
 import { getUserNotifications } from '../../../utils/services/notifications-service';
 import { ScreenLayout } from '../../../components/user/Shared/ScreenLayout';
-import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import LoadingIndicator from '../../../components/user/NewsFeed/LoadingIndicator';
 import NotificationItemComponent from './NotificationItemComponent';
 import {
@@ -129,26 +129,32 @@ export const NotificationsList: React.FC = () => {
       clickFunction={() => navigation.goBack()}
     >
       <View style={styles.container}>
-        <FlatList
-          data={notifications}
-          scrollEnabled={isScrollEnabled}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshingManually}
-              onRefresh={handleRefresh}
-              progressViewOffset={20}
-              enabled={isScrollEnabled}
-            />
-          }
-          renderItem={renderItem}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-          ListHeaderComponent={isRefetching ? <LoadingIndicator /> : null}
-          removeClippedSubviews={true}
-          maxToRenderPerBatch={10}
-          windowSize={5}
-        />
+        {notificationsData?.data?.notifications?.length > 0 ? (
+          <FlatList
+            data={notifications}
+            scrollEnabled={isScrollEnabled}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshingManually}
+                onRefresh={handleRefresh}
+                progressViewOffset={20}
+                enabled={isScrollEnabled}
+              />
+            }
+            renderItem={renderItem}
+            keyExtractor={item => item.id}
+            contentContainerStyle={styles.listContainer}
+            showsVerticalScrollIndicator={false}
+            ListHeaderComponent={isRefetching ? <LoadingIndicator /> : null}
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+          />
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>{t('no-notifications')}</Text>
+          </View>
+        )}
         {showUndo && (
           <UndoMessage onUndo={handleUndo} onHide={handleUndoHide} />
         )}
@@ -163,6 +169,16 @@ export const styles = StyleSheet.create({
   },
   listContainer: {
     paddingBottom: 100,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 700,
   },
 });
 
