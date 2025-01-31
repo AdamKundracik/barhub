@@ -13,6 +13,7 @@ import {
   NotificationItem,
 } from '../../../utils/types/notification-types';
 import { UndoMessage } from './UndoMessage';
+import NotificationLoaderView from '../../../components/user/NewsFeed/Post/Loaders/NotificationLoaderView';
 
 export const NotificationsList: React.FC = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
@@ -112,7 +113,14 @@ export const NotificationsList: React.FC = () => {
   );
 
   if (isLoading) {
-    return <LoadingIndicator />;
+    return (
+      <ScreenLayout
+        title={t('notifications')}
+        clickFunction={() => navigation.goBack()}
+      >
+        <NotificationLoaderView />
+      </ScreenLayout>
+    );
   }
 
   return (
