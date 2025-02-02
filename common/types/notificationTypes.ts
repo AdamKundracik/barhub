@@ -5,6 +5,7 @@ export type NotificationItem = {
   postId: string;
   label: string;
   text: string;
+  read: boolean;
   creationTime: admin.firestore.Timestamp;
   userId: string;
   norificationType: NotificationType;

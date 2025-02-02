@@ -1,5 +1,4 @@
 import { LocationType } from '../../src/app/utils/types/types';
-import { GeoPoint } from 'firebase/firestore';
 
 export interface UserRecord {
   customClaims: { [key: string]: any };
@@ -61,6 +60,7 @@ export interface UserInfo {
   id: string;
   displayName: string;
   photoUrl: string;
+  expoPushToken: string;
 }
 
 export type InfinityScrollPost = {

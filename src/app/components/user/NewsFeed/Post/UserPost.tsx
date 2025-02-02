@@ -20,6 +20,8 @@ import FastImage from 'react-native-fast-image';
 import { useQueryClient } from 'react-query';
 import { usePlaceStore } from '../../../../utils/store/placesStore';
 import { trimPlaceName } from '../../../../utils/helper-functions/trimPlaceName';
+import { LikeNotificationRequest } from '../../../../utils/types/notification-types';
+import { sendLikeNotification } from '../../../../utils/services/notofications-handler';
 
 interface PostInterface {
   post: Post;
@@ -28,7 +30,7 @@ interface PostInterface {
   hasPremium: boolean;
   isFiltering: boolean;
   user: User | undefined;
-  onCommentPress: (postId: string) => void;
+  onCommentPress: (postId: string, expoPushToken: string) => void;
   requestPhoto: () => void;
 }
 
@@ -93,9 +95,17 @@ export const UserPost = (props: PostInterface) => {
     }
 
     debounceTimeout.current = setTimeout(async () => {
+      const notifRequest: LikeNotificationRequest = {
+        postId: postId,
+        username: post.user?.displayName ?? '',
+        expoPushToken: post.user?.expoPushToken ?? '',
+      };
       try {
         if (liked !== previousLikeState) {
           await toggleLike(postId, auth.currentUser?.uid!);
+          if (!liked) {
+            await sendLikeNotification(notifRequest);
+          }
           setPreviousLikeState(prevState => !prevState);
           optimisticUpdate(liked);
         }
@@ -201,7 +211,12 @@ export const UserPost = (props: PostInterface) => {
           likes={likeCount}
           comments={post.commentsCount}
           onLikeToggle={onLikePress}
-          onCommentToggle={() => props.onCommentPress(props.post.id)}
+          onCommentToggle={() =>
+            props.onCommentPress(
+              props.post.id,
+              props.post.user?.expoPushToken ?? ''
+            )
+          }
           isLiked={liked}
           occupancy={post.occupancy}
         />

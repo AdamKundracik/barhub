@@ -21,7 +21,6 @@ import { useTranslation } from 'react-i18next';
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
-  BottomSheetFlatList,
   BottomSheetModal,
   BottomSheetTextInput,
   BottomSheetView,
@@ -29,8 +28,10 @@ import BottomSheet, {
 import CommentsLoaderView from '../Loaders/CommentsLoaderView';
 import { PostComment } from '../../../../../../../common/types/commentTypes';
 import commentService from '../../../../../utils/services/comment.service';
+import { sendCommentNotification } from '../../../../../utils/services/notofications-handler';
 
 type Props = {
+  expoPushToken: string;
   postId: string | null;
   opened: boolean;
   users: User[] | undefined;
@@ -107,6 +108,12 @@ const CommentsSlider = (props: Props) => {
     };
     try {
       await optimisticUpdate([...comments, optimisticComment]);
+      await sendCommentNotification({
+        commentText: newComment,
+        postId: props.postId,
+        username: auth.currentUser.displayName,
+        expoPushToken: props.expoPushToken,
+      });
       setNewComment('');
     } catch (error) {
       console.error('Error adding comment:', error);

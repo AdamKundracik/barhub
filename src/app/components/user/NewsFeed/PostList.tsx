@@ -30,7 +30,7 @@ interface PostsListProps {
   loading: boolean;
   isFiltering: boolean;
   isFetchingNextPage: boolean;
-  onCommentPress: (postId: string) => void;
+  onCommentPress: (postId: string, expoPushToken: string) => void;
   hasMorePosts: boolean | undefined;
 }
 
@@ -83,7 +83,9 @@ const PostsList = ({
       <UserPost
         requestPhoto={requestPhoto}
         user={users?.find(user => user.uid === item.userId)}
-        onCommentPress={postId => onCommentPress(postId)}
+        onCommentPress={(postId, expoPushToken) =>
+          onCommentPress(postId, expoPushToken)
+        }
         isFiltering={isFiltering}
         hasPremium={
           (userData?.premium || numberOfDaysSinceLastPostedPhoto <= 7) ?? false

@@ -37,6 +37,11 @@ export interface GetNotificationsResult {
   data: GetUserNotificationsResponse;
 }
 
+export interface MarkNotificationReadResult {
+  success: boolean;
+  updatedCount: number;
+}
+
 // For backend/admin usage
 export type AdminNotificationItem = Omit<NotificationItem, 'creationTime'> & {
   creationTime: FirebaseFirestore.Timestamp;
@@ -47,3 +52,16 @@ export interface SaveNotificationRequest extends NotificationItem {
 }
 
 export interface SaveNotificationResponse extends NotificationItem {}
+
+export interface LikeNotificationRequest {
+  expoPushToken: string;
+  username: string;
+  postId: string;
+}
+
+export interface CommentNotificationRequest {
+  expoPushToken: string;
+  username: string;
+  postId: string;
+  commentText: string;
+}

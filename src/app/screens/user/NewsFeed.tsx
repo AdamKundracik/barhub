@@ -7,17 +7,13 @@ import { UserStackList } from '../../utils/types/screen-types';
 import { useUserContext } from '../../providers/UserProvider';
 import { handleFreshContent } from '../../utils/functions/posts-functions';
 import { getDaysSince } from '../../utils/helper-functions/getDaysSince';
-import {
-  NotificationType,
-  PlaceDetail,
-  PlaceType,
-} from '../../utils/types/types';
+import { PlaceDetail, PlaceType } from '../../utils/types/types';
 import NotificationHandler from '../../components/user/NewsFeed/NotificationHandler';
 import LoadingIndicator from '../../components/user/NewsFeed/LoadingIndicator';
 import PostsList from '../../components/user/NewsFeed/PostList';
 import { fetchPlaceDetails } from '../../utils/helper-functions/fetchPlaceDetail';
 import { sendNotificationHandler } from '../../utils/helper-functions/sendNotificationHandler';
-import { sendPushNotification } from '../../utils/services/notofications-handler';
+import { sendRequestNotification } from '../../utils/services/notofications-handler';
 import FeedHeader from '../../components/user/NewsFeed/FeedHeader';
 import CommentsSlider from '../../components/user/NewsFeed/Post/Comments/CommentsSlider';
 import { usePlaceStore } from '../../utils/store/placesStore';
@@ -25,17 +21,19 @@ import EmptyState from '../../components/user/NewsFeed/EmptyState';
 import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import PostLoaderView from '../../components/user/NewsFeed/Post/Loaders/PostLoaderView';
 import { useFiltersStore } from '../../utils/store/filtersStorage';
+import { NotificationType } from '../../utils/types/notification-types';
 
 export const NewsFeed = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
+  const { t } = useTranslation();
+  const { placeId, placeName, setPlaceDetail } = usePlaceStore();
+  const { distance, selectedPlaces } = useFiltersStore();
   const { userData } = useUserContext();
+
+  const [expoPushToken, setExpoPushToken] = useState('');
   const [zoomedPost, setZoomedPost] = useState<string | null>(null);
   const [showComments, setShowComments] = useState(false);
   const [postId, setPostId] = useState<string | null>(null);
-  const { t } = useTranslation();
-
-  const { placeId, placeName, setPlaceDetail } = usePlaceStore();
-  const { distance, selectedPlaces } = useFiltersStore();
   const [
     numberOfDaysSinceLastPostedPhoto,
     setNumberOfDaysSinceLastPostedPhoto,
@@ -106,20 +104,21 @@ export const NewsFeed = () => {
         latitude: detail?.geometry.location?.lat,
         longitude: detail?.geometry.location?.lng,
       });
-      // tokens?.forEach(token => {
-      sendPushNotification(
-        'ExponentPushToken[vVQF0SCUsZZ6gDZEhuAawd]',
-        placeId,
-        placeName,
-        senderToken ?? '',
-        NotificationType.COMMENT
-      );
-      // });
+      tokens?.forEach(token => {
+        sendRequestNotification(
+          token,
+          placeId,
+          placeName,
+          senderToken ?? '',
+          NotificationType.COMMENT
+        );
+      });
     }
   }
 
-  async function toggleComments(postId: string) {
+  async function toggleComments(postId: string, expoPushToken: string) {
     setPostId(postId);
+    setExpoPushToken(expoPushToken);
     setShowComments(true);
   }
 
@@ -162,6 +161,7 @@ export const NewsFeed = () => {
       <CommentsSlider
         postId={postId}
         opened={showComments}
+        expoPushToken={expoPushToken}
         onClose={() => setShowComments(false)}
       />
     </Layout>

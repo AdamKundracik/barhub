@@ -7,8 +7,9 @@ import { setUser } from '../../../utils/services/functions';
 import { registerForPushNotificationsAsync } from '../../../utils/services/notofications-handler';
 import { openCamera } from '../../../utils/helper-functions/openCamera';
 import { saveNotification } from '../../../utils/services/notifications-service';
-import { NotificationType } from '../../../utils/types/types';
 import { NavigationProp } from '@react-navigation/native';
+import { NotificationType } from '../../../utils/types/notification-types';
+import { useNotificationsStore } from '../../../utils/store/notificationsStore';
 
 interface NotificationHandlerProps {
   navigation: NavigationProp<UserStackList>;
@@ -17,9 +18,9 @@ interface NotificationHandlerProps {
 
 const NotificationHandler: React.FC<NotificationHandlerProps> = ({
   navigation,
-  userData,
 }) => {
   const { t } = useTranslation();
+  const { refetch } = useNotificationsStore();
   const [expoPushToken, setExpoPushToken] = useState<string>('');
   const notificationListener = useRef<Notifications.Subscription>();
   const responseListener = useRef<Notifications.Subscription>();
@@ -37,31 +38,41 @@ const NotificationHandler: React.FC<NotificationHandlerProps> = ({
       .catch(error => setExpoPushToken(`${error}`));
 
     notificationListener.current =
-      Notifications.addNotificationReceivedListener(notification => {
+      Notifications.addNotificationReceivedListener(async notification => {
+        const { notificationType } = notification.request.content.data;
+        await saveNotification({
+          label: notification.request.content.title ?? 'No title text',
+          text: notification.request.content.body ?? 'no body text',
+          notificationType: notificationType,
+        });
+        refetch();
+      });
+
+    responseListener.current =
+      Notifications.addNotificationResponseReceivedListener(async response => {
         const {
           placeId,
           senderToken,
           notificationTTL,
           sentAt,
           notificationType,
-        } = notification.request.content.data;
-        console.log('called', notification.request.content.data);
-        saveNotification({
-          label: notification.request.content.title ?? 'No title text',
-          text: notification.request.content.body ?? 'no body text',
-          notificationType: notificationType,
-        });
-        console.log(notification);
-      });
+        } = response.notification.request.content.data;
 
-    responseListener.current =
-      Notifications.addNotificationResponseReceivedListener(response => {
-        const { placeId, senderToken, notificationTTL, sentAt } =
-          response.notification.request.content.data;
-        if (new Date().getTime() > sentAt + notificationTTL) {
-          Alert.alert(t('request-expired'), t('missed-request-info'));
-        } else {
-          openCamera(placeId, senderToken, navigation);
+        switch (notificationType as NotificationType) {
+          case NotificationType.LIKE:
+            navigation.navigate('NotificationsList');
+            break;
+          case NotificationType.COMMENT:
+            navigation.navigate('NotificationsList');
+            break;
+          case NotificationType.REQUEST:
+            if (new Date().getTime() > sentAt + notificationTTL) {
+              Alert.alert(t('request-expired'), t('missed-request-info'));
+            } else {
+              await openCamera(placeId, senderToken, navigation);
+            }
+            break;
+          case NotificationType.RESPONSE:
         }
       });
 

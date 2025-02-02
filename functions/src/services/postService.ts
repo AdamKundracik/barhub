@@ -1,10 +1,9 @@
 import * as admin from 'firebase-admin';
-import functions, { https } from 'firebase-functions';
+import functions, { https, logger } from 'firebase-functions';
 import { InfinityScrollPost, Post } from '../../../common/types/postTypes';
 import { GeoPointType, PostDocument } from '../documentTypes/Post';
 import * as geofire from 'geofire-common';
-import { logger } from 'firebase-functions';
-import { PostCommentsResponse } from '../../../common/types/commentTypes';
+
 export interface SavePostResponse {
   post: Post;
 }
@@ -181,11 +180,13 @@ class PostService {
                 id: userSnapshot.id,
                 displayName: userSnapshot.data()?.displayName || 'Missing name',
                 photoUrl: userSnapshot.data()?.photoURL || '',
+                expoPushToken: userSnapshot.data()?.pushToken ?? '',
               }
             : {
                 id: '',
                 displayName: 'Deleted user',
                 photoUrl: '',
+                expoPushToken: '',
               };
 
           return {

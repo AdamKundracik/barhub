@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { primaryColor } from '../../../utils/styles/colors';
+import { primaryColor } from '../../../../utils/styles/colors';
 
 interface UndoMessageProps {
   onUndo: () => void;

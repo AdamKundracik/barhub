@@ -1,13 +1,10 @@
-import {
-  GetUserNotificationsResponse,
-  SaveNotificationResponse,
-} from '../../../../common/types/notificationTypes';
+import { SaveNotificationResponse } from '../../../../common/types/notificationTypes';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../../../firebaseConfig';
 import {
   GetNotificationsResult,
+  MarkNotificationReadResult,
   NotificationItem,
-  SaveNotificationResult,
 } from '../types/notification-types';
 
 /**
@@ -20,12 +17,11 @@ export const saveNotification = async (
     NotificationItem,
     'creationTime' | 'userId' | 'postId' | 'id'
   >
-): Promise<SaveNotificationResult> => {
-  console.log('notif', notification);
+): Promise<SaveNotificationResponse> => {
   const cloudFunction = httpsCallable(functions, 'saveNotification');
   const response = (await cloudFunction({
     ...notification,
-  })) as unknown as SaveNotificationResult;
+  })) as unknown as SaveNotificationResponse;
   return response;
 };
 
@@ -38,5 +34,20 @@ export const getUserNotifications =
     const cloudFunction = httpsCallable(functions, 'getUserNotifications');
     const response =
       (await cloudFunction()) as unknown as GetNotificationsResult;
+    return response;
+  };
+
+/**
+ * Marks all notifications as seen for the authenticated user
+ * @returns Promise with success status and count of updated notifications
+ */
+export const markAllNotificationsAsSeen =
+  async (): Promise<MarkNotificationReadResult> => {
+    const cloudFunction = httpsCallable(
+      functions,
+      'markAllNotificationsAsSeen'
+    );
+    const response =
+      (await cloudFunction()) as unknown as MarkNotificationReadResult;
     return response;
   };

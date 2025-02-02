@@ -8,9 +8,12 @@ import {
   View,
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../../utils/icons/icons';
-import { primaryColor } from '../../../utils/styles/colors';
-import { NotificationItemProps } from '../../../utils/types/notification-types';
+import { Icons } from '../../../../utils/icons/icons';
+import { primaryColor } from '../../../../utils/styles/colors';
+import {
+  NotificationItemProps,
+  NotificationType,
+} from '../../../../utils/types/notification-types';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = -150;
@@ -96,16 +99,22 @@ export const NotificationItemComponent: React.FC<NotificationItemProps> = ({
       >
         <FontAwesomeIcon icon={Icons.Remove} size={24} color="red" />
       </Animated.View>
-
-      <Animated.View
+      {/*Deletion Animation temporarly disabled - <Animated.View
         style={[styles.notificationItem, { transform: [{ translateX }] }]}
         {...panResponder.panHandlers}
-      >
+      >*/}
+      <View style={[styles.notificationItem]}>
         <View style={styles.notificationContent}>
           <View style={styles.contentRow}>
             <View style={styles.iconContainer}>
               <FontAwesomeIcon
-                icon={Icons.Bell}
+                icon={
+                  item.notificationType === NotificationType.LIKE
+                    ? Icons.HeartSolid
+                    : item.notificationType === NotificationType.COMMENT
+                      ? Icons.CommentSolid
+                      : Icons.Bell
+                }
                 size={20}
                 color={primaryColor}
               />
@@ -117,7 +126,7 @@ export const NotificationItemComponent: React.FC<NotificationItemProps> = ({
             </View>
           </View>
         </View>
-      </Animated.View>
+      </View>
     </View>
   );
 };

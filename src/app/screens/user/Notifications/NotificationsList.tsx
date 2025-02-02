@@ -1,23 +1,21 @@
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { useTranslation } from 'react-i18next';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useQuery } from 'react-query';
-import { getUserNotifications } from '../../../utils/services/notifications-service';
+import { useCallback, useEffect, useState } from 'react';
 import { ScreenLayout } from '../../../components/user/Shared/ScreenLayout';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import LoadingIndicator from '../../../components/user/NewsFeed/LoadingIndicator';
-import NotificationItemComponent from './NotificationItemComponent';
-import {
-  GetNotificationsResult,
-  NotificationItem,
-} from '../../../utils/types/notification-types';
-import { UndoMessage } from './UndoMessage';
+import NotificationItemComponent from '../../../components/user/NewsFeed/Notifications/NotificationItemComponent';
+import { NotificationItem } from '../../../utils/types/notification-types';
+import { UndoMessage } from '../../../components/user/NewsFeed/Notifications/UndoMessage';
 import NotificationLoaderView from '../../../components/user/NewsFeed/Post/Loaders/NotificationLoaderView';
+import { useNotificationsStore } from '../../../utils/store/notificationsStore';
 
 export const NotificationsList: React.FC = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
+  const { data, refetch, isRefetching, isLoading, markAllAsSeen } =
+    useNotificationsStore();
 
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isScrollEnabled, setIsScrollEnabled] = useState(true);
@@ -26,30 +24,13 @@ export const NotificationsList: React.FC = () => {
   const [showUndo, setShowUndo] = useState(false);
   const [isRefreshingManually, setIsRefreshingManually] = useState(false);
 
-  const {
-    data: notificationsData,
-    isLoading,
-    refetch,
-    isRefetching,
-  } = useQuery<GetNotificationsResult>(
-    'notifications',
-    () => getUserNotifications(),
-    {
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: true,
-      enabled: true,
-      staleTime: 1000 * 60,
-      retry: 2,
-      retryDelay: 1000,
-      refetchOnMount: !isScrollEnabled,
-    }
-  );
+  markAllAsSeen();
 
   useEffect(() => {
-    if (notificationsData?.data?.notifications) {
-      setNotifications(notificationsData.data.notifications);
+    if (data?.notifications) {
+      setNotifications(data.notifications);
     }
-  }, [notificationsData]);
+  }, [data]);
 
   const handleRefresh = async () => {
     if (!isScrollEnabled || isRefreshingManually) return;
@@ -129,7 +110,7 @@ export const NotificationsList: React.FC = () => {
       clickFunction={() => navigation.goBack()}
     >
       <View style={styles.container}>
-        {notificationsData?.data?.notifications?.length > 0 ? (
+        {data && data?.notifications?.length > 0 ? (
           <FlatList
             data={notifications}
             scrollEnabled={isScrollEnabled}

@@ -44,6 +44,8 @@ import {
   faUserCircle,
   faUsers,
   faX,
+  faHeart as faHeartSolid,
+  faComment as faCommentSolid,
 } from '@fortawesome/free-solid-svg-icons';
 import {
   faComment,
@@ -59,8 +61,10 @@ export const Icons = {
   User: faUser,
   UserCircle: faUserCircle,
   Comment: faComment,
+  CommentSolid: faCommentSolid,
   Comments: faComments,
   Heart: faHeart,
+  HeartSolid: faHeartSolid,
   HeartBroken: faHeartBroken,
   Pencil: faPencil,
   Bars: faBars,

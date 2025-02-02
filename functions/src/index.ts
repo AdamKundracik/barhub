@@ -1,7 +1,6 @@
 import { CallableContext } from 'firebase-functions/lib/common/providers/https';
-import { InfinityScrollPost, Post, User } from '../../shared';
+import { Post, User } from '../../shared';
 import PostService, { SavePostResponse } from './services/postService';
-import { firestore } from 'firebase-admin';
 import CommentService from './services/CommentService';
 import { PostComment } from '../../common/types/commentTypes';
 import { GeoPointType } from './documentTypes/Post';
@@ -332,6 +331,21 @@ exports.getUserNotifications = functions.https.onCall(
 
     const userId = context.auth.uid;
     return await notificationService.getUserNotifications(userId);
+  }
+);
+
+exports.markAllNotificationsAsSeen = functions.https.onCall(
+  async (data, context): Promise<GetUserNotificationsResponse> => {
+    // Ensure user is authenticated
+    if (!context.auth) {
+      throw new functions.https.HttpsError(
+        'unauthenticated',
+        'User must be authenticated to get notifications'
+      );
+    }
+
+    const userId = context.auth.uid;
+    return await notificationService.markAllNotificationsAsSeen(userId);
   }
 );
 
