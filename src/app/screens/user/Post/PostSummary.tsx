@@ -32,21 +32,12 @@ import { Post } from '../../../../../shared';
 import postService from '../../../utils/services/post.service';
 import { geohashForLocation } from 'geofire-common';
 import { auth } from '../../../../../firebaseConfig';
-import { GeoPoint } from 'firebase/firestore';
 
 type SummaryProps = {
   image: string;
   place: Place;
   senderToken?: string;
 };
-
-interface OldPostsData {
-  pageParams: unknown[];
-  pages: {
-    lastVisible: string;
-    posts: Post[];
-  }[];
-}
 
 const isTablet = Device.isTablet();
 const width = Dimensions.get('window').width;
@@ -76,8 +67,8 @@ export const PostSummary = ({ route }: any) => {
 
   const occupancyLabels = {
     [occupacyOptions.FULL]: t('full'),
-    [occupacyOptions.HALF_FULL]: t('half-full'),
-    [occupacyOptions.HALF_EMPTY]: t('half-empty'),
+    [occupacyOptions.ALMOST_FULL]: t('almost-full'),
+    [occupacyOptions.SPARSELY_OCCUPIED]: t('sparsely-occupied'),
     [occupacyOptions.EMPTY]: t('empty'),
   };
 
@@ -111,6 +102,7 @@ export const PostSummary = ({ route }: any) => {
           id: auth.currentUser?.uid ?? '',
           displayName: auth.currentUser?.displayName ?? '',
           photoUrl: auth.currentUser?.photoURL ?? '',
+          expoPushToken: '',
         },
       };
 

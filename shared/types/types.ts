@@ -60,7 +60,7 @@ export interface UserInfo {
   id: string;
   displayName: string;
   photoUrl: string;
-  expoPushToken: string;
+  expoPushToken?: string;
 }
 
 export type InfinityScrollPost = {

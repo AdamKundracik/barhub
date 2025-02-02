@@ -1,9 +1,3 @@
-import { Timestamp } from 'firebase/firestore';
-import {
-  GetUserNotificationsResponse,
-  SaveNotificationResponse,
-} from '../../../../common/types/notificationTypes';
-
 export type AuthStackParamList = {
   LoginDriver: undefined;
   RegisterDriver: { id: string };
@@ -28,8 +22,8 @@ export type Settings = {
 
 export enum occupacyOptions {
   FULL = 'FULL',
-  HALF_FULL = 'HALF_FULL',
-  HALF_EMPTY = 'HALF_EMPTY',
+  ALMOST_FULL = 'ALMOST-FULL',
+  SPARSELY_OCCUPIED = 'SPARSELY-OCCUPIED',
   EMPTY = 'EMPTY',
 }
 

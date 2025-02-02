@@ -58,6 +58,7 @@ const NotificationHandler: React.FC<NotificationHandlerProps> = ({
           notificationType,
         } = response.notification.request.content.data;
 
+        console.log('notificationType', notificationType);
         switch (notificationType as NotificationType) {
           case NotificationType.LIKE:
             navigation.navigate('NotificationsList');

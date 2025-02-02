@@ -98,8 +98,8 @@
   "terms-of-use": "Terms of use",
   "support-us": "Support us",
   "full": "Full",
-  "half-full": "Half Full",
-  "half-empty": "Half Empty",
+  "almost-full": "Almost full",
+  "sparsely-occupied": "Sparsely occupied",
   "empty": "Empty",
   "location": "Location",
   "name": "Name",
@@ -123,4 +123,5 @@
   "undo": "Undo",
   "notifications": "Notifications",
   "no-notifications": "No notifications"
+
 }

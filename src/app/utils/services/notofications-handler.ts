@@ -24,7 +24,7 @@ export async function sendPushNotificationResponse(
     sound: 'default',
     title: 'Someone posted photo from requested place!',
     body: 'Check out how it looks inside!',
-    data: { placeId: placeId },
+    data: { placeId: placeId, notificationType: NotificationType.RESPONSE },
   };
 
   await fetch('https://exp.host/--/api/v2/push/send', {
@@ -56,7 +56,7 @@ export async function sendRequestNotification(
       senderToken: senderToken,
       notificationTTL: notificationTTL,
       sentAt: new Date().getTime(),
-      notificationType: notificationType,
+      notificationType: NotificationType.REQUEST,
     },
   };
 

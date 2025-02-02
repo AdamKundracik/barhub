@@ -24,8 +24,8 @@ export const InteractionBar = (props: InteractionBarProps) => {
 
   const occupancyLabels = {
     [occupacyOptions.FULL]: t('full'),
-    [occupacyOptions.HALF_FULL]: t('half-full'),
-    [occupacyOptions.HALF_EMPTY]: t('half-empty'),
+    [occupacyOptions.ALMOST_FULL]: t('almost-full'),
+    [occupacyOptions.SPARSELY_OCCUPIED]: t('sparsely-occupied'),
     [occupacyOptions.EMPTY]: t('empty'),
   };
 
