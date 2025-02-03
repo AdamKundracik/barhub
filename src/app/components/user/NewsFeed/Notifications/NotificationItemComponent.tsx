@@ -5,6 +5,7 @@ import {
   PanResponder,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -93,7 +94,7 @@ export const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   };
 
   return (
-    <View style={styles.itemContainer}>
+    <TouchableOpacity style={styles.itemContainer}>
       <Animated.View
         style={[styles.deleteIconContainer, { opacity: deleteIconOpacity }]}
       >
@@ -127,7 +128,7 @@ export const NotificationItemComponent: React.FC<NotificationItemProps> = ({
           </View>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -136,7 +137,6 @@ export default NotificationItemComponent;
 const styles = StyleSheet.create({
   itemContainer: {
     position: 'relative',
-    marginBottom: 12,
   },
   deleteIconContainer: {
     position: 'absolute',

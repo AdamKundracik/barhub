@@ -45,7 +45,7 @@ const NotificationHandler: React.FC<NotificationHandlerProps> = ({
           text: notification.request.content.body ?? 'no body text',
           notificationType: notificationType,
         });
-        refetch();
+        await refetch();
       });
 
     responseListener.current =
@@ -58,7 +58,6 @@ const NotificationHandler: React.FC<NotificationHandlerProps> = ({
           notificationType,
         } = response.notification.request.content.data;
 
-        console.log('notificationType', notificationType);
         switch (notificationType as NotificationType) {
           case NotificationType.LIKE:
             navigation.navigate('NotificationsList');
@@ -67,7 +66,10 @@ const NotificationHandler: React.FC<NotificationHandlerProps> = ({
             navigation.navigate('NotificationsList');
             break;
           case NotificationType.REQUEST:
-            if (new Date().getTime() > sentAt + notificationTTL) {
+            if (
+              new Date().getTime() >
+              new Date(sentAt).getTime() + notificationTTL
+            ) {
               Alert.alert(t('request-expired'), t('missed-request-info'));
             } else {
               await openCamera(placeId, senderToken, navigation);

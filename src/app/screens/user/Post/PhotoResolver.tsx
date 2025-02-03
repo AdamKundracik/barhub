@@ -5,7 +5,6 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import Layout from '../../../components/user/Shared/Layout';
@@ -14,10 +13,9 @@ import { Place } from '../../../utils/types/types';
 import { useUserContext } from '../../../providers/UserProvider';
 import { primaryColor, primaryDeepColor } from '../../../utils/styles/colors';
 import { useTranslation } from 'react-i18next';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
+import { ScreenLayout } from '../../../components/user/Shared/ScreenLayout';
 
 export const PhotoResolver = ({ route }: any) => {
   const { location } = useUserContext();
@@ -97,29 +95,9 @@ export const PhotoResolver = ({ route }: any) => {
   }
 
   return (
-    <Layout pageTitle={'PhotoResolver'}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <FontAwesomeIcon icon={Icons.Left} size={24} color={'white'} />
-        </TouchableOpacity>
-      </View>
-      <View
-        style={{
-          padding: 20,
-          alignItems: 'center',
-          position: 'relative',
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'center',
-        }}
-      >
-        <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>
-          {t('select-place')}
-        </Text>
-        <View />
-      </View>
+    <ScreenLayout title={t('select-place')} clickFunction={navigation.goBack}>
       <FlatList data={places} renderItem={renderItem} />
-    </Layout>
+    </ScreenLayout>
   );
 };
 

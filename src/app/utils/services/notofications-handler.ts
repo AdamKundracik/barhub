@@ -43,7 +43,6 @@ export async function sendRequestNotification(
   placeId: string,
   placeName: string,
   senderToken: string,
-  notificationType: NotificationType,
   notificationTTL: number = 180 * 1000 //measured in miliseconds (1s = 1000ms) - 3min default
 ) {
   const message = {
@@ -55,7 +54,7 @@ export async function sendRequestNotification(
       placeId: placeId,
       senderToken: senderToken,
       notificationTTL: notificationTTL,
-      sentAt: new Date().getTime(),
+      sentAt: new Date().toISOString(),
       notificationType: NotificationType.REQUEST,
     },
   };

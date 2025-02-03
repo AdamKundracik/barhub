@@ -9,7 +9,6 @@ import {
   View,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
-import Layout from '../../../components/user/Shared/Layout';
 import Device from 'react-native-device-info';
 import {
   iconInactiveColor,
@@ -20,8 +19,6 @@ import {
 import { occupacyOptions, Place } from '../../../utils/types/types';
 import { useTranslation } from 'react-i18next';
 import { formStyles } from '../../../utils/styles/styles';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { uploadImageAsync } from '../../../utils/helper-functions/imageUploadFunctions';
@@ -32,6 +29,7 @@ import { Post } from '../../../../../shared';
 import postService from '../../../utils/services/post.service';
 import { geohashForLocation } from 'geofire-common';
 import { auth } from '../../../../../firebaseConfig';
+import { ScreenLayout } from '../../../components/user/Shared/ScreenLayout';
 
 type SummaryProps = {
   image: string;
@@ -186,119 +184,110 @@ export const PostSummary = ({ route }: any) => {
   };
 
   return (
-    <Layout pageTitle={'Summary'} showBottomTabs={false}>
+    <ScreenLayout clickFunction={navigation.goBack}>
       <TouchableWithoutFeedback onPress={handleOutsideClick}>
-        <>
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <FontAwesomeIcon icon={Icons.Left} size={24} color={'white'} />
+        <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+          <Text
+            style={{
+              color: primaryColor,
+              fontSize: 32,
+              textAlign: 'center',
+              marginBottom: 15,
+            }}
+          >
+            {t('new-post')}
+          </Text>
+
+          <View
+            style={
+              isTablet ? tabletStyles.contentContainer : styles.contentContainer
+            }
+          >
+            <View style={styles.textContainer}>
+              <Text style={styles.label}>{t('location')}:</Text>
+              <Text
+                style={styles.dynamicText}
+                numberOfLines={3}
+                ellipsizeMode="tail"
+              >
+                {place?.formattedAddress ?? ''}
+              </Text>
+            </View>
+
+            <View style={styles.textContainer}>
+              <Text style={styles.label}>{t('name')}</Text>
+              <Text style={styles.dynamicText}>
+                {place?.displayName.text ?? ''}
+              </Text>
+            </View>
+
+            <View style={[styles.textContainer, styles.dropdownContainer]}>
+              <Text style={styles.label}>{t('occupancy')}:</Text>
+
+              <View style={styles.dropdownWrapper}>
+                <TouchableOpacity
+                  onPress={() => setIsDropdownOpen(!isDropdownOpen)}
+                  style={[
+                    styles.dropdown,
+                    { width: 150 }, // Fixed width
+                  ]}
+                >
+                  <Text style={styles.dropdownText}>
+                    {occupancyLabels[selectedOccupancy]}
+                  </Text>
+                </TouchableOpacity>
+
+                {isDropdownOpen && (
+                  <View style={styles.dropdownList}>
+                    {Object.values(occupacyOptions).map(option => (
+                      <TouchableOpacity
+                        key={option}
+                        onPress={() => handleSelect(option)}
+                        style={styles.dropdownItem}
+                      >
+                        <Text
+                          style={[
+                            styles.dropdownItemText,
+                            selectedOccupancy === option
+                              ? { color: primaryColor }
+                              : { color: 'white' },
+                          ]}
+                        >
+                          {occupancyLabels[option]}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+            </View>
+
+            <View style={{ height: width, marginTop: 15 }}>
+              <FastImage
+                style={isTablet ? tabletStyles.photo : styles.photo}
+                source={{
+                  priority: FastImage.priority.high,
+                  uri: image ?? '',
+                }}
+                resizeMode={FastImage.resizeMode.cover}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={formStyles.buttonPrimary}
+              onPress={handleSavePost}
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <LoadingIndicator />
+              ) : (
+                <Text style={formStyles.buttonText}>{t('save')}</Text>
+              )}
             </TouchableOpacity>
           </View>
-          <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-            <Text
-              style={{
-                color: primaryColor,
-                fontSize: 32,
-                textAlign: 'center',
-                marginBottom: 15,
-              }}
-            >
-              {t('new-post')}
-            </Text>
-
-            <View
-              style={
-                isTablet
-                  ? tabletStyles.contentContainer
-                  : styles.contentContainer
-              }
-            >
-              <View style={styles.textContainer}>
-                <Text style={styles.label}>{t('location')}:</Text>
-                <Text
-                  style={styles.dynamicText}
-                  numberOfLines={3}
-                  ellipsizeMode="tail"
-                >
-                  {place?.formattedAddress ?? ''}
-                </Text>
-              </View>
-
-              <View style={styles.textContainer}>
-                <Text style={styles.label}>{t('name')}</Text>
-                <Text style={styles.dynamicText}>
-                  {place?.displayName.text ?? ''}
-                </Text>
-              </View>
-
-              <View style={[styles.textContainer, styles.dropdownContainer]}>
-                <Text style={styles.label}>{t('occupancy')}:</Text>
-
-                <View style={styles.dropdownWrapper}>
-                  <TouchableOpacity
-                    onPress={() => setIsDropdownOpen(!isDropdownOpen)}
-                    style={[
-                      styles.dropdown,
-                      { width: 150 }, // Fixed width
-                    ]}
-                  >
-                    <Text style={styles.dropdownText}>
-                      {occupancyLabels[selectedOccupancy]}
-                    </Text>
-                  </TouchableOpacity>
-
-                  {isDropdownOpen && (
-                    <View style={styles.dropdownList}>
-                      {Object.values(occupacyOptions).map(option => (
-                        <TouchableOpacity
-                          key={option}
-                          onPress={() => handleSelect(option)}
-                          style={styles.dropdownItem}
-                        >
-                          <Text
-                            style={[
-                              styles.dropdownItemText,
-                              selectedOccupancy === option
-                                ? { color: primaryColor }
-                                : { color: 'white' },
-                            ]}
-                          >
-                            {occupancyLabels[option]}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              </View>
-
-              <View style={{ height: width, marginTop: 15 }}>
-                <FastImage
-                  style={isTablet ? tabletStyles.photo : styles.photo}
-                  source={{
-                    priority: FastImage.priority.high,
-                    uri: image ?? '',
-                  }}
-                  resizeMode={FastImage.resizeMode.cover}
-                />
-              </View>
-
-              <TouchableOpacity
-                style={formStyles.buttonPrimary}
-                onPress={handleSavePost}
-                disabled={isSaving}
-              >
-                {isSaving ? (
-                  <LoadingIndicator />
-                ) : (
-                  <Text style={formStyles.buttonText}>{t('save')}</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </>
+        </View>
       </TouchableWithoutFeedback>
-    </Layout>
+    </ScreenLayout>
   );
 };
 
