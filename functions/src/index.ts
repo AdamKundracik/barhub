@@ -335,7 +335,13 @@ exports.getUserNotifications = functions.https.onCall(
 );
 
 exports.markAllNotificationsAsSeen = functions.https.onCall(
-  async (data, context): Promise<GetUserNotificationsResponse> => {
+  async (
+    data,
+    context
+  ): Promise<{
+    success: boolean;
+    updatedCount: number;
+  }> => {
     // Ensure user is authenticated
     if (!context.auth) {
       throw new functions.https.HttpsError(
