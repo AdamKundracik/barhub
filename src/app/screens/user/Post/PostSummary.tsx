@@ -30,6 +30,7 @@ import postService from '../../../utils/services/post.service';
 import { geohashForLocation } from 'geofire-common';
 import { auth } from '../../../../../firebaseConfig';
 import { ScreenLayout } from '../../../components/user/Shared/ScreenLayout';
+import { sendPushNotificationResponse } from '../../../utils/services/notofications-handler';
 
 type SummaryProps = {
   image: string;
@@ -172,6 +173,8 @@ export const PostSummary = ({ route }: any) => {
           const postResponse = await postService.savePost(newPost);
           mutate(postResponse);
           navigation.navigate('Feed');
+          if (senderToken)
+            await sendPushNotificationResponse(senderToken, place.id);
           await setUser({ lastUploadedPost: new Date().toISOString() });
         } catch (e) {
           console.error(e);
