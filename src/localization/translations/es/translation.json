@@ -105,5 +105,17 @@
   "name": "Nombre",
   "occupancy": "Ocupación",
   "new-post": "Nueva Publicación",
-  "no-results": "No hay resultados"
+  "no-results": "No hay resultados",
+  "distance": "Distancia",
+  "places-types": "Tipos de lugares",
+  "bar": "Bar",
+  "cafe": "Café",
+  "bakery": "Panadería",
+  "casino": "Casino",
+  "night_club": "Club nocturno",
+  "restaurant": "Restaurante",
+  "filters": "Filtros",
+  "error": "Error",
+  "please-select-place": "Debe seleccionar al menos un tipo de lugar para guardar los cambios.",
+  "ok": "Ok"
 }

@@ -7,6 +7,7 @@ export interface Post {
     _lat: number;
     _long: number;
   };
+  placeTypes: string[];
   creationTime: string;
   timestamp: number;
   userId: string;

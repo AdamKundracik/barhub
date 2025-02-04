@@ -27,6 +27,7 @@ import { openCamera } from '../../../utils/helper-functions/openCamera';
 import { auth } from '../../../../../firebaseConfig';
 import RollupMenu, { MenuItemType } from '../RollupMenu';
 import { useTranslation } from 'react-i18next';
+import FilterSlider from '../NewsFeed/Filters/FilterSlider';
 
 type LayoutProps = {
   children: ReactNode | ReactNode[];
@@ -41,6 +42,7 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
   const { t } = useTranslation();
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [filtersOpened, setFiltersOpened] = useState(false);
 
   const handleTabPress = (tab: TabsTypes) => {
     if (route.name === tab) {
@@ -93,7 +95,7 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
                 size={22}
               />
             </TouchableOpacity>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => setFiltersOpened(true)}>
               <FontAwesomeIcon
                 icon={Icons.Sliders}
                 color={iconInactiveColor}
@@ -180,6 +182,10 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
         </View>
       )}
       {menuOpen && <RollupMenu setOpenMenu={setMenuOpen} isOpen={menuOpen} />}
+      <FilterSlider
+        opened={filtersOpened}
+        onClose={() => setFiltersOpened(false)}
+      />
     </SafeAreaView>
   );
 };

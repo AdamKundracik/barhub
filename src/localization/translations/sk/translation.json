@@ -105,5 +105,17 @@
   "name": "Názov",
   "occupancy": "Obsadenosť",
   "new-post": "Nový príspevok",
-  "no-results": "Žiadne výsledky"
+  "no-results": "Žiadne výsledky",
+  "distance": "Vzdialenosť",
+  "places-types": "Typy miest",
+  "bar": "Bar",
+  "cafe": "Kaviareň",
+  "bakery": "Pekáreň",
+  "casino": "Kasíno",
+  "night_club": "Nočný klub",
+  "restaurant": "Reštaurácia",
+  "filters": "Filtre",
+  "error": "Chyba",
+  "please-select-place": "Pre uloženie zmien musí byť vybraný aspoň jeden typ miesta.",
+  "ok": "Ok"
 }

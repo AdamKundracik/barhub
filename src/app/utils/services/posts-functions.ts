@@ -1,9 +1,10 @@
 import { InfinityScrollPost, Post } from '../../../../shared';
-import { getFreshContent, getPostsByPlaceId } from '../services/post.service';
+import { getFreshContent, getPostsByPlaceId } from './post.service';
 import { GeoPointType, LocationType } from '../types/types';
 import { logger } from 'firebase-functions';
 
 export const handleFreshContent = async (
+  radius: number,
   lastVisible?: string | null,
   placeId?: string | null,
   location?: LocationType
@@ -11,6 +12,7 @@ export const handleFreshContent = async (
   const geoPoint = locationTypeToGeoPointType(
     location ?? { latitude: 0, longitude: 0 }
   );
+
   try {
     let response;
     if (placeId) {
@@ -19,8 +21,8 @@ export const handleFreshContent = async (
         : await getPostsByPlaceId(placeId);
     } else {
       response = lastVisible
-        ? await getFreshContent(geoPoint, lastVisible)
-        : await getFreshContent(geoPoint);
+        ? await getFreshContent(geoPoint, radius, lastVisible)
+        : await getFreshContent(geoPoint, radius);
     }
 
     // Ensure response exists and has posts
@@ -28,15 +30,11 @@ export const handleFreshContent = async (
     if (!data?.posts?.length) {
       return { posts: [], lastVisible: null };
     }
-
-    // Process and return posts
-    const postsWithUrls = await Promise.all(data.posts);
     return {
-      posts: postsWithUrls,
+      posts: data.posts,
       lastVisible: data.lastVisible || null,
     };
   } catch (error) {
-    console.error('Error in handleFreshContent:', error);
     return { posts: [], lastVisible: null };
   }
 };

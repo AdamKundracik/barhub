@@ -64,6 +64,8 @@ class PostService {
   /**
    * Retrieves fresh content for infinite scrolling with pagination.
    *
+   * @param geoPoint - User location as [number, number] type
+   * @param radius - Radius to filter posts (in km)
    * @param uid - User ID of the authenticated user.
    * @param pageSize - Number of posts to retrieve per page.
    * @param lastVisible - ID of the last post from the previous query.
@@ -71,20 +73,20 @@ class PostService {
    */
   async getFreshContent(
     geoPoint: GeoPointType,
+    radius: number,
     uid: string,
     pageSize: number = 3,
     lastVisible: string | null = null
   ): Promise<InfinityScrollPost> {
     try {
-      // logger.info('Starting getFreshContent');
       const center: [number, number] = [geoPoint._lat, geoPoint._long];
-      const radiusInM = 2000;
+      const radiusInM = radius * 1000;
 
       // First get all documents
       let query = this.db
         .collection('posts')
-        .orderBy('geohash')
-        .orderBy('timestamp', 'desc');
+        .orderBy('timestamp', 'desc')
+        .orderBy('geohash');
 
       if (lastVisible) {
         const lastVisibleDoc = await this.db
@@ -131,7 +133,6 @@ class PostService {
             center
           );
           const distanceInM = distanceInKm * 1000;
-          console.log('distance in M: ', distanceInM);
 
           if (distanceInM <= radiusInM) {
             matchingDocs.push(doc);
@@ -198,6 +199,7 @@ class PostService {
         })
       );
 
+      logger.debug('posts', posts.length);
       return {
         posts,
         lastVisible:

@@ -105,5 +105,17 @@
   "name": "Name",
   "occupancy": "Belegung",
   "new-post": "Neuer Beitrag",
-  "no-results": "Keine Ergebnisse"
+  "no-results": "Keine Ergebnisse",
+  "distance": "Entfernung",
+  "places-types": "Ortstypen",
+  "bar": "Bar",
+  "cafe": "Café",
+  "bakery": "Bäckerei",
+  "casino": "Kasino",
+  "night_club": "Nachtclub",
+  "restaurant": "Restaurant",
+  "filters": "Filter",
+  "error": "Fehler",
+  "please-select-place": "Um Änderungen zu speichern, muss mindestens ein Ortstyp ausgewählt werden.",
+  "ok": "Ok"
 }

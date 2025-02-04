@@ -18,11 +18,13 @@ class PostService {
 
 export const getFreshContent = async (
   geoPoint: GeoPointType,
+  radius: number,
   lastVisible?: string
 ): Promise<GetFreshnessContentResult> => {
   const cloudFunction = httpsCallable(functions, 'getFreshContent');
   const response = (await cloudFunction({
     geoPoint,
+    radius,
     pageSize: 10,
     lastVisible: lastVisible,
   })) as unknown as GetFreshnessContentResult;
