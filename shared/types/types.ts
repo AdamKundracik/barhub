@@ -1,4 +1,5 @@
 import { LocationType } from '../../src/app/utils/types/types';
+import { Timestamp } from 'firebase/firestore';
 
 export interface UserRecord {
   customClaims: { [key: string]: any };
@@ -40,7 +41,7 @@ export type Post = {
     _long: number;
   };
   placeTypes: string[];
-  creationTime: string;
+  creationTime: Timestamp;
   timestamp: number;
   userId?: string;
   fileId: string;

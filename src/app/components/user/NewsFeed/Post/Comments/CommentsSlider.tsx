@@ -28,7 +28,7 @@ import BottomSheet, {
 import CommentsLoaderView from '../Loaders/CommentsLoaderView';
 import { PostComment } from '../../../../../../../common/types/commentTypes';
 import commentService from '../../../../../utils/services/comment.service';
-import { sendCommentNotification } from '../../../../../utils/services/notofications-handler';
+import { sendCommentNotification } from '../../../../../utils/functions/notofications-handler';
 
 type Props = {
   expoPushToken: string;

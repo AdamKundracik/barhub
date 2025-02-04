@@ -13,7 +13,7 @@ import LoadingIndicator from '../../components/user/NewsFeed/LoadingIndicator';
 import PostsList from '../../components/user/NewsFeed/PostList';
 import { fetchPlaceDetails } from '../../utils/helper-functions/fetchPlaceDetail';
 import { sendNotificationHandler } from '../../utils/helper-functions/sendNotificationHandler';
-import { sendRequestNotification } from '../../utils/services/notofications-handler';
+import { sendRequestNotification } from '../../utils/functions/notofications-handler';
 import FeedHeader from '../../components/user/NewsFeed/FeedHeader';
 import CommentsSlider from '../../components/user/NewsFeed/Post/Comments/CommentsSlider';
 import { usePlaceStore } from '../../utils/store/placesStore';
@@ -104,15 +104,14 @@ export const NewsFeed = () => {
         latitude: detail?.geometry.location?.lat,
         longitude: detail?.geometry.location?.lng,
       });
-      tokens?.forEach(token => {
-        sendRequestNotification(
-          token,
-          placeId,
-          placeName,
-          senderToken ?? '',
-          NotificationType.COMMENT
-        );
-      });
+      // tokens?.forEach(token => {
+      sendRequestNotification(
+        'ExponentPushToken[vVQF0SCUsZZ6gDZEhuAawd]',
+        placeId,
+        placeName,
+        senderToken ?? ''
+      );
+      // });
     }
   }
 

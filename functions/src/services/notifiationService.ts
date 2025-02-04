@@ -23,6 +23,8 @@ class NotifiationService {
         read: false,
         creationTime: admin.firestore.Timestamp.now(), // Using Firebase Firestore Timestamp
         userId: data.userId,
+        placeId: data.placeId,
+        senderToken: data.senderToken,
       };
 
       const addedNotificationRef = await this.db

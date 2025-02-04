@@ -30,7 +30,7 @@ import postService from '../../../utils/services/post.service';
 import { geohashForLocation } from 'geofire-common';
 import { auth } from '../../../../../firebaseConfig';
 import { ScreenLayout } from '../../../components/user/Shared/ScreenLayout';
-import { sendPushNotificationResponse } from '../../../utils/services/notofications-handler';
+import { sendPushNotificationResponse } from '../../../utils/functions/notofications-handler';
 
 type SummaryProps = {
   image: string;

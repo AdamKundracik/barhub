@@ -21,7 +21,7 @@ import { useQueryClient } from 'react-query';
 import { usePlaceStore } from '../../../../utils/store/placesStore';
 import { trimPlaceName } from '../../../../utils/helper-functions/trimPlaceName';
 import { LikeNotificationRequest } from '../../../../utils/types/notification-types';
-import { sendLikeNotification } from '../../../../utils/services/notofications-handler';
+import { sendLikeNotification } from '../../../../utils/functions/notofications-handler';
 
 interface PostInterface {
   post: Post;
@@ -187,7 +187,7 @@ export const UserPost = (props: PostInterface) => {
           ) >= 14 && <BluredPostFrontView />)}
         <UserLine
           user={post.user}
-          date={new Date(post.creationTime).toLocaleString()}
+          date={post.creationTime}
           address={post.placeAddress}
           profileImage={post.user?.photoUrl ?? ''}
         />

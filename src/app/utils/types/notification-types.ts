@@ -17,6 +17,8 @@ export interface NotificationItem {
   creationTime: Timestamp;
   userId: string;
   notificationType: NotificationType;
+  senderToken?: string;
+  placeId?: string;
 }
 
 export interface NotificationItemProps {
@@ -47,9 +49,7 @@ export type AdminNotificationItem = Omit<NotificationItem, 'creationTime'> & {
   creationTime: FirebaseFirestore.Timestamp;
 };
 
-export interface SaveNotificationRequest extends NotificationItem {
-  userId: string;
-}
+export interface SaveNotificationRequest extends NotificationItem {}
 
 export interface SaveNotificationResponse extends NotificationItem {}
 

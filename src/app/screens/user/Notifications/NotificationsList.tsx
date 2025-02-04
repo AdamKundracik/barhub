@@ -24,13 +24,15 @@ export const NotificationsList: React.FC = () => {
   const [showUndo, setShowUndo] = useState(false);
   const [isRefreshingManually, setIsRefreshingManually] = useState(false);
 
-  markAllAsSeen();
-
   useEffect(() => {
     if (data?.notifications) {
       setNotifications(data.notifications);
     }
   }, [data]);
+
+  useEffect(() => {
+    markAllAsSeen();
+  }, []);
 
   const handleRefresh = async () => {
     if (!isScrollEnabled || isRefreshingManually) return;

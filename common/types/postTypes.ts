@@ -1,5 +1,6 @@
 import firebase from 'firebase/compat';
 import { GeoPoint } from 'firebase/firestore';
+import * as admin from 'firebase-admin';
 
 export interface Post {
   geohash: string;
@@ -8,7 +9,7 @@ export interface Post {
     _long: number;
   };
   placeTypes: string[];
-  creationTime: string;
+  creationTime: admin.firestore.Timestamp;
   timestamp: number;
   userId: string;
   fileId: string;

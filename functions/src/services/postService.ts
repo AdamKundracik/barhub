@@ -38,7 +38,7 @@ class PostService {
         ...post,
         userId: userId ?? '',
         fileId: fileId ?? '',
-        creationTime: new Date().toISOString(),
+        creationTime: admin.firestore.Timestamp.now(),
         timestamp: Date.now(),
       };
 
@@ -84,7 +84,7 @@ class PostService {
       // First get all documents
       let query = this.db
         .collection('posts')
-        .orderBy('timestamp', 'desc')
+        .orderBy('creationTime', 'desc')
         .orderBy('geohash');
 
       if (lastVisible) {

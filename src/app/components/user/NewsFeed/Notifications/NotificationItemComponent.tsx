@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import {
+  Alert,
   Animated,
   Dimensions,
   PanResponder,
@@ -12,9 +13,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../../utils/icons/icons';
 import { primaryColor } from '../../../../utils/styles/colors';
 import {
+  NotificationItem,
   NotificationItemProps,
   NotificationType,
 } from '../../../../utils/types/notification-types';
+import { openCamera } from '../../../../utils/helper-functions/openCamera';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { UserStackList } from '../../../../utils/types/screen-types';
+import { useTranslation } from 'react-i18next';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = -150;
@@ -28,6 +34,9 @@ export const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   const translateX = useRef(new Animated.Value(0)).current;
   const isDeleting = useRef(false);
   const gestureStartX = useRef(0);
+
+  const navigation = useNavigation<NavigationProp<UserStackList>>();
+  const { t } = useTranslation();
 
   const deleteIconOpacity = translateX.interpolate({
     inputRange: [-150, 0],
@@ -93,8 +102,41 @@ export const NotificationItemComponent: React.FC<NotificationItemProps> = ({
     });
   };
 
+  async function handleNotification(notification: NotificationItem) {
+    try {
+      const { placeId, notificationType, senderToken, creationTime } =
+        notification;
+
+      if (!creationTime || typeof creationTime !== 'object') {
+        throw new Error('Creation time is missing or not an object');
+      }
+
+      // Handle the specific format with _seconds and _nanoseconds
+      if ('_seconds' in creationTime && '_nanoseconds' in creationTime) {
+        const timestamp = (creationTime._seconds as number) * 1000; // Convert seconds to milliseconds
+        const expirationTime = 180 * 1000; // 3 minutes
+
+        if (notificationType === NotificationType.REQUEST) {
+          if (Date.now() > timestamp + expirationTime) {
+            Alert.alert(t('request-expired'), t('missed-request-info'));
+          } else {
+            await openCamera(placeId, senderToken, navigation);
+          }
+        }
+      } else {
+        throw new Error('Invalid timestamp format');
+      }
+    } catch (error) {
+      console.error('Error handling notification:', error);
+      Alert.alert(t('error'), t('notification-processing-error'));
+    }
+  }
+
   return (
-    <TouchableOpacity style={styles.itemContainer}>
+    <TouchableOpacity
+      style={styles.itemContainer}
+      onPress={() => handleNotification(item)}
+    >
       <Animated.View
         style={[styles.deleteIconContainer, { opacity: deleteIconOpacity }]}
       >

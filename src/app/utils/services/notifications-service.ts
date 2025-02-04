@@ -5,6 +5,7 @@ import {
   GetNotificationsResult,
   MarkNotificationReadResult,
   NotificationItem,
+  SaveNotificationRequest,
 } from '../types/notification-types';
 
 /**
@@ -14,8 +15,8 @@ import {
  */
 export const saveNotification = async (
   notification: Omit<
-    NotificationItem,
-    'creationTime' | 'userId' | 'postId' | 'id'
+    SaveNotificationRequest,
+    'creationTime' | 'userId' | 'id' | 'postId'
   >
 ): Promise<SaveNotificationResponse> => {
   const cloudFunction = httpsCallable(functions, 'saveNotification');
@@ -34,6 +35,7 @@ export const getUserNotifications =
     const cloudFunction = httpsCallable(functions, 'getUserNotifications');
     const response =
       (await cloudFunction()) as unknown as GetNotificationsResult;
+    console.log(response.data);
     return response;
   };
 

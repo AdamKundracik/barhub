@@ -9,6 +9,8 @@ export type NotificationItem = {
   creationTime: admin.firestore.Timestamp;
   userId: string;
   norificationType: NotificationType;
+  senderToken?: string;
+  placeId?: string;
 };
 
 export enum NotificationType {
@@ -20,12 +22,10 @@ export enum NotificationType {
 
 export interface SaveNotificationResponse extends NotificationItem {}
 
-export interface SaveNotificationRequest extends NotificationItem {
-  userId: string;
-}
+export interface SaveNotificationRequest extends NotificationItem {}
 
 export interface GetUserNotificationsResponse {
-  notifications: NotificationItem[];
+  notifications: SaveNotificationResponse[];
   hasNewNotifications: boolean;
   newNotificationsCount: number;
 }

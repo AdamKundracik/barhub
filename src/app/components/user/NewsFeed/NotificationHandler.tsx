@@ -4,7 +4,7 @@ import * as Notifications from 'expo-notifications';
 import { useTranslation } from 'react-i18next';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { setUser } from '../../../utils/services/functions';
-import { registerForPushNotificationsAsync } from '../../../utils/services/notofications-handler';
+import { registerForPushNotificationsAsync } from '../../../utils/functions/notofications-handler';
 import { openCamera } from '../../../utils/helper-functions/openCamera';
 import { saveNotification } from '../../../utils/services/notifications-service';
 import { NavigationProp } from '@react-navigation/native';
@@ -39,11 +39,15 @@ const NotificationHandler: React.FC<NotificationHandlerProps> = ({
 
     notificationListener.current =
       Notifications.addNotificationReceivedListener(async notification => {
-        const { notificationType } = notification.request.content.data;
+        const { notificationType, placeId, senderToken } =
+          notification.request.content.data;
+        console.log(notification.request.content.data);
         await saveNotification({
           label: notification.request.content.title ?? 'No title text',
           text: notification.request.content.body ?? 'no body text',
           notificationType: notificationType,
+          placeId: placeId,
+          senderToken: senderToken,
         });
         await refetch();
       });
