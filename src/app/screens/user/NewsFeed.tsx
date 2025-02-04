@@ -73,20 +73,17 @@ export const NewsFeed = () => {
 
     const allPosts = postsData.pages.flatMap(page => page.posts);
 
-    // If no filters are selected, return all posts
     if (selectedPlaces.length === 0 && selectedOccupancy.length === 0) {
       return allPosts;
     }
 
     return allPosts.filter(post => {
-      // Check place types
       const matchesPlaceType =
         selectedPlaces.length === 0 ||
         post.placeTypes?.some(type =>
           selectedPlaces.includes(type as PlaceType)
         );
 
-      // Check occupancy
       const matchesOccupancy =
         selectedOccupancy.length === 0 ||
         selectedOccupancy.includes(post.occupancy as OccupancyTypes);

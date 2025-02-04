@@ -25,8 +25,7 @@ export const uploadImageAsync = async (
     await uploadBytes(storageRef, blob);
     const url = await getDownloadURL(storageRef);
 
-    // If newPost is not provided, return the URL
-    return url; // Return the URL of the uploaded image
+    return url;
   } catch (error) {
     console.error('Error uploading image:', error);
     return null;
@@ -89,16 +88,14 @@ export const getProfilePicture = async (id?: string): Promise<string> => {
     try {
       uri = await getDownloadURL(listRef);
     } catch (downloadError) {
-      // Handle the error from getDownloadURL
       console.error('Error getting download URL: ', downloadError);
-      return ''; // Return an empty string or a default placeholder image URL
+      return '';
     }
 
-    return uri; // Return the successful URI
+    return uri;
   } catch (error) {
-    // Handle any other errors that may occur
     console.error('Error listing files: ', error);
-    return ''; // Return an empty string or a default placeholder image URL
+    return '';
   }
 };
 

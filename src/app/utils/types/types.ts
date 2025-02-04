@@ -1,15 +1,3 @@
-export type AuthStackParamList = {
-  LoginDriver: undefined;
-  RegisterDriver: { id: string };
-  NumberVerificationDriver: {
-    verification: string;
-    phoneNumber: string;
-    name?: string;
-    email?: string;
-    invitationId?: string;
-  };
-}; // EXAMPLE FOR NAVIGATION
-
 export enum TabsTypes {
   camera = 'Camera',
   account = 'Account',

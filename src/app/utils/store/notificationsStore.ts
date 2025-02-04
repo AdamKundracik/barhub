@@ -7,7 +7,6 @@ import {
 } from '../services/notifications-service';
 import { NotificationItem } from '../types/notification-types';
 
-// Types
 interface NotificationsResponse {
   notifications: NotificationItem[];
   hasNewNotifications: boolean;
@@ -31,7 +30,6 @@ interface NotificationsActions {
 
 type NotificationsStore = NotificationsState & NotificationsActions;
 
-// Initial state
 const initialState: NotificationsState = {
   data: null,
   isLoading: false,
@@ -39,7 +37,6 @@ const initialState: NotificationsState = {
   lastUpdated: null,
 };
 
-// Store creation
 export const useNotificationsStore = create<NotificationsStore>((set, get) => ({
   ...initialState,
 
@@ -107,7 +104,6 @@ export const useNotificationsStore = create<NotificationsStore>((set, get) => ({
   },
 }));
 
-// Custom hook for notifications
 export const useNotifications = () => {
   const setNotifications = useNotificationsStore(
     state => state.setNotifications

@@ -24,7 +24,6 @@ export const handleFreshContent = async (
         : await getFreshContent(geoPoint, radius);
     }
 
-    // Ensure response exists and has posts
     const data = response.data as InfinityScrollPost;
     if (!data?.posts?.length) {
       return { posts: [], lastVisible: null };

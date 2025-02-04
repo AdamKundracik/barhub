@@ -7,12 +7,10 @@ import {
 } from 'react-native';
 import React, { useState } from 'react';
 import { BannerAd, TestIds } from 'react-native-google-mobile-ads';
-import { osName } from 'expo-device'; // Import Device
+import { osName } from 'expo-device';
 import { warningColor } from '../../utils/styles/colors';
-import Device from 'react-native-device-info';
 
 const width = Dimensions.get('window').width;
-const isTablet = Device.isTablet();
 
 const iosAdmobBanner = 'ca-app-pub-2698936582690038/3468319444';
 const androidAdmobBanner = 'ca-app-pub-2698936582690038/7536391110';
@@ -31,7 +29,7 @@ const InlineAd = () => {
 
       <BannerAd
         unitId={__DEV__ ? TestIds.BANNER : productionID}
-        size={`${width}x${width}`} // Dynamic size based on width
+        size={`${width}x${width}`}
         requestOptions={{
           requestNonPersonalizedAdsOnly: true,
         }}

@@ -92,22 +92,18 @@ const MultiSelectPlaceChips: React.FC<MultiSelectPlaceChipsProps> = ({
       : [...selectedOccupancy, occupancy];
 
     setSelectedOccupancy(newOccupancySelection);
-    // Make sure we're passing both arrays correctly
     onSelectionChange?.(selectedPlaces, newOccupancySelection);
   };
 
-  // Fix the togglePlace function to ensure occupancy state is passed correctly
   const togglePlace = (place: PlaceType): void => {
     const newPlaceSelection = selectedPlaces.includes(place)
       ? selectedPlaces.filter(p => p !== place)
       : [...selectedPlaces, place];
 
     setSelectedPlaces(newPlaceSelection);
-    // Make sure we're passing both arrays correctly
     onSelectionChange?.(newPlaceSelection, selectedOccupancy);
   };
 
-  // Order places with selected items first
   const orderedPlaces = useMemo(() => {
     return [
       ...PLACE_TYPES.filter(place => selectedPlaces.includes(place)),
@@ -115,7 +111,6 @@ const MultiSelectPlaceChips: React.FC<MultiSelectPlaceChipsProps> = ({
     ];
   }, [selectedPlaces]);
 
-  // Order occupancy with selected items first
   const orderedOccupancy = useMemo(() => {
     return [
       ...OCCUPANCY_TYPES.filter(occ => selectedOccupancy.includes(occ)),
@@ -194,7 +189,6 @@ const MultiSelectPlaceChips: React.FC<MultiSelectPlaceChipsProps> = ({
   );
 };
 
-// Updated styles
 const styles = StyleSheet.create({
   container: {
     display: 'flex',

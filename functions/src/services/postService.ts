@@ -42,13 +42,10 @@ class PostService {
         timestamp: Date.now(),
       };
 
-      // Add post to DB and get the object representing added post with generated ID etc... adn convert it to Document
       const addedPostReference = await this.db.collection('posts').add(postDoc);
 
       const addedPostSnapshot = await addedPostReference.get();
       const addedPostDocument = addedPostSnapshot.data() as PostDocument;
-
-      // Create response object containing all necessary data for FE
 
       return { post: { ...addedPostDocument, id: addedPostReference.id } };
     } catch (error) {
@@ -81,7 +78,6 @@ class PostService {
       const center: [number, number] = [geoPoint._lat, geoPoint._long];
       const radiusInM = radius * 1000;
 
-      // First get all documents
       let query = this.db
         .collection('posts')
         .orderBy('creationTime', 'desc')
@@ -98,11 +94,8 @@ class PostService {
         }
       }
 
-      // Get the initial documents
       const querySnapshot = await query.get();
-      // logger.debug('Total documents found:', querySnapshot.size);
 
-      // Filter documents by distance
       const matchingDocs: FirebaseFirestore.QueryDocumentSnapshot[] = [];
 
       for (const doc of querySnapshot.docs) {
@@ -114,7 +107,6 @@ class PostService {
             geohash: data.geohash,
           });
 
-          // Validate location data
           if (
             !data.location ||
             typeof data.location._lat !== 'number' ||
@@ -141,7 +133,6 @@ class PostService {
             id: doc.id,
             error: docError.message,
           });
-          continue;
         }
       }
 
@@ -150,10 +141,8 @@ class PostService {
         return { posts: [], lastVisible: '' };
       }
 
-      // Already sorted by timestamp due to the initial query
       const paginatedDocs = matchingDocs.slice(0, pageSize);
 
-      // Get additional data for matching docs
       const posts = await Promise.all(
         paginatedDocs.map(async doc => {
           const postData = doc.data() as Post;
@@ -233,13 +222,11 @@ class PostService {
     lastVisible: string | null = null
   ): Promise<InfinityScrollPost> {
     try {
-      // First get posts filtered by placeId
       let query = this.db
         .collection('posts')
         .where('folderId', '==', placeId)
         .orderBy('timestamp', 'desc');
 
-      // Handle pagination if last visible document is provided
       if (lastVisible) {
         const lastVisibleDoc = await this.db
           .collection('posts')
@@ -251,15 +238,12 @@ class PostService {
         }
       }
 
-      // Execute the query
       const querySnapshot = await query.limit(pageSize).get();
 
-      // If no documents found
       if (querySnapshot.empty) {
         return { posts: [], lastVisible: '' };
       }
 
-      // Process each document to get full post details
       const posts = await Promise.all(
         querySnapshot.docs.map(async doc => {
           const postData = doc.data() as Post;

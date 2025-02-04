@@ -132,7 +132,6 @@ const commonTypography = {
 };
 
 export const styles = StyleSheet.create({
-  // Container and Layout
   safeArea: {
     flex: 1,
     backgroundColor: primaryBgColor,
@@ -141,7 +140,6 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
 
-  // Header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -150,7 +148,6 @@ export const styles = StyleSheet.create({
     paddingVertical: 10,
   },
 
-  // Profile Section
   profileSection: {
     alignItems: 'center',
     marginBottom: 15,
@@ -166,7 +163,6 @@ export const styles = StyleSheet.create({
     borderColor: commonColors.premium,
   },
 
-  // Username and Status
   username: {
     color: commonColors.primaryTeal,
     fontSize: 20,
@@ -190,7 +186,6 @@ export const styles = StyleSheet.create({
     fontSize: commonTypography.baseSize,
   },
 
-  // Info Section
   infoSection: {
     paddingHorizontal: 15,
     justifyContent: 'center',
@@ -205,8 +200,6 @@ export const styles = StyleSheet.create({
     fontSize: commonTypography.baseSize,
     marginBottom: 8,
   },
-
-  // Action Buttons
   changePassword: {
     color: 'white',
     textAlign: 'center',

@@ -1,18 +1,18 @@
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
+  Dimensions,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
   TouchableWithoutFeedback,
-  Dimensions,
+  View,
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
 import { useTranslation } from 'react-i18next';
 import BottomSheet, { BottomSheetModal } from '@gorhom/bottom-sheet';
 
-const { width } = Dimensions.get('window'); // Get screen width for dynamic sizing
+const { width } = Dimensions.get('window');
 
 type SlidingViewProps = {
   visible: boolean;
@@ -28,9 +28,9 @@ export const SlidingView = (props: SlidingViewProps) => {
 
   useEffect(() => {
     if (props.visible) {
-      bottomSheetRef.current?.expand(); // Open bottom sheet
+      bottomSheetRef.current?.expand();
     } else {
-      bottomSheetRef.current?.close(); // Close bottom sheet
+      bottomSheetRef.current?.close();
     }
   }, [props.visible]);
 
@@ -46,7 +46,7 @@ export const SlidingView = (props: SlidingViewProps) => {
         </TouchableWithoutFeedback>
         <BottomSheet
           ref={bottomSheetRef}
-          snapPoints={['35%']} // Use dynamic snap points
+          snapPoints={['35%']}
           onClose={props.onClose}
           backgroundStyle={{ backgroundColor: 'grey' }}
           handleHeight={50}

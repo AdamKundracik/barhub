@@ -49,7 +49,7 @@ const useFetchUserData = (uid: string | undefined) => {
     {
       enabled: !!uid,
       retry: 2,
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 1000 * 60 * 5,
     }
   );
 };
@@ -87,7 +87,6 @@ export const UserProvider = ({ children }: Props) => {
     refetch: fetchAllUsers,
   } = useFetchAllUsers();
 
-  // Calculate overall loading state
   const isLoading = isAuthLoading || isUserLoading || isUsersLoading;
 
   useEffect(() => {

@@ -111,7 +111,6 @@ export const RevenueCatProvider = ({ children }: any) => {
 
 const RevenueCatContext = createContext<RevenueCatProps | null>(null);
 
-// Export context for easy usage
 export const useRevenueCat = () => {
   return useContext(RevenueCatContext) as RevenueCatProps;
 };

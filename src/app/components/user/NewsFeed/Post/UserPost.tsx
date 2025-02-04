@@ -116,7 +116,7 @@ export const UserPost = (props: PostInterface) => {
           previousLikeState ? prevCount + 1 : prevCount - 1
         );
       }
-    }, 700); // 700ms debounce delay
+    }, 700);
   };
 
   const onLikePress = () => {
@@ -225,7 +225,6 @@ export const UserPost = (props: PostInterface) => {
   );
 };
 
-// Define the styles for mobile devices
 const styles = StyleSheet.create({
   postWrapper: {
     width: '100%',
@@ -347,7 +346,6 @@ const styles = StyleSheet.create({
   },
 });
 
-// Define the styles for tablets
 const tabletStyles = StyleSheet.create({
   postWrapper: {
     width: '100%',

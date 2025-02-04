@@ -21,7 +21,7 @@ class NotifiationService {
       const notificationDoc = {
         ...data,
         read: false,
-        creationTime: admin.firestore.Timestamp.now(), // Using Firebase Firestore Timestamp
+        creationTime: admin.firestore.Timestamp.now(),
         userId: data.userId,
         placeId: data.placeId,
         senderToken: data.senderToken,
@@ -75,7 +75,6 @@ class NotifiationService {
         id: doc.id,
       }));
 
-      // Count both unread notifications and those newer than last check
       const newNotificationsCount = notifications.filter(
         notification =>
           !notification.read ||
@@ -85,7 +84,6 @@ class NotifiationService {
 
       const hasNewNotifications = newNotificationsCount > 0;
 
-      // Update user's last notification check time
       if (lastCheckedTime) {
         await this.db.collection('users').doc(userId).update({
           lastNotificationCheck: admin.firestore.Timestamp.now(),
@@ -115,7 +113,6 @@ class NotifiationService {
     }
 
     try {
-      // Get all unread notifications for the user
       const batch = this.db.batch();
 
       const notificationsSnapshot = await this.db
@@ -124,12 +121,10 @@ class NotifiationService {
         .where('read', '==', false)
         .get();
 
-      // Update each notification in a batch
       notificationsSnapshot.docs.forEach(doc => {
         batch.update(doc.ref, { read: true });
       });
 
-      // Commit the batch
       await batch.commit();
 
       return {

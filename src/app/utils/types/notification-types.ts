@@ -1,5 +1,3 @@
-// notification-types.ts
-
 import { Timestamp } from 'firebase/firestore';
 
 export enum NotificationType {
@@ -44,7 +42,6 @@ export interface MarkNotificationReadResult {
   updatedCount: number;
 }
 
-// For backend/admin usage
 export type AdminNotificationItem = Omit<NotificationItem, 'creationTime'> & {
   creationTime: FirebaseFirestore.Timestamp;
 };

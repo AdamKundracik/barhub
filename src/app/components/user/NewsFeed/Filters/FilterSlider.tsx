@@ -88,7 +88,7 @@ const FilterSlider = (props: Props) => {
       setTempSelectedPlaces(places);
       setTempSelectedOccupancy(occupancy);
     },
-    [] // Empty dependency array since we only use setState functions
+    []
   );
 
   const renderBackdrop = useCallback(
@@ -124,7 +124,7 @@ const FilterSlider = (props: Props) => {
       onClose={props.onClose}
       ref={bottomSheetRef}
       snapPoints={['90%', '70%']}
-      index={props.opened ? 1 : -1} // Control visibility through index prop
+      index={props.opened ? 1 : -1}
       backdropComponent={renderBackdrop}
       footerComponent={renderFooter}
       handleHeight={60}

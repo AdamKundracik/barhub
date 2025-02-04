@@ -1,7 +1,5 @@
-import { PlaceDetail } from '../types/types';
 import { create } from 'zustand/react';
-import { InfinityScrollPost, Post } from '../../../../shared';
-import { QueryObserverResult, InfiniteData } from 'react-query'; // Ensure this is imported
+import { Post } from '../../../../shared';
 
 export interface PlaceState {
   posts: Post[] | null;

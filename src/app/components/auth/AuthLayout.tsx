@@ -16,7 +16,7 @@ type LayoutProps = {
   pageTitle: string;
 };
 
-export const AuthLayout = ({ children, pageTitle }: LayoutProps) => {
+export const AuthLayout = ({ children }: LayoutProps) => {
   return (
     <SafeAreaView style={styles.wrapper}>
       <Svg
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   bottomBar: {
-    height: 60, // Adjust the height as needed
+    height: 60,
     justifyContent: 'flex-end',
   },
   backButton: {

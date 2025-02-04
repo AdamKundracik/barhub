@@ -44,13 +44,13 @@ const width = Dimensions.get('window').width;
 export const PostSummary = ({ route }: any) => {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
-  const routeParams = route.params as SummaryProps; // Define route params
+  const routeParams = route.params as SummaryProps;
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 
   const [selectedOccupancy, setSelectedOccupancy] = useState(
     OccupancyEnum.FULL
   );
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Dropdown toggle state
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [image, setImage] = useState<string | null>(null);
   const [place, setPlace] = useState<Place | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -58,7 +58,7 @@ export const PostSummary = ({ route }: any) => {
 
   useEffect(() => {
     if (routeParams?.image && routeParams?.place) {
-      setImage(routeParams.image); // Set the place when passed from PlaceSearch
+      setImage(routeParams.image);
       setPlace(routeParams.place);
       setSenderToken(routeParams.senderToken ?? null);
     }
@@ -229,10 +229,7 @@ export const PostSummary = ({ route }: any) => {
               <View style={styles.dropdownWrapper}>
                 <TouchableOpacity
                   onPress={() => setIsDropdownOpen(!isDropdownOpen)}
-                  style={[
-                    styles.dropdown,
-                    { width: 150 }, // Fixed width
-                  ]}
+                  style={[styles.dropdown, { width: 150 }]}
                 >
                   <Text style={styles.dropdownText}>
                     {occupancyLabels[selectedOccupancy]}
@@ -328,7 +325,6 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     zIndex: 1,
   },
-  // Dropdown styles
   dropdownContainer: {
     position: 'relative',
     justifyContent: 'space-between',

@@ -111,9 +111,8 @@ export const NotificationItemComponent: React.FC<NotificationItemProps> = ({
         throw new Error('Creation time is missing or not an object');
       }
 
-      // Handle the specific format with _seconds and _nanoseconds
       if ('_seconds' in creationTime && '_nanoseconds' in creationTime) {
-        const timestamp = (creationTime._seconds as number) * 1000; // Convert seconds to milliseconds
+        const timestamp = (creationTime._seconds as number) * 1000;
         const expirationTime = 180 * 1000; // 3 minutes
 
         if (notificationType === NotificationType.REQUEST) {

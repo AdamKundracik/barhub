@@ -24,12 +24,12 @@ export const PhotoResolver = ({ route }: any) => {
 
   const [loading, setLoading] = useState(true);
   const [places, setPlaces] = useState<Place[]>();
-  const routeParams = route.params as { image?: string }; // Define route params
+  const routeParams = route.params as { image?: string };
   const [image, setImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (routeParams?.image) {
-      setImage(routeParams.image); // Set the place when passed from PlaceSearch
+      setImage(routeParams.image);
     }
   }, [routeParams?.image]);
 
@@ -47,7 +47,7 @@ export const PhotoResolver = ({ route }: any) => {
     getPlaces();
   }, []);
 
-  const renderItem = ({ item, index }: { item: Place; index: number }) => (
+  const renderItem = ({ item }: { item: Place; index: number }) => (
     <Pressable
       key={item.id}
       style={({ pressed }) => [

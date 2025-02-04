@@ -48,7 +48,7 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
   const handleTabPress = (tab: TabsTypes) => {
     if (route.name === tab) {
       navigation.navigate('Feed');
-      return null; // Reset the selected tab
+      return null;
     } else {
       switch (tab) {
         case TabsTypes.account:

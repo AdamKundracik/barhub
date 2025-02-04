@@ -24,7 +24,7 @@ const DatePicker = (props: DatePickerProps) => {
   useEffect(() => {
     if (props.initialValue) {
       const initDate = props.initialValue;
-      setMonth(String(initDate.getMonth() + 1).padStart(2, '0')); // Months are 0-indexed in JS
+      setMonth(String(initDate.getMonth() + 1).padStart(2, '0'));
       setDay(String(initDate.getDate()).padStart(2, '0'));
       setYear(String(initDate.getFullYear()));
     }
@@ -61,10 +61,10 @@ const DatePicker = (props: DatePickerProps) => {
         <View style={styles.inputWrapper}>
           <InputWrapper inputLabel={t('month')}>
             <RNPickerSelect
-              onValueChange={value => setMonth(value)} // Update state on picker change
+              onValueChange={value => setMonth(value)}
               items={months}
               placeholder={{ label: 'MM', value: null }}
-              value={month || null} // Dynamically bind the state to the picker
+              value={month || null}
               style={pickerSelectStyles}
               useNativeAndroidPickerStyle={false}
             />
@@ -74,10 +74,10 @@ const DatePicker = (props: DatePickerProps) => {
         <View style={styles.inputWrapper}>
           <InputWrapper inputLabel={t('day')}>
             <RNPickerSelect
-              onValueChange={value => setDay(value)} // Update state on picker change
+              onValueChange={value => setDay(value)}
               items={days}
               placeholder={{ label: 'DD', value: null }}
-              value={day || null} // Dynamically bind the state to the picker
+              value={day || null}
               style={pickerSelectStyles}
               useNativeAndroidPickerStyle={false}
             />
@@ -87,13 +87,13 @@ const DatePicker = (props: DatePickerProps) => {
         <View style={styles.inputWrapper}>
           <InputWrapper inputLabel={t('year')}>
             <RNPickerSelect
-              onValueChange={value => setYear(value)} // Update state on picker change
+              onValueChange={value => setYear(value)}
               items={years}
               placeholder={{
                 label: 'YYYY',
                 value: null,
               }}
-              value={year || null} // Dynamically bind the state to the picker
+              value={year || null}
               style={pickerSelectStyles}
               useNativeAndroidPickerStyle={false}
             />
