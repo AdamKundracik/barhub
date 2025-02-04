@@ -11,12 +11,12 @@ import { Post, User } from '../../../../../shared';
 import UserPost from './Post/UserPost';
 import LoadingIndicator from './LoadingIndicator';
 import PostOldInfo from './Post/PostOldInfo';
-import { isOlderThanMinutes } from '../../../utils/helper-functions/isOlderThanMinutes';
 import { usePlaceStore } from '../../../utils/store/placesStore';
 import { primaryColor } from '../../../utils/styles/colors';
 import { useUserContext } from '../../../providers/UserProvider';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
+import { FirebaseTimestamp } from '../../../utils/types/types';
 
 interface PostsListProps {
   posts: Post[];
@@ -66,6 +66,18 @@ const PostsList = ({
         useNativeDriver: true,
       }).start();
     }
+  };
+
+  const isOlderThanMinutes = (
+    timestamp: FirebaseTimestamp,
+    minutes: number
+  ): boolean => {
+    const seconds = timestamp.seconds || timestamp._seconds || 0;
+    const now = Date.now();
+    const timestampMs = seconds * 1000;
+    const minutesInMs = minutes * 60 * 1000;
+
+    return now - timestampMs > minutesInMs;
   };
 
   const scrollToTop = () => {

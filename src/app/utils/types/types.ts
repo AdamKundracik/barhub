@@ -184,3 +184,10 @@ export type PlaceType =
   | 'night_club'
   | 'restaurant'
   | 'tourist_attraction';
+
+export type FirebaseTimestamp = {
+  seconds?: number;
+  _seconds?: number;
+  nanoseconds?: number;
+  _nanoseconds?: number;
+};

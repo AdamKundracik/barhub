@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import {
   postBgColor,
@@ -9,15 +9,8 @@ import Svg, { Path } from 'react-native-svg';
 import { UserInfo } from '../../../../../../shared';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../../utils/icons/icons';
-import { auth } from '../../../../../../firebaseConfig';
 import { Timestamp } from 'firebase/firestore';
-
-type FirebaseTimestamp = {
-  seconds?: number;
-  _seconds?: number;
-  nanoseconds?: number;
-  _nanoseconds?: number;
-};
+import { FirebaseTimestamp } from '../../../../utils/types/types';
 
 const normalizeTimestamp = (timestamp: FirebaseTimestamp): Timestamp => {
   const seconds = timestamp.seconds || timestamp._seconds || 0;
