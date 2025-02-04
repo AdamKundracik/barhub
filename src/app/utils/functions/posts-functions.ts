@@ -1,7 +1,6 @@
 import { InfinityScrollPost, Post } from '../../../../shared';
-import { getFreshContent, getPostsByPlaceId } from '../services/post.service';
 import { GeoPointType, LocationType } from '../types/types';
-import { logger } from 'firebase-functions';
+import { getFreshContent, getPostsByPlaceId } from '../services/post.service';
 
 export const handleFreshContent = async (
   radius: number,
