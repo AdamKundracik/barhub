@@ -7,7 +7,11 @@ import { UserStackList } from '../../utils/types/screen-types';
 import { useUserContext } from '../../providers/UserProvider';
 import { handleFreshContent } from '../../utils/functions/posts-functions';
 import { getDaysSince } from '../../utils/helper-functions/getDaysSince';
-import { PlaceDetail, PlaceType } from '../../utils/types/types';
+import {
+  OccupancyTypes,
+  PlaceDetail,
+  PlaceType,
+} from '../../utils/types/types';
 import NotificationHandler from '../../components/user/NewsFeed/NotificationHandler';
 import LoadingIndicator from '../../components/user/NewsFeed/LoadingIndicator';
 import PostsList from '../../components/user/NewsFeed/PostList';
@@ -21,13 +25,12 @@ import EmptyState from '../../components/user/NewsFeed/EmptyState';
 import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import PostLoaderView from '../../components/user/NewsFeed/Post/Loaders/PostLoaderView';
 import { useFiltersStore } from '../../utils/store/filtersStorage';
-import { NotificationType } from '../../utils/types/notification-types';
 
 export const NewsFeed = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
   const { placeId, placeName, setPlaceDetail } = usePlaceStore();
-  const { distance, selectedPlaces } = useFiltersStore();
+  const { distance, selectedPlaces, selectedOccupancy } = useFiltersStore();
   const { userData } = useUserContext();
 
   const [expoPushToken, setExpoPushToken] = useState('');
@@ -64,18 +67,33 @@ export const NewsFeed = () => {
   );
 
   const filteredPosts = useMemo(() => {
-    if (!postsData?.pages || selectedPlaces.length === 0) {
-      return postsData?.pages.flatMap(page => page.posts);
+    if (!postsData?.pages) {
+      return [];
     }
 
-    return postsData.pages.flatMap(page =>
-      page.posts.filter(post =>
+    const allPosts = postsData.pages.flatMap(page => page.posts);
+
+    // If no filters are selected, return all posts
+    if (selectedPlaces.length === 0 && selectedOccupancy.length === 0) {
+      return allPosts;
+    }
+
+    return allPosts.filter(post => {
+      // Check place types
+      const matchesPlaceType =
+        selectedPlaces.length === 0 ||
         post.placeTypes?.some(type =>
           selectedPlaces.includes(type as PlaceType)
-        )
-      )
-    );
-  }, [postsData?.pages, selectedPlaces]);
+        );
+
+      // Check occupancy
+      const matchesOccupancy =
+        selectedOccupancy.length === 0 ||
+        selectedOccupancy.includes(post.occupancy as OccupancyTypes);
+
+      return matchesPlaceType && matchesOccupancy;
+    });
+  }, [postsData?.pages, selectedPlaces, selectedOccupancy]);
 
   useEffect(() => {
     if (placeId) refetch();
@@ -104,14 +122,9 @@ export const NewsFeed = () => {
         latitude: detail?.geometry.location?.lat,
         longitude: detail?.geometry.location?.lng,
       });
-      // tokens?.forEach(token => {
-      sendRequestNotification(
-        'ExponentPushToken[vVQF0SCUsZZ6gDZEhuAawd]',
-        placeId,
-        placeName,
-        senderToken ?? ''
-      );
-      // });
+      tokens?.forEach(token => {
+        sendRequestNotification(token, placeId, placeName, senderToken ?? '');
+      });
     }
   }
 

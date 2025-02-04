@@ -32,6 +32,7 @@ export const NotificationsList: React.FC = () => {
 
   useEffect(() => {
     markAllAsSeen();
+    refetch();
   }, []);
 
   const handleRefresh = async () => {

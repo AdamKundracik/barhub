@@ -16,7 +16,7 @@ import {
   primaryBgColor,
   primaryColor,
 } from '../../../utils/styles/colors';
-import { occupacyOptions, Place } from '../../../utils/types/types';
+import { OccupancyEnum, Place } from '../../../utils/types/types';
 import { useTranslation } from 'react-i18next';
 import { formStyles } from '../../../utils/styles/styles';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -48,7 +48,7 @@ export const PostSummary = ({ route }: any) => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 
   const [selectedOccupancy, setSelectedOccupancy] = useState(
-    occupacyOptions.FULL
+    OccupancyEnum.FULL
   );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Dropdown toggle state
   const [image, setImage] = useState<string | null>(null);
@@ -65,13 +65,13 @@ export const PostSummary = ({ route }: any) => {
   }, [routeParams]);
 
   const occupancyLabels = {
-    [occupacyOptions.FULL]: t('full'),
-    [occupacyOptions.ALMOST_FULL]: t('almost-full'),
-    [occupacyOptions.SPARSELY_OCCUPIED]: t('sparsely-occupied'),
-    [occupacyOptions.EMPTY]: t('empty'),
+    [OccupancyEnum.FULL]: t('full'),
+    [OccupancyEnum.ALMOST_FULL]: t('almost-full'),
+    [OccupancyEnum.SPARSELY_OCCUPIED]: t('sparsely-occupied'),
+    [OccupancyEnum.EMPTY]: t('empty'),
   };
 
-  const handleSelect = (option: occupacyOptions) => {
+  const handleSelect = (option: OccupancyEnum) => {
     setSelectedOccupancy(option);
     setIsDropdownOpen(false);
   };
@@ -84,7 +84,7 @@ export const PostSummary = ({ route }: any) => {
 
   const { mutate } = useMutation({
     mutationFn: save,
-    onMutate: async (newPost: Post) => {
+    onMutate: async (newPost: Omit<Post, 'creationTime'>) => {
       await queryClient.cancelQueries({ queryKey: 'posts' });
 
       const previousPosts = queryClient.getQueryData<{
@@ -92,7 +92,7 @@ export const PostSummary = ({ route }: any) => {
         pages: { lastVisible: string; posts: Post[] }[];
       }>('posts');
 
-      const newCachedPost: Post = {
+      const newCachedPost: Omit<Post, 'creationTime'> = {
         ...newPost,
         isLiked: false,
         commentsCount: 0,
@@ -150,7 +150,7 @@ export const PostSummary = ({ route }: any) => {
           place?.location.longitude ?? 0,
         ]);
 
-        const newPost: Post = {
+        const newPost: Omit<Post, 'creationTime'> = {
           geohash: hash,
           location: {
             _lat: place?.location.latitude ?? 0,
@@ -162,7 +162,6 @@ export const PostSummary = ({ route }: any) => {
           fileId: '',
           occupancy: selectedOccupancy ?? '',
           folderId: place?.id ?? '',
-          creationTime: new Date().toISOString(),
           timestamp: Date.now(),
           placeName: place?.displayName.text ?? '',
           placeAddress: place?.formattedAddress ?? '',
@@ -242,7 +241,7 @@ export const PostSummary = ({ route }: any) => {
 
                 {isDropdownOpen && (
                   <View style={styles.dropdownList}>
-                    {Object.values(occupacyOptions).map(option => (
+                    {Object.values(OccupancyEnum).map(option => (
                       <TouchableOpacity
                         key={option}
                         onPress={() => handleSelect(option)}

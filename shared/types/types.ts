@@ -41,7 +41,6 @@ export type Post = {
     _long: number;
   };
   placeTypes: string[];
-  creationTime: Timestamp;
   timestamp: number;
   userId?: string;
   fileId: string;
@@ -54,6 +53,7 @@ export type Post = {
   commentsCount?: number;
   isLiked?: boolean;
   occupancy: string;
+  creationTime: Timestamp;
   user?: UserInfo;
 };
 

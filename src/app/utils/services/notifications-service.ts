@@ -4,7 +4,6 @@ import { functions } from '../../../../firebaseConfig';
 import {
   GetNotificationsResult,
   MarkNotificationReadResult,
-  NotificationItem,
   SaveNotificationRequest,
 } from '../types/notification-types';
 
@@ -35,7 +34,6 @@ export const getUserNotifications =
     const cloudFunction = httpsCallable(functions, 'getUserNotifications');
     const response =
       (await cloudFunction()) as unknown as GetNotificationsResult;
-    console.log(response.data);
     return response;
   };
 

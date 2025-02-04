@@ -16,7 +16,6 @@ admin.initializeApp();
 
 const db = admin.firestore();
 const functions = require('firebase-functions');
-const bucket = admin.storage().bucket();
 
 const postService = new PostService();
 const commentService = new CommentService();
@@ -372,37 +371,149 @@ exports.getPostComments = functions.https.onCall(
 exports.deleteOldPostsAndImages = functions.pubsub
   .schedule('every 60 minutes')
   .onRun(async context => {
-    const threeDaysAgo = new Date();
-    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    const threeDaysInSeconds = 3 * 24 * 60 * 60;
+    const threeDaysAgo =
+      admin.firestore.Timestamp.now().seconds - threeDaysInSeconds;
+    const timestampThreeDaysAgo = new admin.firestore.Timestamp(
+      threeDaysAgo,
+      0
+    );
 
     try {
-      // Query for posts older than 3 days
       const postsSnapshot = await db
         .collection('posts')
-        .where('timestamp', '<', threeDaysAgo.getTime())
+        .where('creationTime', '<', timestampThreeDaysAgo)
         .get();
 
-      const deletePromises: Promise<any>[] = [];
-
-      postsSnapshot.forEach(doc => {
+      const deleteOperations = postsSnapshot.docs.map(async doc => {
         const postData: Post = doc.data();
-        const fileId = postData.folderId + '/' + postData.fileId;
+        const filePath = `${postData.folderId}/${postData.fileId}`;
 
-        // Delete the image from Firebase Storage
-        const file = bucket.file(fileId);
-        deletePromises.push(file.delete());
-
-        deletePromises.push(deleteSubcollection(doc.ref, 'likes'));
-        deletePromises.push(deleteSubcollection(doc.ref, 'comments'));
-
-        // Delete the post document from Firestore
-        deletePromises.push(doc.ref.delete());
+        // Group all operations for this post
+        return Promise.all([
+          // Delete from Storage
+          admin.storage().bucket().file(filePath).delete(),
+          // Delete subcollections
+          deleteSubcollection(doc.ref, 'likes'),
+          deleteSubcollection(doc.ref, 'comments'),
+          // Delete the post document
+          doc.ref.delete(),
+        ]).catch(error => {
+          console.error(`Failed to delete post ${doc.id}:`, error);
+          throw error; // Re-throw to be caught by the outer catch
+        });
       });
 
-      await Promise.all(deletePromises);
-      console.info('Successfully deleted old posts and images');
+      await Promise.all(deleteOperations);
+      console.info(
+        `Successfully deleted ${postsSnapshot.size} posts and their associated data`
+      );
     } catch (error) {
-      console.error('Error deleting old posts and images:', error);
+      console.error('Error in deletion process:', error);
+      throw error;
+    }
+  });
+
+// Quick cleanup (every 15 minutes)
+export const deleteRecentExpiredRequests = functions.pubsub
+  .schedule('every 15 minutes')
+  .onRun(async (context): Promise<void> => {
+    const threeMinutesInSeconds = 3 * 60;
+    const timeThreeMinutesAgo =
+      admin.firestore.Timestamp.now().seconds - threeMinutesInSeconds;
+    const timestampThreeMinutesAgo = new admin.firestore.Timestamp(
+      timeThreeMinutesAgo,
+      0
+    );
+
+    try {
+      const expiredNotificationsSnapshot = await admin
+        .firestore()
+        .collection('notifications')
+        .where('notificationType', '==', 'REQUEST')
+        .where('creationTime', '<', timestampThreeMinutesAgo)
+        .limit(1000)
+        .get();
+
+      if (expiredNotificationsSnapshot.empty) {
+        console.info('No recent expired request notifications to delete');
+        return;
+      }
+
+      const batchSize = 500;
+      const batches: Promise<void>[][] = [];
+
+      for (
+        let i = 0;
+        i < expiredNotificationsSnapshot.docs.length;
+        i += batchSize
+      ) {
+        const batch = expiredNotificationsSnapshot.docs
+          .slice(i, i + batchSize)
+          .map(doc => doc.ref.delete());
+
+        batches.push(batch);
+      }
+
+      await Promise.all(batches.flat());
+      console.info(
+        `Quick cleanup: Deleted ${expiredNotificationsSnapshot.size} expired request notifications`
+      );
+    } catch (error) {
+      console.error('Error in quick cleanup of expired notifications:', error);
+      throw error;
+    }
+  });
+
+// Deep cleanup (every 6 hours)
+export const deleteAllExpiredRequests = functions.pubsub
+  .schedule('every 6 hours')
+  .onRun(async (context): Promise<void> => {
+    const threeMinutesInSeconds = 3 * 60;
+    const timeThreeMinutesAgo =
+      admin.firestore.Timestamp.now().seconds - threeMinutesInSeconds;
+    const timestampThreeMinutesAgo = new admin.firestore.Timestamp(
+      timeThreeMinutesAgo,
+      0
+    );
+
+    try {
+      const expiredNotificationsSnapshot = await admin
+        .firestore()
+        .collection('notifications')
+        .where('notificationType', '==', 'REQUEST')
+        .where('creationTime', '<', timestampThreeMinutesAgo)
+        .get();
+
+      if (expiredNotificationsSnapshot.empty) {
+        console.info(
+          'No expired request notifications to delete in deep cleanup'
+        );
+        return;
+      }
+
+      const batchSize = 500;
+      const batches: Promise<void>[][] = [];
+
+      for (
+        let i = 0;
+        i < expiredNotificationsSnapshot.docs.length;
+        i += batchSize
+      ) {
+        const batch = expiredNotificationsSnapshot.docs
+          .slice(i, i + batchSize)
+          .map(doc => doc.ref.delete());
+
+        batches.push(batch);
+      }
+
+      await Promise.all(batches.flat());
+      console.info(
+        `Deep cleanup: Deleted ${expiredNotificationsSnapshot.size} expired request notifications`
+      );
+    } catch (error) {
+      console.error('Error in deep cleanup of expired notifications:', error);
+      throw error;
     }
   });
 

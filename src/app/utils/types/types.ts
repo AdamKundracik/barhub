@@ -20,10 +20,10 @@ export type Settings = {
   // FOR ADDITIONAL SETTINGS
 };
 
-export enum occupacyOptions {
+export enum OccupancyEnum {
   FULL = 'FULL',
-  ALMOST_FULL = 'ALMOST-FULL',
-  SPARSELY_OCCUPIED = 'SPARSELY-OCCUPIED',
+  ALMOST_FULL = 'ALMOST_FULL',
+  SPARSELY_OCCUPIED = 'SPARSELY_OCCUPIED',
   EMPTY = 'EMPTY',
 }
 
@@ -184,6 +184,12 @@ export type PlaceType =
   | 'night_club'
   | 'restaurant'
   | 'tourist_attraction';
+
+export type OccupancyTypes =
+  | 'FULL'
+  | 'ALMOST_FULL'
+  | 'SPARSELY_OCCUPIED'
+  | 'EMPTY';
 
 export type FirebaseTimestamp = {
   seconds?: number;

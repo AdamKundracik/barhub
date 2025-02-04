@@ -41,7 +41,6 @@ const NotificationHandler: React.FC<NotificationHandlerProps> = ({
       Notifications.addNotificationReceivedListener(async notification => {
         const { notificationType, placeId, senderToken } =
           notification.request.content.data;
-        console.log(notification.request.content.data);
         await saveNotification({
           label: notification.request.content.title ?? 'No title text',
           text: notification.request.content.body ?? 'no body text',

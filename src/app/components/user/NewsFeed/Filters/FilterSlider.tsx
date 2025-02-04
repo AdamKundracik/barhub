@@ -4,21 +4,25 @@ import { useTranslation } from 'react-i18next';
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
-  BottomSheetModal,
   BottomSheetFooter,
   BottomSheetFooterProps,
+  BottomSheetModal,
 } from '@gorhom/bottom-sheet';
 import { primaryColor } from '../../../../utils/styles/colors';
 import Slider from '@react-native-community/slider';
 import MultiSelectPlaceChips from './MultiSelectPlaceChips';
 import Button from '../../../shared/Button';
-import { PlaceType } from '../../../../utils/types/types';
+import { OccupancyTypes, PlaceType } from '../../../../utils/types/types';
 import { useFiltersStore } from '../../../../utils/store/filtersStorage';
 
 type Props = {
   opened: boolean;
   onClose: () => void;
-  onSave?: (filters: { distance: number; placeTypes: string[] }) => void;
+  onSave?: (filters: {
+    distance: number;
+    placeTypes: string[];
+    occupancyTypes: string[];
+  }) => void;
 };
 
 const FilterSlider = (props: Props) => {
@@ -28,37 +32,23 @@ const FilterSlider = (props: Props) => {
   const {
     distance: storeDistance,
     selectedPlaces: storeSelectedPlaces,
+    selectedOccupancy: storeSelectedOccupancy,
     updateFilters,
   } = useFiltersStore();
-  const [filtersOpened, setFiltersOpened] = useState(props.opened);
   const [tempDistance, setTempDistance] = useState(storeDistance);
   const [tempSelectedPlaces, setTempSelectedPlaces] =
     useState<PlaceType[]>(storeSelectedPlaces);
+  const [tempSelectedOccupancy, setTempSelectedOccupancy] = useState<
+    OccupancyTypes[]
+  >(storeSelectedOccupancy);
 
   useEffect(() => {
     if (props.opened) {
       setTempDistance(storeDistance);
       setTempSelectedPlaces(storeSelectedPlaces);
+      setTempSelectedOccupancy(storeSelectedOccupancy);
     }
-  }, [props.opened, storeDistance, storeSelectedPlaces]);
-
-  useEffect(() => {
-    setFiltersOpened(props.opened);
   }, [props.opened]);
-
-  if (bottomSheetRef.current) {
-    if (filtersOpened) {
-      bottomSheetRef.current.expand();
-    } else {
-      bottomSheetRef.current.close();
-    }
-  }
-
-  const handleCloseFilters = useCallback(() => {
-    bottomSheetRef.current?.close();
-    setFiltersOpened(false);
-    props.onClose();
-  }, [props]);
 
   const handleSaveChanges = useCallback(() => {
     if (tempSelectedPlaces.length === 0) {
@@ -74,22 +64,32 @@ const FilterSlider = (props: Props) => {
     updateFilters({
       distance: tempDistance,
       placeTypes: tempSelectedPlaces,
+      occupancy: tempSelectedOccupancy,
     });
 
     props.onSave?.({
       distance: tempDistance,
       placeTypes: tempSelectedPlaces,
+      occupancyTypes: tempSelectedOccupancy,
     });
-
-    handleCloseFilters();
+    bottomSheetRef?.current?.close();
+    props.onClose();
   }, [
     tempDistance,
     tempSelectedPlaces,
     updateFilters,
+    tempSelectedOccupancy,
     props.onSave,
-    handleCloseFilters,
     t,
   ]);
+
+  const handleSelectionChange = useCallback(
+    (places: PlaceType[], occupancy: OccupancyTypes[]) => {
+      setTempSelectedPlaces(places);
+      setTempSelectedOccupancy(occupancy);
+    },
+    [] // Empty dependency array since we only use setState functions
+  );
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
@@ -121,10 +121,10 @@ const FilterSlider = (props: Props) => {
   return (
     <BottomSheet
       backgroundStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
-      onClose={handleCloseFilters}
+      onClose={props.onClose}
       ref={bottomSheetRef}
       snapPoints={['90%', '70%']}
-      index={-1}
+      index={props.opened ? 1 : -1} // Control visibility through index prop
       backdropComponent={renderBackdrop}
       footerComponent={renderFooter}
       handleHeight={60}
@@ -154,10 +154,10 @@ const FilterSlider = (props: Props) => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('places-types')}:</Text>
           <MultiSelectPlaceChips
-            onSelectionChange={setTempSelectedPlaces}
+            onSelectionChange={handleSelectionChange}
             initialSelected={tempSelectedPlaces}
+            initialOccupancy={tempSelectedOccupancy}
           />
         </View>
       </View>

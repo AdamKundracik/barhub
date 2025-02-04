@@ -6,7 +6,7 @@ import { GetFreshnessContentResult } from '../helper-functions/functions-types';
 import { GeoPointType } from '../types/types';
 
 class PostService {
-  public savePost = async (post: Post) => {
+  public savePost = async (post: Omit<Post, 'creationTime'>) => {
     const cloudFunction = httpsCallable(functions, 'savePost');
     const response = await cloudFunction({
       post,

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -8,12 +8,16 @@ import {
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../../utils/icons/icons';
-import { PlaceType } from '../../../../utils/types/types';
+import { OccupancyTypes, PlaceType } from '../../../../utils/types/types';
 import { useTranslation } from 'react-i18next';
 
 interface MultiSelectPlaceChipsProps {
-  onSelectionChange?: (selected: PlaceType[]) => void;
+  onSelectionChange?: (
+    selected: PlaceType[],
+    occupancy: OccupancyTypes[]
+  ) => void;
   initialSelected?: PlaceType[];
+  initialOccupancy?: OccupancyTypes[];
 }
 
 const PLACE_TYPES: PlaceType[] = [
@@ -25,14 +29,28 @@ const PLACE_TYPES: PlaceType[] = [
   'restaurant',
 ];
 
+const OCCUPANCY_TYPES: OccupancyTypes[] = [
+  'FULL',
+  'ALMOST_FULL',
+  'SPARSELY_OCCUPIED',
+  'EMPTY',
+];
+
 const MultiSelectPlaceChips: React.FC<MultiSelectPlaceChipsProps> = ({
   onSelectionChange,
   initialSelected = [],
+  initialOccupancy = [],
 }) => {
   const { t } = useTranslation();
-
   const [selectedPlaces, setSelectedPlaces] =
     useState<PlaceType[]>(initialSelected);
+  const [selectedOccupancy, setSelectedOccupancy] =
+    useState<OccupancyTypes[]>(initialOccupancy);
+
+  useEffect(() => {
+    setSelectedPlaces(initialSelected);
+    setSelectedOccupancy(initialOccupancy);
+  }, [initialSelected, initialOccupancy]);
 
   const formatPlaceName = (place: PlaceType): string => {
     switch (place) {
@@ -53,37 +71,105 @@ const MultiSelectPlaceChips: React.FC<MultiSelectPlaceChipsProps> = ({
     }
   };
 
+  const formatOccupancyName = (occupancy: OccupancyTypes): string => {
+    switch (occupancy) {
+      case 'FULL':
+        return t('full');
+      case 'ALMOST_FULL':
+        return t('almost-full');
+      case 'SPARSELY_OCCUPIED':
+        return t('sparsely-occupied');
+      case 'EMPTY':
+        return t('empty');
+      default:
+        return occupancy;
+    }
+  };
+
+  const toggleOccupancy = (occupancy: OccupancyTypes): void => {
+    const newOccupancySelection = selectedOccupancy.includes(occupancy)
+      ? selectedOccupancy.filter(o => o !== occupancy)
+      : [...selectedOccupancy, occupancy];
+
+    setSelectedOccupancy(newOccupancySelection);
+    // Make sure we're passing both arrays correctly
+    onSelectionChange?.(selectedPlaces, newOccupancySelection);
+  };
+
+  // Fix the togglePlace function to ensure occupancy state is passed correctly
   const togglePlace = (place: PlaceType): void => {
-    const newSelection = selectedPlaces.includes(place)
+    const newPlaceSelection = selectedPlaces.includes(place)
       ? selectedPlaces.filter(p => p !== place)
       : [...selectedPlaces, place];
 
-    setSelectedPlaces(newSelection);
-    onSelectionChange?.(newSelection);
+    setSelectedPlaces(newPlaceSelection);
+    // Make sure we're passing both arrays correctly
+    onSelectionChange?.(newPlaceSelection, selectedOccupancy);
   };
 
   // Order places with selected items first
-  const orderedPlaces: PlaceType[] = useMemo(() => {
+  const orderedPlaces = useMemo(() => {
     return [
       ...PLACE_TYPES.filter(place => selectedPlaces.includes(place)),
       ...PLACE_TYPES.filter(place => !selectedPlaces.includes(place)),
     ];
   }, [selectedPlaces]);
 
+  // Order occupancy with selected items first
+  const orderedOccupancy = useMemo(() => {
+    return [
+      ...OCCUPANCY_TYPES.filter(occ => selectedOccupancy.includes(occ)),
+      ...OCCUPANCY_TYPES.filter(occ => !selectedOccupancy.includes(occ)),
+    ];
+  }, [selectedOccupancy]);
+
   return (
     <View style={styles.container}>
-      <ScrollView
-        horizontal={false}
-        showsVerticalScrollIndicator={false}
-        style={styles.scrollView}
-      >
-        <View style={styles.chipContainer}>
-          {orderedPlaces.map(place => {
-            const isSelected = selectedPlaces.includes(place);
+      <View>
+        <Text style={styles.sectionTitle}>{t('places-types')}:</Text>
+        <ScrollView
+          horizontal={false}
+          showsVerticalScrollIndicator={false}
+          style={styles.scrollView}
+        >
+          <View style={styles.chipContainer}>
+            {orderedPlaces.map(place => {
+              const isSelected = selectedPlaces.includes(place);
+              return (
+                <TouchableOpacity
+                  key={place}
+                  onPress={() => togglePlace(place)}
+                  style={[styles.chip, isSelected && styles.selectedChip]}
+                >
+                  <Text
+                    style={[
+                      styles.chipText,
+                      isSelected && styles.selectedChipText,
+                    ]}
+                  >
+                    {formatPlaceName(place)}
+                  </Text>
+                  {isSelected && (
+                    <View style={styles.iconContainer}>
+                      <FontAwesomeIcon icon={Icons.X} size={10} color="black" />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </ScrollView>
+      </View>
+
+      <View>
+        <Text style={styles.sectionTitle}>{t('occupancy')}:</Text>
+        <View style={[styles.chipContainer, styles.occupancyContainer]}>
+          {orderedOccupancy.map(occupancy => {
+            const isSelected = selectedOccupancy.includes(occupancy);
             return (
               <TouchableOpacity
-                key={place}
-                onPress={() => togglePlace(place)}
+                key={occupancy}
+                onPress={() => toggleOccupancy(occupancy)}
                 style={[styles.chip, isSelected && styles.selectedChip]}
               >
                 <Text
@@ -92,7 +178,7 @@ const MultiSelectPlaceChips: React.FC<MultiSelectPlaceChipsProps> = ({
                     isSelected && styles.selectedChipText,
                   ]}
                 >
-                  {formatPlaceName(place)}
+                  {formatOccupancyName(occupancy)}
                 </Text>
                 {isSelected && (
                   <View style={styles.iconContainer}>
@@ -103,13 +189,16 @@ const MultiSelectPlaceChips: React.FC<MultiSelectPlaceChipsProps> = ({
             );
           })}
         </View>
-      </ScrollView>
+      </View>
     </View>
   );
 };
 
+// Updated styles
 const styles = StyleSheet.create({
   container: {
+    display: 'flex',
+    gap: 15,
     marginTop: 10,
   },
   scrollView: {
@@ -120,6 +209,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
   },
+  occupancyContainer: {},
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -131,6 +221,10 @@ const styles = StyleSheet.create({
   },
   selectedChip: {
     backgroundColor: '#10D9B9',
+  },
+  sectionTitle: {
+    color: 'white',
+    marginBottom: 10,
   },
   chipText: {
     color: 'white',
