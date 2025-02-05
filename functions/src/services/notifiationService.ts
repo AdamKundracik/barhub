@@ -150,7 +150,7 @@ class NotifiationService {
 
     try {
       const notificationDoc = await this.db
-        .collection('notifications') // Changed from 'posts' to 'notifications'
+        .collection('notifications')
         .doc(notificationId)
         .get();
 
