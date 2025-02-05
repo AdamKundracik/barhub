@@ -139,6 +139,37 @@ class NotifiationService {
       );
     }
   }
+
+  async deleteNotification(notificationId: string) {
+    if (!notificationId) {
+      throw new https.HttpsError(
+        'invalid-argument',
+        'Missing required field: notificationId'
+      );
+    }
+
+    try {
+      const notificationDoc = await this.db
+        .collection('notifications') // Changed from 'posts' to 'notifications'
+        .doc(notificationId)
+        .get();
+
+      if (notificationDoc.exists) {
+        await notificationDoc.ref.delete();
+
+        return {
+          success: true,
+        };
+      } else {
+        throw new https.HttpsError('not-found', 'Notification not found');
+      }
+    } catch (error) {
+      throw new https.HttpsError(
+        'internal',
+        `Error deleting notification: ${error.message || 'An unknown error occurred'}`
+      );
+    }
+  }
 }
 
 export default NotifiationService;

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import BottomSheet, {
   BottomSheetBackdrop,
@@ -25,6 +25,22 @@ type Props = {
   }) => void;
 };
 
+export const PLACE_TYPES: PlaceType[] = [
+  'bar',
+  'cafe',
+  'bakery',
+  'casino',
+  'night_club',
+  'restaurant',
+];
+
+export const OCCUPANCY_TYPES: OccupancyTypes[] = [
+  'FULL',
+  'ALMOST_FULL',
+  'SPARSELY_OCCUPIED',
+  'EMPTY',
+];
+
 const FilterSlider = (props: Props) => {
   const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
@@ -36,41 +52,58 @@ const FilterSlider = (props: Props) => {
     updateFilters,
   } = useFiltersStore();
   const [tempDistance, setTempDistance] = useState(storeDistance);
-  const [tempSelectedPlaces, setTempSelectedPlaces] =
-    useState<PlaceType[]>(storeSelectedPlaces);
+  const [tempSelectedPlaces, setTempSelectedPlaces] = useState<PlaceType[]>(
+    storeSelectedPlaces.length > 0 ? storeSelectedPlaces : PLACE_TYPES
+  );
   const [tempSelectedOccupancy, setTempSelectedOccupancy] = useState<
     OccupancyTypes[]
-  >(storeSelectedOccupancy);
+  >(
+    storeSelectedOccupancy.length > 0 ? storeSelectedOccupancy : OCCUPANCY_TYPES
+  );
 
   useEffect(() => {
     if (props.opened) {
       setTempDistance(storeDistance);
-      setTempSelectedPlaces(storeSelectedPlaces);
-      setTempSelectedOccupancy(storeSelectedOccupancy);
+      setTempSelectedPlaces(
+        storeSelectedPlaces.length > 0 ? storeSelectedPlaces : PLACE_TYPES
+      );
+      setTempSelectedOccupancy(
+        storeSelectedOccupancy.length > 0
+          ? storeSelectedOccupancy
+          : OCCUPANCY_TYPES
+      );
     }
   }, [props.opened]);
 
   const handleSaveChanges = useCallback(() => {
-    if (tempSelectedPlaces.length === 0) {
-      Alert.alert(
-        t('error'),
-        t('please-select-place'),
-        [{ text: t('ok'), style: 'default' }],
-        { cancelable: true }
-      );
-      return;
-    }
+    // if (tempSelectedPlaces.length === 0) {
+    //   Alert.alert(
+    //     t('error'),
+    //     t('please-select-place'),
+    //     [{ text: t('ok'), style: 'default' }],
+    //     { cancelable: true }
+    //   );
+    //   return;
+    // }
+
+    const finalPlaces =
+      tempSelectedPlaces.length === 0 ? [...PLACE_TYPES] : tempSelectedPlaces;
+
+    const finalOccupancy =
+      tempSelectedOccupancy.length === 0
+        ? [...OCCUPANCY_TYPES]
+        : tempSelectedOccupancy;
 
     updateFilters({
       distance: tempDistance,
-      placeTypes: tempSelectedPlaces,
-      occupancy: tempSelectedOccupancy,
+      placeTypes: finalPlaces,
+      occupancy: finalOccupancy,
     });
 
     props.onSave?.({
       distance: tempDistance,
-      placeTypes: tempSelectedPlaces,
-      occupancyTypes: tempSelectedOccupancy,
+      placeTypes: finalPlaces,
+      occupancyTypes: finalOccupancy,
     });
     bottomSheetRef?.current?.close();
     props.onClose();

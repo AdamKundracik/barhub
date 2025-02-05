@@ -354,6 +354,39 @@ exports.markAllNotificationsAsSeen = functions.https.onCall(
   }
 );
 
+exports.deleteNotification = functions.https.onCall(
+  async (
+    data: { notificationId: string },
+    context
+  ): Promise<{
+    success: boolean;
+  }> => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError(
+        'unauthenticated',
+        'User must be authenticated to delete notifications'
+      );
+    }
+
+    if (!data.notificationId) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Notification ID is required'
+      );
+    }
+
+    try {
+      return await notificationService.deleteNotification(data.notificationId);
+    } catch (error) {
+      console.error('Error in deleteNotification:', error);
+      throw new functions.https.HttpsError(
+        'internal',
+        'Failed to delete notification'
+      );
+    }
+  }
+);
+
 exports.addComment = functions.https.onCall(async (data, context) => {
   const { postId, userId, commentText } = data;
   return await commentService.addComment(postId, userId, commentText);
@@ -481,7 +514,6 @@ export const deleteAllExpiredRequests = functions.pubsub
       const expiredNotificationsSnapshot = await admin
         .firestore()
         .collection('notifications')
-        .where('notificationType', '==', 'REQUEST')
         .where('creationTime', '<', timestampThreeMinutesAgo)
         .get();
 

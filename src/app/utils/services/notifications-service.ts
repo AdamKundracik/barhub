@@ -3,7 +3,6 @@ import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../../../firebaseConfig';
 import {
   GetNotificationsResult,
-  MarkNotificationReadResult,
   SaveNotificationRequest,
 } from '../types/notification-types';
 
@@ -38,16 +37,16 @@ export const getUserNotifications =
   };
 
 /**
- * Marks all notifications as seen for the authenticated user
- * @returns Promise with success status and count of updated notifications
+ * Deletes specific notification by ID
+ * @param notificationId ID of the notification to delete
+ * @returns Promise with success status and count of deleted notifications
  */
-export const markAllNotificationsAsSeen =
-  async (): Promise<MarkNotificationReadResult> => {
-    const cloudFunction = httpsCallable(
-      functions,
-      'markAllNotificationsAsSeen'
-    );
-    const response =
-      (await cloudFunction()) as unknown as MarkNotificationReadResult;
-    return response;
-  };
+export const deleteNotification = async (
+  notificationId: string
+): Promise<{ success: boolean }> => {
+  const cloudFunction = httpsCallable(functions, 'deleteNotification');
+  const response = (await cloudFunction({
+    notificationId,
+  })) as unknown as { success: boolean };
+  return response;
+};

@@ -31,11 +31,13 @@ import { geohashForLocation } from 'geofire-common';
 import { auth } from '../../../../../firebaseConfig';
 import { ScreenLayout } from '../../../components/user/Shared/ScreenLayout';
 import { sendPushNotificationResponse } from '../../../utils/functions/notofications-handler';
+import { deleteNotification } from '../../../utils/services/notifications-service';
 
 type SummaryProps = {
   image: string;
   place: Place;
   senderToken?: string;
+  notificationId?: string;
 };
 
 const isTablet = Device.isTablet();
@@ -55,12 +57,14 @@ export const PostSummary = ({ route }: any) => {
   const [place, setPlace] = useState<Place | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [senderToken, setSenderToken] = useState<string | null>(null);
+  const [notificationId, setNotificationId] = useState<string | null>(null);
 
   useEffect(() => {
     if (routeParams?.image && routeParams?.place) {
       setImage(routeParams.image);
       setPlace(routeParams.place);
       setSenderToken(routeParams.senderToken ?? null);
+      setNotificationId(routeParams.notificationId ?? null);
     }
   }, [routeParams]);
 
@@ -174,6 +178,7 @@ export const PostSummary = ({ route }: any) => {
           navigation.navigate('Feed');
           if (senderToken)
             await sendPushNotificationResponse(senderToken, place.id);
+          if (notificationId) await deleteNotification(notificationId);
           await setUser({ lastUploadedPost: new Date().toISOString() });
         } catch (e) {
           console.error(e);

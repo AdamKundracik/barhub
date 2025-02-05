@@ -104,7 +104,7 @@ export const NotificationItemComponent: React.FC<NotificationItemProps> = ({
 
   async function handleNotification(notification: NotificationItem) {
     try {
-      const { placeId, notificationType, senderToken, creationTime } =
+      const { placeId, notificationType, senderToken, creationTime, id } =
         notification;
 
       if (!creationTime || typeof creationTime !== 'object') {
@@ -119,7 +119,7 @@ export const NotificationItemComponent: React.FC<NotificationItemProps> = ({
           if (Date.now() > timestamp + expirationTime) {
             Alert.alert(t('request-expired'), t('missed-request-info'));
           } else {
-            await openCamera(placeId, senderToken, navigation);
+            await openCamera(placeId, senderToken, navigation, id);
           }
         }
       } else {

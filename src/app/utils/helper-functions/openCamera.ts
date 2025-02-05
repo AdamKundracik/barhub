@@ -7,7 +7,8 @@ import { mapPlaceDetailToPlace } from './mapPlaceDetailToPlace';
 export const openCamera = async (
   placeId?: string | null,
   senderToken?: string,
-  navigation?: any
+  navigation?: any,
+  notificationId?: string
 ) => {
   try {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
@@ -27,13 +28,14 @@ export const openCamera = async (
     });
 
     if (!result.canceled) {
-      if (placeId && senderToken) {
+      if (placeId && senderToken && notificationId) {
         const placeDetail = await fetchPlaceDetails(placeId);
         const place: Place = mapPlaceDetailToPlace(placeDetail);
         navigation.navigate('PostSummary', {
           image: result.assets[0].uri ?? '',
           place: place,
           senderToken: senderToken,
+          notificationId: notificationId,
         });
       } else {
         navigation?.navigate('PhotoResolver', { image: result.assets[0].uri });
