@@ -10,6 +10,7 @@ import React, { ReactNode, useState } from 'react';
 import {
   iconInactiveColor,
   primaryBgColor,
+  primaryColor,
   primaryGrey,
 } from '../../../utils/styles/colors';
 import Svg, { Path } from 'react-native-svg';
@@ -25,9 +26,10 @@ import {
 import { UserStackList } from '../../../utils/types/screen-types';
 import { openCamera } from '../../../utils/helper-functions/openCamera';
 import { auth } from '../../../../../firebaseConfig';
-import RollupMenu, { MenuItemType } from '../RollupMenu';
-import { useTranslation } from 'react-i18next';
+import RollupMenu from '../RollupMenu';
 import FilterSlider from '../NewsFeed/Filters/FilterSlider';
+import { useNotifications } from '../../../utils/store/notificationsStore';
+import FastImage from 'react-native-fast-image';
 
 type LayoutProps = {
   children: ReactNode | ReactNode[];
@@ -39,7 +41,7 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
   const { userData } = useUserContext();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const route = useRoute();
-  const { t } = useTranslation();
+  const { data } = useNotifications();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [filtersOpened, setFiltersOpened] = useState(false);
@@ -47,7 +49,7 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
   const handleTabPress = (tab: TabsTypes) => {
     if (route.name === tab) {
       navigation.navigate('Feed');
-      return null; // Reset the selected tab
+      return null;
     } else {
       switch (tab) {
         case TabsTypes.account:
@@ -88,12 +90,29 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
             </Svg>
           </View>
           <View style={{ gap: 20, display: 'flex', flexDirection: 'row' }}>
-            <TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('NotificationsList')}
+            >
               <FontAwesomeIcon
                 icon={Icons.Bell}
                 color={iconInactiveColor}
                 size={22}
               />
+              {data?.hasNewNotifications == true && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: -6,
+                    right: -6,
+                    backgroundColor: primaryColor,
+                    width: 10,
+                    height: 10,
+                    borderRadius: 8,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                ></View>
+              )}
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setFiltersOpened(true)}>
               <FontAwesomeIcon
@@ -137,7 +156,7 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
             }}
           >
             {userData?.photoURL ? (
-              <Image
+              <FastImage
                 source={{ uri: auth.currentUser?.photoURL ?? '' }}
                 style={styles.profileIcon}
               />

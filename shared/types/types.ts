@@ -1,5 +1,5 @@
 import { LocationType } from '../../src/app/utils/types/types';
-import { GeoPoint } from 'firebase/firestore';
+import { Timestamp } from 'firebase/firestore';
 
 export interface UserRecord {
   customClaims: { [key: string]: any };
@@ -41,7 +41,6 @@ export type Post = {
     _long: number;
   };
   placeTypes: string[];
-  creationTime: string;
   timestamp: number;
   userId?: string;
   fileId: string;
@@ -54,6 +53,7 @@ export type Post = {
   commentsCount?: number;
   isLiked?: boolean;
   occupancy: string;
+  creationTime: Timestamp;
   user?: UserInfo;
 };
 
@@ -61,6 +61,7 @@ export interface UserInfo {
   id: string;
   displayName: string;
   photoUrl: string;
+  expoPushToken?: string;
 }
 
 export type InfinityScrollPost = {

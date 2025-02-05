@@ -1,10 +1,14 @@
 import { CallableContext } from 'firebase-functions/lib/common/providers/https';
-import { InfinityScrollPost, Post, User } from '../../shared';
+import { Post, User } from '../../shared';
 import PostService, { SavePostResponse } from './services/postService';
-import { firestore } from 'firebase-admin';
 import CommentService from './services/CommentService';
 import { PostComment } from '../../common/types/commentTypes';
 import { GeoPointType } from './documentTypes/Post';
+import {
+  GetUserNotificationsResponse,
+  SaveNotificationResponse,
+} from '../../common/types/notificationTypes';
+import NotifiationService from './services/notifiationService';
 
 const admin = require('firebase-admin');
 
@@ -12,12 +16,11 @@ admin.initializeApp();
 
 const db = admin.firestore();
 const functions = require('firebase-functions');
-const bucket = admin.storage().bucket();
 
 const postService = new PostService();
 const commentService = new CommentService();
+const notificationService = new NotifiationService();
 
-// TODO: FINISH FUNCTION
 export const createUser = functions.auth.user().onCreate(user => {
   return admin
     .firestore()
@@ -119,30 +122,6 @@ exports.toggleLike = functions.https.onCall(async data => {
   }
 });
 
-exports.getLikeStatus = functions.https.onCall(async data => {
-  const { postId, userId } = data;
-
-  if (!postId || !userId) {
-    throw new functions.https.HttpsError(
-      'invalid-argument',
-      'Missing postId or userId'
-    );
-  }
-
-  try {
-    const likeDocRef = db
-      .collection('posts')
-      .doc(postId)
-      .collection('likes')
-      .doc(userId);
-    const likeDoc = await likeDocRef.get();
-
-    return await likeDoc.exists;
-  } catch (error) {
-    console.error('Error getting like status: ', error);
-  }
-});
-
 export const testLog = functions.https.onCall(
   async (data, context: CallableContext) => {
     if (!context.auth) {
@@ -198,7 +177,6 @@ exports.getPostById = functions.https.onCall(async (data, context) => {
 
     const postData = postDoc.data();
 
-    // Count the number of likes in the 'likes' subcollection
     const likesSnapshot = await admin
       .firestore()
       .collection('posts')
@@ -207,7 +185,6 @@ exports.getPostById = functions.https.onCall(async (data, context) => {
       .get();
     const likesCount = likesSnapshot.size;
 
-    // Count the number of comments in the 'comments' subcollection
     const commentsSnapshot = await admin
       .firestore()
       .collection('posts')
@@ -216,7 +193,6 @@ exports.getPostById = functions.https.onCall(async (data, context) => {
       .get();
     const commentsCount = commentsSnapshot.size;
 
-    // Check if the user liked the post (if authenticated)
     let isLiked = false;
     if (context.auth) {
       const uid = context.auth.uid;
@@ -233,7 +209,7 @@ exports.getPostById = functions.https.onCall(async (data, context) => {
     // Return the post data along with likes and comments count, and if the user liked it
     return {
       ...postData,
-      id: postId, // Add postId here
+      id: postId,
       likesCount,
       commentsCount,
       isLiked,
@@ -320,44 +296,89 @@ exports.getPostsByPlaceId = functions.https.onCall(
   }
 );
 
-// SCHEDULE FUNCTIONS
+exports.saveNotification = functions.https.onCall(
+  async (data, context): Promise<SaveNotificationResponse> => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError(
+        'unauthenticated',
+        'User must be authenticated to save notifications'
+      );
+    }
 
-exports.deleteOldPostsAndImages = functions.pubsub
-  .schedule('every 60 minutes')
-  .onRun(async context => {
-    const threeDaysAgo = new Date();
-    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    const userId = context.auth.uid;
+    return await notificationService.saveNotification({
+      userId,
+      ...data,
+    });
+  }
+);
+
+exports.getUserNotifications = functions.https.onCall(
+  async (data, context): Promise<GetUserNotificationsResponse> => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError(
+        'unauthenticated',
+        'User must be authenticated to get notifications'
+      );
+    }
+
+    const userId = context.auth.uid;
+    return await notificationService.getUserNotifications(userId);
+  }
+);
+
+exports.markAllNotificationsAsSeen = functions.https.onCall(
+  async (
+    data,
+    context
+  ): Promise<{
+    success: boolean;
+    updatedCount: number;
+  }> => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError(
+        'unauthenticated',
+        'User must be authenticated to get notifications'
+      );
+    }
+
+    const userId = context.auth.uid;
+    return await notificationService.markAllNotificationsAsSeen(userId);
+  }
+);
+
+exports.deleteNotification = functions.https.onCall(
+  async (
+    data: { notificationId: string },
+    context
+  ): Promise<{
+    success: boolean;
+  }> => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError(
+        'unauthenticated',
+        'User must be authenticated to delete notifications'
+      );
+    }
+
+    if (!data.notificationId) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Notification ID is required'
+      );
+    }
 
     try {
-      // Query for posts older than 3 days
-      const postsSnapshot = await db
-        .collection('posts')
-        .where('timestamp', '<', threeDaysAgo.getTime())
-        .get();
-
-      const deletePromises: Promise<any>[] = [];
-
-      postsSnapshot.forEach(doc => {
-        const postData: Post = doc.data();
-        const fileId = postData.folderId + '/' + postData.fileId;
-
-        // Delete the image from Firebase Storage
-        const file = bucket.file(fileId);
-        deletePromises.push(file.delete());
-
-        deletePromises.push(deleteSubcollection(doc.ref, 'likes'));
-        deletePromises.push(deleteSubcollection(doc.ref, 'comments'));
-
-        // Delete the post document from Firestore
-        deletePromises.push(doc.ref.delete());
-      });
-
-      await Promise.all(deletePromises);
-      console.info('Successfully deleted old posts and images');
+      return await notificationService.deleteNotification(data.notificationId);
     } catch (error) {
-      console.error('Error deleting old posts and images:', error);
+      console.error('Error in deleteNotification:', error);
+      throw new functions.https.HttpsError(
+        'internal',
+        'Failed to delete notification'
+      );
     }
-  });
+  }
+);
 
 exports.addComment = functions.https.onCall(async (data, context) => {
   const { postId, userId, commentText } = data;
@@ -370,6 +391,152 @@ exports.getPostComments = functions.https.onCall(
     return await commentService.getPostComments(postId);
   }
 );
+
+// SCHEDULE FUNCTIONS
+
+exports.deleteOldPostsAndImages = functions.pubsub
+  .schedule('every 60 minutes')
+  .onRun(async context => {
+    const threeDaysInSeconds = 3 * 24 * 60 * 60;
+    const threeDaysAgo =
+      admin.firestore.Timestamp.now().seconds - threeDaysInSeconds;
+    const timestampThreeDaysAgo = new admin.firestore.Timestamp(
+      threeDaysAgo,
+      0
+    );
+
+    try {
+      const postsSnapshot = await db
+        .collection('posts')
+        .where('creationTime', '<', timestampThreeDaysAgo)
+        .get();
+
+      const deleteOperations = postsSnapshot.docs.map(async doc => {
+        const postData: Post = doc.data();
+        const filePath = `${postData.folderId}/${postData.fileId}`;
+
+        return Promise.all([
+          admin.storage().bucket().file(filePath).delete(),
+          deleteSubcollection(doc.ref, 'likes'),
+          deleteSubcollection(doc.ref, 'comments'),
+          doc.ref.delete(),
+        ]).catch(error => {
+          console.error(`Failed to delete post ${doc.id}:`, error);
+          throw error;
+        });
+      });
+
+      await Promise.all(deleteOperations);
+      console.info(
+        `Successfully deleted ${postsSnapshot.size} posts and their associated data`
+      );
+    } catch (error) {
+      console.error('Error in deletion process:', error);
+      throw error;
+    }
+  });
+
+// Quick cleanup (every 15 minutes)
+export const deleteRecentExpiredRequests = functions.pubsub
+  .schedule('every 15 minutes')
+  .onRun(async (context): Promise<void> => {
+    const threeMinutesInSeconds = 3 * 60;
+    const timeThreeMinutesAgo =
+      admin.firestore.Timestamp.now().seconds - threeMinutesInSeconds;
+    const timestampThreeMinutesAgo = new admin.firestore.Timestamp(
+      timeThreeMinutesAgo,
+      0
+    );
+
+    try {
+      const expiredNotificationsSnapshot = await admin
+        .firestore()
+        .collection('notifications')
+        .where('notificationType', '==', 'REQUEST')
+        .where('creationTime', '<', timestampThreeMinutesAgo)
+        .limit(1000)
+        .get();
+
+      if (expiredNotificationsSnapshot.empty) {
+        console.info('No recent expired request notifications to delete');
+        return;
+      }
+
+      const batchSize = 500;
+      const batches: Promise<void>[][] = [];
+
+      for (
+        let i = 0;
+        i < expiredNotificationsSnapshot.docs.length;
+        i += batchSize
+      ) {
+        const batch = expiredNotificationsSnapshot.docs
+          .slice(i, i + batchSize)
+          .map(doc => doc.ref.delete());
+
+        batches.push(batch);
+      }
+
+      await Promise.all(batches.flat());
+      console.info(
+        `Quick cleanup: Deleted ${expiredNotificationsSnapshot.size} expired request notifications`
+      );
+    } catch (error) {
+      console.error('Error in quick cleanup of expired notifications:', error);
+      throw error;
+    }
+  });
+
+// Deep cleanup (every 6 hours)
+export const deleteAllExpiredRequests = functions.pubsub
+  .schedule('every 6 hours')
+  .onRun(async (context): Promise<void> => {
+    const threeMinutesInSeconds = 3 * 60;
+    const timeThreeMinutesAgo =
+      admin.firestore.Timestamp.now().seconds - threeMinutesInSeconds;
+    const timestampThreeMinutesAgo = new admin.firestore.Timestamp(
+      timeThreeMinutesAgo,
+      0
+    );
+
+    try {
+      const expiredNotificationsSnapshot = await admin
+        .firestore()
+        .collection('notifications')
+        .where('creationTime', '<', timestampThreeMinutesAgo)
+        .get();
+
+      if (expiredNotificationsSnapshot.empty) {
+        console.info(
+          'No expired request notifications to delete in deep cleanup'
+        );
+        return;
+      }
+
+      const batchSize = 500;
+      const batches: Promise<void>[][] = [];
+
+      for (
+        let i = 0;
+        i < expiredNotificationsSnapshot.docs.length;
+        i += batchSize
+      ) {
+        const batch = expiredNotificationsSnapshot.docs
+          .slice(i, i + batchSize)
+          .map(doc => doc.ref.delete());
+
+        batches.push(batch);
+      }
+
+      await Promise.all(batches.flat());
+      console.info(
+        `Deep cleanup: Deleted ${expiredNotificationsSnapshot.size} expired request notifications`
+      );
+    } catch (error) {
+      console.error('Error in deep cleanup of expired notifications:', error);
+      throw error;
+    }
+  });
 
 async function deleteSubcollection(postRef, subcollectionName) {
   const subcollectionSnapshot = await postRef

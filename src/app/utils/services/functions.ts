@@ -10,14 +10,7 @@ import {
   SetDocumentFromCollectionRequest,
 } from '../helper-functions/functions-types';
 import { MISSING_REQUIRED_REQUEST_PARAMS } from '../helper-functions/constants';
-import { User } from '../../../../shared';
-import { Post } from '../../../../shared';
-import { LocationType } from '../types/types';
-import { GeoPoint } from 'firebase/firestore';
-import {
-  AddedCommentResponse,
-  PostCommentsResponse,
-} from '../../../../common/types/commentTypes';
+import { Post, User } from '../../../../shared';
 
 export const savePost = async (
   data: Partial<Post>
@@ -94,7 +87,6 @@ export const toggleLike = async (
   return response;
 };
 
-// Function to fetch comments for a post
 export const fetchPostById = async (postId: string) => {
   const cloudFunction = httpsCallable(functions, 'getPostById');
   const response = await cloudFunction({ postId });

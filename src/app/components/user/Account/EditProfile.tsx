@@ -159,15 +159,10 @@ const ProfileEditScreen = (props: EditProfileProps) => {
   return (
     <>
       <KeyboardAvoidingView
-        style={{ flex: 1 }} // Add this back
+        style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} // Adjust this offset if needed
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
-        <View style={styles.header}>
-          <TouchableOpacity onPress={props.onEditCLose}>
-            <FontAwesomeIcon icon={Icons.Left} size={24} color={'white'} />
-          </TouchableOpacity>
-        </View>
         <ScrollView
           contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 10 }}
         >
@@ -277,7 +272,6 @@ const dimensions = {
 };
 
 export const styles = StyleSheet.create({
-  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -285,7 +279,6 @@ export const styles = StyleSheet.create({
     marginBottom: 16,
   },
 
-  // Profile Picture Section
   profileSection: {
     alignItems: 'center',
     marginBottom: 15,
@@ -310,7 +303,6 @@ export const styles = StyleSheet.create({
     padding: dimensions.editIconPadding,
   },
 
-  // Input Styles
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -331,7 +323,6 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.darkBackground,
   },
 
-  // Birth Date Styles
   birthDateContainer: {
     marginBottom: 16,
   },
@@ -341,7 +332,6 @@ export const styles = StyleSheet.create({
     marginBottom: 10,
   },
 
-  // Button Styles
   saveButtonText: {
     color: colors.white,
     fontSize: typography.baseSize,

@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
     color: iconInactiveColor,
-    marginBottom: 16, // Adjust as needed
+    marginBottom: 16,
   },
   button: {
     borderRadius: 30,

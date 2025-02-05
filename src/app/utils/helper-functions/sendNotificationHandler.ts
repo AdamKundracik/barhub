@@ -15,13 +15,11 @@ export const sendNotificationHandler = async (
   placeLocation: LocationType
 ): Promise<string[] | undefined> => {
   try {
-    // Extract latitude and longitude from Geopoint
     const locationArray: Geopoint = [
       placeLocation.latitude,
       placeLocation.longitude,
     ];
 
-    // Get geohash query bounds for the location
     const bounds = geohashQueryBounds(locationArray, 8000);
     const promises = [];
 
@@ -36,19 +34,16 @@ export const sendNotificationHandler = async (
       promises.push(getDocs(q));
     }
 
-    // Collect all the query results together into a single list
     const snapshots = await Promise.all(promises);
 
     const matchingDocs: User[] = [];
     for (const snap of snapshots) {
       for (const doc of snap.docs) {
-        const location = doc.get('location'); // Access the location object
+        const location = doc.get('location');
         const lat = location?.latitude;
         const lng = location?.longitude;
 
-        // Ensure lat and lng exist before calculating the distance
         if (lat !== undefined && lng !== undefined) {
-          // Filter out false positives due to GeoHash accuracy
           const distanceInKm = distanceBetween([lat, lng], locationArray);
           const distanceInM = distanceInKm * 1000;
 

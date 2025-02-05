@@ -98,8 +98,8 @@
   "terms-of-use": "Zmluvné podmienky",
   "support-us": "Podpor nás",
   "full": "Plné",
-  "half-full": "Poloplné",
-  "half-empty": "Poloprázdne",
+  "almost-full": "Skoro plné",
+  "sparsely-occupied": "Málo obsadené",
   "empty": "Prázdne",
   "location": "Poloha",
   "name": "Názov",
@@ -117,5 +117,15 @@
   "filters": "Filtre",
   "error": "Chyba",
   "please-select-place": "Pre uloženie zmien musí byť vybraný aspoň jeden typ miesta.",
-  "ok": "Ok"
+  "ok": "Ok",
+  "edit-profile": "Upraviť profil",
+  "notification-deleted": "Oznámenie vymazané",
+  "undo": "Späť",
+  "notifications": "Oznámenia",
+  "no-notifications": "žiadne oznámenia",
+  "new-like": "Nové Páči sa mi",
+  "new-comment": "Nový Komentár",
+  "request": "Žiadosť",
+  "response": "Odpoveď",
+  "notification-processing-error": "notification-processing-error"
 }

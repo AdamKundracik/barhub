@@ -55,7 +55,7 @@ export const formStyles = StyleSheet.create({
     color: 'rgb(27,34,40)',
   },
   buttonText: {
-    color: primaryTextColor,
+    color: primaryGrey,
     display: 'flex',
     margin: 'auto',
     fontWeight: 'bold',

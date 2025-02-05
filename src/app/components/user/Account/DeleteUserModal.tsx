@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Modal } from '../../shared/Modal';
 import { commonAppStyles, formStyles } from '../../../utils/styles/styles';
@@ -12,9 +12,7 @@ type DeleteUserModalProps = {
 
 export const DeleteUserModal = memo(
   ({ isOpen, onClose }: DeleteUserModalProps) => {
-    const [togglePassword, setTogglePassword] = useState(true);
     const { t } = useTranslation();
-    const [password, setPassword] = useState<string>('');
 
     const handleDeleteUser = async () => {
       await auth.currentUser!.delete();
@@ -40,10 +38,10 @@ export const DeleteUserModal = memo(
 
 const styles = StyleSheet.create({
   modalContent: {
-    width: 'auto', // Ensures the content takes full width of the modal
-    padding: 10, // Padding for the modal content
+    width: 'auto',
+    padding: 10,
   },
   textInput: {
-    flex: 1, // Ensures the TextInput takes up the full width within its container
+    flex: 1,
   },
 });

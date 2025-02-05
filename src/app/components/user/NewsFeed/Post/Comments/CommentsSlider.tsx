@@ -21,7 +21,6 @@ import { useTranslation } from 'react-i18next';
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
-  BottomSheetFlatList,
   BottomSheetModal,
   BottomSheetTextInput,
   BottomSheetView,
@@ -29,8 +28,10 @@ import BottomSheet, {
 import CommentsLoaderView from '../Loaders/CommentsLoaderView';
 import { PostComment } from '../../../../../../../common/types/commentTypes';
 import commentService from '../../../../../utils/services/comment.service';
+import { sendCommentNotification } from '../../../../../utils/functions/notofications-handler';
 
 type Props = {
+  expoPushToken: string;
   postId: string | null;
   opened: boolean;
   users: User[] | undefined;
@@ -38,15 +39,15 @@ type Props = {
 };
 
 const CommentsSlider = (props: Props) => {
-  const { t } = useTranslation(); // Initialize useTranslation
+  const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 
   const [newComment, setNewComment] = useState('');
-  const [inputHeight, setInputHeight] = useState(40); // Default height for the input field
+  const [inputHeight, setInputHeight] = useState(40);
   const [areCommentsLoading, setAreCommentsLoading] = useState(false);
   const [allComments, setAllComments] = useState<PostComment[]>([]);
   const [commentsOpened, setCommentsOpened] = useState(props.opened);
-  const [snapPoint, setSnapPoint] = useState<string | number>('70%'); // State to track snapPoint
+  const [snapPoint, setSnapPoint] = useState<string | number>('70%');
 
   useEffect(() => {
     setCommentsOpened(props.opened);
@@ -59,7 +60,6 @@ const CommentsSlider = (props: Props) => {
   } = useOptimistic<PostComment[]>(async (newComments: PostComment[]) => {
     if (!props.postId) return [];
 
-    // Make call to Backend and persist new (last added) comment
     const lastComment = newComments[newComments.length - 1];
     const addedComment = await commentService.addCommentToPost(
       props.postId,
@@ -67,11 +67,9 @@ const CommentsSlider = (props: Props) => {
       lastComment.text
     );
 
-    // Add user related data to comment that we have locally on FE
     addedComment.userName = lastComment.userName;
     addedComment.userPhotoUrl = lastComment.userPhotoUrl;
 
-    // Replace new (last added) comment with new object which contains backend generated ID and creationTime
     const updatedComments = [...newComments];
     updatedComments[updatedComments.length - 1] = {
       ...addedComment,
@@ -107,6 +105,12 @@ const CommentsSlider = (props: Props) => {
     };
     try {
       await optimisticUpdate([...comments, optimisticComment]);
+      await sendCommentNotification({
+        commentText: newComment,
+        postId: props.postId,
+        username: auth.currentUser.displayName,
+        expoPushToken: props.expoPushToken,
+      });
       setNewComment('');
     } catch (error) {
       console.error('Error adding comment:', error);
@@ -196,7 +200,7 @@ const CommentsSlider = (props: Props) => {
       index={-1}
       onChange={index => {
         if (index === -1) {
-          Keyboard.dismiss(); // Dismiss the keyboard immediately when the bottom sheet starts closing
+          Keyboard.dismiss();
         }
       }}
       backdropComponent={renderBackdrop}
@@ -356,7 +360,7 @@ const CommentsSlider = (props: Props) => {
           />
 
           <BottomSheetTextInput
-            style={[styles.input, { height: Math.max(40, inputHeight) }]} // Adjust height dynamically
+            style={[styles.input, { height: Math.max(40, inputHeight) }]}
             placeholder={t('add-comment')}
             placeholderTextColor="#ccc"
             value={newComment}

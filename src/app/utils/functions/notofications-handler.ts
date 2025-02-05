@@ -1,6 +1,11 @@
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
+import {
+  CommentNotificationRequest,
+  LikeNotificationRequest,
+  NotificationType,
+} from '../types/notification-types';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -10,7 +15,30 @@ Notifications.setNotificationHandler({
   }),
 });
 
-export async function sendPushNotification(
+export async function sendPushNotificationResponse(
+  expoPushTokenRecipient: string,
+  placeId: string
+) {
+  const message = {
+    to: expoPushTokenRecipient,
+    sound: 'default',
+    title: 'Someone posted photo from requested place!',
+    body: 'Check out how it looks inside!',
+    data: { placeId: placeId, notificationType: NotificationType.RESPONSE },
+  };
+
+  await fetch('https://exp.host/--/api/v2/push/send', {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Accept-encoding': 'gzip, deflate',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(message),
+  });
+}
+
+export async function sendRequestNotification(
   expoPushTokenRecipient: string,
   placeId: string,
   placeName: string,
@@ -26,7 +54,8 @@ export async function sendPushNotification(
       placeId: placeId,
       senderToken: senderToken,
       notificationTTL: notificationTTL,
-      sentAt: new Date().getTime(),
+      sentAt: new Date().toISOString(),
+      notificationType: NotificationType.REQUEST,
     },
   };
 
@@ -41,16 +70,48 @@ export async function sendPushNotification(
   });
 }
 
-export async function sendPushNotificationResponse(
-  expoPushTokenRecipient: string,
-  placeId: string
-) {
+export async function sendLikeNotification(request: LikeNotificationRequest) {
   const message = {
-    to: expoPushTokenRecipient,
+    to: request.expoPushToken,
     sound: 'default',
-    title: 'Someone posted photo from requested place!',
-    body: 'Check out how it looks inside!',
-    data: { placeId: placeId },
+    title: 'New like!',
+    body: `${request.username} liked your post!`,
+    data: {
+      notificationType: NotificationType.LIKE,
+      username: request.username,
+      postId: request.postId,
+    },
+  };
+
+  await fetch('https://exp.host/--/api/v2/push/send', {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Accept-encoding': 'gzip, deflate',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(message),
+  });
+}
+
+export async function sendCommentNotification(
+  request: CommentNotificationRequest
+) {
+  const truncatedText =
+    request.commentText.length > 500
+      ? request.commentText.slice(0, 500) + '...'
+      : request.commentText;
+  const message = {
+    to: request.expoPushToken,
+    sound: 'default',
+    title: 'New comment!',
+    body: `${request.username} commented: ${truncatedText}`,
+    data: {
+      notificationType: NotificationType.COMMENT,
+      username: request.username,
+      postId: request.postId,
+      commentText: request.commentText,
+    },
   };
 
   await fetch('https://exp.host/--/api/v2/push/send', {

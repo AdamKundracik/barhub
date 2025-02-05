@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Layout from '../../components/user/Shared/Layout';
 import { auth } from '../../../../firebaseConfig';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -18,6 +17,7 @@ import { DeleteUserModal } from '../../components/user/Account/DeleteUserModal';
 import FastImage from 'react-native-fast-image';
 import { primaryBgColor, primaryColor } from '../../utils/styles/colors';
 import EditProfile from '../../components/user/Account/EditProfile';
+import { ScreenLayout } from '../../components/user/Shared/ScreenLayout';
 
 export const Account = () => {
   const { userData } = useUserContext();
@@ -30,12 +30,15 @@ export const Account = () => {
 
   if (isEditing) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <ScreenLayout
+        title={t('edit-profile')}
+        clickFunction={() => setIsEditing(false)}
+      >
         <EditProfile
           user={userData ?? null}
           onEditCLose={() => setIsEditing(false)}
         />
-      </SafeAreaView>
+      </ScreenLayout>
     );
   }
 
@@ -129,17 +132,14 @@ const commonTypography = {
 };
 
 export const styles = StyleSheet.create({
-  // Container and Layout
   safeArea: {
     flex: 1,
     backgroundColor: primaryBgColor,
   },
   container: {
     paddingHorizontal: 10,
-    paddingVertical: 32,
   },
 
-  // Header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -148,7 +148,6 @@ export const styles = StyleSheet.create({
     paddingVertical: 10,
   },
 
-  // Profile Section
   profileSection: {
     alignItems: 'center',
     marginBottom: 15,
@@ -164,7 +163,6 @@ export const styles = StyleSheet.create({
     borderColor: commonColors.premium,
   },
 
-  // Username and Status
   username: {
     color: commonColors.primaryTeal,
     fontSize: 20,
@@ -188,7 +186,6 @@ export const styles = StyleSheet.create({
     fontSize: commonTypography.baseSize,
   },
 
-  // Info Section
   infoSection: {
     paddingHorizontal: 15,
     justifyContent: 'center',
@@ -203,8 +200,6 @@ export const styles = StyleSheet.create({
     fontSize: commonTypography.baseSize,
     marginBottom: 8,
   },
-
-  // Action Buttons
   changePassword: {
     color: 'white',
     textAlign: 'center',

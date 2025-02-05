@@ -98,8 +98,8 @@
   "terms-of-use": "Terms of use",
   "support-us": "Support us",
   "full": "Full",
-  "half-full": "Half Full",
-  "half-empty": "Half Empty",
+  "almost-full": "Almost full",
+  "sparsely-occupied": "Sparsely occupied",
   "empty": "Empty",
   "location": "Location",
   "name": "Name",
@@ -117,5 +117,15 @@
   "filters": "Filters",
   "error": "Error",
   "please-select-place": "At least one place type must be selected to save changes.",
-  "ok": "Ok"
+  "ok": "Ok",
+  "edit-profile": "Edit profile",
+  "notification-deleted": "Notification deleted",
+  "undo": "Undo",
+  "notifications": "Notifications",
+  "no-notifications": "No notifications",
+  "new-like": "New Like",
+  "new-comment": "New Comment",
+  "request": "Request",
+  "response": "Response",
+  "notification-processing-error": "notification-processing-error"
 }

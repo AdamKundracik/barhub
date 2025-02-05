@@ -5,15 +5,19 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { UserStackList } from '../../utils/types/screen-types';
 import { useUserContext } from '../../providers/UserProvider';
-import { handleFreshContent } from '../../utils/services/posts-functions';
+import { handleFreshContent } from '../../utils/functions/posts-functions';
 import { getDaysSince } from '../../utils/helper-functions/getDaysSince';
-import { PlaceDetail, PlaceType } from '../../utils/types/types';
+import {
+  OccupancyTypes,
+  PlaceDetail,
+  PlaceType,
+} from '../../utils/types/types';
 import NotificationHandler from '../../components/user/NewsFeed/NotificationHandler';
 import LoadingIndicator from '../../components/user/NewsFeed/LoadingIndicator';
 import PostsList from '../../components/user/NewsFeed/PostList';
 import { fetchPlaceDetails } from '../../utils/helper-functions/fetchPlaceDetail';
 import { sendNotificationHandler } from '../../utils/helper-functions/sendNotificationHandler';
-import { sendPushNotification } from '../../utils/services/notofications-handler';
+import { sendRequestNotification } from '../../utils/functions/notofications-handler';
 import FeedHeader from '../../components/user/NewsFeed/FeedHeader';
 import CommentsSlider from '../../components/user/NewsFeed/Post/Comments/CommentsSlider';
 import { usePlaceStore } from '../../utils/store/placesStore';
@@ -24,14 +28,15 @@ import { useFiltersStore } from '../../utils/store/filtersStorage';
 
 export const NewsFeed = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
+  const { t } = useTranslation();
+  const { placeId, placeName, setPlaceDetail } = usePlaceStore();
+  const { distance, selectedPlaces, selectedOccupancy } = useFiltersStore();
   const { userData } = useUserContext();
+
+  const [expoPushToken, setExpoPushToken] = useState('');
   const [zoomedPost, setZoomedPost] = useState<string | null>(null);
   const [showComments, setShowComments] = useState(false);
   const [postId, setPostId] = useState<string | null>(null);
-  const { t } = useTranslation();
-
-  const { placeId, placeName, setPlaceDetail } = usePlaceStore();
-  const { distance, selectedPlaces } = useFiltersStore();
   const [
     numberOfDaysSinceLastPostedPhoto,
     setNumberOfDaysSinceLastPostedPhoto,
@@ -62,18 +67,30 @@ export const NewsFeed = () => {
   );
 
   const filteredPosts = useMemo(() => {
-    if (!postsData?.pages || selectedPlaces.length === 0) {
-      return postsData?.pages.flatMap(page => page.posts);
+    if (!postsData?.pages) {
+      return [];
     }
 
-    return postsData.pages.flatMap(page =>
-      page.posts.filter(post =>
+    const allPosts = postsData.pages.flatMap(page => page.posts);
+
+    if (selectedPlaces.length === 0 && selectedOccupancy.length === 0) {
+      return allPosts;
+    }
+
+    return allPosts.filter(post => {
+      const matchesPlaceType =
+        selectedPlaces.length === 0 ||
         post.placeTypes?.some(type =>
           selectedPlaces.includes(type as PlaceType)
-        )
-      )
-    );
-  }, [postsData?.pages, selectedPlaces]);
+        );
+
+      const matchesOccupancy =
+        selectedOccupancy.length === 0 ||
+        selectedOccupancy.includes(post.occupancy as OccupancyTypes);
+
+      return matchesPlaceType && matchesOccupancy;
+    });
+  }, [postsData?.pages, selectedPlaces, selectedOccupancy]);
 
   useEffect(() => {
     if (placeId) refetch();
@@ -102,15 +119,15 @@ export const NewsFeed = () => {
         latitude: detail?.geometry.location?.lat,
         longitude: detail?.geometry.location?.lng,
       });
-
       tokens?.forEach(token => {
-        sendPushNotification(token, placeId, placeName, senderToken ?? '');
+        sendRequestNotification(token, placeId, placeName, senderToken ?? '');
       });
     }
   }
 
-  async function toggleComments(postId: string) {
+  async function toggleComments(postId: string, expoPushToken: string) {
     setPostId(postId);
+    setExpoPushToken(expoPushToken);
     setShowComments(true);
   }
 
@@ -153,6 +170,7 @@ export const NewsFeed = () => {
       <CommentsSlider
         postId={postId}
         opened={showComments}
+        expoPushToken={expoPushToken}
         onClose={() => setShowComments(false)}
       />
     </Layout>

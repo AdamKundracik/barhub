@@ -9,7 +9,6 @@ import {
   View,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
-import Layout from '../../../components/user/Shared/Layout';
 import Device from 'react-native-device-info';
 import {
   iconInactiveColor,
@@ -17,11 +16,9 @@ import {
   primaryBgColor,
   primaryColor,
 } from '../../../utils/styles/colors';
-import { occupacyOptions, Place } from '../../../utils/types/types';
+import { OccupancyEnum, Place } from '../../../utils/types/types';
 import { useTranslation } from 'react-i18next';
 import { formStyles } from '../../../utils/styles/styles';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { uploadImageAsync } from '../../../utils/helper-functions/imageUploadFunctions';
@@ -32,21 +29,16 @@ import { Post } from '../../../../../shared';
 import postService from '../../../utils/services/post.service';
 import { geohashForLocation } from 'geofire-common';
 import { auth } from '../../../../../firebaseConfig';
-import { GeoPoint } from 'firebase/firestore';
+import { ScreenLayout } from '../../../components/user/Shared/ScreenLayout';
+import { sendPushNotificationResponse } from '../../../utils/functions/notofications-handler';
+import { deleteNotification } from '../../../utils/services/notifications-service';
 
 type SummaryProps = {
   image: string;
   place: Place;
   senderToken?: string;
+  notificationId?: string;
 };
-
-interface OldPostsData {
-  pageParams: unknown[];
-  pages: {
-    lastVisible: string;
-    posts: Post[];
-  }[];
-}
 
 const isTablet = Device.isTablet();
 const width = Dimensions.get('window').width;
@@ -54,34 +46,36 @@ const width = Dimensions.get('window').width;
 export const PostSummary = ({ route }: any) => {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
-  const routeParams = route.params as SummaryProps; // Define route params
+  const routeParams = route.params as SummaryProps;
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 
   const [selectedOccupancy, setSelectedOccupancy] = useState(
-    occupacyOptions.FULL
+    OccupancyEnum.FULL
   );
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Dropdown toggle state
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [image, setImage] = useState<string | null>(null);
   const [place, setPlace] = useState<Place | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [senderToken, setSenderToken] = useState<string | null>(null);
+  const [notificationId, setNotificationId] = useState<string | null>(null);
 
   useEffect(() => {
     if (routeParams?.image && routeParams?.place) {
-      setImage(routeParams.image); // Set the place when passed from PlaceSearch
+      setImage(routeParams.image);
       setPlace(routeParams.place);
       setSenderToken(routeParams.senderToken ?? null);
+      setNotificationId(routeParams.notificationId ?? null);
     }
   }, [routeParams]);
 
   const occupancyLabels = {
-    [occupacyOptions.FULL]: t('full'),
-    [occupacyOptions.HALF_FULL]: t('half-full'),
-    [occupacyOptions.HALF_EMPTY]: t('half-empty'),
-    [occupacyOptions.EMPTY]: t('empty'),
+    [OccupancyEnum.FULL]: t('full'),
+    [OccupancyEnum.ALMOST_FULL]: t('almost-full'),
+    [OccupancyEnum.SPARSELY_OCCUPIED]: t('sparsely-occupied'),
+    [OccupancyEnum.EMPTY]: t('empty'),
   };
 
-  const handleSelect = (option: occupacyOptions) => {
+  const handleSelect = (option: OccupancyEnum) => {
     setSelectedOccupancy(option);
     setIsDropdownOpen(false);
   };
@@ -94,7 +88,7 @@ export const PostSummary = ({ route }: any) => {
 
   const { mutate } = useMutation({
     mutationFn: save,
-    onMutate: async (newPost: Post) => {
+    onMutate: async (newPost: Omit<Post, 'creationTime'>) => {
       await queryClient.cancelQueries({ queryKey: 'posts' });
 
       const previousPosts = queryClient.getQueryData<{
@@ -102,7 +96,7 @@ export const PostSummary = ({ route }: any) => {
         pages: { lastVisible: string; posts: Post[] }[];
       }>('posts');
 
-      const newCachedPost: Post = {
+      const newCachedPost: Omit<Post, 'creationTime'> = {
         ...newPost,
         isLiked: false,
         commentsCount: 0,
@@ -111,6 +105,7 @@ export const PostSummary = ({ route }: any) => {
           id: auth.currentUser?.uid ?? '',
           displayName: auth.currentUser?.displayName ?? '',
           photoUrl: auth.currentUser?.photoURL ?? '',
+          expoPushToken: '',
         },
       };
 
@@ -159,7 +154,7 @@ export const PostSummary = ({ route }: any) => {
           place?.location.longitude ?? 0,
         ]);
 
-        const newPost: Post = {
+        const newPost: Omit<Post, 'creationTime'> = {
           geohash: hash,
           location: {
             _lat: place?.location.latitude ?? 0,
@@ -171,7 +166,6 @@ export const PostSummary = ({ route }: any) => {
           fileId: '',
           occupancy: selectedOccupancy ?? '',
           folderId: place?.id ?? '',
-          creationTime: new Date().toISOString(),
           timestamp: Date.now(),
           placeName: place?.displayName.text ?? '',
           placeAddress: place?.formattedAddress ?? '',
@@ -182,6 +176,9 @@ export const PostSummary = ({ route }: any) => {
           const postResponse = await postService.savePost(newPost);
           mutate(postResponse);
           navigation.navigate('Feed');
+          if (senderToken)
+            await sendPushNotificationResponse(senderToken, place.id);
+          if (notificationId) await deleteNotification(notificationId);
           await setUser({ lastUploadedPost: new Date().toISOString() });
         } catch (e) {
           console.error(e);
@@ -194,119 +191,107 @@ export const PostSummary = ({ route }: any) => {
   };
 
   return (
-    <Layout pageTitle={'Summary'} showBottomTabs={false}>
+    <ScreenLayout clickFunction={navigation.goBack}>
       <TouchableWithoutFeedback onPress={handleOutsideClick}>
-        <>
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <FontAwesomeIcon icon={Icons.Left} size={24} color={'white'} />
+        <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+          <Text
+            style={{
+              color: primaryColor,
+              fontSize: 32,
+              textAlign: 'center',
+              marginBottom: 15,
+            }}
+          >
+            {t('new-post')}
+          </Text>
+
+          <View
+            style={
+              isTablet ? tabletStyles.contentContainer : styles.contentContainer
+            }
+          >
+            <View style={styles.textContainer}>
+              <Text style={styles.label}>{t('location')}:</Text>
+              <Text
+                style={styles.dynamicText}
+                numberOfLines={3}
+                ellipsizeMode="tail"
+              >
+                {place?.formattedAddress ?? ''}
+              </Text>
+            </View>
+
+            <View style={styles.textContainer}>
+              <Text style={styles.label}>{t('name')}</Text>
+              <Text style={styles.dynamicText}>
+                {place?.displayName.text ?? ''}
+              </Text>
+            </View>
+
+            <View style={[styles.textContainer, styles.dropdownContainer]}>
+              <Text style={styles.label}>{t('occupancy')}:</Text>
+
+              <View style={styles.dropdownWrapper}>
+                <TouchableOpacity
+                  onPress={() => setIsDropdownOpen(!isDropdownOpen)}
+                  style={[styles.dropdown, { width: 150 }]}
+                >
+                  <Text style={styles.dropdownText}>
+                    {occupancyLabels[selectedOccupancy]}
+                  </Text>
+                </TouchableOpacity>
+
+                {isDropdownOpen && (
+                  <View style={styles.dropdownList}>
+                    {Object.values(OccupancyEnum).map(option => (
+                      <TouchableOpacity
+                        key={option}
+                        onPress={() => handleSelect(option)}
+                        style={styles.dropdownItem}
+                      >
+                        <Text
+                          style={[
+                            styles.dropdownItemText,
+                            selectedOccupancy === option
+                              ? { color: primaryColor }
+                              : { color: 'white' },
+                          ]}
+                        >
+                          {occupancyLabels[option]}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+            </View>
+
+            <View style={{ height: width, marginTop: 15 }}>
+              <FastImage
+                style={isTablet ? tabletStyles.photo : styles.photo}
+                source={{
+                  priority: FastImage.priority.high,
+                  uri: image ?? '',
+                }}
+                resizeMode={FastImage.resizeMode.cover}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={formStyles.buttonPrimary}
+              onPress={handleSavePost}
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <LoadingIndicator />
+              ) : (
+                <Text style={formStyles.buttonText}>{t('save')}</Text>
+              )}
             </TouchableOpacity>
           </View>
-          <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-            <Text
-              style={{
-                color: primaryColor,
-                fontSize: 32,
-                textAlign: 'center',
-                marginBottom: 15,
-              }}
-            >
-              {t('new-post')}
-            </Text>
-
-            <View
-              style={
-                isTablet
-                  ? tabletStyles.contentContainer
-                  : styles.contentContainer
-              }
-            >
-              <View style={styles.textContainer}>
-                <Text style={styles.label}>{t('location')}:</Text>
-                <Text
-                  style={styles.dynamicText}
-                  numberOfLines={3}
-                  ellipsizeMode="tail"
-                >
-                  {place?.formattedAddress ?? ''}
-                </Text>
-              </View>
-
-              <View style={styles.textContainer}>
-                <Text style={styles.label}>{t('name')}</Text>
-                <Text style={styles.dynamicText}>
-                  {place?.displayName.text ?? ''}
-                </Text>
-              </View>
-
-              <View style={[styles.textContainer, styles.dropdownContainer]}>
-                <Text style={styles.label}>{t('occupancy')}:</Text>
-
-                <View style={styles.dropdownWrapper}>
-                  <TouchableOpacity
-                    onPress={() => setIsDropdownOpen(!isDropdownOpen)}
-                    style={[
-                      styles.dropdown,
-                      { width: 150 }, // Fixed width
-                    ]}
-                  >
-                    <Text style={styles.dropdownText}>
-                      {occupancyLabels[selectedOccupancy]}
-                    </Text>
-                  </TouchableOpacity>
-
-                  {isDropdownOpen && (
-                    <View style={styles.dropdownList}>
-                      {Object.values(occupacyOptions).map(option => (
-                        <TouchableOpacity
-                          key={option}
-                          onPress={() => handleSelect(option)}
-                          style={styles.dropdownItem}
-                        >
-                          <Text
-                            style={[
-                              styles.dropdownItemText,
-                              selectedOccupancy === option
-                                ? { color: primaryColor }
-                                : { color: 'white' },
-                            ]}
-                          >
-                            {occupancyLabels[option]}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              </View>
-
-              <View style={{ height: width, marginTop: 15 }}>
-                <FastImage
-                  style={isTablet ? tabletStyles.photo : styles.photo}
-                  source={{
-                    priority: FastImage.priority.high,
-                    uri: image ?? '',
-                  }}
-                  resizeMode={FastImage.resizeMode.cover}
-                />
-              </View>
-
-              <TouchableOpacity
-                style={formStyles.buttonPrimary}
-                onPress={handleSavePost}
-                disabled={isSaving}
-              >
-                {isSaving ? (
-                  <LoadingIndicator />
-                ) : (
-                  <Text style={formStyles.buttonText}>{t('save')}</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </>
+        </View>
       </TouchableWithoutFeedback>
-    </Layout>
+    </ScreenLayout>
   );
 };
 
@@ -345,7 +330,6 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     zIndex: 1,
   },
-  // Dropdown styles
   dropdownContainer: {
     position: 'relative',
     justifyContent: 'space-between',

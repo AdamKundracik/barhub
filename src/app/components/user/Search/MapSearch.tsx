@@ -90,7 +90,7 @@ export const MapSearch = (props: LayoutProps) => {
         showsMyLocationButton={true}
         onPress={Keyboard.dismiss}
         showsCompass={true}
-        onRegionChangeComplete={onRegionChangeComplete} // Called when user stops moving the map
+        onRegionChangeComplete={onRegionChangeComplete}
       >
         {!loading &&
           places?.map((place: Place, index: number) => (
@@ -189,8 +189,8 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    top: 10, // Position near the top
-    left: 10, // Position on the left side
+    top: 10,
+    left: 10,
   },
   searchButton: {
     position: 'absolute',

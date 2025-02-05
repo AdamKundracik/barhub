@@ -96,7 +96,6 @@ class CommentService {
         .orderBy('creationTime', 'asc')
         .get();
 
-      // Extract comments as Documents
       const postCommentsDocuments: PostCommentDocument[] =
         postCommentsSnapshot.docs.map(doc => ({
           id: doc.id,
@@ -105,11 +104,9 @@ class CommentService {
           creationTime: doc.data().creationTime,
         }));
 
-      // Extract user IDs from comments
       const userIds = postCommentsDocuments.map(comment => comment.userId);
       const uniqueUserIds = [...new Set(userIds)];
 
-      // Fetch all users in a single query (optimization)
       const usersSnapshot = await this.db
         .collection('users')
         .where(admin.firestore.FieldPath.documentId(), 'in', uniqueUserIds)

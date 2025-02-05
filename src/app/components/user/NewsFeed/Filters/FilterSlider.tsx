@@ -1,25 +1,45 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
-  BottomSheetModal,
   BottomSheetFooter,
   BottomSheetFooterProps,
+  BottomSheetModal,
 } from '@gorhom/bottom-sheet';
 import { primaryColor } from '../../../../utils/styles/colors';
 import Slider from '@react-native-community/slider';
 import MultiSelectPlaceChips from './MultiSelectPlaceChips';
 import Button from '../../../shared/Button';
-import { PlaceType } from '../../../../utils/types/types';
+import { OccupancyTypes, PlaceType } from '../../../../utils/types/types';
 import { useFiltersStore } from '../../../../utils/store/filtersStorage';
 
 type Props = {
   opened: boolean;
   onClose: () => void;
-  onSave?: (filters: { distance: number; placeTypes: string[] }) => void;
+  onSave?: (filters: {
+    distance: number;
+    placeTypes: string[];
+    occupancyTypes: string[];
+  }) => void;
 };
+
+export const PLACE_TYPES: PlaceType[] = [
+  'bar',
+  'cafe',
+  'bakery',
+  'casino',
+  'night_club',
+  'restaurant',
+];
+
+export const OCCUPANCY_TYPES: OccupancyTypes[] = [
+  'FULL',
+  'ALMOST_FULL',
+  'SPARSELY_OCCUPIED',
+  'EMPTY',
+];
 
 const FilterSlider = (props: Props) => {
   const { t } = useTranslation();
@@ -28,68 +48,71 @@ const FilterSlider = (props: Props) => {
   const {
     distance: storeDistance,
     selectedPlaces: storeSelectedPlaces,
+    selectedOccupancy: storeSelectedOccupancy,
     updateFilters,
   } = useFiltersStore();
-  const [filtersOpened, setFiltersOpened] = useState(props.opened);
   const [tempDistance, setTempDistance] = useState(storeDistance);
-  const [tempSelectedPlaces, setTempSelectedPlaces] =
-    useState<PlaceType[]>(storeSelectedPlaces);
+  const [tempSelectedPlaces, setTempSelectedPlaces] = useState<PlaceType[]>(
+    storeSelectedPlaces.length > 0 ? storeSelectedPlaces : PLACE_TYPES
+  );
+  const [tempSelectedOccupancy, setTempSelectedOccupancy] = useState<
+    OccupancyTypes[]
+  >(
+    storeSelectedOccupancy.length > 0 ? storeSelectedOccupancy : OCCUPANCY_TYPES
+  );
 
   useEffect(() => {
     if (props.opened) {
       setTempDistance(storeDistance);
-      setTempSelectedPlaces(storeSelectedPlaces);
+      setTempSelectedPlaces(
+        storeSelectedPlaces.length > 0 ? storeSelectedPlaces : PLACE_TYPES
+      );
+      setTempSelectedOccupancy(
+        storeSelectedOccupancy.length > 0
+          ? storeSelectedOccupancy
+          : OCCUPANCY_TYPES
+      );
     }
-  }, [props.opened, storeDistance, storeSelectedPlaces]);
-
-  useEffect(() => {
-    setFiltersOpened(props.opened);
   }, [props.opened]);
 
-  if (bottomSheetRef.current) {
-    if (filtersOpened) {
-      bottomSheetRef.current.expand();
-    } else {
-      bottomSheetRef.current.close();
-    }
-  }
-
-  const handleCloseFilters = useCallback(() => {
-    bottomSheetRef.current?.close();
-    setFiltersOpened(false);
-    props.onClose();
-  }, [props]);
-
   const handleSaveChanges = useCallback(() => {
-    if (tempSelectedPlaces.length === 0) {
-      Alert.alert(
-        t('error'),
-        t('please-select-place'),
-        [{ text: t('ok'), style: 'default' }],
-        { cancelable: true }
-      );
-      return;
-    }
+    const finalPlaces =
+      tempSelectedPlaces.length === 0 ? [...PLACE_TYPES] : tempSelectedPlaces;
+
+    const finalOccupancy =
+      tempSelectedOccupancy.length === 0
+        ? [...OCCUPANCY_TYPES]
+        : tempSelectedOccupancy;
 
     updateFilters({
       distance: tempDistance,
-      placeTypes: tempSelectedPlaces,
+      placeTypes: finalPlaces,
+      occupancy: finalOccupancy,
     });
 
     props.onSave?.({
       distance: tempDistance,
-      placeTypes: tempSelectedPlaces,
+      placeTypes: finalPlaces,
+      occupancyTypes: finalOccupancy,
     });
-
-    handleCloseFilters();
+    bottomSheetRef?.current?.close();
+    props.onClose();
   }, [
     tempDistance,
     tempSelectedPlaces,
     updateFilters,
+    tempSelectedOccupancy,
     props.onSave,
-    handleCloseFilters,
     t,
   ]);
+
+  const handleSelectionChange = useCallback(
+    (places: PlaceType[], occupancy: OccupancyTypes[]) => {
+      setTempSelectedPlaces(places);
+      setTempSelectedOccupancy(occupancy);
+    },
+    []
+  );
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
@@ -121,10 +144,10 @@ const FilterSlider = (props: Props) => {
   return (
     <BottomSheet
       backgroundStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
-      onClose={handleCloseFilters}
+      onClose={props.onClose}
       ref={bottomSheetRef}
       snapPoints={['90%', '70%']}
-      index={-1}
+      index={props.opened ? 1 : -1}
       backdropComponent={renderBackdrop}
       footerComponent={renderFooter}
       handleHeight={60}
@@ -154,10 +177,10 @@ const FilterSlider = (props: Props) => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('places-types')}:</Text>
           <MultiSelectPlaceChips
-            onSelectionChange={setTempSelectedPlaces}
+            onSelectionChange={handleSelectionChange}
             initialSelected={tempSelectedPlaces}
+            initialOccupancy={tempSelectedOccupancy}
           />
         </View>
       </View>

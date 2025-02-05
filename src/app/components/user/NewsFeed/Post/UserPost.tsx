@@ -20,6 +20,8 @@ import FastImage from 'react-native-fast-image';
 import { useQueryClient } from 'react-query';
 import { usePlaceStore } from '../../../../utils/store/placesStore';
 import { trimPlaceName } from '../../../../utils/helper-functions/trimPlaceName';
+import { LikeNotificationRequest } from '../../../../utils/types/notification-types';
+import { sendLikeNotification } from '../../../../utils/functions/notofications-handler';
 
 interface PostInterface {
   post: Post;
@@ -28,7 +30,7 @@ interface PostInterface {
   hasPremium: boolean;
   isFiltering: boolean;
   user: User | undefined;
-  onCommentPress: (postId: string) => void;
+  onCommentPress: (postId: string, expoPushToken: string) => void;
   requestPhoto: () => void;
 }
 
@@ -93,9 +95,17 @@ export const UserPost = (props: PostInterface) => {
     }
 
     debounceTimeout.current = setTimeout(async () => {
+      const notifRequest: LikeNotificationRequest = {
+        postId: postId,
+        username: post.user?.displayName ?? '',
+        expoPushToken: post.user?.expoPushToken ?? '',
+      };
       try {
         if (liked !== previousLikeState) {
           await toggleLike(postId, auth.currentUser?.uid!);
+          if (!liked) {
+            await sendLikeNotification(notifRequest);
+          }
           setPreviousLikeState(prevState => !prevState);
           optimisticUpdate(liked);
         }
@@ -106,7 +116,7 @@ export const UserPost = (props: PostInterface) => {
           previousLikeState ? prevCount + 1 : prevCount - 1
         );
       }
-    }, 700); // 700ms debounce delay
+    }, 700);
   };
 
   const onLikePress = () => {
@@ -177,7 +187,7 @@ export const UserPost = (props: PostInterface) => {
           ) >= 14 && <BluredPostFrontView />)}
         <UserLine
           user={post.user}
-          date={new Date(post.creationTime).toLocaleString()}
+          date={post.creationTime}
           address={post.placeAddress}
           profileImage={post.user?.photoUrl ?? ''}
         />
@@ -201,7 +211,12 @@ export const UserPost = (props: PostInterface) => {
           likes={likeCount}
           comments={post.commentsCount}
           onLikeToggle={onLikePress}
-          onCommentToggle={() => props.onCommentPress(props.post.id)}
+          onCommentToggle={() =>
+            props.onCommentPress(
+              props.post.id,
+              props.post.user?.expoPushToken ?? ''
+            )
+          }
           isLiked={liked}
           occupancy={post.occupancy}
         />
@@ -210,7 +225,6 @@ export const UserPost = (props: PostInterface) => {
   );
 };
 
-// Define the styles for mobile devices
 const styles = StyleSheet.create({
   postWrapper: {
     width: '100%',
@@ -332,7 +346,6 @@ const styles = StyleSheet.create({
   },
 });
 
-// Define the styles for tablets
 const tabletStyles = StyleSheet.create({
   postWrapper: {
     width: '100%',

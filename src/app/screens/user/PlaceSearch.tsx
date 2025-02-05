@@ -25,10 +25,10 @@ export const PlaceSearch = () => {
   const [isMapShown, setIsMapShown] = useState<boolean>(false);
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState(query);
-  const [hasSearched, setHasSearched] = useState(false); // Track if the user has started searching
+  const [hasSearched, setHasSearched] = useState(false);
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
-  const [sessionToken] = useState(generateId()); // Generate a unique session token
+  const [sessionToken] = useState(generateId());
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { setPlaceId, setPlaceName } = usePlaceStore();
 
@@ -56,7 +56,7 @@ export const PlaceSearch = () => {
     debounceTimeoutRef.current = setTimeout(() => {
       if (query) {
         setDebouncedQuery(query);
-        setHasSearched(true); // User has started searching
+        setHasSearched(true);
       }
     }, 300);
   }, [query]);
@@ -145,7 +145,7 @@ export const PlaceSearch = () => {
                     <Text
                       style={[
                         { fontSize: 14, fontWeight: 'bold' },
-                        { color: pressed ? primaryColor : 'white' }, // Conditional styling for color
+                        { color: pressed ? primaryColor : 'white' },
                       ]}
                     >
                       {place.placePrediction.structuredFormat.mainText.text}
@@ -153,7 +153,7 @@ export const PlaceSearch = () => {
                     <Text
                       style={[
                         { fontSize: 12 },
-                        { color: pressed ? primaryDeepColor : 'grey' }, // Conditional styling for color
+                        { color: pressed ? primaryDeepColor : 'grey' },
                       ]}
                     >
                       {

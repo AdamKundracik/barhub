@@ -98,8 +98,8 @@
   "terms-of-use": "Términos de uso",
   "support-us": "Apóyanos",
   "full": "Lleno",
-  "half-full": "Medio Lleno",
-  "half-empty": "Medio Vacío",
+  "almost-full": "Casi lleno",
+  "sparsely-occupied": "Poco ocupado",
   "empty": "Vacío",
   "location": "Ubicación",
   "name": "Nombre",
@@ -117,5 +117,15 @@
   "filters": "Filtros",
   "error": "Error",
   "please-select-place": "Debe seleccionar al menos un tipo de lugar para guardar los cambios.",
-  "ok": "Ok"
+  "ok": "Ok",
+  "edit-profile": "Dditar perfil",
+  "notification-deleted": "Notificación eliminada",
+  "undo": "Deshacer",
+  "notifications": "Notificaciones",
+  "no-notifications": "Sin notificaciones",
+  "new-like": "Nuevo Me gusta",
+  "new-comment": "Nuevo Comentario",
+  "request": "Solicitud",
+  "response": "Respuesta",
+  "notification-processing-error": "notification-processing-error"
 }
