@@ -30,7 +30,11 @@ interface PostsListProps {
   loading: boolean;
   isFiltering: boolean;
   isFetchingNextPage: boolean;
-  onCommentPress: (postId: string, expoPushToken: string) => void;
+  onCommentPress: (
+    postId: string,
+    expoPushToken: string,
+    userId: string
+  ) => void;
   hasMorePosts: boolean | undefined;
 }
 
@@ -84,7 +88,7 @@ const PostsList = ({
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
 
-  const renderPostItem = ({ item, index }: { item: Post; index: number }) => (
+  const renderPostItem = ({ item }: { item: Post; index: number }) => (
     <View
       key={item.id}
       style={{
@@ -95,8 +99,8 @@ const PostsList = ({
       <UserPost
         requestPhoto={requestPhoto}
         user={users?.find(user => user.uid === item.userId)}
-        onCommentPress={(postId, expoPushToken) =>
-          onCommentPress(postId, expoPushToken)
+        onCommentPress={(postId, expoPushToken, userId) =>
+          onCommentPress(postId, expoPushToken, userId)
         }
         isFiltering={isFiltering}
         hasPremium={

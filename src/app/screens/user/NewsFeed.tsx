@@ -37,6 +37,7 @@ export const NewsFeed = () => {
   const [zoomedPost, setZoomedPost] = useState<string | null>(null);
   const [showComments, setShowComments] = useState(false);
   const [postId, setPostId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [
     numberOfDaysSinceLastPostedPhoto,
     setNumberOfDaysSinceLastPostedPhoto,
@@ -125,9 +126,15 @@ export const NewsFeed = () => {
     }
   }
 
-  async function toggleComments(postId: string, expoPushToken: string) {
+  async function toggleComments(
+    postId: string,
+    expoPushToken: string,
+    userId: string
+  ) {
     setPostId(postId);
     setExpoPushToken(expoPushToken);
+    setUserId(userId);
+    console.log(userId);
     setShowComments(true);
   }
 
@@ -169,6 +176,7 @@ export const NewsFeed = () => {
       )}
       <CommentsSlider
         postId={postId}
+        userId={userId ?? ''}
         opened={showComments}
         expoPushToken={expoPushToken}
         onClose={() => setShowComments(false)}

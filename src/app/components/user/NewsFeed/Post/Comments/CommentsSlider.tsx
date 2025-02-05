@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../../../utils/icons/icons';
-import { primaryColor } from '../../../../../utils/styles/colors';
+import { primaryColor, primaryGrey } from '../../../../../utils/styles/colors';
 import { User } from '../../../../../../../shared';
 import { auth } from '../../../../../../../firebaseConfig';
 import { getTimeAgoFromTimestampSeconds } from '../../../../../utils/helper-functions/timeAgo';
@@ -32,6 +32,7 @@ import { sendCommentNotification } from '../../../../../utils/functions/notofica
 
 type Props = {
   expoPushToken: string;
+  userId: string;
   postId: string | null;
   opened: boolean;
   users: User[] | undefined;
@@ -48,6 +49,7 @@ const CommentsSlider = (props: Props) => {
   const [allComments, setAllComments] = useState<PostComment[]>([]);
   const [commentsOpened, setCommentsOpened] = useState(props.opened);
   const [snapPoint, setSnapPoint] = useState<string | number>('70%');
+  const [isCommentPosting, setIsCommentPosting] = useState(false);
 
   useEffect(() => {
     setCommentsOpened(props.opened);
@@ -96,6 +98,8 @@ const CommentsSlider = (props: Props) => {
     )
       return;
 
+    setIsCommentPosting(true);
+
     const optimisticComment: PostComment = {
       id: '', // Note: Will be generated on backend and replaced upon adding comment
       userId: auth.currentUser.uid,
@@ -105,13 +109,15 @@ const CommentsSlider = (props: Props) => {
     };
     try {
       await optimisticUpdate([...comments, optimisticComment]);
-      await sendCommentNotification({
-        commentText: newComment,
-        postId: props.postId,
-        username: auth.currentUser.displayName,
-        expoPushToken: props.expoPushToken,
-      });
+      if (props.userId !== auth.currentUser?.uid)
+        await sendCommentNotification({
+          commentText: newComment,
+          postId: props.postId,
+          username: auth.currentUser.displayName,
+          expoPushToken: props.expoPushToken,
+        });
       setNewComment('');
+      setIsCommentPosting(false);
     } catch (error) {
       console.error('Error adding comment:', error);
       // TODO add some notification maybe?
@@ -371,10 +377,13 @@ const CommentsSlider = (props: Props) => {
             multiline
           />
           <TouchableOpacity
+            disabled={
+              !newComment || newComment.trim().length === 0 || isCommentPosting
+            }
             style={styles.sendButton}
             onPress={() => handleAddComment()}
           >
-            <FontAwesomeIcon icon={Icons.Right} size={16} color={'white'} />
+            <FontAwesomeIcon icon={Icons.Right} size={16} color={primaryGrey} />
           </TouchableOpacity>
         </BottomSheetView>
       </KeyboardAvoidingView>

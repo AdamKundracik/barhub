@@ -30,7 +30,11 @@ interface PostInterface {
   hasPremium: boolean;
   isFiltering: boolean;
   user: User | undefined;
-  onCommentPress: (postId: string, expoPushToken: string) => void;
+  onCommentPress: (
+    postId: string,
+    expoPushToken: string,
+    userId: string
+  ) => void;
   requestPhoto: () => void;
 }
 
@@ -97,14 +101,15 @@ export const UserPost = (props: PostInterface) => {
     debounceTimeout.current = setTimeout(async () => {
       const notifRequest: LikeNotificationRequest = {
         postId: postId,
-        username: post.user?.displayName ?? '',
+        username: auth.currentUser?.displayName ?? '',
         expoPushToken: post.user?.expoPushToken ?? '',
       };
       try {
         if (liked !== previousLikeState) {
           await toggleLike(postId, auth.currentUser?.uid!);
           if (!liked) {
-            await sendLikeNotification(notifRequest);
+            if (post.userId !== auth.currentUser?.uid)
+              await sendLikeNotification(notifRequest);
           }
           setPreviousLikeState(prevState => !prevState);
           optimisticUpdate(liked);
@@ -214,7 +219,8 @@ export const UserPost = (props: PostInterface) => {
           onCommentToggle={() =>
             props.onCommentPress(
               props.post.id,
-              props.post.user?.expoPushToken ?? ''
+              props.post.user?.expoPushToken ?? '',
+              props.post.userId ?? ''
             )
           }
           isLiked={liked}
