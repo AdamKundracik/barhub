@@ -21,7 +21,6 @@ const postService = new PostService();
 const commentService = new CommentService();
 const notificationService = new NotifiationService();
 
-// TODO: FINISH FUNCTION
 export const createUser = functions.auth.user().onCreate(user => {
   return admin
     .firestore()
@@ -178,7 +177,6 @@ exports.getPostById = functions.https.onCall(async (data, context) => {
 
     const postData = postDoc.data();
 
-    // Count the number of likes in the 'likes' subcollection
     const likesSnapshot = await admin
       .firestore()
       .collection('posts')
@@ -187,7 +185,6 @@ exports.getPostById = functions.https.onCall(async (data, context) => {
       .get();
     const likesCount = likesSnapshot.size;
 
-    // Count the number of comments in the 'comments' subcollection
     const commentsSnapshot = await admin
       .firestore()
       .collection('posts')
@@ -196,7 +193,6 @@ exports.getPostById = functions.https.onCall(async (data, context) => {
       .get();
     const commentsCount = commentsSnapshot.size;
 
-    // Check if the user liked the post (if authenticated)
     let isLiked = false;
     if (context.auth) {
       const uid = context.auth.uid;
@@ -213,7 +209,7 @@ exports.getPostById = functions.https.onCall(async (data, context) => {
     // Return the post data along with likes and comments count, and if the user liked it
     return {
       ...postData,
-      id: postId, // Add postId here
+      id: postId,
       likesCount,
       commentsCount,
       isLiked,
@@ -302,7 +298,6 @@ exports.getPostsByPlaceId = functions.https.onCall(
 
 exports.saveNotification = functions.https.onCall(
   async (data, context): Promise<SaveNotificationResponse> => {
-    // Ensure user is authenticated
     if (!context.auth) {
       throw new functions.https.HttpsError(
         'unauthenticated',
@@ -320,7 +315,6 @@ exports.saveNotification = functions.https.onCall(
 
 exports.getUserNotifications = functions.https.onCall(
   async (data, context): Promise<GetUserNotificationsResponse> => {
-    // Ensure user is authenticated
     if (!context.auth) {
       throw new functions.https.HttpsError(
         'unauthenticated',
@@ -341,7 +335,6 @@ exports.markAllNotificationsAsSeen = functions.https.onCall(
     success: boolean;
     updatedCount: number;
   }> => {
-    // Ensure user is authenticated
     if (!context.auth) {
       throw new functions.https.HttpsError(
         'unauthenticated',
@@ -422,18 +415,14 @@ exports.deleteOldPostsAndImages = functions.pubsub
         const postData: Post = doc.data();
         const filePath = `${postData.folderId}/${postData.fileId}`;
 
-        // Group all operations for this post
         return Promise.all([
-          // Delete from Storage
           admin.storage().bucket().file(filePath).delete(),
-          // Delete subcollections
           deleteSubcollection(doc.ref, 'likes'),
           deleteSubcollection(doc.ref, 'comments'),
-          // Delete the post document
           doc.ref.delete(),
         ]).catch(error => {
           console.error(`Failed to delete post ${doc.id}:`, error);
-          throw error; // Re-throw to be caught by the outer catch
+          throw error;
         });
       });
 

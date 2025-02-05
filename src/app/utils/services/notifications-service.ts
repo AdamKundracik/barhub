@@ -3,6 +3,7 @@ import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../../../firebaseConfig';
 import {
   GetNotificationsResult,
+  MarkNotificationReadResult,
   SaveNotificationRequest,
 } from '../types/notification-types';
 
@@ -33,6 +34,21 @@ export const getUserNotifications =
     const cloudFunction = httpsCallable(functions, 'getUserNotifications');
     const response =
       (await cloudFunction()) as unknown as GetNotificationsResult;
+    return response;
+  };
+
+/**
+ * Marks all notifications as seen for the authenticated user
+ * @returns Promise with success status and count of updated notifications
+ */
+export const markAllNotificationsAsSeen =
+  async (): Promise<MarkNotificationReadResult> => {
+    const cloudFunction = httpsCallable(
+      functions,
+      'markAllNotificationsAsSeen'
+    );
+    const response =
+      (await cloudFunction()) as unknown as MarkNotificationReadResult;
     return response;
   };
 

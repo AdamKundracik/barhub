@@ -29,6 +29,7 @@ import { auth } from '../../../../../firebaseConfig';
 import RollupMenu from '../RollupMenu';
 import FilterSlider from '../NewsFeed/Filters/FilterSlider';
 import { useNotifications } from '../../../utils/store/notificationsStore';
+import FastImage from 'react-native-fast-image';
 
 type LayoutProps = {
   children: ReactNode | ReactNode[];
@@ -155,7 +156,7 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
             }}
           >
             {userData?.photoURL ? (
-              <Image
+              <FastImage
                 source={{ uri: auth.currentUser?.photoURL ?? '' }}
                 style={styles.profileIcon}
               />
