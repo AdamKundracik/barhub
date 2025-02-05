@@ -76,16 +76,6 @@ const FilterSlider = (props: Props) => {
   }, [props.opened]);
 
   const handleSaveChanges = useCallback(() => {
-    // if (tempSelectedPlaces.length === 0) {
-    //   Alert.alert(
-    //     t('error'),
-    //     t('please-select-place'),
-    //     [{ text: t('ok'), style: 'default' }],
-    //     { cancelable: true }
-    //   );
-    //   return;
-    // }
-
     const finalPlaces =
       tempSelectedPlaces.length === 0 ? [...PLACE_TYPES] : tempSelectedPlaces;
 

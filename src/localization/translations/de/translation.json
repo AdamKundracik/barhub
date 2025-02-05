@@ -122,5 +122,10 @@
   "notification-deleted": "Benachrichtigung gelöscht",
   "undo": "rückgängig",
   "notifications": "Benachrichtigungen",
-  "no-notifications": "keine Benachrichtigungen"
+  "no-notifications": "keine Benachrichtigungen",
+  "new-like": "Neues Gefällt mir",
+  "new-comment": "Neuer Kommentar",
+  "request": "Anfrage",
+  "response": "Antwort",
+  "notification-processing-error": "notification-processing-error"
 }

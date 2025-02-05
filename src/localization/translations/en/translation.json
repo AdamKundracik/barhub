@@ -122,6 +122,10 @@
   "notification-deleted": "Notification deleted",
   "undo": "Undo",
   "notifications": "Notifications",
-  "no-notifications": "No notifications"
-
+  "no-notifications": "No notifications",
+  "new-like": "New Like",
+  "new-comment": "New Comment",
+  "request": "Request",
+  "response": "Response",
+  "notification-processing-error": "notification-processing-error"
 }

@@ -122,5 +122,10 @@
   "notification-deleted": "Notificación eliminada",
   "undo": "Deshacer",
   "notifications": "Notificaciones",
-  "no-notifications": "Sin notificaciones"
+  "no-notifications": "Sin notificaciones",
+  "new-like": "Nuevo Me gusta",
+  "new-comment": "Nuevo Comentario",
+  "request": "Solicitud",
+  "response": "Respuesta",
+  "notification-processing-error": "notification-processing-error"
 }

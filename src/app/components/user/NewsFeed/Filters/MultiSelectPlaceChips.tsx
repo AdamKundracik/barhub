@@ -122,11 +122,7 @@ const MultiSelectPlaceChips: React.FC<MultiSelectPlaceChipsProps> = ({
     <View style={styles.container}>
       <View>
         <Text style={styles.sectionTitle}>{t('places-types')}:</Text>
-        <ScrollView
-          horizontal={false}
-          showsVerticalScrollIndicator={false}
-          style={styles.scrollView}
-        >
+        <View style={styles.scrollView}>
           <View style={styles.chipContainer}>
             {orderedPlaces.map(place => {
               const isSelected = selectedPlaces.includes(place);
@@ -153,7 +149,7 @@ const MultiSelectPlaceChips: React.FC<MultiSelectPlaceChipsProps> = ({
               );
             })}
           </View>
-        </ScrollView>
+        </View>
       </View>
 
       <View>

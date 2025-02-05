@@ -21,6 +21,7 @@ import { openCamera } from '../../../../utils/helper-functions/openCamera';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../../utils/types/screen-types';
 import { useTranslation } from 'react-i18next';
+import { useLocales } from 'expo-localization';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = -150;
@@ -37,6 +38,41 @@ export const NotificationItemComponent: React.FC<NotificationItemProps> = ({
 
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
+  const locales = useLocales();
+
+  // Add this function to handle text by type
+  const getNotificationText = (notificationType: NotificationType) => {
+    switch (notificationType) {
+      case NotificationType.LIKE:
+        return {
+          label: t('new-like'),
+          icon: Icons.HeartSolid,
+        };
+      case NotificationType.COMMENT:
+        return {
+          label: t('new-comment'),
+          icon: Icons.CommentSolid,
+        };
+      case NotificationType.REQUEST:
+        return {
+          label: t('request'),
+          icon: Icons.Bell,
+        };
+      case NotificationType.RESPONSE:
+        return {
+          label: t('response'),
+          icon: Icons.Bell,
+        };
+      default:
+        return {
+          label: '',
+          icon: Icons.Bell,
+        };
+    }
+  };
+
+  // Then in your render, update the icon and label:
+  const notificationInfo = getNotificationText(item.notificationType);
 
   const deleteIconOpacity = translateX.interpolate({
     inputRange: [-150, 0],
@@ -94,12 +130,16 @@ export const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   });
 
   const formatTime = (timestamp: any) => {
-    return new Date(timestamp._seconds * 1000).toLocaleDateString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      month: 'short',
-      day: 'numeric',
-    });
+    return new Date(timestamp._seconds * 1000).toLocaleDateString(
+      locales[0]?.languageCode ?? 'en-US',
+      {
+        hour: '2-digit',
+        minute: '2-digit',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }
+    );
   };
 
   async function handleNotification(notification: NotificationItem) {
@@ -162,7 +202,7 @@ export const NotificationItemComponent: React.FC<NotificationItemProps> = ({
               />
             </View>
             <View style={styles.textContainer}>
-              <Text style={styles.label}>{item.label}</Text>
+              <Text style={styles.label}>{notificationInfo.label}</Text>
               <Text style={styles.text}>{item.text}</Text>
               <Text style={styles.time}>{formatTime(item.creationTime)}</Text>
             </View>

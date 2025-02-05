@@ -122,5 +122,10 @@
   "notification-deleted": "Oznámenie vymazané",
   "undo": "Späť",
   "notifications": "Oznámenia",
-  "no-notifications": "žiadne oznámenia"
+  "no-notifications": "žiadne oznámenia",
+  "new-like": "Nové Páči sa mi",
+  "new-comment": "Nový Komentár",
+  "request": "Žiadosť",
+  "response": "Odpoveď",
+  "notification-processing-error": "notification-processing-error"
 }
