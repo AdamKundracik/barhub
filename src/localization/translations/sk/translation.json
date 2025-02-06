@@ -151,5 +151,7 @@
     "continue": "Pokračovať",
     "granted": "Povolené",
     "check-for-permissions": "Skontrolovať povolenia"
-  }
+  },
+  "gdpr": "Zásady ochrany súkromia",
+  "third-party-libraries": "Knižnice tretích strán"
 }

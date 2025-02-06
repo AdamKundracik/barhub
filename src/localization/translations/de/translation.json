@@ -149,5 +149,7 @@
     "continue": "Weiter",
     "granted": "Gewährt",
     "check-for-permissions": "Berechtigungen überprüfen"
-  }
+  },
+  "gdpr": "Datenschutzrichtlinie",
+  "third-party-libraries": "Drittanbieter-Bibliotheken"
 }

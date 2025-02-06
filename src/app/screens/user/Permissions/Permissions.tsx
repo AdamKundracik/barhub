@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   grantedStep: {
-    backgroundColor: 'rgba(76, 175, 80, 0.6)',
+    backgroundColor: successColor,
   },
   completedContainer: {
     alignItems: 'center',

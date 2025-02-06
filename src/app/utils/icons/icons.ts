@@ -51,6 +51,7 @@ import {
   faPersonWalking,
   faLocation,
   faChevronRight,
+  faQuestionCircle,
 } from '@fortawesome/free-solid-svg-icons';
 import {
   faComment,
@@ -58,7 +59,6 @@ import {
   faEyeSlash,
   faFlag,
   faHeart,
-  faQuestionCircle,
 } from '@fortawesome/free-regular-svg-icons';
 
 export const Icons = {

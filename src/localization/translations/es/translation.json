@@ -150,6 +150,7 @@
     "continue": "Continuar",
     "granted": "Concedido",
     "check-for-permissions": "Verificar permisos"
-
-  }
+  },
+  "gdpr": "Política de privacidad",
+  "third-party-libraries": "Bibliotecas de terceros"
 }

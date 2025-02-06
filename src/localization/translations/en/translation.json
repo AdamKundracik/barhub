@@ -150,5 +150,8 @@
     "continue": "Continue",
     "granted": "Granted",
     "check-for-permissions": "Check for permissions"
-  }
+  },
+  "gdpr": "Privacy Policy",
+  "third-party-libraries": "Third-party libraries"
+
 }
