@@ -5,31 +5,28 @@ import AuthNav from './AuthNav';
 import { useUserContext } from '../providers/UserProvider';
 import NotVerifiedNav from './NotVerifiedNav';
 import { UserNav } from './UserNav';
-import { usePermissions } from '../utils/hooks/usePermissions';
 import { PermissionsScreen } from '../screens/user/Permissions/Permissions';
+import { usePermissionsProvider } from '../providers/PermissionsProvider';
+import { useAppState } from '../providers/AppStateProvider';
+
 export const Navigation = () => {
   const { authUser, isLoading, userData, emailVerified } = useUserContext();
+  const { hasAllPermissions, checkPermissions } = usePermissionsProvider();
+  const { appState } = useAppState();
 
-  const { permissions, isLoadingPermissions, hasAllPermissions } =
-    usePermissions();
-
-  // Add logging to track state changes
   useEffect(() => {
-    console.log('Navigation state:', {
-      isLoading,
-      isLoadingPermissions,
-      permissions,
-      hasAllPermissions,
-    });
-  }, [isLoading, isLoadingPermissions, permissions, hasAllPermissions]);
+    switch (appState) {
+      case 'active':
+        checkPermissions();
+        break;
+    }
+  }, [appState]);
 
-  if (isLoading || isLoadingPermissions || !userData) {
+  if (isLoading || !userData) {
     return <Loading />;
   }
 
-  // Use the memoized value directly
   if (!hasAllPermissions) {
-    console.log('Showing PermissionsScreen because hasAllPermissions is false');
     return <PermissionsScreen />;
   }
 

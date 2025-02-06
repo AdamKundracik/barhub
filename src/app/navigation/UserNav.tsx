@@ -2,7 +2,6 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import PhotoResolver from '../screens/user/Post/PhotoResolver';
 import Subscription from '../screens/user/Subscription';
-import { StyleSheet } from 'react-native';
 import NewsFeed from '../screens/user/NewsFeed';
 import PlaceSearch from '../screens/user/PlaceSearch';
 import Account from '../screens/user/Account';

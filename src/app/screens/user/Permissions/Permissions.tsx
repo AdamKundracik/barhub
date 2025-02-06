@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Alert,
   Dimensions,
@@ -12,13 +12,6 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
-import { usePermissions } from '../../../utils/hooks/usePermissions';
-import {
-  requestCameraPermission,
-  requestGeolocationPermission,
-  requestNotificationPermission,
-  requestTrackingPermission,
-} from '../../../utils/services/permission.service';
 import { Icons } from '../../../utils/icons/icons';
 import { Loading } from '../../Loading';
 import Animated, {
@@ -28,6 +21,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { usePermissionsProvider } from '../../../providers/PermissionsProvider';
+import { successColor } from '../../../utils/styles/colors';
 
 interface ArrowButtonProps {
   icon: IconDefinition;
@@ -39,13 +34,16 @@ const { width } = Dimensions.get('window');
 
 export const PermissionsScreen = () => {
   const { t } = useTranslation();
-  const { permissions, isLoadingPermissions, checkPermissions } =
-    usePermissions();
+  const {
+    permissions,
+    requestCameraPermission,
+    requestGeolocationPermission,
+    requestNotificationPermission,
+    requestTrackingPermission,
+    checkPermissions,
+    isLoadingPermissions,
+  } = usePermissionsProvider();
   const [currentStep, setCurrentStep] = useState(0);
-
-  useEffect(() => {
-    checkPermissions();
-  }, []);
 
   const permissionData = [
     {
@@ -84,12 +82,6 @@ export const PermissionsScreen = () => {
 
   const completeSteps = permissionData.filter(p => p.condition).map(p => p.key);
 
-  const areAllPermissionsGranted = () => {
-    return completeSteps.every(
-      key => permissions[key as keyof typeof permissions]
-    );
-  };
-
   const handlePermissionPress = async (key: string) => {
     type PermissionKey = 'camera' | 'notification' | 'geolocation' | 'tracking';
 
@@ -121,27 +113,19 @@ export const PermissionsScreen = () => {
             },
           ]
         );
-      } else {
-        await checkPermissions();
       }
     } catch (error) {
       console.error(`Error requesting ${key} permission:`, error);
     }
   };
 
-  const handleContinue = async () => {
-    if (currentStep < completeSteps.length - 1) {
-      setCurrentStep(prev => prev + 1);
-    }
-  };
-
   const handleConfirm = async () => {
-    // Double-check permissions before proceeding
     await checkPermissions();
   };
 
-  const isPermissionGranted = (key: string) =>
-    permissions[key as keyof typeof permissions] || false;
+  function isPermissionGranted(key: string) {
+    return permissions[key as keyof typeof permissions];
+  }
 
   const ArrowButton = ({
     icon,
@@ -206,17 +190,6 @@ export const PermissionsScreen = () => {
                 <Text style={styles.buttonText}>{t('permissions.grant')}</Text>
               </TouchableOpacity>
             )}
-
-            {isPermissionGranted(currentPermission) && (
-              <TouchableOpacity
-                style={styles.continueButton}
-                onPress={handleContinue}
-              >
-                <Text style={styles.buttonText}>
-                  {t('permissions.continue')}
-                </Text>
-              </TouchableOpacity>
-            )}
           </View>
 
           <View style={styles.stepIndicator}>
@@ -246,18 +219,16 @@ export const PermissionsScreen = () => {
           </View>
         </Animated.View>
 
-        {areAllPermissionsGranted() && (
-          <View style={styles.confirmButtonContainer}>
-            <TouchableOpacity
-              style={styles.confirmButton}
-              onPress={handleConfirm}
-            >
-              <Text style={styles.confirmButtonText}>
-                {t('permissions.confirm')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        <View style={styles.confirmButtonContainer}>
+          <TouchableOpacity
+            style={styles.confirmButton}
+            onPress={handleConfirm}
+          >
+            <Text style={styles.confirmButtonText}>
+              {t('permissions.check-for-permissions')}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </LinearGradient>
   );
@@ -310,11 +281,11 @@ const styles = StyleSheet.create({
   },
   grantedContainer: {
     borderWidth: 2,
-    borderColor: 'rgba(76, 175, 80, 0.6)',
+    borderColor: successColor,
   },
   grantedText: {
-    color: 'rgba(76, 175, 80, 0.8)',
-    fontSize: 16,
+    color: successColor,
+    fontSize: 20,
     marginBottom: 15,
     fontWeight: '600',
   },

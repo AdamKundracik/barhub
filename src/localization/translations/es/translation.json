@@ -148,6 +148,8 @@
     "grant": "Conceder Permisos",
     "alreadyGranted": "Ya Concedido",
     "continue": "Continuar",
-    "granted": "Concedido"
+    "granted": "Concedido",
+    "check-for-permissions": "Verificar permisos"
+
   }
 }

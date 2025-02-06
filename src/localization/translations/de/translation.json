@@ -147,6 +147,7 @@
     "grant": "Berechtigungen erteilen",
     "alreadyGranted": "Bereits Gewährt",
     "continue": "Weiter",
-    "granted": "Gewährt"
+    "granted": "Gewährt",
+    "check-for-permissions": "Berechtigungen überprüfen"
   }
 }

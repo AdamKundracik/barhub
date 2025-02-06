@@ -148,6 +148,7 @@
     "grant": "Grant Permissions",
     "alreadyGranted": "Already Granted",
     "continue": "Continue",
-    "granted": "Granted"
+    "granted": "Granted",
+    "check-for-permissions": "Check for permissions"
   }
 }

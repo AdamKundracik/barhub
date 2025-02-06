@@ -9,6 +9,7 @@ export const primaryBgColor = '#020213';
 export const iconInactiveColor = '#7C7C7C';
 export const postBgColor = '#03031C';
 export const warningColor = '#FE7878';
+export const successColor = 'rgba(76, 175, 80, 0.8)';
 
 export const secondaryTextColor = '#a0a0a0';
 

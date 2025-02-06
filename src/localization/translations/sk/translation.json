@@ -149,6 +149,7 @@
     "grant": "Získať povolenia",
     "alreadyGranted": "Už povolené",
     "continue": "Pokračovať",
-    "granted": "Povolené"
+    "granted": "Povolené",
+    "check-for-permissions": "Skontrolovať povolenia"
   }
 }
