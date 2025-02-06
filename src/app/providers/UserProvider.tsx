@@ -140,6 +140,7 @@ export const UserProvider = ({ children }: Props) => {
       );
 
       await BackgroundGeolocation.ready({
+        disableLocationAuthorizationAlert: true,
         desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_NAVIGATION,
         distanceFilter: 25,
         stopTimeout: 3,

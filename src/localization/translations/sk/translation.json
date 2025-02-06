@@ -127,5 +127,28 @@
   "new-comment": "Nový Komentár",
   "request": "Žiadosť",
   "response": "Odpoveď",
-  "notification-processing-error": "notification-processing-error"
+  "notification-processing-error": "notification-processing-error",
+  "cancel": "Zrušiť",
+  "permissions": {
+    "title": "Požadované povolenia",
+    "location": "Prístup k polohe",
+    "locationDesc": "Potrebné na nájdenie miest vo vašom okolí",
+    "camera": "Prístup ku kamere",
+    "cameraDesc": "Potrebné na fotografovanie miest",
+    "notification": "Push notifikácie",
+    "notificationDesc": "Získajte aktualizácie o nových miestach a lajkoch",
+    "tracking": "Povolenie sledovania",
+    "trackingDesc": "Pomáha nám poskytovať lepšie odporúčania",
+    "grantAccess": "Udeliť prístup",
+    "stepCount": "Step {{current}} of {{total}}",
+    "allGranted": "Všetky povolenia udelené! ✨",
+    "tapToGrant": "Kliknite pre udelenie povolenia",
+    "open-settings": "Otvoriť nastavenia",
+    "allow-in-settings": "Povoliť v nastaveniach",
+    "settings": "Nastavenia",
+    "grant": "Získať povolenia",
+    "alreadyGranted": "Už povolené",
+    "continue": "Pokračovať",
+    "granted": "Povolené"
+  }
 }

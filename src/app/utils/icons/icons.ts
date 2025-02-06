@@ -46,6 +46,11 @@ import {
   faX,
   faHeart as faHeartSolid,
   faComment as faCommentSolid,
+  faCircleXmark,
+  faLocationArrow,
+  faPersonWalking,
+  faLocation,
+  faChevronRight,
 } from '@fortawesome/free-solid-svg-icons';
 import {
   faComment,
@@ -110,4 +115,9 @@ export const Icons = {
   Bell: faBell,
   Sliders: faSliders,
   Up: faArrowUp,
+  CheckCircle: faCircleCheck,
+  XCircle: faCircleXmark,
+  Tracking: faPersonWalking,
+  Location: faLocationArrow,
+  ChevronRight: faChevronRight,
 };

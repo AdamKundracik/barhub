@@ -134,7 +134,6 @@ export const NewsFeed = () => {
     setPostId(postId);
     setExpoPushToken(expoPushToken);
     setUserId(userId);
-    console.log(userId);
     setShowComments(true);
   }
 

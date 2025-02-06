@@ -415,13 +415,27 @@ exports.deleteOldPostsAndImages = functions.pubsub
         const postData: Post = doc.data();
         const filePath = `${postData.folderId}/${postData.fileId}`;
 
+        // Delete notifications associated with the post
+        const notificationsSnapshot = await db
+          .collection('notifications')
+          .where('postId', '==', doc.id)
+          .get();
+
+        const deleteNotificationsPromises = notificationsSnapshot.docs.map(
+          notificationDoc => notificationDoc.ref.delete()
+        );
+
         return Promise.all([
           admin.storage().bucket().file(filePath).delete(),
           deleteSubcollection(doc.ref, 'likes'),
           deleteSubcollection(doc.ref, 'comments'),
           doc.ref.delete(),
+          ...deleteNotificationsPromises,
         ]).catch(error => {
-          console.error(`Failed to delete post ${doc.id}:`, error);
+          console.error(
+            `Failed to delete post ${doc.id} and associated data:`,
+            error
+          );
           throw error;
         });
       });
@@ -491,11 +505,11 @@ export const deleteRecentExpiredRequests = functions.pubsub
 export const deleteAllExpiredRequests = functions.pubsub
   .schedule('every 6 hours')
   .onRun(async (context): Promise<void> => {
-    const threeMinutesInSeconds = 3 * 60;
-    const timeThreeMinutesAgo =
-      admin.firestore.Timestamp.now().seconds - threeMinutesInSeconds;
-    const timestampThreeMinutesAgo = new admin.firestore.Timestamp(
-      timeThreeMinutesAgo,
+    const threeDaysInSeconds = 3 * 24 * 60 * 60;
+    const timeThreeDaysAgo =
+      admin.firestore.Timestamp.now().seconds - threeDaysInSeconds;
+    const timestampThreeDaysAgo = new admin.firestore.Timestamp(
+      timeThreeDaysAgo,
       0
     );
 
@@ -503,7 +517,7 @@ export const deleteAllExpiredRequests = functions.pubsub
       const expiredNotificationsSnapshot = await admin
         .firestore()
         .collection('notifications')
-        .where('creationTime', '<', timestampThreeMinutesAgo)
+        .where('creationTime', '<', timestampThreeDaysAgo)
         .get();
 
       if (expiredNotificationsSnapshot.empty) {
