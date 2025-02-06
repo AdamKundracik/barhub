@@ -1,5 +1,4 @@
 import {
-  Image,
   Pressable,
   SafeAreaView,
   StyleSheet,
@@ -217,7 +216,7 @@ const styles = StyleSheet.create({
   mainContent: {
     flex: 1,
     paddingHorizontal: 10,
-    paddingVertical: 20,
+    paddingVertical: 10,
   },
   bottomTab: {
     flexDirection: 'row',
