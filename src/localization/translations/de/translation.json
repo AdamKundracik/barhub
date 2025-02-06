@@ -127,5 +127,29 @@
   "new-comment": "Neuer Kommentar",
   "request": "Anfrage",
   "response": "Antwort",
-  "notification-processing-error": "notification-processing-error"
+  "cancel": "Abbrechen",
+  "permissions": {
+    "title": "Erforderliche Berechtigungen",
+    "location": "Standortzugriff",
+    "locationDesc": "Erforderlich um Orte in Ihrer Nähe zu finden",
+    "camera": "Kamerazugriff",
+    "cameraDesc": "Erforderlich um Fotos von Orten aufzunehmen",
+    "notification": "Push-Benachrichtigungen",
+    "notificationDesc": "Erhalten Sie Updates über neue Orte und Likes",
+    "tracking": "Tracking-Berechtigung",
+    "trackingDesc": "Hilft uns bessere Empfehlungen zu geben",
+    "grantAccess": "Zugriff gewähren",
+    "allGranted": "Alle Berechtigungen erteilt! ✨",
+    "tapToGrant": "Tippen Sie hier, um Berechtigung zu erteilen",
+    "open-settings": "Einstellungen öffnen",
+    "allow-in-settings": "In Einstellungen erlauben",
+    "settings": "Einstellungen",
+    "grant": "Berechtigungen erteilen",
+    "alreadyGranted": "Bereits Gewährt",
+    "continue": "Weiter",
+    "granted": "Gewährt",
+    "check-for-permissions": "Berechtigungen überprüfen"
+  },
+  "gdpr": "Datenschutzrichtlinie",
+  "third-party-libraries": "Drittanbieter-Bibliotheken"
 }

@@ -47,15 +47,43 @@ const InfoScreen = () => {
         <View style={styles.separator} />
 
         <TouchableOpacity style={styles.infoLink}>
-          <Text style={styles.infoText}>{t('about-app')}</Text>
+          <Text style={styles.infoText}>{t('terms-of-use')}</Text>
+          <FontAwesomeIcon
+            style={{ alignSelf: 'center' }}
+            icon={Icons.ChevronRight}
+            size={16}
+            color={'white'}
+          ></FontAwesomeIcon>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.infoLink}>
-          <Text style={styles.infoText}>{t('terms-of-use')}</Text>
+          <Text style={styles.infoText}>{t('gdpr')}</Text>
+          <FontAwesomeIcon
+            style={{ alignSelf: 'center' }}
+            icon={Icons.ChevronRight}
+            size={16}
+            color={'white'}
+          ></FontAwesomeIcon>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.infoLink}>
+          <Text style={styles.infoText}>{t('third-party-libraries')}</Text>
+          <FontAwesomeIcon
+            style={{ alignSelf: 'center' }}
+            icon={Icons.ChevronRight}
+            size={16}
+            color={'white'}
+          ></FontAwesomeIcon>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.infoLink}>
           <Text style={styles.infoText}>{t('support-us')}</Text>
+          <FontAwesomeIcon
+            style={{ alignSelf: 'center' }}
+            icon={Icons.ChevronRight}
+            size={16}
+            color={'white'}
+          ></FontAwesomeIcon>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -105,12 +133,15 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   infoLink: {
+    paddingHorizontal: 24,
     borderBottomWidth: 1,
     borderBottomColor: '#1C1C28',
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   infoText: {
     paddingVertical: 16,
-    paddingLeft: 24,
     fontSize: 16,
     color: '#fff',
   },

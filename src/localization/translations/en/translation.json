@@ -127,5 +127,31 @@
   "new-comment": "New Comment",
   "request": "Request",
   "response": "Response",
-  "notification-processing-error": "notification-processing-error"
+  "notification-processing-error": "notification-processing-error",
+  "cancel": "Cancel",
+  "permissions": {
+    "title": "Required Permissions",
+    "location": "Location Access",
+    "locationDesc": "Required to find places near you",
+    "camera": "Camera Access",
+    "cameraDesc": "Required to take photos of places",
+    "notification": "Push Notifications",
+    "notificationDesc": "Get updates about new places and likes",
+    "tracking": "Tracking Permission",
+    "trackingDesc": "Helps us provide better recommendations",
+    "grantAccess": "Grant Access",
+    "allGranted": "All permissions granted! ✨",
+    "tapToGrant": "Tap to grant permission",
+    "open-settings": "Open Settings",
+    "allow-in-settings": "Allow in Settings",
+    "settings": "Settings",
+    "grant": "Grant Permissions",
+    "alreadyGranted": "Already Granted",
+    "continue": "Continue",
+    "granted": "Granted",
+    "check-for-permissions": "Check for permissions"
+  },
+  "gdpr": "Privacy Policy",
+  "third-party-libraries": "Third-party libraries"
+
 }
