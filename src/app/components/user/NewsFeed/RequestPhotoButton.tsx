@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { commonAppStyles } from '../../../utils/styles/styles';
 import { useTranslation } from 'react-i18next';
 import { iconInactiveColor, primaryColor } from '../../../utils/styles/colors';
+import { useRequestStore } from '../../../utils/store/requestStore';
+import { usePlaceStore } from '../../../utils/store/placesStore';
 
 interface RequestPhotoButtonProps {
   requestPhoto: () => void;
@@ -10,12 +12,14 @@ interface RequestPhotoButtonProps {
 
 const RequestPhotoButton = ({ requestPhoto }: RequestPhotoButtonProps) => {
   const { t } = useTranslation();
-  const [disabled, setDisabled] = useState(false);
+  const { placeId } = usePlaceStore();
+  const { addRequest, canRequest } = useRequestStore();
+  const isDisabled = !canRequest(placeId ?? '');
 
   return (
     <Pressable
       style={({ pressed }) => [
-        !disabled
+        !isDisabled
           ? !pressed
             ? styles.button
             : styles.buttonPressed
@@ -23,9 +27,9 @@ const RequestPhotoButton = ({ requestPhoto }: RequestPhotoButtonProps) => {
       ]}
       onPress={() => {
         requestPhoto();
-        setDisabled(true);
+        addRequest(placeId ?? '');
       }}
-      disabled={disabled}
+      disabled={isDisabled}
     >
       {({ pressed }) =>
         pressed ? (
@@ -37,7 +41,7 @@ const RequestPhotoButton = ({ requestPhoto }: RequestPhotoButtonProps) => {
           >
             {t('request-photo')}
           </Text>
-        ) : disabled ? (
+        ) : isDisabled ? (
           <Text
             style={{
               fontSize: 16,
