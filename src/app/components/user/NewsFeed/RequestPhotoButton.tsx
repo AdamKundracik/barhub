@@ -16,12 +16,6 @@ const RequestPhotoButton = ({ requestPhoto }: RequestPhotoButtonProps) => {
   const { addRequest, canRequest } = useRequestStore();
   const isDisabled = !canRequest(placeId ?? '');
 
-  const handlePress = () => {
-    if (isDisabled) return;
-    requestPhoto();
-    addRequest(placeId ?? '');
-  };
-
   return (
     <Pressable
       style={({ pressed }) => [
@@ -31,7 +25,10 @@ const RequestPhotoButton = ({ requestPhoto }: RequestPhotoButtonProps) => {
             : styles.buttonPressed
           : styles.buttonDisabled,
       ]}
-      onPress={() => handlePress}
+      onPress={() => {
+        requestPhoto();
+        addRequest(placeId ?? '');
+      }}
       disabled={isDisabled}
     >
       {({ pressed }) =>

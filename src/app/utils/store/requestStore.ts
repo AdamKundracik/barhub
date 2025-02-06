@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type RequestState = {
-  requestedPlaces: Record<string, number>;
+  requestedPlaces: Record<string, number>; // Tracks timestamps per placeId
   addRequest: (placeId: string) => void;
   canRequest: (placeId: string) => boolean;
   loadRequests: () => Promise<void>;
@@ -26,11 +26,11 @@ export const useRequestStore = create<RequestState>((set, get) => ({
       console.error('Failed to save request data:', error);
     }
 
-    // Auto-remove after 3 minutes
+    // Auto-remove after 3 minutes for this placeId
     setTimeout(async () => {
       set(state => {
         const updatedRequests = { ...state.requestedPlaces };
-        delete updatedRequests[placeId];
+        delete updatedRequests[placeId]; // Only remove this place
         return { requestedPlaces: updatedRequests };
       });
 
@@ -47,7 +47,7 @@ export const useRequestStore = create<RequestState>((set, get) => ({
 
   canRequest: placeId => {
     const lastRequestTime = get().requestedPlaces[placeId];
-    return !lastRequestTime || Date.now() - lastRequestTime > 180000;
+    return !lastRequestTime || Date.now() - lastRequestTime > 180000; // 3 min cooldown per place
   },
 
   loadRequests: async () => {
