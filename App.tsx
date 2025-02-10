@@ -14,9 +14,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { persistQueryClient } from 'react-query/persistQueryClient-experimental';
 import { PermissionsProvider } from './src/app/providers/PermissionsProvider';
 import { AppStateProvider } from './src/app/providers/AppStateProvider';
+import { useRequestStore } from './src/app/utils/store/requestStore';
 
 export default function App() {
   const locales = getLocales();
+
+  const { loadRequests } = useRequestStore();
+
+  useEffect(() => {
+    loadRequests(); // Restore request cooldowns from AsyncStorage
+  }, []);
 
   switch (locales[0].languageCode) {
     case 'sk':

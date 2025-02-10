@@ -41,7 +41,7 @@ export const PlaceSearch = () => {
 
     return useQuery(
       ['places-autocomplete', query],
-      () => fetchPlaceAutocomplete(query.toUpperCase(), location, sessionToken),
+      () => fetchPlaceAutocomplete(query, location, sessionToken),
       {
         enabled: query.length >= 2,
       }

@@ -6,8 +6,10 @@ import {
 } from '../../../../utils/styles/colors';
 import Svg, { Path } from 'react-native-svg';
 import { commonAppStyles } from '../../../../utils/styles/styles';
-import React, { useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { usePlaceStore } from '../../../../utils/store/placesStore';
+import { useRequestStore } from '../../../../utils/store/requestStore';
 
 type Props = {
   requestPhoto: () => void;
@@ -15,7 +17,15 @@ type Props = {
 
 const PostOldInfo = (props: Props) => {
   const { t } = useTranslation();
-  const [disabled, setDisabled] = useState(false);
+  const { placeId } = usePlaceStore();
+  const { addRequest, canRequest } = useRequestStore();
+  const isDisabled = !canRequest(placeId ?? '');
+
+  const handlePress = () => {
+    if (isDisabled) return;
+    props.requestPhoto();
+    addRequest(placeId ?? '');
+  };
 
   return (
     <View
@@ -44,17 +54,14 @@ const PostOldInfo = (props: Props) => {
       <View style={styles.buttonContainer}>
         <Pressable
           style={({ pressed }) => [
-            !disabled
+            !isDisabled
               ? !pressed
                 ? styles.button
                 : styles.buttonPressed
               : styles.buttonDisabled,
           ]}
-          onPress={() => {
-            props.requestPhoto();
-            setDisabled(true);
-          }}
-          disabled={disabled}
+          onPress={() => handlePress()}
+          disabled={isDisabled}
         >
           {({ pressed }) =>
             pressed ? (
@@ -66,7 +73,7 @@ const PostOldInfo = (props: Props) => {
               >
                 {t('request-photo')}
               </Text>
-            ) : disabled ? (
+            ) : isDisabled ? (
               <Text
                 style={{
                   fontSize: 16,
