@@ -32,13 +32,14 @@ class PostService {
     }
 
     try {
-      const fileId = `${new Date().getTime()}_${userId}`;
+      const timestamp = admin.firestore.Timestamp.now();
+      const fileId = `${timestamp.seconds}_${userId}`;
 
       const postDoc: PostDocument = {
         ...post,
         userId: userId ?? '',
         fileId: fileId ?? '',
-        creationTime: admin.firestore.Timestamp.now(),
+        creationTime: timestamp,
         timestamp: Date.now(),
       };
 
