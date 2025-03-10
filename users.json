@@ -1,0 +1,495 @@
+[
+  {
+    "id": "0zgUe8jAVyUt80VjsMTdJt4lKhI2",
+    "customClaims": {},
+    "email": "ayt25983@nowni.com",
+    "acceptTermsOfUse": true,
+    "pushToken": "ExponentPushToken[ki8O2zGbteiYjyyW4mgC7p]",
+    "disabled": false,
+    "displayName": "Idk why null",
+    "premium": false,
+    "providerData": [
+      {
+        "uid": "ayt25983@nowni.com",
+        "providerId": "password",
+        "email": "ayt25983@nowni.com"
+      }
+    ],
+    "tokensValidAfterTime": null,
+    "passwordHash": null,
+    "emailVerified": false,
+    "geohash": "u2xj5v2vhj",
+    "passwordSalt": null,
+    "dateOfBirth": "1989-12-01T00:00:00.000Z",
+    "uid": "0zgUe8jAVyUt80VjsMTdJt4lKhI2",
+    "photoURL": "https://firebasestorage.googleapis.com/v0/b/baruj-app-cb74c.appspot.com/o/profile_photos%2F0zgUe8jAVyUt80VjsMTdJt4lKhI2?alt=media&token=f26cb3d6-049f-4d50-9516-6350d9f48a74",
+    "phoneNumber": null,
+    "metadata": {
+      "lastSignInTime": "2024-09-25T20:37:11Z",
+      "creationTime": "2024-09-25T20:37:11Z"
+    },
+    "location": {
+      "latitude": 48.721132,
+      "longitude": 21.259751
+    }
+  },
+  {
+    "id": "6jjjsjjIy2Nts3SXfGMSAurdP4L2",
+    "premium": false,
+    "pushToken": "ExponentPushToken[3As_dgK6iT3JC-e87jaHvW]",
+    "disabled": false,
+    "tokensValidAfterTime": null,
+    "passwordSalt": null,
+    "dateOfBirth": "2001-12-02T00:00:00.000Z",
+    "displayName": "hannahfoord",
+    "providerData": [
+      {
+        "providerId": "password",
+        "uid": "hannahfoord@sasktel.net",
+        "email": "hannahfoord@sasktel.net"
+      }
+    ],
+    "acceptTermsOfUse": true,
+    "customClaims": {},
+    "metadata": {
+      "creationTime": "2024-09-10T00:39:21Z",
+      "lastSignInTime": "2024-09-10T00:39:21Z"
+    },
+    "passwordHash": null,
+    "location": {
+      "latitude": 51.029949305334185,
+      "longitude": -114.06526795582623
+    },
+    "phoneNumber": null,
+    "email": "hannahfoord@sasktel.net",
+    "emailVerified": false,
+    "photoURL": "https://firebasestorage.googleapis.com/v0/b/baruj-app-cb74c.appspot.com/o/profile_photos%2F6jjjsjjIy2Nts3SXfGMSAurdP4L2?alt=media&token=73d176f7-237e-433b-acd8-a4b43c61d6cf",
+    "uid": "6jjjsjjIy2Nts3SXfGMSAurdP4L2"
+  },
+  {
+    "id": "B2iJB4inhLOH26OU5Qzj4390GW62",
+    "email": "dagmar.kundracikova@gmail.com",
+    "tokensValidAfterTime": null,
+    "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocKd7Aaubv6xRVJKbYlq3ag7-kJbdNd75Y8I58yiowQmIGRw7YBf=s96-c",
+    "disabled": false,
+    "emailVerified": true,
+    "displayName": "Dagmar Kundraciková",
+    "location": {
+      "latitude": null,
+      "longitude": null
+    },
+    "metadata": {
+      "lastSignInTime": "2024-09-02T19:11:40Z",
+      "creationTime": "2024-09-02T19:11:40Z"
+    },
+    "passwordHash": null,
+    "passwordSalt": null,
+    "pushToken": "ExponentPushToken[SWklzhEVqHulUD5CHYEN9e]",
+    "providerData": [
+      {
+        "uid": "116784137292250295034",
+        "email": "dagmar.kundracikova@gmail.com",
+        "providerId": "google.com",
+        "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocKd7Aaubv6xRVJKbYlq3ag7-kJbdNd75Y8I58yiowQmIGRw7YBf=s96-c",
+        "displayName": "Dagmar Kundraciková"
+      }
+    ],
+    "uid": "B2iJB4inhLOH26OU5Qzj4390GW62",
+    "phoneNumber": null,
+    "customClaims": {},
+    "premium": false
+  },
+  {
+    "id": "E8LzwbUf1wYdR8EtZMYJl7lsGYs2",
+    "dateOfBirth": "2024-12-31T00:00:00.000Z",
+    "disabled": false,
+    "phoneNumber": null,
+    "email": "jkovac66@gmail.com",
+    "passwordHash": null,
+    "photoURL": "https://firebasestorage.googleapis.com/v0/b/baruj-app-cb74c.appspot.com/o/profile_photos%2FE8LzwbUf1wYdR8EtZMYJl7lsGYs2?alt=media&token=dc558ba0-9f80-48e9-b119-6df42a0a2b5d",
+    "uid": "E8LzwbUf1wYdR8EtZMYJl7lsGYs2",
+    "premium": true,
+    "tokensValidAfterTime": null,
+    "geohash": "u2xj5ff7wv",
+    "passwordSalt": null,
+    "customClaims": {},
+    "lastUploadedPost": "2024-10-24T18:55:42.955Z",
+    "location": {
+      "latitude": 48.707143393257574,
+      "longitude": 21.261930502598368
+    },
+    "emailVerified": false,
+    "providerData": [
+      {
+        "providerId": "password",
+        "uid": "jkovac66@gmail.com",
+        "email": "jkovac66@gmail.com"
+      }
+    ],
+    "displayName": "Kokotko23",
+    "pushToken": "ExponentPushToken[-pJX0ZDl2rblypWchZ6F1V]",
+    "metadata": {
+      "lastSignInTime": "2024-09-02T15:30:48Z",
+      "creationTime": "2024-09-02T15:30:48Z"
+    }
+  },
+  {
+    "id": "KPTWzVfQpdQW68WbLJKfijRAZlo1",
+    "location": {
+      "latitude": 48.75899754096688,
+      "longitude": 21.265623669038035
+    },
+    "metadata": {
+      "lastSignInTime": "2024-09-02T09:21:08Z",
+      "creationTime": "2024-09-02T09:21:08Z"
+    },
+    "photoURL": "https://firebasestorage.googleapis.com/v0/b/baruj-app-cb74c.appspot.com/o/profile_photos%2FKPTWzVfQpdQW68WbLJKfijRAZlo1?alt=media&token=9ff1c97d-dd47-4f3e-b620-7b789baccb78",
+    "geohash": "u2xj7um1sz",
+    "passwordHash": null,
+    "customClaims": {},
+    "uid": "KPTWzVfQpdQW68WbLJKfijRAZlo1",
+    "lastUploadedPost": "2024-10-18T18:41:20.595Z",
+    "passwordSalt": null,
+    "tokensValidAfterTime": null,
+    "premium": false,
+    "providerData": [
+      {
+        "providerId": "password",
+        "uid": "matus.kundracik@gmail.com",
+        "email": "matus.kundracik@gmail.com"
+      }
+    ],
+    "emailVerified": false,
+    "pushToken": "ExponentPushToken[V3NCexJ7VNnce7v8RMc5zO]",
+    "email": "matus.kundracik@gmail.com",
+    "phoneNumber": null,
+    "disabled": false,
+    "displayName": "Matus Kundracik"
+  },
+  {
+    "id": "NqNMjVNnP9QwydWU61Z0LVy2QZj2",
+    "phoneNumber": null,
+    "customClaims": {},
+    "tokensValidAfterTime": null,
+    "email": "nfenicinova@gmail.com",
+    "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocInmh5r67F7qdlKN36rFI0-zF5kpdmBj-m6-EfmCVa8v5eRyA=s96-c",
+    "passwordSalt": null,
+    "displayName": "Natália Feničinová",
+    "location": {
+      "longitude": 21.208075886888572,
+      "latitude": 48.713897705078125
+    },
+    "metadata": {
+      "creationTime": "2024-09-17T14:44:10Z",
+      "lastSignInTime": "2024-09-17T14:44:10Z"
+    },
+    "geohash": "u2xj4s55pb",
+    "providerData": [
+      {
+        "displayName": "Natália Feničinová",
+        "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocInmh5r67F7qdlKN36rFI0-zF5kpdmBj-m6-EfmCVa8v5eRyA=s96-c",
+        "uid": "109228537930603696721",
+        "providerId": "google.com",
+        "email": "nfenicinova@gmail.com"
+      }
+    ],
+    "dateOfBirth": "2000-02-10T00:00:00.000Z",
+    "uid": "NqNMjVNnP9QwydWU61Z0LVy2QZj2",
+    "emailVerified": true,
+    "premium": false,
+    "pushToken": "ExponentPushToken[N0PieUEySVgd0q_baXBaR2]",
+    "disabled": false,
+    "passwordHash": null
+  },
+  {
+    "id": "P6rRKqFLYsdx11jL0n8YiqFPnI73",
+    "phoneNumber": null,
+    "providerData": [
+      {
+        "uid": "101611161667056371520",
+        "email": "radoslavhudacok1331@gmail.com",
+        "providerId": "google.com",
+        "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocLL3xEUzQgFzg-AE93rK-xUfrfIHURfxda07xsN1AhUAxd3nw=s96-c",
+        "displayName": "Kivi"
+      }
+    ],
+    "disabled": false,
+    "tokensValidAfterTime": null,
+    "displayName": "Kivi",
+    "passwordSalt": null,
+    "passwordHash": null,
+    "emailVerified": true,
+    "email": "radoslavhudacok1331@gmail.com",
+    "uid": "P6rRKqFLYsdx11jL0n8YiqFPnI73",
+    "customClaims": {},
+    "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocLL3xEUzQgFzg-AE93rK-xUfrfIHURfxda07xsN1AhUAxd3nw=s96-c",
+    "metadata": {
+      "creationTime": "2024-08-27T17:06:44Z",
+      "lastSignInTime": "2024-08-27T17:06:44Z"
+    }
+  },
+  {
+    "id": "XjiILt8XnqWBY41gpoc2GLsgCHE2",
+    "phoneNumber": null,
+    "passwordHash": null,
+    "metadata": {
+      "creationTime": "2024-08-22T23:14:23Z",
+      "lastSignInTime": "2024-08-22T23:14:23Z"
+    },
+    "providerData": [
+      {
+        "uid": "107309267126817058862",
+        "providerId": "google.com",
+        "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocLDgQbPHWWHEuHi2PK5frVmG2lTqg51egGi8Jd4GhWcLK14gP0=s96-c",
+        "email": "kosickejjshoecare@gmail.com",
+        "displayName": "Kosickejj Shoecare"
+      }
+    ],
+    "customClaims": {},
+    "emailVerified": true,
+    "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocLDgQbPHWWHEuHi2PK5frVmG2lTqg51egGi8Jd4GhWcLK14gP0=s96-c",
+    "uid": "XjiILt8XnqWBY41gpoc2GLsgCHE2",
+    "passwordSalt": null,
+    "disabled": false,
+    "displayName": "Kosickejj Shoecare",
+    "email": "kosickejjshoecare@gmail.com",
+    "tokensValidAfterTime": null
+  },
+  {
+    "id": "f75bCerEciTYyB0u3jntm8sdH643",
+    "providerData": [
+      {
+        "email": "tiktak.cs@gmail.com",
+        "displayName": "Tomas Csermelyi",
+        "uid": "101741138320670445473",
+        "providerId": "google.com",
+        "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocLAqbeRyewcBI5MaR7Cg__BocIxiQlOJtOC63vdnyQFxXlfWQ=s96-c"
+      }
+    ],
+    "passwordSalt": null,
+    "uid": "f75bCerEciTYyB0u3jntm8sdH643",
+    "metadata": {
+      "lastSignInTime": "2024-09-06T19:41:07Z",
+      "creationTime": "2024-09-06T19:41:07Z"
+    },
+    "customClaims": {},
+    "emailVerified": true,
+    "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocLAqbeRyewcBI5MaR7Cg__BocIxiQlOJtOC63vdnyQFxXlfWQ=s96-c",
+    "phoneNumber": null,
+    "email": "tiktak.cs@gmail.com",
+    "disabled": false,
+    "tokensValidAfterTime": null,
+    "premium": false,
+    "displayName": "Tomas Csermelyi",
+    "lastUploadedPost": "2024-09-07T16:05:10.935Z",
+    "passwordHash": null,
+    "pushToken": "ExponentPushToken[ujf9OlIOcPhFMDjhuYIkQ9]",
+    "location": {
+      "latitude": 48.74265861583486,
+      "longitude": 21.266794360828637
+    }
+  },
+  {
+    "id": "fURNc9rllEbux7hdU1w6O6MauCV2",
+    "uid": "fURNc9rllEbux7hdU1w6O6MauCV2",
+    "passwordSalt": null,
+    "tokensValidAfterTime": null,
+    "emailVerified": true,
+    "pushToken": "ExponentPushToken[yC2Ct1O7sOKL9m8MYQksyR]",
+    "displayName": "Nathan North",
+    "passwordHash": null,
+    "email": "nathannorth2005@gmail.com",
+    "providerData": [
+      {
+        "providerId": "google.com",
+        "uid": "112482612777932388705",
+        "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocKfC8mOg9jIrXHCKhTQt7oXzfUMx74m2UdMXi54EYX70FOIhQ=s96-c",
+        "displayName": "Nathan North",
+        "email": "nathannorth2005@gmail.com"
+      }
+    ],
+    "customClaims": {},
+    "metadata": {
+      "lastSignInTime": "2024-09-02T02:11:16Z",
+      "creationTime": "2024-09-02T02:11:16Z"
+    },
+    "phoneNumber": null,
+    "disabled": false,
+    "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocKfC8mOg9jIrXHCKhTQt7oXzfUMx74m2UdMXi54EYX70FOIhQ=s96-c"
+  },
+  {
+    "id": "hGxI3O20aYVFkWAlKnf5Dc5zfzD2",
+    "pushToken": "ExponentPushToken[vVQF0SCUsZZ6gDZEhuAawd]",
+    "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocLOEjm01Rdm53OQtGgtp13wuHN44ApqRnj60aQe1eCQd_jQ44E=s96-c",
+    "customClaims": {},
+    "geohash": "u2xj7um4p5",
+    "passwordHash": null,
+    "passwordSalt": null,
+    "email": "adam.kundracik@gmail.com",
+    "emailVerified": true,
+    "tokensValidAfterTime": null,
+    "uid": "hGxI3O20aYVFkWAlKnf5Dc5zfzD2",
+    "premium": false,
+    "location": {
+      "latitude": 48.75905730242854,
+      "longitude": 21.265719183353905
+    },
+    "metadata": {
+      "creationTime": "2024-10-03T19:30:53Z",
+      "lastSignInTime": "2024-10-03T19:30:53Z"
+    },
+    "phoneNumber": null,
+    "disabled": false,
+    "displayName": "Adam Kundracik",
+    "providerData": [
+      {
+        "uid": "117595183794422006464",
+        "providerId": "google.com",
+        "email": "adam.kundracik@gmail.com",
+        "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocLOEjm01Rdm53OQtGgtp13wuHN44ApqRnj60aQe1eCQd_jQ44E=s96-c",
+        "displayName": "Adam Kundracik"
+      }
+    ]
+  },
+  {
+    "id": "meCantV6DvfA5G47ohk6rGhcC6D3",
+    "dateOfBirth": "2003-10-02T00:00:00.000Z",
+    "passwordHash": null,
+    "passwordSalt": null,
+    "providerData": [
+      {
+        "providerId": "password",
+        "uid": "tomas.hanecak@icloud.com",
+        "email": "tomas.hanecak@icloud.com"
+      }
+    ],
+    "phoneNumber": null,
+    "photoURL": null,
+    "metadata": {
+      "lastSignInTime": "2024-10-18T22:28:13Z",
+      "creationTime": "2024-10-18T22:28:13Z"
+    },
+    "location": {
+      "latitude": 48.7269433,
+      "longitude": 21.2551117
+    },
+    "lastUploadedPost": "2024-12-22T19:14:11.038Z",
+    "uid": "meCantV6DvfA5G47ohk6rGhcC6D3",
+    "customClaims": {},
+    "acceptTermsOfUse": true,
+    "emailVerified": false,
+    "email": "tomas.hanecak@icloud.com",
+    "displayName": null,
+    "geohash": "u2xj5wmx00",
+    "disabled": false,
+    "tokensValidAfterTime": null,
+    "pushToken": "ckEkDxtMSt-i_Unx4aS8sg:APA91bFUIibc99i-Jc_RGSITS7mPd7JVvbaTjrsvhF6kwuma47pYkaNRTjbajTlm0q41c8LQYsEh2op0_6euqvMy0SoOMKZEYtT-093-lu3ympubczQRtJe72l7-1vi-wR0VgXnXwrj8"
+  },
+  {
+    "id": "oqUwDELRIYbrngiGVcJA6NTSzmN2",
+    "disabled": false,
+    "phoneNumber": null,
+    "uid": "oqUwDELRIYbrngiGVcJA6NTSzmN2",
+    "tokensValidAfterTime": null,
+    "displayName": "Adam Kundracik",
+    "passwordHash": null,
+    "location": {
+      "longitude": 21.255351119862247,
+      "latitude": 48.7287617830214
+    },
+    "emailVerified": true,
+    "premium": false,
+    "dateOfBirth": "2000-10-06T00:00:00.000Z",
+    "email": "adinko254@gmail.com",
+    "lastUploadedPost": "2024-11-24T14:40:55.947Z",
+    "pushToken": "ExponentPushToken[vVQF0SCUsZZ6gDZEhuAawd]",
+    "passwordSalt": null,
+    "providerData": [
+      {
+        "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocJOYvNZDBXas_CxNXBpW4ZfjkoQTPqr-xgofyhaf8p9PGxUMQBc=s96-c",
+        "providerId": "google.com",
+        "uid": "106323867710768210030",
+        "email": "adinko254@gmail.com",
+        "displayName": "Adam Kundracik"
+      }
+    ],
+    "customClaims": {},
+    "geohash": "u2xj5wv9te",
+    "metadata": {
+      "creationTime": "2024-09-08T23:38:10Z",
+      "lastSignInTime": "2024-09-08T23:38:10Z"
+    },
+    "photoURL": "https://firebasestorage.googleapis.com/v0/b/baruj-app-cb74c.appspot.com/o/profile_photos%2FoqUwDELRIYbrngiGVcJA6NTSzmN2?alt=media&token=66f7afa0-bed3-496c-b517-6c0b54a750b1"
+  },
+  {
+    "id": "tB9cR4FQibg15aV7B0zFxu0ezkV2",
+    "passwordSalt": null,
+    "disabled": false,
+    "passwordHash": null,
+    "pushToken": "ExponentPushToken[ki8O2zGbteiYjyyW4mgC7p]",
+    "displayName": "Aaa",
+    "phoneNumber": null,
+    "metadata": {
+      "lastSignInTime": "2024-09-06T18:20:59Z",
+      "creationTime": "2024-09-06T18:20:59Z"
+    },
+    "acceptTermsOfUse": true,
+    "photoURL": "https://firebasestorage.googleapis.com/v0/b/baruj-app-cb74c.appspot.com/o/profile_photos%2FtB9cR4FQibg15aV7B0zFxu0ezkV2?alt=media&token=dec965f7-dd75-46f2-9a7b-70666248d2a0",
+    "premium": false,
+    "lastUploadedPost": "2024-10-10T16:57:01.536Z",
+    "emailVerified": false,
+    "email": "jakub.dorcak2@gmail.com",
+    "dateOfBirth": "1977-05-03T00:00:00.000Z",
+    "tokensValidAfterTime": null,
+    "geohash": "u2xj5v2vhj",
+    "customClaims": {},
+    "location": {
+      "longitude": 21.259751,
+      "latitude": 48.721132
+    },
+    "providerData": [
+      {
+        "email": "jakub.dorcak2@gmail.com",
+        "providerId": "password",
+        "uid": "jakub.dorcak2@gmail.com"
+      }
+    ],
+    "uid": "tB9cR4FQibg15aV7B0zFxu0ezkV2"
+  },
+  {
+    "id": "uUdLwbrANiNjc4q1mQxCSgv2s8S2",
+    "dateOfBirth": "2003-10-02T00:00:00.000Z",
+    "geohash": "u2xhvn01wc",
+    "passwordSalt": null,
+    "phoneNumber": null,
+    "disabled": false,
+    "email": "tomas.hanecak@avc-cvut.cz",
+    "lastUploadedPost": "2024-11-12T19:58:56.060Z",
+    "metadata": {
+      "lastSignInTime": "2024-10-16T11:23:45Z",
+      "creationTime": "2024-10-16T11:23:45Z"
+    },
+    "location": {
+      "latitude": 48.68068617937783,
+      "longitude": 21.313774040749138
+    },
+    "pushToken": "ExponentPushToken[zi9wHNByIt-eHoRr7iyMAS]",
+    "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocKHiSmKNgHFKwxWKYZPiUHxWcQDpl_UzzwISUSKsql7Fsu86vg=s96-c",
+    "emailVerified": true,
+    "passwordHash": null,
+    "premium": false,
+    "displayName": "Tomáš Hanečák",
+    "tokensValidAfterTime": null,
+    "uid": "uUdLwbrANiNjc4q1mQxCSgv2s8S2",
+    "customClaims": {},
+    "providerData": [
+      {
+        "email": "tomas.hanecak@avc-cvut.cz",
+        "providerId": "google.com",
+        "uid": "115258748952902920300",
+        "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocKHiSmKNgHFKwxWKYZPiUHxWcQDpl_UzzwISUSKsql7Fsu86vg=s96-c",
+        "displayName": "Tomáš Hanečák"
+      }
+    ]
+  }
+]

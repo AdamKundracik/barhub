@@ -36,10 +36,10 @@ const functions = getFunctions(app);
 // Connect to the emulators if in development mode
 // Note: Comment this out when developing locally without emulator set up
 if (__DEV__) {
-    connectFirestoreEmulator(db, 'localhost', 8080);
+    //connectFirestoreEmulator(db, 'localhost', 8080);
     //connectAuthEmulator(auth, 'http://127.0.0.1:9099');
     connectFunctionsEmulator(functions, 'localhost', 5001);
-    connectStorageEmulator(storage, 'localhost', 9199);
+    //connectStorageEmulator(storage, 'localhost', 9199);
 
     console.log("SUCCESSFULLY connected to FIREBASE LOCAL EMULATOR");
 }
