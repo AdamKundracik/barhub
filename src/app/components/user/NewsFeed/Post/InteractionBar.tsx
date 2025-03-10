@@ -5,7 +5,7 @@ import { Icons } from '../../../../utils/icons/icons';
 import { postBgColor } from '../../../../utils/styles/colors';
 import Device from 'react-native-device-info';
 import { useTranslation } from 'react-i18next';
-import { occupacyOptions } from '../../../../utils/types/types';
+import { OccupancyEnum } from '../../../../utils/types/types';
 
 type InteractionBarProps = {
   likes: number | undefined;
@@ -23,10 +23,10 @@ export const InteractionBar = (props: InteractionBarProps) => {
   const styles = isTablet ? tabletStyles : mobileStyles;
 
   const occupancyLabels = {
-    [occupacyOptions.FULL]: t('full'),
-    [occupacyOptions.HALF_FULL]: t('half-full'),
-    [occupacyOptions.HALF_EMPTY]: t('half-empty'),
-    [occupacyOptions.EMPTY]: t('empty'),
+    [OccupancyEnum.FULL]: t('full'),
+    [OccupancyEnum.ALMOST_FULL]: t('almost-full'),
+    [OccupancyEnum.SPARSELY_OCCUPIED]: t('sparsely-occupied'),
+    [OccupancyEnum.EMPTY]: t('empty'),
   };
 
   function getOccupancyTranslation(occupancyOption: string): string {

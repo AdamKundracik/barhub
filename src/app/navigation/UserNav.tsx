@@ -2,7 +2,6 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import PhotoResolver from '../screens/user/Post/PhotoResolver';
 import Subscription from '../screens/user/Subscription';
-import { StyleSheet } from 'react-native';
 import NewsFeed from '../screens/user/NewsFeed';
 import PlaceSearch from '../screens/user/PlaceSearch';
 import Account from '../screens/user/Account';
@@ -10,6 +9,7 @@ import PasswordChangeScreen from '../screens/user/ChangePassword';
 import Help from '../screens/user/Help/Help';
 import Info from '../screens/user/Info/Info';
 import PostSummary from '../screens/user/Post/PostSummary';
+import NotificationsList from '../screens/user/Notifications/NotificationsList';
 
 const UserStack = createNativeStackNavigator();
 
@@ -60,6 +60,10 @@ export function UserNav() {
         name={'PostSummary'}
         component={PostSummary}
         options={{ animation: 'fade_from_bottom' }}
+      />
+      <UserStack.Screen
+        name={'NotificationsList'}
+        component={NotificationsList}
       />
     </UserStack.Navigator>
   );

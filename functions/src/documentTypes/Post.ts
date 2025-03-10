@@ -1,6 +1,13 @@
+import firebase from 'firebase/compat';
+import { GeoPoint } from 'firebase/firestore';
+import Timestamp = firebase.firestore.Timestamp;
+import * as admin from 'firebase-admin';
+
 export interface PostDocument {
-  creationTime: string;
+  creationTime: admin.firestore.Timestamp;
   geohash: string;
+  location: GeoPointType;
+  placeTypes: string[];
   timestamp: number;
   userId: string;
   fileId: string;
@@ -11,3 +18,8 @@ export interface PostDocument {
   photoUrl: string;
   occupancy: string;
 }
+
+export type GeoPointType = {
+  _lat: number;
+  _long: number;
+};

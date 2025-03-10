@@ -25,7 +25,6 @@ class CommentService {
     const cloudFunction = httpsCallable(functions, 'getPostComments');
     const response = await cloudFunction({ postId });
     const data = response.data as PostCommentsResponse;
-    console.log(data.comments);
     return data?.comments;
   };
 }

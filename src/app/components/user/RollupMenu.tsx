@@ -40,33 +40,28 @@ export const RollupMenu = (props: MenuProps) => {
   const menuItems = [
     {
       type: MenuItemType.ACCOUNT,
-      title: t('account'), // Translate the title
+      title: t('account'),
       icon: Icons.Gear,
       function: () => navigation.navigate('Account'),
     },
     {
       type: MenuItemType.INFO,
-      title: t('info'), // Translate the title
+      title: t('info'),
       icon: Icons.Info,
-      function: () => navigation.navigate('Info'), // Original function
+      function: () => navigation.navigate('Info'),
     },
     {
       type: MenuItemType.HELP,
-      title: t('help'), // Translate the title
+      title: t('help'),
       icon: Icons.Help,
-      function: () => navigation.navigate('Help'), // Original function
+      function: () => navigation.navigate('Help'),
     },
-    {
-      type: MenuItemType.SUBSCRIPTION,
-      title: t('subscription'), // Translate the title
-      icon: Icons.Coins,
-      function: () => navigation.navigate('Subscription'), // Original function
-    },
+
     {
       type: MenuItemType.LOGOUT,
-      title: t('logout'), // Translate the title
+      title: t('logout'),
       icon: Icons.LogOut,
-      function: () => handleSignOut(), // Original function
+      function: () => handleSignOut(),
     },
   ];
 
@@ -97,12 +92,11 @@ export const RollupMenu = (props: MenuProps) => {
       useNativeDriver: true,
     }).start();
 
-    // Animate each menu item
     menuItemAnimations.forEach((itemAnim, index) => {
       Animated.timing(itemAnim, {
         toValue: 1,
         duration: 300,
-        delay: index * 100, // Staggered delay for each item
+        delay: index * 100,
         useNativeDriver: true,
       }).start();
     });
@@ -138,8 +132,6 @@ export const RollupMenu = (props: MenuProps) => {
         console.error(error);
       });
   };
-
-  // Define your menu items as an array
 
   function handleOutsideClick() {
     if (isOpen) {
@@ -179,18 +171,11 @@ export const RollupMenu = (props: MenuProps) => {
                 ],
               }}
             >
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={item.function} // Call the function associated with the item
-              >
+              <TouchableOpacity style={styles.menuItem} onPress={item.function}>
                 <FontAwesomeIcon
                   style={styles.icon}
                   icon={item.icon}
-                  color={
-                    item.type === MenuItemType.SUBSCRIPTION
-                      ? '#FBBC05'
-                      : 'white'
-                  }
+                  color={'white'}
                   size={20}
                 />
                 <Text

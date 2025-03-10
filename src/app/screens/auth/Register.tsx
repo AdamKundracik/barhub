@@ -26,7 +26,6 @@ import * as ImagePicker from 'expo-image-picker';
 import Svg, { Circle, Path } from 'react-native-svg';
 import DatePicker from '../../components/shared/DatePicker';
 import { setUser } from '../../utils/services/functions';
-import * as url from 'node:url';
 import { uploadProfilePhotoAsync } from '../../utils/helper-functions/imageUploadFunctions';
 
 export const Register = ({ navigation }: any) => {
@@ -39,15 +38,12 @@ export const Register = ({ navigation }: any) => {
   const [image, setImage] = useState<string | null>(null);
   const [username, setUserName] = useState('');
   const [date, setDate] = useState(new Date().toISOString());
-  const [uploading, setUploading] = useState(false);
   const [acceptsTermsOfUse, setAcceptsTermsOfUse] = useState(false);
 
   const pickImage = async () => {
-    // Request media library permissions if not already granted
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (permission.granted) {
-      // Open image picker
       let result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.All,
         allowsEditing: true,
@@ -55,9 +51,7 @@ export const Register = ({ navigation }: any) => {
         quality: 1,
       });
 
-      // Handle result
       if (!result.canceled) {
-        // Set the image URI
         setImage(result.assets[0].uri);
       }
     } else {
@@ -66,7 +60,7 @@ export const Register = ({ navigation }: any) => {
   };
 
   const handleDateChange = (newDate: string) => {
-    setDate(newDate); // Update the date state when the child component provides a new date
+    setDate(newDate);
   };
 
   async function handleRegister() {

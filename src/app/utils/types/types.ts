@@ -1,15 +1,3 @@
-export type AuthStackParamList = {
-  LoginDriver: undefined;
-  RegisterDriver: { id: string };
-  NumberVerificationDriver: {
-    verification: string;
-    phoneNumber: string;
-    name?: string;
-    email?: string;
-    invitationId?: string;
-  };
-}; // EXAMPLE FOR NAVIGATION
-
 export enum TabsTypes {
   camera = 'Camera',
   account = 'Account',
@@ -20,10 +8,10 @@ export type Settings = {
   // FOR ADDITIONAL SETTINGS
 };
 
-export enum occupacyOptions {
+export enum OccupancyEnum {
   FULL = 'FULL',
-  HALF_FULL = 'HALF_FULL',
-  HALF_EMPTY = 'HALF_EMPTY',
+  ALMOST_FULL = 'ALMOST_FULL',
+  SPARSELY_OCCUPIED = 'SPARSELY_OCCUPIED',
   EMPTY = 'EMPTY',
 }
 
@@ -133,6 +121,11 @@ export type LocationType = {
   longitude: number;
 };
 
+export type GeoPointType = {
+  _lat: number;
+  _long: number;
+};
+
 export interface Match {
   endOffset: number;
 }
@@ -169,3 +162,26 @@ export interface Suggestion {
 export interface AutocompleteResponse {
   suggestions: Suggestion[];
 }
+
+export type PlaceType =
+  | 'bar'
+  | 'bakery'
+  | 'bowling_alley'
+  | 'cafe'
+  | 'casino'
+  | 'night_club'
+  | 'restaurant'
+  | 'tourist_attraction';
+
+export type OccupancyTypes =
+  | 'FULL'
+  | 'ALMOST_FULL'
+  | 'SPARSELY_OCCUPIED'
+  | 'EMPTY';
+
+export type FirebaseTimestamp = {
+  seconds?: number;
+  _seconds?: number;
+  nanoseconds?: number;
+  _nanoseconds?: number;
+};

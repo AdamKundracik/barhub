@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../../../utils/icons/icons';
-import { primaryColor } from '../../../../../utils/styles/colors';
+import { primaryColor, primaryGrey } from '../../../../../utils/styles/colors';
 import { User } from '../../../../../../../shared';
 import { auth } from '../../../../../../../firebaseConfig';
 import { getTimeAgoFromTimestampSeconds } from '../../../../../utils/helper-functions/timeAgo';
@@ -21,7 +21,6 @@ import { useTranslation } from 'react-i18next';
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
-  BottomSheetFlatList,
   BottomSheetModal,
   BottomSheetTextInput,
   BottomSheetView,
@@ -29,8 +28,11 @@ import BottomSheet, {
 import CommentsLoaderView from '../Loaders/CommentsLoaderView';
 import { PostComment } from '../../../../../../../common/types/commentTypes';
 import commentService from '../../../../../utils/services/comment.service';
+import { sendCommentNotification } from '../../../../../utils/functions/notofications-handler';
 
 type Props = {
+  expoPushToken: string;
+  userId: string;
   postId: string | null;
   opened: boolean;
   users: User[] | undefined;
@@ -38,15 +40,16 @@ type Props = {
 };
 
 const CommentsSlider = (props: Props) => {
-  const { t } = useTranslation(); // Initialize useTranslation
+  const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 
   const [newComment, setNewComment] = useState('');
-  const [inputHeight, setInputHeight] = useState(40); // Default height for the input field
+  const [inputHeight, setInputHeight] = useState(40);
   const [areCommentsLoading, setAreCommentsLoading] = useState(false);
   const [allComments, setAllComments] = useState<PostComment[]>([]);
   const [commentsOpened, setCommentsOpened] = useState(props.opened);
-  const [snapPoint, setSnapPoint] = useState<string | number>('70%'); // State to track snapPoint
+  const [snapPoint, setSnapPoint] = useState<string | number>('70%');
+  const [isCommentPosting, setIsCommentPosting] = useState(false);
 
   useEffect(() => {
     setCommentsOpened(props.opened);
@@ -98,6 +101,8 @@ const CommentsSlider = (props: Props) => {
     )
       return;
 
+    setIsCommentPosting(true);
+
     const optimisticComment: PostComment = {
       id: '', // Note: Will be generated on backend and replaced upon adding comment
       userId: auth.currentUser.uid,
@@ -107,7 +112,15 @@ const CommentsSlider = (props: Props) => {
     };
     try {
       await optimisticUpdate([...comments, optimisticComment]);
+      if (props.userId !== auth.currentUser?.uid)
+        await sendCommentNotification({
+          commentText: newComment,
+          postId: props.postId,
+          username: auth.currentUser.displayName,
+          expoPushToken: props.expoPushToken,
+        });
       setNewComment('');
+      setIsCommentPosting(false);
     } catch (error) {
       console.error('Error adding comment:', error);
       // TODO add some notification maybe?
@@ -196,7 +209,7 @@ const CommentsSlider = (props: Props) => {
       index={-1}
       onChange={index => {
         if (index === -1) {
-          Keyboard.dismiss(); // Dismiss the keyboard immediately when the bottom sheet starts closing
+          Keyboard.dismiss();
         }
       }}
       backdropComponent={renderBackdrop}
@@ -356,7 +369,7 @@ const CommentsSlider = (props: Props) => {
           />
 
           <BottomSheetTextInput
-            style={[styles.input, { height: Math.max(40, inputHeight) }]} // Adjust height dynamically
+            style={[styles.input, { height: Math.max(40, inputHeight) }]}
             placeholder={t('add-comment')}
             placeholderTextColor="#ccc"
             value={newComment}
@@ -367,10 +380,13 @@ const CommentsSlider = (props: Props) => {
             multiline
           />
           <TouchableOpacity
+            disabled={
+              !newComment || newComment.trim().length === 0 || isCommentPosting
+            }
             style={styles.sendButton}
             onPress={() => handleAddComment()}
           >
-            <FontAwesomeIcon icon={Icons.Right} size={16} color={'white'} />
+            <FontAwesomeIcon icon={Icons.Right} size={16} color={primaryGrey} />
           </TouchableOpacity>
         </BottomSheetView>
       </KeyboardAvoidingView>

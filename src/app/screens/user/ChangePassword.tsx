@@ -31,7 +31,7 @@ import { auth } from '../../../../firebaseConfig';
 import EmailAuthProvider = firebase.auth.EmailAuthProvider;
 
 const PasswordChangeScreen = () => {
-  const { t } = useTranslation(); // Initialize useTranslation
+  const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 
   const [oldPassword, setOldPassword] = useState('');
@@ -219,7 +219,7 @@ const PasswordChangeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center', // Center content vertically
+    justifyContent: 'center',
   },
   header: {
     fontSize: 24,
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    paddingRight: 40, // To prevent text from going under the check icon
+    paddingRight: 40,
   },
   checkIcon: {
     marginLeft: 10,

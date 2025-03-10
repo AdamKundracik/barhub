@@ -38,7 +38,9 @@ export const PlaceFilterChip = (props: LayoutProps) => {
           onPress={() => removeSavedPlace()}
         >
           <View style={styles.chipText}>
-            <Text style={{ color: primaryTextColor }}>{props.place}</Text>
+            <Text style={{ color: primaryTextColor }}>
+              {props.place.split('-')[0]}
+            </Text>
           </View>
           <View style={styles.deleteIcon}>
             <FontAwesomeIcon icon={Icons.Remove} size={10} color={'white'} />

@@ -10,9 +10,17 @@ import { UserInfo } from '../../../../../../shared';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../../utils/icons/icons';
 import { auth } from '../../../../../../firebaseConfig';
+import { Timestamp } from 'firebase/firestore';
+import { FirebaseTimestamp } from '../../../../utils/types/types';
+
+const normalizeTimestamp = (timestamp: FirebaseTimestamp): Timestamp => {
+  const seconds = timestamp.seconds || timestamp._seconds || 0;
+  const nanoseconds = timestamp.nanoseconds || timestamp._nanoseconds || 0;
+  return new Timestamp(seconds, nanoseconds);
+};
 
 type Props = {
-  date: string;
+  date: FirebaseTimestamp;
   address: string;
   profileImage: string | null;
   user: UserInfo | undefined;
@@ -47,7 +55,11 @@ export const UserLine = (props: Props) => {
         <View style={styles.textContainer}>
           <Text style={styles.name}>{props.user?.displayName}</Text>
           <View style={styles.dateTimeContainer}>
-            <Text style={styles.dateTimeText}>{props.date}</Text>
+            <Text style={styles.dateTimeText}>
+              {new Date(
+                normalizeTimestamp(props.date).toMillis()
+              ).toLocaleString()}
+            </Text>
           </View>
           <Text style={styles.address}>{props.address}</Text>
         </View>

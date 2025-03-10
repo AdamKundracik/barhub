@@ -2,7 +2,14 @@ import React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
 const LoadingIndicator: React.FC = () => (
-  <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+  <View
+    style={{
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 5,
+    }}
+  >
     <ActivityIndicator size="small" color="#ffffff" />
   </View>
 );

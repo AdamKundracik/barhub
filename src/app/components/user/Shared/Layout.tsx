@@ -1,5 +1,4 @@
 import {
-  Image,
   Pressable,
   SafeAreaView,
   StyleSheet,
@@ -10,6 +9,7 @@ import React, { ReactNode, useState } from 'react';
 import {
   iconInactiveColor,
   primaryBgColor,
+  primaryColor,
   primaryGrey,
 } from '../../../utils/styles/colors';
 import Svg, { Path } from 'react-native-svg';
@@ -26,6 +26,9 @@ import { UserStackList } from '../../../utils/types/screen-types';
 import { openCamera } from '../../../utils/helper-functions/openCamera';
 import { auth } from '../../../../../firebaseConfig';
 import RollupMenu from '../RollupMenu';
+import FilterSlider from '../NewsFeed/Filters/FilterSlider';
+import { useNotifications } from '../../../utils/store/notificationsStore';
+import FastImage from 'react-native-fast-image';
 
 type LayoutProps = {
   children: ReactNode | ReactNode[];
@@ -37,13 +40,15 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
   const { userData } = useUserContext();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const route = useRoute();
+  const { data } = useNotifications();
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [filtersOpened, setFiltersOpened] = useState(false);
 
   const handleTabPress = (tab: TabsTypes) => {
     if (route.name === tab) {
       navigation.navigate('Feed');
-      return null; // Reset the selected tab
+      return null;
     } else {
       switch (tab) {
         case TabsTypes.account:
@@ -65,10 +70,10 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
         <View
           style={{
             display: 'flex',
-            alignSelf: 'center',
-            position: 'relative',
-            width: '100%',
-            alignItems: 'center',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            paddingHorizontal: 20,
+            paddingVertical: 5,
           }}
         >
           <View>
@@ -82,6 +87,44 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
                 fill="#10D9B9"
               />
             </Svg>
+          </View>
+          <View style={{ gap: 20, display: 'flex', flexDirection: 'row' }}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('NotificationsList')}
+            >
+              <FontAwesomeIcon
+                icon={Icons.Bell}
+                color={iconInactiveColor}
+                size={22}
+              />
+              {data?.hasNewNotifications == true && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: -6,
+                    right: -6,
+                    backgroundColor: primaryColor,
+                    width: 10,
+                    height: 10,
+                    borderRadius: 8,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                ></View>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setFiltersOpened(true)}>
+              <FontAwesomeIcon
+                icon={Icons.Sliders}
+                color={iconInactiveColor}
+                size={22}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Subscription')}
+            >
+              <FontAwesomeIcon icon={Icons.Coins} color={'#FBBC05'} size={22} />
+            </TouchableOpacity>
           </View>
         </View>
       </>
@@ -112,7 +155,7 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
             }}
           >
             {userData?.photoURL ? (
-              <Image
+              <FastImage
                 source={{ uri: auth.currentUser?.photoURL ?? '' }}
                 style={styles.profileIcon}
               />
@@ -157,6 +200,10 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
         </View>
       )}
       {menuOpen && <RollupMenu setOpenMenu={setMenuOpen} isOpen={menuOpen} />}
+      <FilterSlider
+        opened={filtersOpened}
+        onClose={() => setFiltersOpened(false)}
+      />
     </SafeAreaView>
   );
 };
@@ -169,7 +216,7 @@ const styles = StyleSheet.create({
   mainContent: {
     flex: 1,
     paddingHorizontal: 10,
-    paddingVertical: 20,
+    paddingVertical: 10,
   },
   bottomTab: {
     flexDirection: 'row',

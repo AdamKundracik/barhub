@@ -14,8 +14,8 @@ export const Button = (props: ButtonProps) => {
     <Pressable
       style={({ pressed }) => [
         styles.button,
-        { borderColor: props.color }, // Dynamic color for the border
-        pressed && { backgroundColor: props.color }, // Change background when pressed
+        { borderColor: props.color },
+        pressed && { backgroundColor: props.color },
       ]}
       onPress={props.clickFuntion}
     >
@@ -26,7 +26,7 @@ export const Button = (props: ButtonProps) => {
             {
               fontSize: 16,
               fontWeight: 'bold',
-              color: pressed ? '#fff' : props.color, // Dynamic text color
+              color: pressed ? '#fff' : props.color,
             },
           ]}
         >

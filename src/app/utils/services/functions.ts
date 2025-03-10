@@ -10,8 +10,7 @@ import {
   SetDocumentFromCollectionRequest,
 } from '../helper-functions/functions-types';
 import { MISSING_REQUIRED_REQUEST_PARAMS } from '../helper-functions/constants';
-import { User } from '../../../../shared';
-import { Post } from '../../../../shared';
+import { Post, User } from '../../../../shared';
 import { LocationType } from '../types/types';
 import { GeoPoint } from 'firebase/firestore';
 import {

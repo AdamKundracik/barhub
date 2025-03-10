@@ -19,6 +19,8 @@ export type UserStackList = {
   Info: undefined;
 
   PostSummary: { image: string; place: Place };
+
+  NotificationsList: undefined;
 };
 
 export type FeedsScreenProps = NativeStackScreenProps<UserStackList, 'Account'>;

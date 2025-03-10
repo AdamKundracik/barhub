@@ -12,9 +12,18 @@ import { UserProvider } from './src/app/providers/UserProvider';
 import { createAsyncStoragePersistor } from 'react-query/createAsyncStoragePersistor-experimental';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { persistQueryClient } from 'react-query/persistQueryClient-experimental';
+import { PermissionsProvider } from './src/app/providers/PermissionsProvider';
+import { AppStateProvider } from './src/app/providers/AppStateProvider';
+import { useRequestStore } from './src/app/utils/store/requestStore';
 
 export default function App() {
   const locales = getLocales();
+
+  const { loadRequests } = useRequestStore();
+
+  useEffect(() => {
+    loadRequests(); // Restore request cooldowns from AsyncStorage
+  }, []);
 
   switch (locales[0].languageCode) {
     case 'sk':
@@ -73,15 +82,19 @@ export default function App() {
 
   return (
     <RevenueCatProvider>
-      <QueryClientProvider client={queryClient}>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <I18nextProvider i18n={i18n}>
-            <UserProvider>
-              <Navigation />
-            </UserProvider>
-          </I18nextProvider>
-        </GestureHandlerRootView>
-      </QueryClientProvider>
+      <AppStateProvider>
+        <PermissionsProvider>
+          <QueryClientProvider client={queryClient}>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <I18nextProvider i18n={i18n}>
+                <UserProvider>
+                  <Navigation />
+                </UserProvider>
+              </I18nextProvider>
+            </GestureHandlerRootView>
+          </QueryClientProvider>
+        </PermissionsProvider>
+      </AppStateProvider>
     </RevenueCatProvider>
   );
 }

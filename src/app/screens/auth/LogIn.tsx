@@ -19,8 +19,6 @@ import {
   GoogleAuthProvider,
   signInWithCredential,
   signInWithEmailAndPassword,
-  setPersistence,
-  browserLocalPersistence,
 } from 'firebase/auth';
 import Svg, { Path } from 'react-native-svg';
 import { textInputPlaceholderColor } from '../../utils/styles/colors';
@@ -48,7 +46,6 @@ export const LogIn = ({ navigation }: any) => {
     const googleCredential = GoogleAuthProvider.credential(idToken);
 
     await signInWithCredential(auth, googleCredential).catch(error => {
-      // Handle Errors here.
       const errorCode = error.code;
       const errorMessage = error.message;
       console.error(errorCode, errorMessage);
