@@ -15,7 +15,6 @@ import { persistQueryClient } from 'react-query/persistQueryClient-experimental'
 import { PermissionsProvider } from './src/app/providers/PermissionsProvider';
 import { AppStateProvider } from './src/app/providers/AppStateProvider';
 import { useRequestStore } from './src/app/utils/store/requestStore';
-import { getTrackingPermissionsAsync } from 'expo-tracking-transparency';
 
 export default function App() {
   const locales = getLocales();
@@ -67,31 +66,35 @@ export default function App() {
   });
 
   // Initialize Google Mobile Ads SDK
+  useEffect(() => {
+    (async () => {
+      // Google AdMob will show any messages here that you just set up on the AdMob Privacy & Messaging page
+      const { status: trackingStatus } =
+        await requestTrackingPermissionsAsync();
+      if (trackingStatus !== 'granted') {
+        // Do something here such as turn off Sentry tracking, store in context/redux to allow for personalized ads, etc.
+      }
 
-  // const { status } = await getTrackingPermissionsAsync();
-  // if (status === PermissionStatus.UNDETERMINED) {
-  //   await requestTrackingPermissionsAsync();
-  // }
-  //
-  // const adapterStatuses = await mobileAds().initialize();
-
-  // Now ads can be loaded.
+      // Initialize the ads
+      await mobileAds().initialize();
+    })();
+  }, []);
 
   return (
-    // <RevenueCatProvider>
-    <AppStateProvider>
-      <PermissionsProvider>
-        <QueryClientProvider client={queryClient}>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <I18nextProvider i18n={i18n}>
-              <UserProvider>
-                <Navigation />
-              </UserProvider>
-            </I18nextProvider>
-          </GestureHandlerRootView>
-        </QueryClientProvider>
-      </PermissionsProvider>
-    </AppStateProvider>
-    // </RevenueCatProvider>
+    <RevenueCatProvider>
+      <AppStateProvider>
+        <PermissionsProvider>
+          <QueryClientProvider client={queryClient}>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <I18nextProvider i18n={i18n}>
+                <UserProvider>
+                  <Navigation />
+                </UserProvider>
+              </I18nextProvider>
+            </GestureHandlerRootView>
+          </QueryClientProvider>
+        </PermissionsProvider>
+      </AppStateProvider>
+    </RevenueCatProvider>
   );
 }

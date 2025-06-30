@@ -29,6 +29,7 @@ import { auth } from '../../../../../firebaseConfig';
 import RollupMenu from '../RollupMenu';
 import FilterSlider from '../NewsFeed/Filters/FilterSlider';
 import { useNotifications } from '../../../utils/store/notificationsStore';
+import { BottomSheetProvider } from '@gorhom/bottom-sheet/lib/typescript/contexts';
 
 type LayoutProps = {
   children: ReactNode | ReactNode[];
@@ -63,10 +64,6 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
       return tab;
     }
   };
-
-  useEffect(() => {
-    console.log(filtersOpened);
-  }, [filtersOpened]);
 
   return (
     <SafeAreaView style={styles.wrapper}>

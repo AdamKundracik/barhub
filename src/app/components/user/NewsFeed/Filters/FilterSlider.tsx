@@ -118,9 +118,9 @@ const FilterSlider = (props: Props) => {
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
         {...props}
-        opacity={0}
+        opacity={0.8}
         disappearsOnIndex={-1}
-        appearsOnIndex={0}
+        appearsOnIndex={1}
       />
     ),
     []
@@ -150,8 +150,13 @@ const FilterSlider = (props: Props) => {
       index={props.opened ? 1 : -1}
       backdropComponent={renderBackdrop}
       footerComponent={renderFooter}
+      handleHeight={60}
       enablePanDownToClose
-      handleIndicatorStyle={{ backgroundColor: 'white', width: '10%' }}
+      handleIndicatorStyle={{
+        backgroundColor: 'white',
+        width: '10%',
+        margin: 5,
+      }}
       handleStyle={{ padding: 10 }}
     >
       <View style={styles.content}>
