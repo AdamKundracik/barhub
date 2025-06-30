@@ -8,7 +8,6 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import FastImage from 'react-native-fast-image';
 import Device from 'react-native-device-info';
 import {
   iconInactiveColor,
@@ -16,6 +15,7 @@ import {
   primaryBgColor,
   primaryColor,
 } from '../../../utils/styles/colors';
+import { Image } from 'expo-image';
 import { OccupancyEnum, Place } from '../../../utils/types/types';
 import { useTranslation } from 'react-i18next';
 import { formStyles } from '../../../utils/styles/styles';
@@ -267,13 +267,14 @@ export const PostSummary = ({ route }: any) => {
             </View>
 
             <View style={{ height: width, marginTop: 15 }}>
-              <FastImage
+              <Image
                 style={isTablet ? tabletStyles.photo : styles.photo}
                 source={{
-                  priority: FastImage.priority.high,
                   uri: image ?? '',
                 }}
-                resizeMode={FastImage.resizeMode.cover}
+                priority={'high'}
+                cachePolicy={'memory'}
+                contentFit="cover"
               />
             </View>
 

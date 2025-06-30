@@ -5,13 +5,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import {
   iconInactiveColor,
   primaryBgColor,
   primaryColor,
   primaryGrey,
 } from '../../../utils/styles/colors';
+import { Image } from 'expo-image';
 import Svg, { Path } from 'react-native-svg';
 import { useUserContext } from '../../../providers/UserProvider';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -28,7 +29,6 @@ import { auth } from '../../../../../firebaseConfig';
 import RollupMenu from '../RollupMenu';
 import FilterSlider from '../NewsFeed/Filters/FilterSlider';
 import { useNotifications } from '../../../utils/store/notificationsStore';
-import FastImage from 'react-native-fast-image';
 
 type LayoutProps = {
   children: ReactNode | ReactNode[];
@@ -63,6 +63,10 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
       return tab;
     }
   };
+
+  useEffect(() => {
+    console.log(filtersOpened);
+  }, [filtersOpened]);
 
   return (
     <SafeAreaView style={styles.wrapper}>
@@ -155,7 +159,7 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
             }}
           >
             {userData?.photoURL ? (
-              <FastImage
+              <Image
                 source={{ uri: auth.currentUser?.photoURL ?? '' }}
                 style={styles.profileIcon}
               />

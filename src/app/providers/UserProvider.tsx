@@ -102,6 +102,7 @@ export const UserProvider = ({ children }: Props) => {
     if (AppState.currentState === 'active') {
       getLocation();
     }
+    getLocation();
   }, [AppState.currentState]);
 
   const getLocation = async () => {

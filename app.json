@@ -7,6 +7,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "scheme": "baruj",
+    "entryPoint": "./index.js",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -122,7 +123,7 @@
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FFFFF"
+        "backgroundColor": "#FFFFFF"
       },
       "googleServicesFile": "./google-services.json",
       "permissions": [
@@ -188,7 +189,7 @@
             "minSdkVersion": 24
           },
           "ios": {
-            "deploymentTarget": "13.4",
+            "deploymentTarget": "15.1",
             "useFrameworks": "static"
           }
         }
@@ -219,8 +220,8 @@
       [
         "react-native-google-mobile-ads",
         {
-          "android_app_id": "ca-app-pub-2698936582690038~3484802751",
-          "ios_app_id": "ca-app-pub-2698936582690038~3283915793",
+          "androidAppId": "ca-app-pub-2698936582690038~3484802751",
+          "iosAppId": "ca-app-pub-2698936582690038~3283915793",
           "userTrackingUsageDescription": "This identifier will be used to deliver personalized ads to you.",
           "skAdNetworkItems": [
             "cstr6suwn9.skadnetwork",
@@ -279,18 +280,8 @@
     "extra": {
       "eas": {
         "projectId": "327ee99d-c7b6-44f6-a100-2012be11a10f"
-      },
-      "react-native-google-mobile-ads": {
-        "android_app_id": "ca-app-pub-2698936582690038~3484802751",
-        "ios_app_id": "ca-app-pub-2698936582690038~3283915793",
-        "user_tracking_usage_description": "This identifier will be used to deliver personalized ads to you."
-
       }
     }
-  },
-  "react-native-google-mobile-ads": {
-    "android_app_id": "ca-app-pub-2698936582690038~3484802751",
-    "ios_app_id": "ca-app-pub-2698936582690038~3283915793",
-    "user_tracking_usage_description": "This identifier will be used to deliver personalized ads to you."
   }
+
 }

@@ -16,12 +16,12 @@ import UserLine from './UserLine';
 import InteractionBar from './InteractionBar';
 import BluredPostFrontView from './BluredPostFrontView';
 import { daysPassedSince } from '../../../../utils/helper-functions/daysPassedSince';
-import FastImage from 'react-native-fast-image';
 import { useQueryClient } from 'react-query';
 import { usePlaceStore } from '../../../../utils/store/placesStore';
 import { trimPlaceName } from '../../../../utils/helper-functions/trimPlaceName';
 import { LikeNotificationRequest } from '../../../../utils/types/notification-types';
 import { sendLikeNotification } from '../../../../utils/functions/notofications-handler';
+import { Image } from 'expo-image';
 
 interface PostInterface {
   post: Post;
@@ -200,13 +200,13 @@ export const UserPost = (props: PostInterface) => {
           <GestureDetector gesture={doubleTap}>
             <GestureDetector gesture={pinch}>
               <Animated.View style={[styles.photoContainer, animatedStyle]}>
-                <FastImage
+                <Image
                   style={[isTablet ? tabletStyles.photo : styles.photo]}
                   source={{
-                    priority: FastImage.priority.high,
                     uri: post.photoUrl,
                   }}
-                  resizeMode={FastImage.resizeMode.cover}
+                  priority={'high'}
+                  contentFit={'cover'}
                 />
               </Animated.View>
             </GestureDetector>

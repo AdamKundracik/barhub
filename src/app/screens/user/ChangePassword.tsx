@@ -25,10 +25,10 @@ import { Icons } from '../../utils/icons/icons';
 import { primaryColor, primaryTextColor } from '../../utils/styles/colors';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
-import firebase from 'firebase/compat';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { auth } from '../../../../firebaseConfig';
-import EmailAuthProvider = firebase.auth.EmailAuthProvider;
+// import firebase from 'firebase/compat';
+// import EmailAuthProvider = firebase.auth.EmailAuthProvider;
 
 const PasswordChangeScreen = () => {
   const { t } = useTranslation();
@@ -86,11 +86,11 @@ const PasswordChangeScreen = () => {
     try {
       if (loginMethod === 'email' && user.email) {
         // Re-authenticate with Email/Password
-        const credential = EmailAuthProvider.credential(
-          user.email,
-          currentPassword
-        );
-        await reauthenticateWithCredential(user, credential);
+        // const credential = EmailAuthProvider.credential(
+        //   user.email,
+        //   currentPassword
+        // );
+        // await reauthenticateWithCredential(user, credential);
       } else if (loginMethod === 'google') {
         // Re-authenticate with Google
         await GoogleSignin.hasPlayServices();

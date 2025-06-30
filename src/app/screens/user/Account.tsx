@@ -14,10 +14,10 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
 import { useUserContext } from '../../providers/UserProvider';
 import { DeleteUserModal } from '../../components/user/Account/DeleteUserModal';
-import FastImage from 'react-native-fast-image';
 import { primaryBgColor, primaryColor } from '../../utils/styles/colors';
 import EditProfile from '../../components/user/Account/EditProfile';
 import { ScreenLayout } from '../../components/user/Shared/ScreenLayout';
+import { Image } from 'expo-image';
 
 export const Account = () => {
   const { userData } = useUserContext();
@@ -56,7 +56,7 @@ export const Account = () => {
         </View>
         <View style={styles.profileSection}>
           <View>
-            <FastImage
+            <Image
               source={
                 auth.currentUser?.photoURL
                   ? { uri: auth.currentUser.photoURL }
@@ -69,7 +69,7 @@ export const Account = () => {
                   borderColor: '#FFC107',
                 },
               ]}
-              resizeMode="cover"
+              contentFit="cover"
             />
           </View>
           <Text style={styles.username}>{auth.currentUser?.displayName}</Text>

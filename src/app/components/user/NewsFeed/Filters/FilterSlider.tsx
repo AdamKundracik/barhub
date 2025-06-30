@@ -150,7 +150,6 @@ const FilterSlider = (props: Props) => {
       index={props.opened ? 1 : -1}
       backdropComponent={renderBackdrop}
       footerComponent={renderFooter}
-      handleHeight={60}
       enablePanDownToClose
       handleIndicatorStyle={{ backgroundColor: 'white', width: '10%' }}
       handleStyle={{ padding: 10 }}

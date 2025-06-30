@@ -14,7 +14,6 @@ import DatePicker from '../../shared/DatePicker';
 import { User } from '../../../../../shared';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
-import FastImage from 'react-native-fast-image';
 import { auth } from '../../../../../firebaseConfig';
 import { primaryBgColor, primaryColor } from '../../../utils/styles/colors';
 import { formStyles } from '../../../utils/styles/styles';
@@ -29,6 +28,7 @@ import { updateProfile } from 'firebase/auth';
 import { useUserContext } from '../../../providers/UserProvider';
 import LoadingIndicator from '../NewsFeed/LoadingIndicator';
 import SlidingView from '../../shared/SlidingView';
+import { Image } from 'expo-image';
 
 type EditProfileProps = {
   user: User | null;
@@ -169,7 +169,7 @@ const ProfileEditScreen = (props: EditProfileProps) => {
           {/* Profile Picture Section */}
           <View style={styles.profileSection}>
             <TouchableOpacity onPress={() => setOpenImageOptions(true)}>
-              <FastImage
+              <Image
                 source={
                   auth.currentUser?.photoURL && auth.currentUser.photoURL !== ''
                     ? { uri: auth.currentUser.photoURL }
@@ -182,7 +182,7 @@ const ProfileEditScreen = (props: EditProfileProps) => {
                     borderColor: '#FFC107',
                   },
                 ]}
-                resizeMode="cover"
+                contentFit="cover"
               />
               <View style={styles.editIconContainer}>
                 <FontAwesomeIcon

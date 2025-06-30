@@ -173,13 +173,13 @@ export const NewsFeed = () => {
           </ScrollView>
         </>
       )}
-      <CommentsSlider
-        postId={postId}
-        userId={userId ?? ''}
-        opened={showComments}
-        expoPushToken={expoPushToken}
-        onClose={() => setShowComments(false)}
-      />
+      {/*<CommentsSlider*/}
+      {/*  postId={postId}*/}
+      {/*  userId={userId ?? ''}*/}
+      {/*  opened={showComments}*/}
+      {/*  expoPushToken={expoPushToken}*/}
+      {/*  onClose={() => setShowComments(false)}*/}
+      {/*/>*/}
     </Layout>
   );
 };

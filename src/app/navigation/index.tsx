@@ -15,6 +15,7 @@ export const Navigation = () => {
   const { appState } = useAppState();
 
   useEffect(() => {
+    console.log();
     switch (appState) {
       case 'active':
         checkPermissions();
@@ -22,7 +23,7 @@ export const Navigation = () => {
     }
   }, [appState]);
 
-  if (isLoading || !userData) {
+  if (isLoading) {
     return <Loading />;
   }
 
