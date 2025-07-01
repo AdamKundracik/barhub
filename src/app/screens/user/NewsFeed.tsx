@@ -19,18 +19,19 @@ import { fetchPlaceDetails } from '../../utils/helper-functions/fetchPlaceDetail
 import { sendNotificationHandler } from '../../utils/helper-functions/sendNotificationHandler';
 import { sendRequestNotification } from '../../utils/functions/notofications-handler';
 import FeedHeader from '../../components/user/NewsFeed/FeedHeader';
-import CommentsSlider from '../../components/user/NewsFeed/Post/Comments/CommentsSlider';
 import { usePlaceStore } from '../../utils/store/placesStore';
 import EmptyState from '../../components/user/NewsFeed/EmptyState';
 import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import PostLoaderView from '../../components/user/NewsFeed/Post/Loaders/PostLoaderView';
 import { useFiltersStore } from '../../utils/store/filtersStorage';
+import { useLocationStore } from '../../utils/store/locationStore';
 
 export const NewsFeed = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
   const { placeId, placeName, setPlaceDetail } = usePlaceStore();
   const { distance, selectedPlaces, selectedOccupancy } = useFiltersStore();
+  const { realLocation, fakeLocation, useFakeLocation } = useLocationStore();
   const { userData } = useUserContext();
 
   const [expoPushToken, setExpoPushToken] = useState('');
@@ -61,7 +62,12 @@ export const NewsFeed = () => {
   } = useInfiniteQuery(
     placeId ? ['posts', placeId] : 'posts',
     ({ pageParam = null }) =>
-      handleFreshContent(distance, pageParam, placeId, userData?.location),
+      handleFreshContent(
+        distance,
+        pageParam,
+        placeId,
+        useFakeLocation ? fakeLocation! : realLocation!
+      ),
     {
       getNextPageParam: lastPage => lastPage?.lastVisible || null,
     }

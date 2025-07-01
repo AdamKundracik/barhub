@@ -10,6 +10,7 @@ import Help from '../screens/user/Help/Help';
 import Info from '../screens/user/Info/Info';
 import PostSummary from '../screens/user/Post/PostSummary';
 import NotificationsList from '../screens/user/Notifications/NotificationsList';
+import { SelectFakeLocation } from '../screens/user/SelectFakeLocation';
 
 const UserStack = createNativeStackNavigator();
 
@@ -64,6 +65,10 @@ export function UserNav() {
       <UserStack.Screen
         name={'NotificationsList'}
         component={NotificationsList}
+      />
+      <UserStack.Screen
+        name={'SelectFakeLocation'}
+        component={SelectFakeLocation}
       />
     </UserStack.Navigator>
   );

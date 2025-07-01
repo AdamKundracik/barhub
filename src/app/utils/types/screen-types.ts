@@ -21,9 +21,15 @@ export type UserStackList = {
   PostSummary: { image: string; place: Place };
 
   NotificationsList: undefined;
+
+  SelectFakeLocation: undefined;
 };
 
-export type FeedsScreenProps = NativeStackScreenProps<UserStackList, 'Account'>;
+export type FeedsScreenProps = NativeStackScreenProps<
+  UserStackList,
+  'Account',
+  'SelectFakeLocation'
+>;
 
 export type CameraScreenProps = NativeStackScreenProps<
   UserStackList,

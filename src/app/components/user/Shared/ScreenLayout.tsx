@@ -8,8 +8,6 @@ import {
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { UserStackList } from '../../../utils/types/screen-types';
 import { primaryBgColor } from '../../../utils/styles/colors';
 
 type ScreenLayoutProps = {
@@ -55,13 +53,13 @@ const styles = StyleSheet.create({
     backgroundColor: primaryBgColor,
   },
   mainContainer: {
+    paddingHorizontal: 16,
     flex: 1,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
-    paddingHorizontal: 16,
     marginBottom: 10,
     height: 56,
   },
