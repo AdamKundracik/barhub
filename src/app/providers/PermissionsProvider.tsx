@@ -33,7 +33,7 @@ export const PermissionsProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [permissions, setPermissions] = useState<PermissionsState>({
-    tracking: Platform.OS === 'android', // Track tracking permission for Android by default
+    tracking: Platform.OS === 'android',
     camera: false,
     notification: false,
     geolocation: false,
@@ -51,7 +51,7 @@ export const PermissionsProvider: React.FC<{ children: React.ReactNode }> = ({
       ]);
       setPermissions(prev => ({
         ...prev,
-        tracking: Platform.OS === 'android' || results[0], // Tracking is granted on Android by default
+        tracking: Platform.OS === 'android' || results[0],
         camera: results[1],
         notification: results[2],
         geolocation: results[3],

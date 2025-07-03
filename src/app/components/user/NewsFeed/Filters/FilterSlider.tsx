@@ -58,7 +58,7 @@ const FilterSlider = (props: Props) => {
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 
-  const { useFakeLocation, setUseFakeLocation, fakeLocationName } =
+  const { useFakeLocation, setUseFakeLocation, fakeLocationName, initialized } =
     useLocationStore();
   const {
     distance: storeDistance,
@@ -76,6 +76,11 @@ const FilterSlider = (props: Props) => {
   >(
     storeSelectedOccupancy.length > 0 ? storeSelectedOccupancy : OCCUPANCY_TYPES
   );
+  const [isUsingFakeLocation, setIsUsingFakeLocation] = useState(false);
+
+  useEffect(() => {
+    setIsUsingFakeLocation(useFakeLocation);
+  }, [useFakeLocation]);
 
   useEffect(() => {
     if (props.opened) {
@@ -192,7 +197,7 @@ const FilterSlider = (props: Props) => {
         <View style={styles.section}>
           <View style={styles.distanceHeader}>
             <Text style={styles.sectionTitle}>{t('distance')}</Text>
-            <Text style={styles.distanceText}>{tempDistance} km</Text>
+            <Text style={styles.sectionTitle}>{tempDistance} km</Text>
           </View>
           <Slider
             style={styles.slider}
@@ -211,14 +216,13 @@ const FilterSlider = (props: Props) => {
             initialOccupancy={tempSelectedOccupancy}
           />
         </View>
-
         <View style={styles.fakeLocationSection}>
           <View style={styles.fakeLocationHeader}>
-            <Text style={styles.fakeLocationText}>
+            <Text style={styles.sectionTitle}>
               {t('use-different-location')}
             </Text>
             <Switch
-              value={useFakeLocation}
+              value={isUsingFakeLocation}
               onValueChange={setUseFakeLocation}
             />
           </View>
@@ -235,15 +239,20 @@ const FilterSlider = (props: Props) => {
             ]}
           >
             <View style={styles.fakeLocationButtonContent}>
-              <Text style={styles.fakeLocationButtonText}>
+              <Text
+                style={styles.fakeLocationButtonText}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 {useFakeLocation
                   ? fakeLocationName || t('select-city')
-                  : 'Falošná poloha vypnutá'}
+                  : t('Selected-location')}
               </Text>
               <FontAwesomeIcon
                 icon={Icons.ChevronRight}
                 color={'white'}
                 size={14}
+                style={styles.icon}
               />
             </View>
           </Pressable>
@@ -256,7 +265,7 @@ const FilterSlider = (props: Props) => {
 const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 15,
-    paddingBottom: 50, // add bottom padding so last content is not hidden behind footer
+    paddingBottom: 50,
   },
   section: {
     marginVertical: 10,
@@ -268,16 +277,9 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: 'white',
-    marginBottom: 10,
-    fontWeight: '600',
-    fontSize: 16,
   },
   slider: {
     paddingVertical: 10,
-  },
-  distanceText: {
-    color: 'white',
-    fontWeight: '600',
   },
   footerContainer: {
     padding: 12,
@@ -311,10 +313,17 @@ const styles = StyleSheet.create({
   },
   fakeLocationButtonContent: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   fakeLocationButtonText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
     color: 'white',
+    marginRight: 8,
+  },
+  icon: {
+    alignSelf: 'center',
   },
 });
 

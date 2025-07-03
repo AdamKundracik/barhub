@@ -36,7 +36,6 @@ type ContextProps = {
   setUseFakeLocation: (val: boolean) => void;
 
   fakeLocation: LocationType | null;
-  // FIXED: setFakeLocation must accept 2 arguments as per store
   setFakeLocation: (loc: LocationType, name: string) => void;
 };
 
@@ -72,15 +71,16 @@ export const UserProvider = ({ children }: Props) => {
   const [authUser, setAuthUser] = useState<null | boolean>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
-  // Zustand store selectors
   const useFakeLocation = useLocationStore(state => state.useFakeLocation);
   const realLocation = useLocationStore(state => state.realLocation);
   const fakeLocation = useLocationStore(state => state.fakeLocation);
   const setFakeLocation = useLocationStore(state => state.setFakeLocation);
   const location = useLocationStore(state => state.realLocation);
   const setLocation = useLocationStore(state => state.setRealLocation);
+  const setUseFakeLocation = useLocationStore(
+    state => state.setUseFakeLocation
+  );
 
-  // Compute which location to use (fake or real)
   const currentLocation =
     useFakeLocation && fakeLocation ? fakeLocation : location;
 
@@ -92,7 +92,6 @@ export const UserProvider = ({ children }: Props) => {
     }
   }, [useFakeLocation, realLocation, fakeLocation]);
 
-  // React Query hooks
   const {
     data: userData,
     isLoading: isUserLoading,
@@ -105,9 +104,16 @@ export const UserProvider = ({ children }: Props) => {
     refetch: fetchAllUsers,
   } = useFetchAllUsers();
 
+  useEffect(() => {
+    if (userData) {
+      useLocationStore
+        .getState()
+        .setUseFakeLocation(userData.isUsingFakeLocation ?? false);
+      useLocationStore.getState().setInitialized(true);
+    }
+  }, [userData]);
   const isLoading = isAuthLoading || isUserLoading || isUsersLoading;
 
-  // Listen to auth state changes
   useEffect(() => {
     return onAuthStateChanged(auth, user => {
       setAuthUser(!!user);
@@ -116,7 +122,6 @@ export const UserProvider = ({ children }: Props) => {
     });
   }, []);
 
-  // Fetch location on app active
   useEffect(() => {
     if (AppState.currentState === 'active') {
       getLocation();
@@ -135,7 +140,6 @@ export const UserProvider = ({ children }: Props) => {
     }
   };
 
-  // Setup background location tracking
   useEffect(() => {
     const onLocation = BackgroundGeolocation.onLocation(async location => {
       const currentLocation: LocationType = {
@@ -184,7 +188,6 @@ export const UserProvider = ({ children }: Props) => {
     }
   }, [useFakeLocation]);
 
-  // Memoize context value
   const contextValue = useMemo(
     () => ({
       userData: userData ?? null,
