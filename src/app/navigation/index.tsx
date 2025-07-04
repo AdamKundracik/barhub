@@ -15,7 +15,6 @@ export const Navigation = () => {
   const { appState } = useAppState();
 
   useEffect(() => {
-    console.log();
     switch (appState) {
       case 'active':
         checkPermissions();

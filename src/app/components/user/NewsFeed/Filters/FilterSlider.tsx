@@ -89,7 +89,6 @@ const FilterSlider = (props: Props) => {
   useEffect(() => {
     setFakeLocationVal(fakeLocation);
     setFakeLocationNameVal(fakeLocationName);
-    console.log(fakeLocation, fakeLocationName);
   }, [fakeLocation, fakeLocationName, useFakeLocation]);
 
   useEffect(() => {
