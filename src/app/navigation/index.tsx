@@ -5,12 +5,12 @@ import AuthNav from './AuthNav';
 import { useUserContext } from '../providers/UserProvider';
 import NotVerifiedNav from './NotVerifiedNav';
 import { UserNav } from './UserNav';
-import { PermissionsScreen } from '../screens/user/Permissions/Permissions';
 import { usePermissionsProvider } from '../providers/PermissionsProvider';
 import { useAppState } from '../providers/AppStateProvider';
+import { PermissionsScreen } from '../screens/user/Permissions/Permissions';
 
 export const Navigation = () => {
-  const { authUser, isLoading, userData, emailVerified } = useUserContext();
+  const { authUser, isLoading, emailVerified } = useUserContext();
   const { hasAllPermissions, checkPermissions } = usePermissionsProvider();
   const { appState } = useAppState();
 

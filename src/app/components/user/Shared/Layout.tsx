@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import {
   iconInactiveColor,
   primaryBgColor,
@@ -29,7 +29,6 @@ import { auth } from '../../../../../firebaseConfig';
 import RollupMenu from '../RollupMenu';
 import FilterSlider from '../NewsFeed/Filters/FilterSlider';
 import { useNotifications } from '../../../utils/store/notificationsStore';
-import { BottomSheetProvider } from '@gorhom/bottom-sheet/lib/typescript/contexts';
 
 type LayoutProps = {
   children: ReactNode | ReactNode[];
@@ -157,7 +156,7 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
           >
             {userData?.photoURL ? (
               <Image
-                source={{ uri: auth.currentUser?.photoURL ?? '' }}
+                source={{ uri: userData.photoURL ?? '' }}
                 style={styles.profileIcon}
               />
             ) : (

@@ -41,7 +41,7 @@ export const PlaceSearch = () => {
 
     return useQuery(
       ['places-autocomplete', query],
-      () => fetchPlaceAutocomplete(query, location, sessionToken),
+      () => fetchPlaceAutocomplete(query, location!, sessionToken),
       {
         enabled: query.length >= 2,
       }
@@ -127,7 +127,7 @@ export const PlaceSearch = () => {
           ? places.suggestions.map((place, index) => (
               <Pressable
                 key={index}
-                style={({ pressed }) => [
+                style={[
                   {
                     padding: 16,
                   },

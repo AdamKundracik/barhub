@@ -37,7 +37,7 @@ type EditProfileProps = {
 
 const ProfileEditScreen = (props: EditProfileProps) => {
   const { t } = useTranslation();
-  const { fetchUserData, fetchAllUsers } = useUserContext();
+  const { fetchUserData } = useUserContext();
 
   const [openImageOptions, setOpenImageOptions] = useState(false);
   const [username, setUsername] = useState<string | null | undefined>(
@@ -80,7 +80,6 @@ const ProfileEditScreen = (props: EditProfileProps) => {
       });
 
       if (fetchUserData) await fetchUserData();
-      if (fetchAllUsers) await fetchAllUsers();
 
       setOpenImageOptions(false);
     }
@@ -133,7 +132,6 @@ const ProfileEditScreen = (props: EditProfileProps) => {
         displayName: auth.currentUser?.displayName,
       });
       if (fetchUserData) await fetchUserData();
-      if (fetchAllUsers) await fetchAllUsers();
 
       setOpenImageOptions(false);
     }
@@ -152,7 +150,6 @@ const ProfileEditScreen = (props: EditProfileProps) => {
       displayName: auth.currentUser?.displayName,
     });
     if (fetchUserData) await fetchUserData();
-    if (fetchAllUsers) await fetchAllUsers();
     setOpenImageOptions(false);
   };
 
