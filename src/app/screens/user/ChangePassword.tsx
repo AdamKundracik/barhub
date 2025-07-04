@@ -93,7 +93,7 @@ const PasswordChangeScreen = () => {
       } else if (loginMethod === 'google') {
         // Re-authenticate with Google
         await GoogleSignin.hasPlayServices();
-        const userInfo = await GoogleSignin.signIn(); // Initiate the Google Sign-In flow
+        const userInfo = await GoogleSignin.signIn();
         const googleCredential = GoogleAuthProvider.credential(
           userInfo.idToken
         );

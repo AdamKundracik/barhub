@@ -80,17 +80,11 @@ const FilterSlider = (props: Props) => {
   >(
     storeSelectedOccupancy.length > 0 ? storeSelectedOccupancy : OCCUPANCY_TYPES
   );
-  const [isUsingFakeLocation, setIsUsingFakeLocation] = useState(false);
-  const [ç, setFakeLocationVal] = useState({
+  const [_, setFakeLocationVal] = useState({
     latitude: 0,
     longitude: 0,
   });
   const [fakeLocationNameVal, setFakeLocationNameVal] = useState('');
-
-  useEffect(() => {
-    console.log('useFakeLocation', useFakeLocation);
-    setIsUsingFakeLocation(useFakeLocation);
-  }, [useFakeLocation]);
 
   useEffect(() => {
     setFakeLocationVal(fakeLocation);
@@ -238,7 +232,7 @@ const FilterSlider = (props: Props) => {
               {t('use-different-location')}
             </Text>
             <Switch
-              value={isUsingFakeLocation}
+              value={useFakeLocation}
               onValueChange={setUseFakeLocation}
             />
           </View>

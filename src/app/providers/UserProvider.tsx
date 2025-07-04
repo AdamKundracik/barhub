@@ -54,7 +54,10 @@ const useFetchUserData = (uid: string | undefined) => {
     {
       enabled: !!uid,
       retry: 2,
-      staleTime: 1000 * 60 * 5,
+      staleTime: 0,
+      cacheTime: 0,
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
     }
   );
 };
@@ -77,9 +80,6 @@ export const UserProvider = ({ children }: Props) => {
   const setFakeLocation = useLocationStore(state => state.setFakeLocation);
   const location = useLocationStore(state => state.realLocation);
   const setLocation = useLocationStore(state => state.setRealLocation);
-  const setUseFakeLocation = useLocationStore(
-    state => state.setUseFakeLocation
-  );
 
   const currentLocation =
     useFakeLocation && fakeLocation ? fakeLocation : location;

@@ -27,7 +27,6 @@ export const SelectFakeLocation = () => {
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { setFakeLocation } = useLocationStore();
 
-  // Debounce the query input by 300ms
   useEffect(() => {
     if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
 
@@ -41,7 +40,6 @@ export const SelectFakeLocation = () => {
     };
   }, [query]);
 
-  // Fetch autocomplete places when debouncedQuery changes
   useEffect(() => {
     if (!debouncedQuery) {
       setPlaces([]);
@@ -69,7 +67,6 @@ export const SelectFakeLocation = () => {
     fetchPlaces();
   }, [debouncedQuery]);
 
-  // Handle selection of place, fetch details and update fake location
   const handlePlaceSelect = async (place: any) => {
     setLoading(true);
     try {
