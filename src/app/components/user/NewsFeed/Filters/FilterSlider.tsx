@@ -58,8 +58,12 @@ const FilterSlider = (props: Props) => {
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 
-  const { useFakeLocation, setUseFakeLocation, fakeLocationName, initialized } =
-    useLocationStore();
+  const {
+    useFakeLocation,
+    setUseFakeLocation,
+    fakeLocation,
+    fakeLocationName,
+  } = useLocationStore();
   const {
     distance: storeDistance,
     selectedPlaces: storeSelectedPlaces,
@@ -77,10 +81,22 @@ const FilterSlider = (props: Props) => {
     storeSelectedOccupancy.length > 0 ? storeSelectedOccupancy : OCCUPANCY_TYPES
   );
   const [isUsingFakeLocation, setIsUsingFakeLocation] = useState(false);
+  const [ç, setFakeLocationVal] = useState({
+    latitude: 0,
+    longitude: 0,
+  });
+  const [fakeLocationNameVal, setFakeLocationNameVal] = useState('');
 
   useEffect(() => {
+    console.log('useFakeLocation', useFakeLocation);
     setIsUsingFakeLocation(useFakeLocation);
   }, [useFakeLocation]);
+
+  useEffect(() => {
+    setFakeLocationVal(fakeLocation);
+    setFakeLocationNameVal(fakeLocationName);
+    console.log(fakeLocation, fakeLocationName);
+  }, [fakeLocation, fakeLocationName, useFakeLocation]);
 
   useEffect(() => {
     if (props.opened) {
@@ -245,7 +261,7 @@ const FilterSlider = (props: Props) => {
                 ellipsizeMode="tail"
               >
                 {useFakeLocation
-                  ? fakeLocationName || t('select-city')
+                  ? fakeLocationNameVal || t('select-city')
                   : t('Selected-location')}
               </Text>
               <FontAwesomeIcon

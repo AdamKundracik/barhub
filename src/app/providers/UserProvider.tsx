@@ -109,6 +109,12 @@ export const UserProvider = ({ children }: Props) => {
       useLocationStore
         .getState()
         .setUseFakeLocation(userData.isUsingFakeLocation ?? false);
+      useLocationStore
+        .getState()
+        .setFakeLocation(
+          userData.fakeLocation ?? { latitude: 0, longitude: 0 },
+          userData.fakeLocationName
+        );
       useLocationStore.getState().setInitialized(true);
     }
   }, [userData]);

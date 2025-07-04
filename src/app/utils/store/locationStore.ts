@@ -5,7 +5,7 @@ import { setUser } from '../services/functions';
 
 interface LocationStore {
   useFakeLocation: boolean;
-  fakeLocation: LocationType | null;
+  fakeLocation: LocationType;
   fakeLocationName: string;
   realLocation: LocationType;
   initialized: boolean;
@@ -19,7 +19,7 @@ interface LocationStore {
 export const useLocationStore = create<LocationStore>()(
   subscribeWithSelector((set, get) => ({
     useFakeLocation: false,
-    fakeLocation: null,
+    fakeLocation: { latitude: 0, longitude: 0 },
     fakeLocationName: '',
     realLocation: { latitude: 0, longitude: 0 },
     initialized: false,
@@ -41,6 +41,16 @@ useLocationStore.subscribe(
     const { initialized } = useLocationStore.getState();
     if (initialized && newVal !== prevVal) {
       setUser({ isUsingFakeLocation: newVal });
+    }
+  }
+);
+
+useLocationStore.subscribe(
+  state => state.fakeLocation,
+  (newVal, prevVal) => {
+    const { initialized, fakeLocationName } = useLocationStore.getState();
+    if (initialized && newVal !== prevVal) {
+      setUser({ fakeLocation: newVal, fakeLocationName: fakeLocationName });
     }
   }
 );
