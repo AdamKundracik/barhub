@@ -61,7 +61,7 @@ const PostsList = ({
 
   const handleScroll = (event: any) => {
     const scrollPosition = event.nativeEvent.contentOffset.y;
-    const shouldShow = scrollPosition > 300; // Show button after scrolling 300 units
+    const shouldShow = scrollPosition > 300;
 
     if (shouldShow !== showScrollTopButton) {
       setShowScrollTopButton(shouldShow);

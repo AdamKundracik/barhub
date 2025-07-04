@@ -40,7 +40,6 @@ export const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   const { t } = useTranslation();
   const locales = useLocales();
 
-  // Add this function to handle text by type
   const getNotificationText = (notificationType: NotificationType) => {
     switch (notificationType) {
       case NotificationType.LIKE:
@@ -71,7 +70,6 @@ export const NotificationItemComponent: React.FC<NotificationItemProps> = ({
     }
   };
 
-  // Then in your render, update the icon and label:
   const notificationInfo = getNotificationText(item.notificationType);
 
   const deleteIconOpacity = translateX.interpolate({

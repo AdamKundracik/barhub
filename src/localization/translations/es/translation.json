@@ -152,5 +152,8 @@
     "check-for-permissions": "Verificar permisos"
   },
   "gdpr": "Política de privacidad",
-  "third-party-libraries": "Bibliotecas de terceros"
+  "third-party-libraries": "Bibliotecas de terceros",
+  "use-different-location": "Usar una ubicación diferente",
+  "select-city": "Seleccionar ciudad",
+  "Selected-location": "Ubicación seleccionada"
 }

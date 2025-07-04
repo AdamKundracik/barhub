@@ -55,7 +55,7 @@ export const Register = ({ navigation }: any) => {
         setImage(result.assets[0].uri);
       }
     } else {
-      console.log('Permission to access media library was denied.');
+      console.warn('Permission to access media library was denied.');
     }
   };
 

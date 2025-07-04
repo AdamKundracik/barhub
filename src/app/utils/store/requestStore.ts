@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type RequestState = {
-  requestedPlaces: Record<string, number>; // Tracks timestamps per placeId
+  requestedPlaces: Record<string, number>;
   addRequest: (placeId: string) => void;
   canRequest: (placeId: string) => boolean;
   loadRequests: () => Promise<void>;
@@ -30,7 +30,7 @@ export const useRequestStore = create<RequestState>((set, get) => ({
     setTimeout(async () => {
       set(state => {
         const updatedRequests = { ...state.requestedPlaces };
-        delete updatedRequests[placeId]; // Only remove this place
+        delete updatedRequests[placeId];
         return { requestedPlaces: updatedRequests };
       });
 

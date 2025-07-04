@@ -153,5 +153,8 @@
     "check-for-permissions": "Skontrolovať povolenia"
   },
   "gdpr": "Zásady ochrany súkromia",
-  "third-party-libraries": "Knižnice tretích strán"
+  "third-party-libraries": "Knižnice tretích strán",
+  "use-different-location": "Použiť iné miesto",
+  "select-city": "Vybrať mesto",
+  "Selected-location": "Vybrané miesto"
 }

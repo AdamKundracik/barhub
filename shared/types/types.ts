@@ -32,6 +32,9 @@ export interface User extends UserRecord {
   lastUploadedPost: string;
   premium: boolean;
   acceptTermsOfUse: boolean;
+  isUsingFakeLocation: boolean;
+  fakeLocation: LocationType;
+  fakeLocationName: string;
 }
 
 export type Post = {
