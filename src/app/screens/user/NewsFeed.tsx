@@ -1,201 +1,84 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import Layout from '../../components/user/Shared/Layout';
-import { useInfiniteQuery } from 'react-query';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { UserStackList } from '../../utils/types/screen-types';
-import { useUserContext } from '../../providers/UserProvider';
-import { handleFreshContent } from '../../utils/functions/posts-functions';
-import { getDaysSince } from '../../utils/helper-functions/getDaysSince';
-import {
-  OccupancyTypes,
-  PlaceDetail,
-  PlaceType,
-} from '../../utils/types/types';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import Layout from '../../components/user/Shared/Layout';
 import NotificationHandler from '../../components/user/NewsFeed/NotificationHandler';
-import LoadingIndicator from '../../components/user/NewsFeed/LoadingIndicator';
-import PostsList from '../../components/user/NewsFeed/PostList';
-import { fetchPlaceDetails } from '../../utils/helper-functions/fetchPlaceDetail';
-import { sendNotificationHandler } from '../../utils/helper-functions/sendNotificationHandler';
-import { sendRequestNotification } from '../../utils/functions/notofications-handler';
 import FeedHeader from '../../components/user/NewsFeed/FeedHeader';
+import { UserStackList } from '../../utils/types/screen-types';
 import { usePlaceStore } from '../../utils/store/placesStore';
-import EmptyState from '../../components/user/NewsFeed/EmptyState';
-import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
-import PostLoaderView from '../../components/user/NewsFeed/Post/Loaders/PostLoaderView';
 import { useFiltersStore } from '../../utils/store/filtersStorage';
-import { useLocationStore } from '../../utils/store/locationStore';
+import { usePhotoRequest } from '../../utils/hooks/NewsFeed/usePhotoRequest';
+import { usePostZoom } from '../../utils/hooks/NewsFeed/usePostZoom';
+import { useUserUploadData } from '../../utils/hooks/NewsFeed/useUserUploadData';
+import { useNewsFeedEffects } from '../../utils/hooks/NewsFeed/useNewsFeedEffects';
+import { useNewsFeedData } from '../../utils/hooks/NewsFeed/usePostData';
+import { useComments } from '../../utils/hooks/NewsFeed/useComments';
+import { FeedContent } from './NewsFeed/FeedContent';
 
 export const NewsFeed = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
-  const { placeId, placeName, setPlaceDetail } = usePlaceStore();
-  const { distance, selectedPlaces, selectedOccupancy } = useFiltersStore();
-  const { realLocation, fakeLocation, useFakeLocation } = useLocationStore();
-  const { userData } = useUserContext();
 
-  const [expoPushToken, setExpoPushToken] = useState('');
-  const [zoomedPost, setZoomedPost] = useState<string | null>(null);
-  const [showComments, setShowComments] = useState(false);
-  const [postId, setPostId] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [
-    numberOfDaysSinceLastPostedPhoto,
-    setNumberOfDaysSinceLastPostedPhoto,
-  ] = useState(0);
+  // Store hooks
+  const { placeId, placeName } = usePlaceStore();
+  const { distance } = useFiltersStore();
 
-  useEffect(() => {
-    const numberOfDays = getDaysSince(
-      userData?.lastUploadedPost ?? new Date().toISOString()
-    );
-    setNumberOfDaysSinceLastPostedPhoto(numberOfDays);
-  }, [userData]);
-
+  // Data hooks
   const {
-    data: postsData,
-    isFetchingNextPage,
-    fetchNextPage,
+    posts,
     isLoading,
+    isRefetching,
+    isFetchingNextPage,
     hasNextPage,
     refetch,
-    isRefetching,
-  } = useInfiniteQuery(
-    placeId ? ['posts', placeId] : 'posts',
-    ({ pageParam = null }) =>
-      handleFreshContent(
-        distance,
-        pageParam,
-        placeId,
-        useFakeLocation ? fakeLocation! : realLocation!
-      ),
-    {
-      getNextPageParam: lastPage => lastPage?.lastVisible || null,
-    }
-  );
+    fetchMorePosts,
+  } = useNewsFeedData();
 
-  const filteredPosts = useMemo(() => {
-    if (!postsData?.pages) {
-      return [];
-    }
+  // Feature hooks
+  const { requestPhoto } = usePhotoRequest();
+  const { commentsState, openComments, closeComments } = useComments();
+  const { zoomedPost, setZoomedPost } = usePostZoom();
+  const { daysSinceLastUpload, userData } = useUserUploadData();
 
-    const allPosts = postsData.pages.flatMap(page => page.posts);
+  // Effects
+  useNewsFeedEffects({ placeId, distance, refetch });
 
-    if (selectedPlaces.length === 0 && selectedOccupancy.length === 0) {
-      return allPosts;
-    }
-
-    return allPosts.filter(post => {
-      const matchesPlaceType =
-        selectedPlaces.length === 0 ||
-        post.placeTypes?.some(type =>
-          selectedPlaces.includes(type as PlaceType)
-        );
-
-      const matchesOccupancy =
-        selectedOccupancy.length === 0 ||
-        selectedOccupancy.includes(post.occupancy as OccupancyTypes);
-
-      return matchesPlaceType && matchesOccupancy;
-    });
-  }, [postsData?.pages, selectedPlaces, selectedOccupancy]);
-
-  useEffect(() => {
-    if (placeId) refetch();
-  }, [placeId]);
-
-  useEffect(() => {
-    refetch();
-  }, [distance]);
-
-  const onRefresh = async () => {
+  const handleRefresh = async () => {
     await refetch();
   };
-
-  const fetchMorePosts = async () => {
-    if (hasNextPage) {
-      await fetchNextPage();
-    }
-  };
-
-  async function requestPhoto() {
-    const senderToken = userData?.pushToken;
-    const detail: PlaceDetail = await fetchPlaceDetails(placeId ?? '');
-    setPlaceDetail(detail);
-    if (placeId && placeName && detail) {
-      const tokens = await sendNotificationHandler({
-        latitude: detail?.geometry.location?.lat,
-        longitude: detail?.geometry.location?.lng,
-      });
-      tokens?.forEach(token => {
-        sendRequestNotification(token, placeId, placeName, senderToken ?? '');
-      });
-    }
-  }
-
-  async function toggleComments(
-    postId: string,
-    expoPushToken: string,
-    userId: string
-  ) {
-    setPostId(postId);
-    setExpoPushToken(expoPushToken);
-    setUserId(userId);
-    setShowComments(true);
-  }
 
   return (
     <Layout pageTitle={t('feed')}>
       <FeedHeader placeName={placeName} />
       <NotificationHandler navigation={navigation} userData={userData} />
 
-      {isLoading ? (
-        <PostLoaderView />
-      ) : filteredPosts?.length ? (
-        <PostsList
-          hasMorePosts={hasNextPage}
-          posts={filteredPosts}
-          zoomedPost={zoomedPost}
-          setZoomedPost={setZoomedPost}
-          userData={userData}
-          numberOfDaysSinceLastPostedPhoto={numberOfDaysSinceLastPostedPhoto}
-          requestPhoto={requestPhoto}
-          onCommentPress={toggleComments}
-          isFiltering={!!placeId}
-          onRefresh={onRefresh}
-          loading={isRefetching}
-          isFetchingNextPage={isFetchingNextPage}
-          fetchMorePosts={fetchMorePosts}
-        />
-      ) : (
-        <>
-          {isRefetching && <LoadingIndicator />}
-          <ScrollView
-            contentContainerStyle={styles.scrollViewContent}
-            refreshControl={
-              <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
-            }
-          >
-            <EmptyState requestPhoto={requestPhoto} />
-          </ScrollView>
-        </>
-      )}
-      {/*<CommentsSlider*/}
-      {/*  postId={postId}*/}
-      {/*  userId={userId ?? ''}*/}
-      {/*  opened={showComments}*/}
-      {/*  expoPushToken={expoPushToken}*/}
-      {/*  onClose={() => setShowComments(false)}*/}
-      {/*/>*/}
+      <FeedContent
+        isLoading={isLoading}
+        posts={posts}
+        isRefetching={isRefetching}
+        onRefresh={handleRefresh}
+        hasNextPage={hasNextPage}
+        zoomedPost={zoomedPost}
+        setZoomedPost={setZoomedPost}
+        userData={userData}
+        daysSinceLastUpload={daysSinceLastUpload}
+        requestPhoto={requestPhoto}
+        onCommentPress={openComments}
+        isFiltering={!!placeId}
+        isFetchingNextPage={isFetchingNextPage}
+        fetchMorePosts={fetchMorePosts}
+      />
+
+      {/* Uncomment when CommentsSlider is ready */}
+      {/*<CommentsSlider
+        postId={commentsState.postId}
+        userId={commentsState.userId ?? ''}
+        opened={commentsState.isOpen}
+        expoPushToken={commentsState.expoPushToken}
+        onClose={closeComments}
+      />*/}
     </Layout>
   );
 };
-
-const styles = StyleSheet.create({
-  scrollViewContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
 
 export default NewsFeed;

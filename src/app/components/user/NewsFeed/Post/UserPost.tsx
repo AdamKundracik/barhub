@@ -189,7 +189,7 @@ export const UserPost = (props: PostInterface) => {
         {!props.hasPremium ||
           (daysPassedSince(
             props.user?.lastUploadedPost ?? new Date().toISOString()
-          ) >= 14 && <BluredPostFrontView />)}
+          ) >= 7 && <BluredPostFrontView />)}
         <UserLine
           user={post.user}
           date={post.creationTime}

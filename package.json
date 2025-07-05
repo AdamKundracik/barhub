@@ -76,14 +76,15 @@
     "react-native-picker-select": "^9.1.3",
     "react-native-purchases": "^8.11.6",
     "react-native-purchases-ui": "^8.11.6",
-    "react-native-reanimated": "~3.18.0",
+    "react-native-reanimated": "~3.17.5",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
     "react-native-svg": "15.11.2",
     "react-native-uuid": "^2.0.2",
     "react-query": "^3.39.3",
     "shared": "file:./modules/shared",
-    "zustand": "^5.0.0"
+    "zustand": "^5.0.0",
+    "expo-auth-session": "~6.2.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

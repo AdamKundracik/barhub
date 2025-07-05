@@ -5,6 +5,7 @@ import { useLocationStore } from '../store/locationStore';
 import { LocationType } from '../types/types';
 import { setUserIntoDB } from '../helper-functions/setUserLocationIntoDB';
 import { getCoords } from '../helper-functions/get-coords';
+import { useNewsFeedData } from './NewsFeed/usePostData';
 
 export const useLocation = () => {
   const {
@@ -15,6 +16,8 @@ export const useLocation = () => {
     setUseFakeLocation,
     setFakeLocation,
   } = useLocationStore();
+
+  const { refetch } = useNewsFeedData();
 
   const currentLocation =
     useFakeLocation && fakeLocation ? fakeLocation : realLocation;
@@ -104,6 +107,7 @@ export const useLocation = () => {
     const locationToUpdate = useFakeLocation ? fakeLocation : realLocation;
     if (locationToUpdate) {
       updateLocationInDB(locationToUpdate);
+      refetch();
     }
   }, [useFakeLocation, realLocation, fakeLocation, updateLocationInDB]);
 

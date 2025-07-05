@@ -43,7 +43,6 @@ const PostsList = ({
   zoomedPost,
   setZoomedPost,
   userData,
-  numberOfDaysSinceLastPostedPhoto,
   requestPhoto,
   fetchMorePosts,
   onRefresh,
@@ -103,9 +102,7 @@ const PostsList = ({
           onCommentPress(postId, expoPushToken, userId)
         }
         isFiltering={isFiltering}
-        hasPremium={
-          (userData?.premium || numberOfDaysSinceLastPostedPhoto <= 7) ?? false
-        }
+        hasPremium={userData?.premium ?? false}
         post={item}
         setZoomedPost={setZoomedPost}
         isZoomed={zoomedPost === item.photoUrl}
