@@ -7,83 +7,101 @@ import {
   requestTrackingPermission,
 } from '../services/permission.service';
 
-type PermissionsState = {
-  camera: boolean;
-  geolocation: boolean;
-  notification: boolean;
-  tracking: boolean;
-};
+export type PermissionType =
+  | 'camera'
+  | 'geolocation'
+  | 'notification'
+  | 'tracking';
+
+type PermissionsState = Record<PermissionType, boolean>;
 
 export const usePermissions = () => {
   const [permissions, setPermissions] = useState<PermissionsState>({
-    tracking: Platform.OS === 'android',
+    tracking: Platform.OS === 'android', // Android doesn't need tracking permission
     camera: false,
     notification: false,
     geolocation: false,
   });
-  const [isLoadingPermissions, setIsLoadingPermissions] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const checkPermissions = async () => {
-    setIsLoadingPermissions(true);
+  const permissionRequestMap = {
+    camera: requestCameraPermission,
+    geolocation: requestGeolocationPermission,
+    notification: requestNotificationPermission,
+    tracking: requestTrackingPermission,
+  };
+
+  const checkAllPermissions = async () => {
+    setIsLoading(true);
     try {
-      const results = await Promise.all([
+      const [tracking, camera, notification, geolocation] = await Promise.all([
         requestTrackingPermission(),
         requestCameraPermission(),
         requestNotificationPermission(),
         requestGeolocationPermission(),
       ]);
 
-      setPermissions(prev => ({
-        ...prev,
-        tracking: Platform.OS === 'android' || results[0],
-        camera: results[1],
-        notification: results[2],
-        geolocation: results[3],
-      }));
+      setPermissions({
+        tracking: Platform.OS === 'android' || tracking,
+        camera,
+        notification,
+        geolocation,
+      });
     } catch (error) {
       console.error('Error checking permissions:', error);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoadingPermissions(false);
   };
 
-  const requestPermission = async (type: keyof PermissionsState) => {
-    let granted = false;
+  const requestPermission = async (type: PermissionType): Promise<boolean> => {
+    try {
+      const granted = await permissionRequestMap[type]();
 
-    switch (type) {
-      case 'camera':
-        granted = await requestCameraPermission();
-        break;
-      case 'geolocation':
-        granted = await requestGeolocationPermission();
-        break;
-      case 'notification':
-        granted = await requestNotificationPermission();
-        break;
-      case 'tracking':
-        granted = await requestTrackingPermission();
-        break;
+      setPermissions(prev => ({
+        ...prev,
+        [type]:
+          type === 'tracking' ? Platform.OS === 'android' || granted : granted,
+      }));
+
+      return granted;
+    } catch (error) {
+      console.error(`Error requesting ${type} permission:`, error);
+      return false;
     }
-
-    setPermissions(prev => ({
-      ...prev,
-      [type]:
-        type === 'tracking' ? Platform.OS === 'android' || granted : granted,
-    }));
-
-    return granted;
   };
 
-  const hasAllPermissions = Object.values(permissions).every(p => p);
+  const hasAllPermissions = Object.values(permissions).every(Boolean);
+
+  const getRequiredPermissions = (): PermissionType[] => {
+    const required: PermissionType[] = ['camera', 'notification'];
+
+    if (Platform.OS !== 'web') {
+      required.push('geolocation');
+    }
+
+    if (Platform.OS === 'ios') {
+      required.push('tracking');
+    }
+
+    return required;
+  };
+
+  const hasAllRequiredPermissions = (): boolean => {
+    return getRequiredPermissions().every(type => permissions[type]);
+  };
 
   useEffect(() => {
-    checkPermissions();
+    checkAllPermissions();
   }, []);
 
   return {
     permissions,
-    isLoadingPermissions,
-    checkPermissions,
+    isLoading,
+    checkAllPermissions,
     requestPermission,
     hasAllPermissions,
+    hasAllRequiredPermissions,
+    getRequiredPermissions,
   };
 };
