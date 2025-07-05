@@ -15,7 +15,6 @@ import { postBgColor, primaryBgColor } from '../../../../utils/styles/colors';
 import UserLine from './UserLine';
 import InteractionBar from './InteractionBar';
 import BluredPostFrontView from './BluredPostFrontView';
-import { daysPassedSince } from '../../../../utils/helper-functions/daysPassedSince';
 import { useQueryClient } from 'react-query';
 import { usePlaceStore } from '../../../../utils/store/placesStore';
 import { trimPlaceName } from '../../../../utils/helper-functions/trimPlaceName';
@@ -25,6 +24,7 @@ import { Image } from 'expo-image';
 
 interface PostInterface {
   post: Post;
+  numberOfDaysSinceLastPostedPhoto: number;
   setZoomedPost: (link: string | null) => void;
   isZoomed: boolean;
   hasPremium: boolean;
@@ -38,29 +38,36 @@ interface PostInterface {
   requestPhoto: () => void;
 }
 
+const { width: screenWidth } = Dimensions.get('window');
 const isTablet = Device.isTablet();
 
-const width = Dimensions.get('window').width;
+// Constants for better maintainability
+const DEBOUNCE_DELAY = 700;
+const DOUBLE_TAP_MAX_DURATION = 250;
+const PREMIUM_UPLOAD_THRESHOLD_DAYS = 7;
 
 export const UserPost = (props: PostInterface) => {
-  const { post, setZoomedPost } = props;
+  const { post, setZoomedPost, hasPremium, isFiltering, onCommentPress } =
+    props;
 
   const queryClient = useQueryClient();
+  const { placeId } = usePlaceStore();
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
+  // Animation values
   const focalX = useSharedValue(0);
   const focalY = useSharedValue(0);
   const xCurrent = useSharedValue(0);
   const yCurrent = useSharedValue(0);
   const scale = useSharedValue(1);
 
+  // State management
   const [liked, setLiked] = useState(post.isLiked);
   const [likeCount, setLikeCount] = useState<number>(post.likesCount ?? 0);
   const [previousLikeState, setPreviousLikeState] = useState(!post.isLiked);
-  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const { placeId } = usePlaceStore();
-
-  const optimisticUpdate = (liked: boolean) => {
+  // Optimistic update for like functionality
+  const optimisticUpdate = (currentLiked: boolean) => {
     queryClient.setQueryData(
       placeId ? ['posts', placeId] : 'posts',
       (oldData: any) => {
@@ -73,9 +80,11 @@ export const UserPost = (props: PostInterface) => {
             posts: page.posts.map((p: Post) =>
               p.id === post.id
                 ? {
-                    ...p, // Only update the specific post that changed
-                    isLiked: !liked,
-                    likesCount: liked ? p.likesCount - 1 : p.likesCount + 1,
+                    ...p,
+                    isLiked: !currentLiked,
+                    likesCount: currentLiked
+                      ? (p.likesCount ?? 0) - 1
+                      : (p.likesCount ?? 0) + 1,
                   }
                 : p
             ),
@@ -85,54 +94,54 @@ export const UserPost = (props: PostInterface) => {
     );
   };
 
+  // Handle like toggle with debouncing
   const handleLikeToggle = async (postId: string) => {
-    if (liked) {
-      setLiked(false);
-      setLikeCount(prevCount => prevCount - 1);
-    } else {
-      setLiked(true);
-      setLikeCount(prevCount => prevCount + 1);
-    }
+    // Immediate UI update
+    const newLikedState = !liked;
+    setLiked(newLikedState);
+    setLikeCount(prevCount => (newLikedState ? prevCount + 1 : prevCount - 1));
 
+    // Clear existing timeout
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
     }
 
+    // Debounced API call
     debounceTimeout.current = setTimeout(async () => {
-      const notifRequest: LikeNotificationRequest = {
-        postId: postId,
-        username: auth.currentUser?.displayName ?? '',
-        expoPushToken: post.user?.expoPushToken ?? '',
-      };
       try {
         if (liked !== previousLikeState) {
           await toggleLike(postId, auth.currentUser?.uid!);
-          if (!liked) {
-            if (post.userId !== auth.currentUser?.uid)
-              await sendLikeNotification(notifRequest);
+
+          // Send notification for new likes (not unlikes)
+          if (!liked && post.userId !== auth.currentUser?.uid) {
+            const notifRequest: LikeNotificationRequest = {
+              postId: postId,
+              username: auth.currentUser?.displayName ?? '',
+              expoPushToken: post.user?.expoPushToken ?? '',
+            };
+            await sendLikeNotification(notifRequest);
           }
+
           setPreviousLikeState(prevState => !prevState);
-          optimisticUpdate(liked);
+          optimisticUpdate(liked ?? false);
         }
       } catch (error) {
         console.error('Error updating like status:', error);
+        // Revert UI on error
         setLiked(previousLikeState);
         setLikeCount(prevCount =>
           previousLikeState ? prevCount + 1 : prevCount - 1
         );
       }
-    }, 700);
+    }, DEBOUNCE_DELAY);
   };
 
-  const onLikePress = () => {
-    handleLikeToggle(post.id);
-  };
-
+  // Gesture handlers
   const doubleTap = Gesture.Tap()
-    .maxDuration(250)
+    .maxDuration(DOUBLE_TAP_MAX_DURATION)
     .numberOfTaps(2)
-    .onStart(async () => {
-      onLikePress();
+    .onStart(() => {
+      handleLikeToggle(post.id);
     });
 
   const pinch = Gesture.Pinch()
@@ -170,10 +179,16 @@ export const UserPost = (props: PostInterface) => {
     };
   });
 
+  // Check if post should be blurred
+  const shouldNotBlurPost =
+    !hasPremium ||
+    props.numberOfDaysSinceLastPostedPhoto >= PREMIUM_UPLOAD_THRESHOLD_DAYS;
+
   return (
     <>
-      {!props.isFiltering && (
-        <View style={isTablet ? tabletStyles.placeName : styles.placeName}>
+      {/* Place name header - only show when not filtering */}
+      {!isFiltering && (
+        <View style={[styles.placeName, isTablet && tabletStyles.placeName]}>
           <PlaceNameSeparator
             placeNameLocal={trimPlaceName(post.placeName)}
             placeIdLocal={post.folderId}
@@ -181,46 +196,50 @@ export const UserPost = (props: PostInterface) => {
         </View>
       )}
 
+      {/* Main post content */}
       <View
-        style={
-          isTablet ? tabletStyles.contentContainer : styles.contentContainer
-        }
+        style={[
+          styles.contentContainer,
+          isTablet && tabletStyles.contentContainer,
+        ]}
       >
-        {!props.hasPremium ||
-          (daysPassedSince(
-            props.user?.lastUploadedPost ?? new Date().toISOString()
-          ) >= 7 && <BluredPostFrontView />)}
+        {/* Blur overlay for non-premium users */}
+        {!shouldNotBlurPost && <BluredPostFrontView />}
+
+        {/* User information line */}
         <UserLine
           user={post.user}
           date={post.creationTime}
           address={post.placeAddress}
           profileImage={post.user?.photoUrl ?? ''}
         />
-        <View style={{ height: width, position: 'relative' }}>
+
+        {/* Photo container - NxN square where N is screen width */}
+        <View style={styles.photoWrapper}>
           <GestureDetector gesture={doubleTap}>
             <GestureDetector gesture={pinch}>
               <Animated.View style={[styles.photoContainer, animatedStyle]}>
                 <Image
-                  style={[isTablet ? tabletStyles.photo : styles.photo]}
-                  source={{
-                    uri: post.photoUrl,
-                  }}
-                  priority={'high'}
-                  contentFit={'cover'}
+                  style={[styles.photo, isTablet && tabletStyles.photo]}
+                  source={{ uri: post.photoUrl }}
+                  priority="high"
+                  contentFit="cover"
                 />
               </Animated.View>
             </GestureDetector>
           </GestureDetector>
         </View>
+
+        {/* Interaction bar */}
         <InteractionBar
           likes={likeCount}
           comments={post.commentsCount}
-          onLikeToggle={onLikePress}
+          onLikeToggle={() => handleLikeToggle(post.id)}
           onCommentToggle={() =>
-            props.onCommentPress(
-              props.post.id,
-              props.post.user?.expoPushToken ?? '',
-              props.post.userId ?? ''
+            onCommentPress(
+              post.id,
+              post.user?.expoPushToken ?? '',
+              post.userId ?? ''
             )
           }
           isLiked={liked}
@@ -232,32 +251,19 @@ export const UserPost = (props: PostInterface) => {
 };
 
 const styles = StyleSheet.create({
-  postWrapper: {
-    width: '100%',
-  },
-  userLine: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
   placeName: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
     backgroundColor: primaryBgColor,
+    alignItems: 'center',
   },
   contentContainer: {
     backgroundColor: postBgColor,
     borderRadius: 20,
     overflow: 'hidden',
   },
-  userInfo: {
-    padding: 15,
-    flexShrink: 1,
-    marginRight: 10,
+  photoWrapper: {
+    width: screenWidth,
+    height: screenWidth, // NxN square where N is screen width
+    position: 'relative',
   },
   photoContainer: {
     width: '100%',
@@ -266,99 +272,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   photo: {
-    borderRadius: 20,
-    flex: 10,
     width: '100%',
-    height: width,
-    zIndex: 10,
-  },
-  photoActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 10,
-  },
-  commentsList: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-  },
-  commentItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#ccc',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-  },
-  input: {
-    flex: 1,
-    borderColor: '#ccc',
-    borderWidth: 1,
+    height: '100%',
     borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    marginRight: 10,
-  },
-  button: {
-    backgroundColor: '#007BFF',
-    padding: 10,
-    borderRadius: 20,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  iconButton: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    backgroundColor: '#007BFF',
-    padding: 10,
-    borderRadius: 50,
-  },
-  icon: {
-    width: 30,
-    height: 30,
-    tintColor: '#fff',
-  },
-  commentText: {
-    fontSize: 16,
-  },
-  profileImg: {
-    width: 32,
-    height: 32,
-    borderRadius: 50,
-  },
-  profileText: {
-    color: '#ccc000',
-  },
-  commentBy: {},
-  profilePicture: {
-    width: 32,
-    height: 32,
-    borderRadius: 32,
-  },
-  commentContent: {
-    marginLeft: 10,
-    flex: 1,
-    flexDirection: 'column',
-    alignItems: 'flex-start',
   },
 });
 
 const tabletStyles = StyleSheet.create({
-  postWrapper: {
-    width: '100%',
-    height: 'auto',
-  },
   placeName: {
-    backgroundColor: primaryBgColor,
     padding: 20,
   },
   contentContainer: {
@@ -366,75 +287,10 @@ const tabletStyles = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
   },
-  photoContainer: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   photo: {
     width: '100%',
-    height: width,
+    height: '100%',
     borderRadius: 20,
-    flex: 10,
-  },
-  commentsList: {
-    paddingHorizontal: 30,
-    paddingVertical: 20,
-  },
-  commentItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#ccc',
-    paddingHorizontal: 30,
-    paddingVertical: 20,
-  },
-  input: {
-    flex: 1,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    marginRight: 15,
-  },
-  button: {
-    backgroundColor: '#007BFF',
-    padding: 15,
-    borderRadius: 20,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-  },
-  profileImg: {
-    width: 40,
-    height: 40,
-    borderRadius: 50,
-  },
-  profilePicture: {
-    width: 40,
-    height: 40,
-    borderRadius: 40,
-  },
-  commentContent: {
-    flex: 1,
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-  },
-  commentText: {
-    fontSize: 24,
-  },
-  commentBy: {
-    fontSize: 24,
   },
 });
 

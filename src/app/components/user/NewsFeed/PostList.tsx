@@ -43,6 +43,7 @@ const PostsList = ({
   zoomedPost,
   setZoomedPost,
   userData,
+  numberOfDaysSinceLastPostedPhoto,
   requestPhoto,
   fetchMorePosts,
   onRefresh,
@@ -96,6 +97,7 @@ const PostsList = ({
       }}
     >
       <UserPost
+        numberOfDaysSinceLastPostedPhoto={numberOfDaysSinceLastPostedPhoto}
         requestPhoto={requestPhoto}
         user={users?.find(user => user.uid === item.userId)}
         onCommentPress={(postId, expoPushToken, userId) =>
