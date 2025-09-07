@@ -154,5 +154,17 @@
   "third-party-libraries": "Drittanbieter-Bibliotheken",
   "use-different-location": "Anderen Standort verwenden",
   "select-city": "Stadt auswählen",
-  "Selected-location": "Ausgewählter Standort"
+  "Selected-location": "Ausgewählter Standort",
+  "invalid-month": "invalid-month",
+  "invalid-year": "invalid-year",
+  "invalid-day": "invalid-day",
+  "notification-processing-error": "notification-processing-error",
+  "password-length": "password-length",
+  "permissions.allGranted": "permissions.allGranted",
+  "permissions.check-for-permissions": "permissions.check-for-permissions",
+  "permissions.alreadyGranted": "permissions.alreadyGranted",
+  "permissions.grant": "permissions.grant",
+  "permissions.open-settings": "permissions.open-settings",
+  "permissions.allow-in-settings": "permissions.allow-in-settings",
+  "permissions.settings": "permissions.settings"
 }

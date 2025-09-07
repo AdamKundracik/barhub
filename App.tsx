@@ -17,6 +17,9 @@ import i18n from './src/localization/i18n';
 import { createQueryClientWithPersistence } from './src/app/utils/hooks/useQueryClient';
 import { useAppInitialization } from './src/app/utils/hooks/useInitializationApp';
 
+import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
+import '@/global.css';
+
 // Configure Reanimated logger
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
@@ -31,20 +34,22 @@ export default function App() {
   useAppInitialization();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <I18nextProvider i18n={i18n}>
-          <AppStateProvider>
-            <PermissionsProvider>
-              <UserProvider>
-                <RevenueCatProvider>
-                  <Navigation />
-                </RevenueCatProvider>
-              </UserProvider>
-            </PermissionsProvider>
-          </AppStateProvider>
-        </I18nextProvider>
-      </GestureHandlerRootView>
-    </QueryClientProvider>
+    <GluestackUIProvider mode="dark">
+      <QueryClientProvider client={queryClient}>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <I18nextProvider i18n={i18n}>
+            <AppStateProvider>
+              <PermissionsProvider>
+                <UserProvider>
+                  <RevenueCatProvider>
+                    <Navigation />
+                  </RevenueCatProvider>
+                </UserProvider>
+              </PermissionsProvider>
+            </AppStateProvider>
+          </I18nextProvider>
+        </GestureHandlerRootView>
+      </QueryClientProvider>
+    </GluestackUIProvider>
   );
 }

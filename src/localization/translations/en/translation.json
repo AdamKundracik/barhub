@@ -155,5 +155,9 @@
   "third-party-libraries": "Third-party libraries",
   "use-different-location": "Use different location",
   "select-city": "Select city",
-  "Selected-location": "Selected location"
+  "Selected-location": "Selected location",
+  "invalid-month": "invalid-month",
+  "invalid-year": "invalid-year",
+  "invalid-day": "invalid-day",
+  "password-length": "Must be at least 6 characters."
 }

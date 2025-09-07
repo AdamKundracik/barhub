@@ -156,5 +156,9 @@
   "third-party-libraries": "Knižnice tretích strán",
   "use-different-location": "Použiť iné miesto",
   "select-city": "Vybrať mesto",
-  "Selected-location": "Vybrané miesto"
+  "Selected-location": "Vybrané miesto",
+  "invalid-month": "invalid-month",
+  "invalid-year": "invalid-year",
+  "invalid-day": "invalid-day",
+  "password-length": "Musi byt aspon 6 znakov dlhe "
 }

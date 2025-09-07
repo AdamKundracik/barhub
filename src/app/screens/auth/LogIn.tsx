@@ -2,7 +2,6 @@ import {
   ActivityIndicator,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -10,7 +9,6 @@ import * as React from 'react';
 import { useState } from 'react';
 
 import AuthLayout from '../../components/auth/AuthLayout';
-import { InputWrapper } from '../../components/shared/InputWrapper';
 import { commonAppStyles, formStyles } from '../../utils/styles/styles';
 import { auth } from '../../../../firebaseConfig';
 import { useTranslation } from 'react-i18next';
@@ -21,9 +19,21 @@ import {
   signInWithEmailAndPassword,
 } from 'firebase/auth';
 import Svg, { Path } from 'react-native-svg';
-import { textInputPlaceholderColor } from '../../utils/styles/colors';
 import { GoogleIcon } from '../../utils/icons/GoogleIcon';
 import OSeparator from '../../components/auth/OSeparator';
+import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
+import {
+  FormControl,
+  FormControlError,
+  FormControlErrorIcon,
+  FormControlErrorText,
+  FormControlHelper,
+  FormControlHelperText,
+  FormControlLabel,
+  FormControlLabelText,
+} from '@/components/ui/form-control';
+import { AlertCircleIcon, EyeIcon, EyeOffIcon } from '@/components/ui/icon';
+import { primaryColor, primaryTextColor } from '@/src/app/utils/styles/colors';
 
 export const LogIn = ({ navigation }: any) => {
   const { t } = useTranslation();
@@ -170,31 +180,74 @@ export const LogIn = ({ navigation }: any) => {
         </View>
       </View>
 
-      <InputWrapper inputLabel={t('email')}>
-        <TextInput
-          value={email}
-          onChangeText={setEmail}
-          style={formStyles.inputPrimary}
-          placeholder={t('email')}
-          keyboardType={'email-address'}
-          placeholderTextColor={textInputPlaceholderColor}
-        />
-      </InputWrapper>
-      <InputWrapper
-        inputLabel={t('password')}
-        setTogglePassword={setTogglePassword}
-        togglePassword={togglePassword}
-        passwordInput
+      <FormControl
+        size="md"
+        isDisabled={false}
+        isReadOnly={false}
+        isRequired={false}
+        style={{ paddingHorizontal: 10, marginBottom: 10 }}
       >
-        <TextInput
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={togglePassword}
+        <FormControlLabel>
+          <FormControlLabelText style={{ color: primaryColor }}>
+            {t('email')}
+          </FormControlLabelText>
+        </FormControlLabel>
+        <Input
+          className="my-1"
+          variant={'rounded'}
+          size="xl"
           style={formStyles.inputPrimary}
-          placeholder={t('password')}
-          placeholderTextColor={textInputPlaceholderColor}
-        />
-      </InputWrapper>
+        >
+          <InputField
+            type="text"
+            placeholder={t('email')}
+            style={{ color: primaryTextColor }}
+            onChangeText={setEmail}
+          />
+        </Input>
+      </FormControl>
+
+      <FormControl
+        size="md"
+        isDisabled={false}
+        isReadOnly={false}
+        isRequired={false}
+        style={{ paddingHorizontal: 10 }}
+      >
+        <FormControlLabel>
+          <FormControlLabelText style={{ color: primaryColor }}>
+            {t('password')}
+          </FormControlLabelText>
+        </FormControlLabel>
+        <Input
+          className="my-1"
+          variant={'rounded'}
+          size="xl"
+          style={formStyles.inputPrimary}
+        >
+          <InputField
+            type={togglePassword ? 'text' : 'password'}
+            placeholder={t('password')}
+            style={{ color: primaryTextColor }}
+            onChangeText={setPassword}
+          />
+          <InputSlot
+            className="pr-3"
+            onPress={() => setTogglePassword(!togglePassword)}
+          >
+            <InputIcon as={togglePassword ? EyeIcon : EyeOffIcon} />
+          </InputSlot>
+        </Input>
+        <FormControlHelper>
+          <FormControlHelperText>{t('password-length')}</FormControlHelperText>
+        </FormControlHelper>
+        <FormControlError>
+          <FormControlErrorIcon as={AlertCircleIcon} className="text-red-500" />
+          <FormControlErrorText className="text-red-500">
+            {t('weak-password')}
+          </FormControlErrorText>
+        </FormControlError>
+      </FormControl>
 
       <TouchableOpacity
         style={styles.textButtons}
