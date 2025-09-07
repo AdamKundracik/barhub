@@ -1,4 +1,4 @@
-import { ServiceCodeEnum, ServiceStatusEnum } from './functions-types';
+import { ServiceCodeEnum, ServiceStatusEnum } from '../types/functions-types';
 
 export const MISSING_REQUIRED_REQUEST_PARAMS = {
   status: ServiceStatusEnum.ERROR,

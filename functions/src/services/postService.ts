@@ -33,14 +33,13 @@ class PostService {
 
     try {
       const timestamp = admin.firestore.Timestamp.now();
-      const fileId = `${timestamp.seconds}_${userId}`;
+      const fileId = `${post.fileId}_${userId}`;
 
       const postDoc: PostDocument = {
         ...post,
         userId: userId ?? '',
         fileId: fileId ?? '',
         creationTime: timestamp,
-        timestamp: Date.now(),
       };
 
       const addedPostReference = await this.db.collection('posts').add(postDoc);

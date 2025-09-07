@@ -15,7 +15,6 @@ import {
 } from 'react-native';
 import { Place } from '../../../utils/types/types';
 import { useRef, useState } from 'react';
-import { fetchNearbyPlaces } from '../../../utils/helper-functions/fetchNearByPlaces';
 import { useTranslation } from 'react-i18next';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
@@ -25,6 +24,7 @@ import { Icons } from '../../../utils/icons/icons';
 import { radius } from '../../../utils/helper-functions/constants';
 import { mapPlaceToPlacePrediction } from '../../../utils/helper-functions/mapPlaceToPlacePrediction';
 import { usePlaceStore } from '../../../utils/store/placesStore';
+import { fetchNearbyPlaces } from '../../../utils/helper-functions/fetchPlacesAPI';
 
 const latitudeDelta = 0.0045;
 const longitudeDelta = 0.0045;

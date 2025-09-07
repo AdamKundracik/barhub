@@ -3,12 +3,10 @@ import {
   ActivityIndicator,
   FlatList,
   Pressable,
-  StyleSheet,
   Text,
   View,
 } from 'react-native';
 import Layout from '../../../components/user/Shared/Layout';
-import { fetchNearbyPlaces } from '../../../utils/helper-functions/fetchNearByPlaces';
 import { Place } from '../../../utils/types/types';
 import { useUserContext } from '../../../providers/UserProvider';
 import { primaryColor, primaryDeepColor } from '../../../utils/styles/colors';
@@ -16,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { ScreenLayout } from '../../../components/user/Shared/ScreenLayout';
+import { fetchNearbyPlaces } from '../../../utils/helper-functions/fetchPlacesAPI';
 
 export const PhotoResolver = ({ route }: any) => {
   const { location } = useUserContext();
@@ -100,25 +99,5 @@ export const PhotoResolver = ({ route }: any) => {
     </ScreenLayout>
   );
 };
-
-const styles = StyleSheet.create({
-  map: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  infoContainer: {
-    backgroundColor: 'white',
-    justifyContent: 'center',
-    alignSelf: 'center',
-    padding: 15,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: 'grey',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-  },
-});
 
 export default PhotoResolver;

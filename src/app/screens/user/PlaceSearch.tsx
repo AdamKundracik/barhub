@@ -13,13 +13,13 @@ import { generateId } from '../../utils/helper-functions/generate-hash';
 import { usePlaceStore } from '../../utils/store/placesStore';
 import { useUserContext } from '../../providers/UserProvider';
 import { useQuery } from 'react-query';
-import { fetchPlaceAutocomplete } from '../../utils/helper-functions/fetchPlacesAutocomplete';
 import { primaryColor, primaryDeepColor } from '../../utils/styles/colors';
 import Layout from '../../components/user/Shared/Layout';
 import MapSearch from '../../components/user/Search/MapSearch';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
 import { formStyles } from '../../utils/styles/styles';
+import { fetchPlaceAutocomplete } from '../../utils/helper-functions/fetchPlacesAPI';
 
 export const PlaceSearch = () => {
   const [isMapShown, setIsMapShown] = useState<boolean>(false);

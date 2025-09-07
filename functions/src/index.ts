@@ -42,11 +42,10 @@ export const setUser = functions.https.onCall(
   }
 );
 
-export const savePost = functions.https.onCall(
+exports.savePost = functions.https.onCall(
   async (data, context: CallableContext): Promise<SavePostResponse> => {
     const { post } = data;
-    const uploadedPost = await postService.savePost(context.auth.uid, post);
-    return uploadedPost;
+    return await postService.savePost(context.auth.uid, post);
   }
 );
 

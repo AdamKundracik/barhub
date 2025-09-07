@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { fetchPlaceDetails } from '../../helper-functions/fetchPlaceDetail';
 import { sendNotificationHandler } from '../../helper-functions/sendNotificationHandler';
 import { sendRequestNotification } from '../../functions/notofications-handler';
 import { usePlaceStore } from '../../store/placesStore';
 import { useUserContext } from '../../../providers/UserProvider';
+import { fetchPlaceDetails } from '../../helper-functions/fetchPlacesAPI';
 
 export const usePhotoRequest = () => {
   const [isRequestingPhoto, setIsRequestingPhoto] = useState(false);

@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { AppState } from 'react-native';
 import BackgroundGeolocation from 'react-native-background-geolocation';
 import { useLocationStore } from '../store/locationStore';

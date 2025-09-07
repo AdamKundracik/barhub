@@ -32,6 +32,7 @@ import { auth } from '../../../../../firebaseConfig';
 import { ScreenLayout } from '../../../components/user/Shared/ScreenLayout';
 import { sendPushNotificationResponse } from '../../../utils/functions/notofications-handler';
 import { deleteNotification } from '../../../utils/services/notifications-service';
+import { generateUID } from '../../../utils/helper-functions/generateUID';
 
 type SummaryProps = {
   image: string;
@@ -87,17 +88,16 @@ export const PostSummary = ({ route }: any) => {
   };
 
   const { mutate } = useMutation({
-    mutationFn: save,
-    onMutate: async (newPost: Omit<Post, 'creationTime'>) => {
-      await queryClient.cancelQueries({ queryKey: 'posts' });
+    mutationFn: (post: Omit<Post, 'creationTime'>) =>
+      postService.savePost(post),
+    onMutate: async newPost => {
+      await queryClient.cancelQueries({ queryKey: ['posts'] });
 
-      const previousPosts = queryClient.getQueryData<{
-        pageParams: unknown[];
-        pages: { lastVisible: string; posts: Post[] }[];
-      }>('posts');
+      const previousPosts = queryClient.getQueryData<any>(['posts']);
 
       const newCachedPost: Omit<Post, 'creationTime'> = {
         ...newPost,
+        id: 'temp-' + Date.now(),
         isLiked: false,
         commentsCount: 0,
         likesCount: 0,
@@ -109,20 +109,15 @@ export const PostSummary = ({ route }: any) => {
         },
       };
 
-      queryClient.setQueryData('posts', (oldData: any) => {
-        const updatedPages = oldData?.pages.map((page: any, index: number) => {
-          if (index === 0) {
-            return {
-              ...page,
-              posts: [newCachedPost, ...page.posts],
-            };
-          }
-          return page;
-        });
-
+      queryClient.setQueryData(['posts'], (oldData: any) => {
+        if (!oldData) return oldData;
         return {
           ...oldData,
-          pages: updatedPages,
+          pages: oldData.pages.map((page: any, index: number) =>
+            index === 0
+              ? { ...page, posts: [newCachedPost, ...page.posts] }
+              : page
+          ),
         };
       });
 
@@ -130,17 +125,28 @@ export const PostSummary = ({ route }: any) => {
     },
     onError: (err, newPost, context) => {
       if (context?.previousPosts) {
-        queryClient.setQueryData('posts', context.previousPosts);
+        queryClient.setQueryData(['posts'], context.previousPosts);
       }
     },
+    onSuccess: savedPost => {
+      queryClient.setQueryData(['posts'], (oldData: any) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page: any, index: number) =>
+            index === 0
+              ? {
+                  ...page,
+                  posts: page.posts.map((p: Post) =>
+                    p.id.startsWith('temp-') ? savedPost : p
+                  ),
+                }
+              : page
+          ),
+        };
+      });
+    },
   });
-
-  async function save() {
-    if (!image || !place?.id) {
-      console.error('Image or place ID is missing');
-      return null;
-    }
-  }
 
   const handleSavePost = async () => {
     setIsSaving(true);
@@ -149,6 +155,7 @@ export const PostSummary = ({ route }: any) => {
       const url = await uploadImageAsync(image, place?.id);
 
       if (url) {
+        const uid = generateUID();
         const hash = geohashForLocation([
           place?.location.latitude ?? 0,
           place?.location.longitude ?? 0,
@@ -163,7 +170,7 @@ export const PostSummary = ({ route }: any) => {
           placeTypes: place.types,
           id: '',
           userId: '',
-          fileId: '',
+          fileId: uid,
           occupancy: selectedOccupancy ?? '',
           folderId: place?.id ?? '',
           timestamp: Date.now(),
@@ -173,8 +180,8 @@ export const PostSummary = ({ route }: any) => {
         };
 
         try {
-          const postResponse = await postService.savePost(newPost);
-          mutate(postResponse);
+          await postService.savePost(newPost);
+          mutate(newPost);
           navigation.navigate('Feed');
           if (senderToken)
             await sendPushNotificationResponse(senderToken, place.id);

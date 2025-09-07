@@ -1,10 +1,4 @@
-import {
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { SafeAreaView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import React, { ReactNode, useState } from 'react';
 import {
   iconInactiveColor,
@@ -181,7 +175,7 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
             )}
           </TouchableOpacity>
 
-          <Pressable
+          <TouchableOpacity
             style={styles.tabButton}
             onPress={() => {
               handleTabPress(TabsTypes.placeSearch);
@@ -196,7 +190,7 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
                   : iconInactiveColor
               }
             />
-          </Pressable>
+          </TouchableOpacity>
         </View>
       )}
       {menuOpen && <RollupMenu setOpenMenu={setMenuOpen} isOpen={menuOpen} />}
