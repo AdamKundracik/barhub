@@ -14,13 +14,14 @@ export const formStyles = StyleSheet.create({
     borderWidth: 1,
     color: primaryTextColor,
   },
+  formControl: {
+    paddingHorizontal: 10,
+    marginBottom: 10,
+  },
   buttonPrimary: {
-    alignItems: 'center',
-    justifyContent: 'center',
     marginTop: 10,
     borderRadius: 10,
     height: 50,
-    alignSelf: 'center',
     width: 200,
     backgroundColor: primaryColor,
   },
@@ -54,8 +55,6 @@ export const formStyles = StyleSheet.create({
   },
   buttonText: {
     color: primaryGrey,
-    display: 'flex',
-    margin: 'auto',
     fontWeight: 'bold',
     fontSize: 16,
   },

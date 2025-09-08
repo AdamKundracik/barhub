@@ -107,7 +107,12 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
                 ></View>
               )}
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setFiltersOpened(true)}>
+            <TouchableOpacity
+              onPress={() => {
+                setFiltersOpened(true);
+                console.log(filtersOpened);
+              }}
+            >
               <FontAwesomeIcon
                 icon={Icons.Sliders}
                 color={iconInactiveColor}

@@ -12,7 +12,7 @@
   "repeatPassword": "Zopakuj heslo",
   "noMatchingPasswords": "Heslá sa nezhodujú",
   "haveAccount": "Už máš účet?",
-  "Forgot password": "Forgot password",
+  "forgot-password": "Zabudnuté heslo",
   "newPassword": "Nové heslo",
   "repeatNewPassword": "Zopakuj nové heslo",
   "noPermission": "Povolenie sa neudelilo",

@@ -1,17 +1,8 @@
-import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import AuthLayout from '../../components/auth/AuthLayout';
 import * as React from 'react';
 import { useState } from 'react';
 import { formStyles } from '../../utils/styles/styles';
-import { InputWrapper } from '../../components/shared/InputWrapper';
 import { useTranslation } from 'react-i18next';
 import {
   createUserWithEmailAndPassword,
@@ -37,18 +28,22 @@ import {
 } from '@/components/ui/form-control';
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
 import { AlertCircleIcon, EyeIcon, EyeOffIcon } from '@/components/ui/icon';
+import DatePicker from 'react-native-date-picker';
+import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
+import { Center } from '@/components/ui/center';
 
-export const Register = ({ navigation }: any) => {
+export const Register = () => {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
-  const [togglePassword, setTogglePassword] = useState(true);
+  const [togglePassword, setTogglePassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [image, setImage] = useState<string | null>(null);
   const [username, setUserName] = useState('');
   const [date, setDate] = useState(new Date(1598051730000));
   const [acceptsTermsOfUse, setAcceptsTermsOfUse] = useState(false);
+  const [datePickerOpened, setDatePickerOpened] = useState(false);
 
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -69,9 +64,19 @@ export const Register = ({ navigation }: any) => {
     }
   };
 
-  const handleDateChange = (newDate: string) => {
-    setDate(newDate);
-  };
+  // const handleDateChange = (newDate: string) => {
+  //   setDate(newDate);
+  // };
+
+  function validateInputs(): boolean {
+    return (
+      !!email &&
+      !!password &&
+      !!repeatPassword &&
+      !!username &&
+      acceptsTermsOfUse
+    );
+  }
 
   async function handleRegister() {
     setLoading(true);
@@ -121,21 +126,21 @@ export const Register = ({ navigation }: any) => {
     return password === repeatPassword;
   }
 
-  async function handleSetUserAccount() {
-    if (
-      email &&
-      username &&
-      date &&
-      password &&
-      repeatPassword &&
-      acceptsTermsOfUse &&
-      isSamePassword()
-    ) {
-      await handleRegister();
-    } else {
-      Alert.alert('Error', 'Invalid form');
-    }
-  }
+  // async function handleSetUserAccount() {
+  //   if (
+  //     email &&
+  //     username &&
+  //     date &&
+  //     password &&
+  //     repeatPassword &&
+  //     acceptsTermsOfUse &&
+  //     isSamePassword()
+  //   ) {
+  //     await handleRegister();
+  //   } else {
+  //     Alert.alert('Error', 'Invalid form');
+  //   }
+  // }
 
   return (
     <AuthLayout pageTitle={t('Register')}>
@@ -176,7 +181,7 @@ export const Register = ({ navigation }: any) => {
         isDisabled={false}
         isReadOnly={false}
         isRequired={false}
-        style={styles.formControl}
+        style={formStyles.formControl}
       >
         <FormControlLabel>
           <FormControlLabelText style={{ color: primaryColor }}>
@@ -204,7 +209,7 @@ export const Register = ({ navigation }: any) => {
         isDisabled={false}
         isReadOnly={false}
         isRequired={false}
-        style={styles.formControl}
+        style={formStyles.formControl}
       >
         <FormControlLabel>
           <FormControlLabelText style={{ color: primaryColor }}>
@@ -227,10 +232,41 @@ export const Register = ({ navigation }: any) => {
         </Input>
       </FormControl>
 
-      <FormControl>
+      <FormControl
+        size="md"
+        isDisabled={false}
+        isReadOnly={false}
+        isRequired={false}
+        style={formStyles.formControl}
+      >
         <FormControlLabelText style={{ color: primaryColor }}>
           {t('date-of-birth')}
         </FormControlLabelText>
+        <Input
+          className="my-1"
+          variant={'rounded'}
+          size="xl"
+          style={formStyles.inputPrimary}
+        >
+          <InputField
+            value={date.toLocaleDateString()}
+            onPress={() => setDatePickerOpened(true)}
+            style={{ color: primaryTextColor }}
+          />
+        </Input>
+        <DatePicker
+          modal
+          open={datePickerOpened}
+          date={date}
+          mode={'date'}
+          onConfirm={date => {
+            setDatePickerOpened(false);
+            setDate(date);
+          }}
+          onCancel={() => {
+            setDatePickerOpened(false);
+          }}
+        />
       </FormControl>
 
       <FormControl
@@ -238,8 +274,8 @@ export const Register = ({ navigation }: any) => {
         isDisabled={false}
         isReadOnly={false}
         isRequired={false}
-        style={styles.formControl}
-        isInvalid={!isSamePassword()}
+        style={formStyles.formControl}
+        isInvalid={!isSamePassword() || password.length < 6}
       >
         <FormControlLabel>
           <FormControlLabelText style={{ color: primaryColor }}>
@@ -283,7 +319,7 @@ export const Register = ({ navigation }: any) => {
         isDisabled={false}
         isReadOnly={false}
         isRequired={false}
-        style={styles.formControl}
+        style={formStyles.formControl}
         isInvalid={!isSamePassword()}
       >
         <FormControlLabel>
@@ -318,7 +354,13 @@ export const Register = ({ navigation }: any) => {
           </FormControlErrorText>
         </FormControlError>
       </FormControl>
-      <InputWrapper>
+      <FormControl
+        size="md"
+        isDisabled={false}
+        isReadOnly={false}
+        isRequired={false}
+        style={formStyles.formControl}
+      >
         <BouncyCheckbox
           style={{ padding: 5 }}
           fillColor={primaryColor}
@@ -327,22 +369,24 @@ export const Register = ({ navigation }: any) => {
           isChecked={acceptsTermsOfUse}
           onPress={() => setAcceptsTermsOfUse(!acceptsTermsOfUse)}
         ></BouncyCheckbox>
-      </InputWrapper>
-      <TouchableOpacity
-        onPress={handleSetUserAccount}
-        style={formStyles.buttonPrimary}
-        disabled={!isSamePassword()}
-      >
-        {!loading ? (
-          <Text style={formStyles.buttonText}>{t('register')}</Text>
-        ) : (
-          <ActivityIndicator
-            style={formStyles.buttonText}
-            size="small"
-            color="#000000"
-          />
-        )}
-      </TouchableOpacity>
+      </FormControl>
+      <Center>
+        <Button
+          variant="solid"
+          size="md"
+          action="primary"
+          style={formStyles.buttonPrimary}
+          onPress={handleRegister}
+          isDisabled={!isSamePassword() || !validateInputs()}
+        >
+          {!loading && (
+            <ButtonText style={formStyles.buttonText}>
+              {t('register')}
+            </ButtonText>
+          )}
+          {loading && <ButtonSpinner />}
+        </Button>
+      </Center>
     </AuthLayout>
   );
 };
@@ -362,10 +406,6 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: 'center',
-  },
-  formControl: {
-    paddingHorizontal: 10,
-    marginBottom: 10,
   },
   container: {
     alignItems: 'center',
