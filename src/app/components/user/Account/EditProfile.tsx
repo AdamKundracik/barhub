@@ -203,7 +203,7 @@ const ProfileEditScreen = (props: EditProfileProps) => {
 
           {/* Username input */}
           <FormControl
-            size="md"
+            size="lg"
             isDisabled={true}
             isReadOnly={false}
             isRequired={false}
@@ -230,7 +230,7 @@ const ProfileEditScreen = (props: EditProfileProps) => {
           </FormControl>
 
           <FormControl
-            size="md"
+            size="lg"
             isDisabled={false}
             isReadOnly={false}
             isRequired={false}
@@ -258,7 +258,7 @@ const ProfileEditScreen = (props: EditProfileProps) => {
           </FormControl>
 
           <FormControl
-            size="md"
+            size="lg"
             isDisabled={false}
             isReadOnly={false}
             isRequired={false}

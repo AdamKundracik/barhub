@@ -136,7 +136,7 @@ const PasswordChangeScreen = () => {
         <View style={styles.container}>
           <Text style={styles.header}>{t('change-password-title')}</Text>
           {hasPasswordLogin && (
-            <FormControl style={formStyles.formControl}>
+            <FormControl style={formStyles.formControl} size="lg">
               <FormControlLabel>
                 <FormControlLabelText style={{ color: primaryColor }}>
                   {t('old-password')}
@@ -167,6 +167,7 @@ const PasswordChangeScreen = () => {
           <FormControl
             style={formStyles.formControl}
             isInvalid={password.length < 6}
+            size="lg"
           >
             <FormControlLabel>
               <FormControlLabelText style={{ color: primaryColor }}>
@@ -199,6 +200,7 @@ const PasswordChangeScreen = () => {
           {/* Confirm password */}
           <FormControl
             style={formStyles.formControl}
+            size="lg"
             isInvalid={!passwordsMatch}
           >
             <FormControlLabel>
