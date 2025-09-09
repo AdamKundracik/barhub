@@ -16,9 +16,11 @@ import { auth } from '../../../../../firebaseConfig';
 import {
   primaryBgColor,
   primaryColor,
+  primaryDeepColor,
+  primaryLightGrey,
   primaryTextColor,
 } from '../../../utils/styles/colors';
-import { formStyles } from '../../../utils/styles/styles';
+import { commonAppStyles, formStyles } from '../../../utils/styles/styles';
 import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import {
@@ -38,6 +40,17 @@ import {
 import { Input, InputField } from '@/components/ui/input';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { Center } from '@/components/ui/center';
+import {
+  AlertDialog,
+  AlertDialogBackdrop,
+  AlertDialogBody,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+} from '@/components/ui/alert-dialog';
+import { Heading } from '@/components/ui/heading';
+import { Text } from '@/components/ui/text';
+import { useLocales } from 'expo-localization';
 
 type EditProfileProps = {
   user: User | null;
@@ -47,6 +60,7 @@ type EditProfileProps = {
 const ProfileEditScreen = (props: EditProfileProps) => {
   const { t } = useTranslation();
   const { fetchUserData } = useUserContext();
+  const locales = useLocales();
 
   const [openImageOptions, setOpenImageOptions] = useState(false);
   const [username, setUsername] = useState<string | null | undefined>(
@@ -58,6 +72,9 @@ const ProfileEditScreen = (props: EditProfileProps) => {
   );
   const [isSaving, setIsSaving] = useState(false);
   const [datePickerOpened, setDatePickerOpened] = useState(false);
+  const [showAlertDialog, setShowAlertDialog] = React.useState(false);
+
+  const handleClose = () => setShowAlertDialog(false);
 
   const openGallery = async () => {
     const permissionResult =
@@ -160,6 +177,7 @@ const ProfileEditScreen = (props: EditProfileProps) => {
       displayName: auth.currentUser?.displayName,
     });
     if (fetchUserData) await fetchUserData();
+    setShowAlertDialog(false);
     setOpenImageOptions(false);
   };
 
@@ -283,6 +301,7 @@ const ProfileEditScreen = (props: EditProfileProps) => {
               modal
               open={datePickerOpened}
               date={birthDate}
+              locale={locales[0].languageCode!}
               mode={'date'}
               onConfirm={date => {
                 setDatePickerOpened(false);
@@ -319,8 +338,45 @@ const ProfileEditScreen = (props: EditProfileProps) => {
         onClose={() => setOpenImageOptions(false)}
         openGallery={openGallery}
         openCamera={openCamera}
-        removePicture={removePicture}
+        removePicture={() => setShowAlertDialog(true)}
       />
+      <AlertDialog isOpen={showAlertDialog} onClose={handleClose} size="md">
+        <AlertDialogBackdrop />
+        <AlertDialogContent
+          style={{
+            backgroundColor: primaryDeepColor,
+            borderColor: primaryColor,
+          }}
+        >
+          <AlertDialogHeader>
+            <Heading
+              className="text-typography-950 font-semibold"
+              size="md"
+              style={commonAppStyles.textSecondary}
+            >
+              {t('delete-photo-title')}
+            </Heading>
+          </AlertDialogHeader>
+          <AlertDialogBody className="mt-3 mb-4">
+            <Text size="sm" style={{ color: primaryLightGrey }}>
+              {t('delete-photo-info')}
+            </Text>
+          </AlertDialogBody>
+          <AlertDialogFooter>
+            <Button
+              variant="outline"
+              action="secondary"
+              onPress={handleClose}
+              size="sm"
+            >
+              <ButtonText>{t('cancel')}</ButtonText>
+            </Button>
+            <Button size="sm" action={'negative'} onPress={removePicture}>
+              <ButtonText>{t('submit')}</ButtonText>
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

@@ -1,16 +1,16 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import {
   Dimensions,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
 import { useTranslation } from 'react-i18next';
-import BottomSheet, { BottomSheetModal } from '@gorhom/bottom-sheet';
+import { BottomSheetBackdrop, BottomSheetModal } from '@gorhom/bottom-sheet';
 
 const { width } = Dimensions.get('window');
 
@@ -22,60 +22,74 @@ type SlidingViewProps = {
   removePicture: () => void;
 };
 
-export const SlidingView = (props: SlidingViewProps) => {
+export const SlidingView = ({
+  visible,
+  onClose,
+  openGallery,
+  openCamera,
+  removePicture,
+}: SlidingViewProps) => {
   const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 
   useEffect(() => {
-    if (props.visible) {
-      bottomSheetRef.current?.expand();
+    if (visible) {
+      bottomSheetRef.current?.present();
     } else {
-      bottomSheetRef.current?.close();
+      bottomSheetRef.current?.dismiss();
     }
-  }, [props.visible]);
+  }, [visible]);
 
-  const handleCloseOnClickOutside = () => {
-    props.onClose();
-  };
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.5}
+      />
+    ),
+    []
+  );
 
   return (
-    props.visible && (
-      <>
-        <TouchableWithoutFeedback onPress={handleCloseOnClickOutside}>
-          <View style={styles.overlay} />
-        </TouchableWithoutFeedback>
-        <BottomSheet
-          ref={bottomSheetRef}
-          snapPoints={['35%']}
-          onClose={props.onClose}
-          backgroundStyle={{ backgroundColor: 'grey' }}
-          handleHeight={50}
-          enablePanDownToClose
-        >
-          <TouchableOpacity style={styles.option} onPress={props.openGallery}>
-            <FontAwesomeIcon icon={Icons.Image} size={24} color={'white'} />
-            <Text style={styles.text}>{t('pick-from-gallery')}</Text>
-          </TouchableOpacity>
-          <View style={styles.seperator}></View>
-          <TouchableOpacity style={styles.option} onPress={props.openCamera}>
-            <FontAwesomeIcon icon={Icons.Camera} size={24} color={'white'} />
-            <Text style={styles.text}>{t('take-new-picture')}</Text>
-          </TouchableOpacity>
-          <View style={styles.seperator}></View>
-          <TouchableOpacity style={styles.option} onPress={props.removePicture}>
-            <FontAwesomeIcon icon={Icons.Ban} size={24} color={'white'} />
-            <Text style={styles.text}>{t('remove-picture')}</Text>
-          </TouchableOpacity>
-        </BottomSheet>
-      </>
-    )
+    <BottomSheetModal
+      ref={bottomSheetRef}
+      snapPoints={['40%']}
+      backdropComponent={renderBackdrop}
+      onDismiss={onClose}
+      backgroundStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
+      handleHeight={50}
+      enablePanDownToClose
+      handleIndicatorStyle={styles.handleIndicator}
+    >
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <TouchableOpacity style={styles.option} onPress={openGallery}>
+          <FontAwesomeIcon icon={Icons.Image} size={24} color={'white'} />
+          <Text style={styles.text}>{t('pick-from-gallery')}</Text>
+        </TouchableOpacity>
+        <View style={styles.separator}></View>
+        <TouchableOpacity style={styles.option} onPress={openCamera}>
+          <FontAwesomeIcon icon={Icons.Camera} size={24} color={'white'} />
+          <Text style={styles.text}>{t('take-new-picture')}</Text>
+        </TouchableOpacity>
+        <View style={styles.separator}></View>
+        <TouchableOpacity style={styles.option} onPress={removePicture}>
+          <FontAwesomeIcon icon={Icons.Ban} size={24} color={'white'} />
+          <Text style={styles.text}>{t('remove-picture')}</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </BottomSheetModal>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  content: {
+    paddingHorizontal: 15,
+    paddingVertical: 10,
   },
   option: {
     paddingVertical: 20,
@@ -84,7 +98,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-  seperator: {
+  separator: {
     height: 1,
     backgroundColor: '#434343',
     marginVertical: 5,
@@ -93,6 +107,22 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     flexShrink: 1,
+  },
+  handleIndicator: {
+    backgroundColor: 'white',
+    width: '10%',
+    margin: 5,
+  },
+  footerContainer: {
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+  },
+  footerText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

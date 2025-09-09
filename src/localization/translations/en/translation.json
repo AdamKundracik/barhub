@@ -156,8 +156,13 @@
   "use-different-location": "Use different location",
   "select-city": "Select city",
   "Selected-location": "Selected location",
-  "invalid-month": "invalid-month",
-  "invalid-year": "invalid-year",
-  "invalid-day": "invalid-day",
-  "password-length": "Must be at least 6 characters."
+  "invalid-month": "Invalid month",
+  "invalid-year": "Invalid year",
+  "invalid-day": "Invalid day",
+  "password-length": "Must be at least 6 characters long",
+  "delete-photo-title": "Do you really want to delete this photo?",
+  "delete-photo-info": "Once confirmed, your photo will be permanently deleted",
+  "delete-account-title": "Do you really want to delete this account?",
+  "delete-account-info": "Once confirmed, your account will be permanently deleted",
+  "password-too-short": "Password is too short"
 }

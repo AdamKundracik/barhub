@@ -19,6 +19,7 @@ import { useAppInitialization } from './src/app/utils/hooks/useInitializationApp
 
 import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
 import '@/global.css';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 
 // Configure Reanimated logger
 configureReanimatedLogger({
@@ -42,7 +43,9 @@ export default function App() {
               <PermissionsProvider>
                 <UserProvider>
                   <RevenueCatProvider>
-                    <Navigation />
+                    <BottomSheetModalProvider>
+                      <Navigation />
+                    </BottomSheetModalProvider>
                   </RevenueCatProvider>
                 </UserProvider>
               </PermissionsProvider>
