@@ -12,7 +12,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -23,7 +22,6 @@ import { UserStackList } from '../../utils/types/screen-types';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { auth } from '../../../../firebaseConfig';
 import { ScreenLayout } from '@/src/app/components/user/Shared/ScreenLayout';
-import { Center } from '@/components/ui/center';
 import {
   FormControl,
   FormControlError,
@@ -33,8 +31,9 @@ import {
   FormControlLabelText,
 } from '@/components/ui/form-control';
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
-import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { AlertCircleIcon, EyeIcon, EyeOffIcon } from '@/components/ui/icon';
+import { Center } from '@/components/ui/center';
+import { Heading } from '@/components/ui/heading';
 
 const PasswordChangeScreen = () => {
   const { t } = useTranslation();
@@ -43,6 +42,10 @@ const PasswordChangeScreen = () => {
   const [oldPassword, setOldPassword] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [focusedInput, setFocusedInput] = useState<
+    null | 'oldPassword' | 'password' | 'confirmPassword'
+  >(null);
+
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [oldPasswordVisible, setOldPasswordVisible] = useState(false);
@@ -134,7 +137,12 @@ const PasswordChangeScreen = () => {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
       >
         <View style={styles.container}>
-          <Text style={styles.header}>{t('change-password-title')}</Text>
+          <Center>
+            <Heading size={'2xl'} style={styles.header}>
+              {t('change-password-title')}
+            </Heading>
+          </Center>
+          {/* Old password */}
           {hasPasswordLogin && (
             <FormControl style={formStyles.formControl} size="lg">
               <FormControlLabel>
@@ -145,14 +153,20 @@ const PasswordChangeScreen = () => {
               <Input
                 variant="rounded"
                 size="xl"
-                style={formStyles.inputPrimary}
+                style={
+                  focusedInput === 'oldPassword'
+                    ? formStyles.inputPrimaryFocused
+                    : formStyles.inputPrimary
+                }
               >
                 <InputField
                   type={oldPasswordVisible ? 'text' : 'password'}
                   placeholder={t('old-password')}
-                  style={{ color: primaryTextColor }}
                   value={oldPassword}
                   onChangeText={setOldPassword}
+                  style={{ color: primaryTextColor }}
+                  onFocus={() => setFocusedInput('oldPassword')}
+                  onBlur={() => setFocusedInput(null)}
                 />
                 <InputSlot
                   onPress={() => setOldPasswordVisible(!oldPasswordVisible)}
@@ -166,21 +180,31 @@ const PasswordChangeScreen = () => {
           {/* New password */}
           <FormControl
             style={formStyles.formControl}
-            isInvalid={password.length < 6}
             size="lg"
+            isInvalid={password.length > 0 && password.length < 6}
           >
             <FormControlLabel>
               <FormControlLabelText style={{ color: primaryColor }}>
                 {t('new-password')}
               </FormControlLabelText>
             </FormControlLabel>
-            <Input variant="rounded" size="xl" style={formStyles.inputPrimary}>
+            <Input
+              variant="rounded"
+              size="xl"
+              style={
+                focusedInput === 'password'
+                  ? formStyles.inputPrimaryFocused
+                  : formStyles.inputPrimary
+              }
+            >
               <InputField
                 type={passwordVisible ? 'text' : 'password'}
                 placeholder={t('new-password')}
-                style={{ color: primaryTextColor }}
                 value={password}
                 onChangeText={setPassword}
+                style={{ color: primaryTextColor }}
+                onFocus={() => setFocusedInput('password')}
+                onBlur={() => setFocusedInput(null)}
               />
               <InputSlot onPress={() => setPasswordVisible(!passwordVisible)}>
                 <InputIcon as={passwordVisible ? EyeIcon : EyeOffIcon} />
@@ -201,20 +225,30 @@ const PasswordChangeScreen = () => {
           <FormControl
             style={formStyles.formControl}
             size="lg"
-            isInvalid={!passwordsMatch}
+            isInvalid={confirmPassword.length > 0 && !passwordsMatch}
           >
             <FormControlLabel>
               <FormControlLabelText style={{ color: primaryColor }}>
                 {t('confirm-password')}
               </FormControlLabelText>
             </FormControlLabel>
-            <Input variant="rounded" size="xl" style={formStyles.inputPrimary}>
+            <Input
+              variant="rounded"
+              size="xl"
+              style={
+                focusedInput === 'confirmPassword'
+                  ? formStyles.inputPrimaryFocused
+                  : formStyles.inputPrimary
+              }
+            >
               <InputField
                 type={confirmPasswordVisible ? 'text' : 'password'}
                 placeholder={t('confirm-password')}
-                style={{ color: primaryTextColor }}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
+                style={{ color: primaryTextColor }}
+                onFocus={() => setFocusedInput('confirmPassword')}
+                onBlur={() => setFocusedInput(null)}
               />
               <InputSlot
                 onPress={() =>
@@ -234,27 +268,6 @@ const PasswordChangeScreen = () => {
               </FormControlErrorText>
             </FormControlError>
           </FormControl>
-
-          <Center>
-            <Button
-              variant="solid"
-              size="md"
-              action="primary"
-              style={formStyles.buttonPrimary}
-              onPress={() => {
-                setLoading(true);
-                reauthenticateAndChangePassword(oldPassword, password);
-              }}
-              isDisabled={!passwordsMatch}
-            >
-              {!loading && (
-                <ButtonText style={formStyles.buttonText}>
-                  {t('save-changes')}
-                </ButtonText>
-              )}
-              {loading && <ButtonSpinner />}
-            </Button>
-          </Center>
         </View>
       </KeyboardAvoidingView>
     </ScreenLayout>
@@ -267,10 +280,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   header: {
-    fontSize: 24,
     color: 'white',
-    marginBottom: 40,
-    textAlign: 'center',
+    marginBottom: 10,
   },
   headerActions: {
     flexDirection: 'row',

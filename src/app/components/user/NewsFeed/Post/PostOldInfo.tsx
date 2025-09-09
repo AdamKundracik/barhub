@@ -52,17 +52,7 @@ const PostOldInfo = (props: Props) => {
       </View>
       <Text style={styles.text}>{t('older-photo-info')}</Text>
       <View style={styles.buttonContainer}>
-        <Pressable
-          style={({ pressed }) => [
-            !isDisabled
-              ? !pressed
-                ? styles.button
-                : styles.buttonPressed
-              : styles.buttonDisabled,
-          ]}
-          onPress={() => handlePress()}
-          disabled={isDisabled}
-        >
+        <Pressable onPress={() => handlePress()} disabled={isDisabled}>
           {({ pressed }) =>
             pressed ? (
               <Text
@@ -113,32 +103,23 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   button: {
-    width: 180,
     borderRadius: 30,
     borderColor: warningColor,
     borderWidth: 1,
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   buttonDisabled: {
-    width: 180,
     borderRadius: 30,
     borderColor: iconInactiveColor,
     borderWidth: 1,
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   buttonPressed: {
-    width: 180,
     borderRadius: 30,
     backgroundColor: warningColor,
     borderColor: warningColor,
     borderWidth: 1,
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });
 

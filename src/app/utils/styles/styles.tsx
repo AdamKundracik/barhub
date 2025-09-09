@@ -2,6 +2,7 @@ import { StyleSheet } from 'react-native';
 import {
   primaryBgColor,
   primaryColor,
+  primaryDeepColor,
   primaryGrey,
   primaryTextColor,
 } from './colors';
@@ -11,6 +12,13 @@ export const formStyles = StyleSheet.create({
     paddingHorizontal: 10,
     backgroundColor: primaryGrey,
     borderColor: primaryColor,
+    borderWidth: 1,
+    color: primaryTextColor,
+  },
+  inputPrimaryFocused: {
+    paddingHorizontal: 10,
+    backgroundColor: primaryGrey,
+    borderColor: primaryDeepColor,
     borderWidth: 1,
     color: primaryTextColor,
   },
