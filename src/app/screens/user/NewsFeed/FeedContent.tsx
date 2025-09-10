@@ -1,5 +1,5 @@
 import React from 'react';
-import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, Text } from 'react-native';
 import PostsList from '../../../components/user/NewsFeed/PostList';
 import PostLoaderView from '../../../components/user/NewsFeed/Post/Loaders/PostLoaderView';
 import LoadingIndicator from '../../../components/user/NewsFeed/LoadingIndicator';
@@ -45,21 +45,24 @@ export const FeedContent: React.FC<FeedContentProps> = ({
 
   if (posts?.length > 0) {
     return (
-      <PostsList
-        hasMorePosts={hasNextPage}
-        posts={posts}
-        zoomedPost={zoomedPost}
-        setZoomedPost={setZoomedPost}
-        userData={userData}
-        numberOfDaysSinceLastPostedPhoto={daysSinceLastUpload}
-        requestPhoto={requestPhoto}
-        onCommentPress={onCommentPress}
-        isFiltering={isFiltering}
-        onRefresh={onRefresh}
-        loading={isRefetching}
-        isFetchingNextPage={isFetchingNextPage}
-        fetchMorePosts={fetchMorePosts}
-      />
+      <>
+        <PostsList
+          hasMorePosts={hasNextPage}
+          posts={posts}
+          zoomedPost={zoomedPost}
+          setZoomedPost={setZoomedPost}
+          userData={userData}
+          numberOfDaysSinceLastPostedPhoto={daysSinceLastUpload}
+          requestPhoto={requestPhoto}
+          onCommentPress={onCommentPress}
+          isFiltering={isFiltering}
+          onRefresh={onRefresh}
+          loading={isRefetching}
+          isFetchingNextPage={isFetchingNextPage}
+          fetchMorePosts={fetchMorePosts}
+        />
+        <Text>Text</Text>
+      </>
     );
   }
 

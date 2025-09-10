@@ -8,7 +8,6 @@ export const handleFreshContent = async (
   placeId?: string | null,
   location?: LocationType
 ): Promise<{ posts: Post[]; lastVisible: string | null }> => {
-  console.log('location', location);
   const geoPoint = locationTypeToGeoPointType(
     location ?? { latitude: 0, longitude: 0 }
   );

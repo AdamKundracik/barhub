@@ -1,14 +1,12 @@
 import React, { ReactNode } from 'react';
-import {
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { SafeAreaView, StyleSheet } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
 import { primaryBgColor } from '../../../utils/styles/colors';
+import { Box } from '@/components/ui/box';
+import { Pressable } from '@/components/ui/pressable';
+import { Center } from '@/components/ui/center';
+import { Text } from '@/components/ui/text';
 
 type ScreenLayoutProps = {
   children: ReactNode;
@@ -24,38 +22,39 @@ export const ScreenLayout = ({
   showTitle = true,
 }: ScreenLayoutProps) => {
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.mainContainer}>
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <TouchableOpacity onPress={clickFunction} style={styles.backButton}>
-              <FontAwesomeIcon icon={Icons.Left} size={24} color={'white'} />
-            </TouchableOpacity>
-          </View>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: primaryBgColor }]}
+    >
+      <Box style={styles.mainContainer}>
+        <Box style={styles.header}>
+          <Box style={styles.headerLeft}>
+            {clickFunction && (
+              <Pressable onPress={clickFunction} style={styles.backButton}>
+                <FontAwesomeIcon icon={Icons.Left} size={24} color="white" />
+              </Pressable>
+            )}
+          </Box>
 
           {showTitle && title && (
-            <View style={styles.headerCenter}>
-              <Text style={styles.headerTitle}>{title}</Text>
-            </View>
+            <Center style={styles.headerCenter}>
+              <Text numberOfLines={1} style={styles.headerTitle}>
+                {title}
+              </Text>
+            </Center>
           )}
 
-          <View style={styles.headerRight} />
-        </View>
-        {children}
-      </View>
+          <Box style={styles.headerRight} />
+        </Box>
+
+        <Box style={{ flex: 1 }}>{children}</Box>
+      </Box>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: primaryBgColor,
-  },
-  mainContainer: {
-    paddingHorizontal: 16,
-    flex: 1,
-  },
+  safeArea: { flex: 1 },
+  mainContainer: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -63,23 +62,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     height: 56,
   },
-  headerLeft: {
-    flex: 1,
-    alignItems: 'flex-start',
-  },
-  headerCenter: {
-    flex: 2,
-    alignItems: 'center',
-  },
-  headerRight: {
-    flex: 1,
-  },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '600',
-  },
+  headerLeft: { flex: 1, alignItems: 'flex-start' },
+  headerCenter: { flex: 2, alignItems: 'center' },
+  headerRight: { flex: 1 },
+  backButton: { padding: 8 },
+  headerTitle: { color: 'white', fontSize: 18, fontWeight: '600' },
 });

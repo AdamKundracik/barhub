@@ -35,7 +35,6 @@ export const useNewsFeedData = () => {
     if (!postsData?.pages) return [];
 
     const allPosts = postsData.pages.flatMap(page => page.posts);
-    console.log(postsData.pages);
 
     if (selectedPlaces.length === 0 && selectedOccupancy.length === 0) {
       return allPosts;

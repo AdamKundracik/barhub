@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Pressable,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  StyleSheet,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenLayout } from '../../components/user/Shared/ScreenLayout';
@@ -15,8 +15,11 @@ import { formStyles } from '../../utils/styles/styles';
 import { primaryColor, primaryDeepColor } from '../../utils/styles/colors';
 import { useLocationStore } from '../../utils/store/locationStore';
 import { googleAPIKey } from '../../utils/helper-functions/constants';
+import { useTranslation } from 'react-i18next';
 
 export const SelectFakeLocation = () => {
+  const { t } = useTranslation();
+
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
@@ -91,7 +94,7 @@ export const SelectFakeLocation = () => {
 
   return (
     <ScreenLayout
-      title="Select Location"
+      title={t('select-location')}
       clickFunction={() => navigation.goBack()}
     >
       <View style={{ position: 'relative' }}>
