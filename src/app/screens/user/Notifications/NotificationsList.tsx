@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { useCallback, useEffect, useState } from 'react';
 import { ScreenLayout } from '../../../components/user/Shared/ScreenLayout';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
-import LoadingIndicator from '../../../components/user/NewsFeed/LoadingIndicator';
 import NotificationItemComponent from '../../../components/user/NewsFeed/Notifications/NotificationItemComponent';
 import { NotificationItem } from '../../../utils/types/notification-types';
 import { UndoMessage } from '../../../components/user/NewsFeed/Notifications/UndoMessage';
@@ -113,32 +112,30 @@ export const NotificationsList: React.FC = () => {
       clickFunction={() => navigation.goBack()}
     >
       <View style={styles.container}>
-        {data && data?.notifications?.length > 0 ? (
-          <FlatList
-            data={notifications}
-            scrollEnabled={isScrollEnabled}
-            refreshControl={
-              <RefreshControl
-                refreshing={isRefreshingManually}
-                onRefresh={handleRefresh}
-                progressViewOffset={20}
-                enabled={isScrollEnabled}
-              />
-            }
-            renderItem={renderItem}
-            keyExtractor={item => item.id}
-            contentContainerStyle={styles.listContainer}
-            showsVerticalScrollIndicator={false}
-            ListHeaderComponent={isRefetching ? <LoadingIndicator /> : null}
-            removeClippedSubviews={true}
-            maxToRenderPerBatch={10}
-            windowSize={5}
-          />
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>{t('no-notifications')}</Text>
-          </View>
-        )}
+        <FlatList
+          data={notifications}
+          scrollEnabled={isScrollEnabled}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshingManually}
+              onRefresh={handleRefresh}
+              progressViewOffset={20}
+              enabled={isScrollEnabled}
+            />
+          }
+          renderItem={renderItem}
+          keyExtractor={item => item.id}
+          contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>{t('no-notifications')}</Text>
+            </View>
+          }
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+        />
         {showUndo && (
           <UndoMessage onUndo={handleUndo} onHide={handleUndoHide} />
         )}

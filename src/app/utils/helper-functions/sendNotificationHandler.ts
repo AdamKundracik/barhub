@@ -3,13 +3,14 @@ import { distanceBetween, geohashQueryBounds, Geopoint } from 'geofire-common';
 import { auth, db } from '../../../../firebaseConfig';
 import {
   collection,
-  query,
-  orderBy,
-  startAt,
   endAt,
   getDocs,
+  orderBy,
+  query,
+  startAt,
 } from 'firebase/firestore';
 import { User } from '../../../../shared';
+import { Alert } from 'react-native';
 
 export const sendNotificationHandler = async (
   placeLocation: LocationType
@@ -58,6 +59,7 @@ export const sendNotificationHandler = async (
     }
 
     if (!matchingDocs || matchingDocs.length === 0) {
+      Alert.alert('No nearby users found.');
       console.error('No nearby users found.');
       return;
     }

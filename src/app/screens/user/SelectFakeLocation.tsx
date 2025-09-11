@@ -1,21 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenLayout } from '../../components/user/Shared/ScreenLayout';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../utils/icons/icons';
 import { formStyles } from '../../utils/styles/styles';
 import { primaryColor, primaryDeepColor } from '../../utils/styles/colors';
 import { useLocationStore } from '../../utils/store/locationStore';
 import { googleAPIKey } from '../../utils/helper-functions/constants';
 import { useTranslation } from 'react-i18next';
+import { FormControl } from '@/components/ui/form-control';
+import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
+import { XIcon } from 'lucide-react-native';
 
 export const SelectFakeLocation = () => {
   const { t } = useTranslation();
@@ -94,67 +88,81 @@ export const SelectFakeLocation = () => {
 
   return (
     <ScreenLayout
-      title={t('select-location')}
+      title={t('select-city')}
       clickFunction={() => navigation.goBack()}
     >
-      <View style={{ position: 'relative' }}>
-        <TextInput
-          style={[formStyles.inputPrimary, styles.input]}
-          placeholder="Zadaj mesto"
-          placeholderTextColor={primaryDeepColor}
-          onChangeText={text => {
-            setQuery(text);
-            if (!text) setHasSearched(false);
+      <FormControl
+        size="lg"
+        isDisabled={false}
+        isReadOnly={false}
+        isRequired={false}
+        style={formStyles.formControl}
+      >
+        <Input
+          className="my-1"
+          variant="rounded"
+          size="xl"
+          style={{
+            borderRadius: 25,
+            borderColor: primaryDeepColor,
+            borderWidth: 3,
+            backgroundColor: 'white',
           }}
-          value={query}
-          autoCorrect={false}
-          autoCapitalize="none"
-          clearButtonMode="never"
-        />
-        {query.length > 0 && (
-          <TouchableOpacity
-            style={styles.clearButton}
-            onPress={() => {
-              setQuery('');
-              setHasSearched(false);
+        >
+          <InputField
+            type="text"
+            placeholder="Zadaj mesto"
+            placeholderTextColor={primaryDeepColor}
+            value={query}
+            autoCorrect={false}
+            autoCapitalize="none"
+            onChangeText={text => {
+              setQuery(text);
+              if (!text) setHasSearched(false);
             }}
-          >
-            <FontAwesomeIcon
-              icon={Icons.Remove}
-              size={24}
-              color={primaryDeepColor}
-            />
-          </TouchableOpacity>
-        )}
-      </View>
+            style={{ backgroundColor: 'white' }}
+          />
+          {query.length > 0 && (
+            <InputSlot
+              className="pr-3"
+              style={{ backgroundColor: 'white' }}
+              onPress={() => {
+                setQuery('');
+                setHasSearched(false);
+              }}
+            >
+              <InputIcon as={XIcon} size={'xl'} color={'black'} />
+            </InputSlot>
+          )}
+        </Input>
+      </FormControl>
 
       {loading && <Text style={styles.loadingText}>Načítavam...</Text>}
 
-      {!loading && places.length > 0
-        ? places.map(place => (
-            <Pressable
-              key={place.place_id}
-              onPress={() => handlePlaceSelect(place)}
-              style={[styles.placeItem]}
-            >
-              {({ pressed }) => (
-                <Text
-                  style={[
-                    styles.placeText,
-                    { color: pressed ? primaryColor : 'white' },
-                  ]}
-                >
-                  {place.description}
-                </Text>
-              )}
-            </Pressable>
-          ))
-        : hasSearched &&
-          !loading && (
-            <View style={styles.noResults}>
-              <Text style={{ color: 'white' }}>Nenašli sa žiadne výsledky</Text>
-            </View>
-          )}
+      {!loading && places.length > 0 ? (
+        places.map(place => (
+          <Pressable
+            key={place.place_id}
+            onPress={() => handlePlaceSelect(place)}
+            style={[styles.placeItem]}
+          >
+            {({ pressed }) => (
+              <Text
+                style={[
+                  styles.placeText,
+                  { color: pressed ? primaryColor : 'white' },
+                ]}
+              >
+                {place.description}
+              </Text>
+            )}
+          </Pressable>
+        ))
+      ) : hasSearched && !loading ? (
+        <View style={styles.noResults}>
+          <Text style={{ color: 'white' }}>Nenašli sa žiadne výsledky</Text>
+        </View>
+      ) : null}
     </ScreenLayout>
   );
 };

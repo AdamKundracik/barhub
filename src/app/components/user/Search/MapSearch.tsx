@@ -71,12 +71,14 @@ export const MapSearch = (props: LayoutProps) => {
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const onRegionChangeComplete = (newRegion: Region) => {
+    setSelectedPlace(null);
+
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
     }
     debounceTimeout.current = setTimeout(() => {
       setRegion(newRegion);
-    }, 700);
+    }, 1000);
   };
 
   return (
@@ -86,10 +88,11 @@ export const MapSearch = (props: LayoutProps) => {
         region={region}
         provider={PROVIDER_DEFAULT}
         ref={mapRef}
-        showsUserLocation={true}
         showsMyLocationButton={true}
-        onPress={Keyboard.dismiss}
         showsCompass={true}
+        onPress={() => {
+          Keyboard.dismiss();
+        }}
         onRegionChangeComplete={onRegionChangeComplete}
       >
         {!loading &&
@@ -132,20 +135,21 @@ export const MapSearch = (props: LayoutProps) => {
       >
         <FontAwesomeIcon icon={Icons.Remove} size={28} color={'black'} />
       </TouchableOpacity>
-      <TouchableOpacity style={styles.infoContainer} onPress={pickPlace}>
-        <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 18 }}>
-          {t('select-location')}
-        </Text>
-      </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.searchButton}
-        onPress={handleSearchSurrounding}
-      >
-        <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>
-          {t('search-surrounding')}
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.buttonsContainer}>
+        <TouchableOpacity
+          style={styles.searchButton}
+          onPress={handleSearchSurrounding}
+        >
+          <Text style={styles.buttonText}>{t('search-surrounding')}</Text>
+        </TouchableOpacity>
+
+        {selectedPlace && (
+          <TouchableOpacity style={styles.selectButton} onPress={pickPlace}>
+            <Text style={styles.buttonText}>{t('select-location')}</Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
       {loading && (
         <View style={styles.loadingOverlay}>
@@ -189,16 +193,41 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    top: 10,
-    left: 10,
+    top: 20,
+    left: 20,
+    backgroundColor: 'white',
+    borderRadius: 50,
+    padding: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  buttonsContainer: {
+    position: 'absolute',
+    bottom: 30,
+    alignSelf: 'center',
+    flexDirection: 'column',
+    gap: 12, // aby boli medzi nimi medzery (RN >=0.71 podporuje gap)
   },
   searchButton: {
-    position: 'absolute',
     backgroundColor: '#007bff',
-    padding: 10,
+    padding: 12,
     borderRadius: 20,
-    bottom: 100,
-    alignSelf: 'center',
+    alignItems: 'center',
+  },
+
+  selectButton: {
+    backgroundColor: 'black',
+    padding: 15,
+    borderRadius: 30,
+    alignItems: 'center',
+  },
+
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
 

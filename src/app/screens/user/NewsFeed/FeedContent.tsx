@@ -1,8 +1,7 @@
 import React from 'react';
-import { RefreshControl, ScrollView, StyleSheet, Text } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import PostsList from '../../../components/user/NewsFeed/PostList';
 import PostLoaderView from '../../../components/user/NewsFeed/Post/Loaders/PostLoaderView';
-import LoadingIndicator from '../../../components/user/NewsFeed/LoadingIndicator';
 import EmptyState from '../../../components/user/NewsFeed/EmptyState';
 
 interface FeedContentProps {
@@ -61,14 +60,12 @@ export const FeedContent: React.FC<FeedContentProps> = ({
           isFetchingNextPage={isFetchingNextPage}
           fetchMorePosts={fetchMorePosts}
         />
-        <Text>Text</Text>
       </>
     );
   }
 
   return (
     <>
-      {isRefetching && <LoadingIndicator />}
       <ScrollView
         contentContainerStyle={styles.scrollViewContent}
         refreshControl={

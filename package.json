@@ -77,7 +77,7 @@
     "react-native-background-fetch": "^4.2.5",
     "react-native-background-geolocation": "^4.16.5",
     "react-native-bouncy-checkbox": "^4.1.2",
-    "react-native-date-picker": "^5.0.13",
+    "react-native-date-picker": "^5.0.1",
     "react-native-device-info": "^11.1.0",
     "react-native-gesture-handler": "~2.26.0",
     "react-native-google-mobile-ads": "^15.4.0",
