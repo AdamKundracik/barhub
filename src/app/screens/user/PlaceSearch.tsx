@@ -1,10 +1,4 @@
-import {
-  Pressable,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Pressable, Text, TouchableOpacity, View } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
@@ -13,13 +7,14 @@ import { generateId } from '../../utils/helper-functions/generate-hash';
 import { usePlaceStore } from '../../utils/store/placesStore';
 import { useUserContext } from '../../providers/UserProvider';
 import { useQuery } from 'react-query';
-import { fetchPlaceAutocomplete } from '../../utils/helper-functions/fetchPlacesAutocomplete';
 import { primaryColor, primaryDeepColor } from '../../utils/styles/colors';
 import Layout from '../../components/user/Shared/Layout';
 import MapSearch from '../../components/user/Search/MapSearch';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
-import { formStyles } from '../../utils/styles/styles';
+import { fetchPlaceAutocomplete } from '../../utils/helper-functions/fetchPlacesAPI';
+import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
+import { XIcon } from 'lucide-react-native';
 
 export const PlaceSearch = () => {
   const [isMapShown, setIsMapShown] = useState<boolean>(false);
@@ -41,7 +36,7 @@ export const PlaceSearch = () => {
 
     return useQuery(
       ['places-autocomplete', query],
-      () => fetchPlaceAutocomplete(query, location, sessionToken),
+      () => fetchPlaceAutocomplete(query, location!, sessionToken),
       {
         enabled: query.length >= 2,
       }
@@ -89,45 +84,52 @@ export const PlaceSearch = () => {
         </View>
 
         <View style={{ position: 'relative' }}>
-          <TextInput
-            style={[
-              formStyles.inputPrimary,
-              { backgroundColor: 'white', color: primaryDeepColor },
-            ]}
-            placeholder={t('search-place')}
-            onChangeText={text => {
-              setQuery(text);
-              if (!text) setHasSearched(false);
+          <Input
+            size="xl"
+            style={{
+              borderRadius: 25,
+              borderColor: primaryDeepColor,
+              borderWidth: 3,
+              backgroundColor: 'white',
             }}
-            value={query}
-            placeholderTextColor={primaryDeepColor}
-          />
-          {query.length > 0 && (
-            <TouchableOpacity
-              style={{
-                position: 'absolute',
-                right: 16,
-                top: 14,
+          >
+            <InputField
+              variant="rounded"
+              placeholder={t('search-place')}
+              onChangeText={text => {
+                setQuery(text);
+                if (!text) setHasSearched(false);
               }}
-              onPress={() => {
-                setQuery('');
-                setHasSearched(false);
-              }}
-            >
-              <FontAwesomeIcon
-                icon={Icons.Remove}
-                size={24}
-                color={primaryDeepColor}
-              />
-            </TouchableOpacity>
-          )}
+              value={query}
+              placeholderTextColor={primaryDeepColor}
+              size="lg"
+              style={[
+                {
+                  color: primaryDeepColor,
+                  borderBlockColor: primaryColor,
+                },
+              ]}
+            ></InputField>
+            {query.length > 0 && (
+              <InputSlot
+                className="pr-3"
+                style={{ backgroundColor: 'white' }}
+                onPress={() => {
+                  setQuery('');
+                  setHasSearched(false);
+                }}
+              >
+                <InputIcon as={XIcon} size={'xl'} color={'black'} />
+              </InputSlot>
+            )}
+          </Input>
         </View>
 
         {places?.suggestions && places.suggestions.length > 0
           ? places.suggestions.map((place, index) => (
               <Pressable
                 key={index}
-                style={({ pressed }) => [
+                style={[
                   {
                     padding: 16,
                   },

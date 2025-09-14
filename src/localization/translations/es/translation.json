@@ -155,5 +155,16 @@
   "third-party-libraries": "Bibliotecas de terceros",
   "use-different-location": "Usar una ubicación diferente",
   "select-city": "Seleccionar ciudad",
-  "Selected-location": "Ubicación seleccionada"
+  "Selected-location": "Ubicación seleccionada",
+  "invalid-month": "Mes inválido",
+  "invalid-year": "Año inválido",
+  "invalid-day": "Día inválido",
+  "password-length": "Debe tener al menos 6 caracteres",
+  "delete-photo-title": "¿Realmente desea eliminar esta foto?",
+  "delete-photo-info": "Una vez confirmado, su foto será eliminada permanentemente",
+  "delete-account-title": "¿Realmente desea eliminar esta cuenta?",
+  "delete-account-info": "Una vez confirmado, su cuenta será eliminada permanentemente",
+  "password-too-short": "La contraseña es demasiado corta",
+  "thats-it": "Eso es todo",
+  "forgot-password": "Contraseña perdida"
 }

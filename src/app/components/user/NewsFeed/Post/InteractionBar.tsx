@@ -62,19 +62,17 @@ export const InteractionBar = (props: InteractionBarProps) => {
           <Text style={styles.count}>{props.likes}</Text>
         </TouchableOpacity>
       </View>
-      <View style={{ flex: 1 }}>
-        <TouchableOpacity
-          onPress={props.onCommentToggle}
-          style={styles.iconContainer}
-        >
-          <FontAwesomeIcon
-            icon={Icons.Comment}
-            size={isTablet ? 30 : 24}
-            color="#32d7b7"
-          />
-          <Text style={styles.count}>{props.comments}</Text>
-        </TouchableOpacity>
-      </View>
+      {/*<TouchableOpacity*/}
+      {/*  onPress={props.onCommentToggle}*/}
+      {/*  style={styles.iconContainer}*/}
+      {/*>*/}
+      {/*  <FontAwesomeIcon*/}
+      {/*    icon={Icons.Comment}*/}
+      {/*    size={isTablet ? 30 : 24}*/}
+      {/*    color="#32d7b7"*/}
+      {/*  />*/}
+      {/*  <Text style={styles.count}>{props.comments}</Text>*/}
+      {/*</TouchableOpacity>*/}
     </View>
   );
 };

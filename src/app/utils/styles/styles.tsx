@@ -1,28 +1,35 @@
 import { StyleSheet } from 'react-native';
 import {
-  primaryGrey,
-  primaryColor,
-  primaryTextColor,
   primaryBgColor,
+  primaryColor,
+  primaryDeepColor,
+  primaryGrey,
+  primaryTextColor,
 } from './colors';
 
 export const formStyles = StyleSheet.create({
   inputPrimary: {
-    height: 50,
-    padding: 15,
+    paddingHorizontal: 10,
     backgroundColor: primaryGrey,
-    borderRadius: 20,
     borderColor: primaryColor,
     borderWidth: 1,
     color: primaryTextColor,
   },
+  inputPrimaryFocused: {
+    paddingHorizontal: 10,
+    backgroundColor: primaryGrey,
+    borderColor: primaryDeepColor,
+    borderWidth: 1,
+    color: primaryTextColor,
+  },
+  formControl: {
+    paddingHorizontal: 10,
+    marginBottom: 10,
+  },
   buttonPrimary: {
-    alignItems: 'center',
-    justifyContent: 'center',
     marginTop: 10,
     borderRadius: 10,
     height: 50,
-    alignSelf: 'center',
     width: 200,
     backgroundColor: primaryColor,
   },
@@ -56,8 +63,6 @@ export const formStyles = StyleSheet.create({
   },
   buttonText: {
     color: primaryGrey,
-    display: 'flex',
-    margin: 'auto',
     fontWeight: 'bold',
     fontSize: 16,
   },

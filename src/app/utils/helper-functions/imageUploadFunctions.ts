@@ -10,7 +10,8 @@ import * as ImageManipulator from 'expo-image-manipulator';
 
 export const uploadImageAsync = async (
   uri: string,
-  placeId: string
+  placeId: string,
+  fileId: string
 ): Promise<string | null> => {
   try {
     if (!auth.currentUser) {
@@ -19,13 +20,11 @@ export const uploadImageAsync = async (
     }
 
     const blob: Blob = await uriToBlob(uri);
-    const fileId = `${placeId}/${new Date().getTime().toString() + '_' + auth.currentUser?.uid}`;
-    const storageRef = ref(storage, fileId);
+    const path = `${placeId}/${fileId + '_' + auth.currentUser?.uid}`;
+    const storageRef = ref(storage, path);
 
     await uploadBytes(storageRef, blob);
-    const url = await getDownloadURL(storageRef);
-
-    return url;
+    return await getDownloadURL(storageRef);
   } catch (error) {
     console.error('Error uploading image:', error);
     return null;

@@ -1,116 +1,46 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import Purchases, {
-  CustomerInfo,
-  LOG_LEVEL,
-  PurchasesPackage,
-} from 'react-native-purchases';
-import { Platform } from 'react-native';
+import React, { createContext, useContext, ReactNode } from 'react';
+import { PurchasesPackage } from 'react-native-purchases';
 import { User } from '../../../shared';
-import { setUser } from '../utils/services/functions';
 import { useUserContext } from './UserProvider';
+import { useRevenueCat } from '../utils/hooks/useRevenueCat';
 
-const APIKeys = {
-  apple: 'appl_LBCUSpmuKrFDpsDAngQHiPdmGKN',
-  google: 'your_google_api_key_here',
-};
-
-interface RevenueCatProps {
-  purchasePackage?: (pack: PurchasesPackage) => Promise<void>;
-  restorePermissions?: () => Promise<CustomerInfo>;
+interface RevenueCatContextType {
+  purchasePackage: (pack: PurchasesPackage) => Promise<void>;
+  restorePermissions: () => Promise<any>;
   currentUser: Partial<User>;
   packages: PurchasesPackage[];
+  isReady: boolean;
 }
 
-export interface UserState {
-  premiun: boolean;
-}
+const RevenueCatContext = createContext<RevenueCatContextType | null>(null);
 
-export const RevenueCatProvider = ({ children }: any) => {
-  const [currentUser, setCurrentUser] = useState<Partial<User>>({
-    premium: false,
-  });
-  const [packages, setPackages] = useState<PurchasesPackage[]>([]);
-  const [isReady, setIsReady] = useState(false);
+export const RevenueCatProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const { fetchUserData } = useUserContext();
 
-  useEffect(() => {
-    const init = async () => {
-      try {
-        if (Platform.OS === 'android') {
-          Purchases.configure({ apiKey: APIKeys.google });
-        } else {
-          Purchases.configure({ apiKey: APIKeys.apple });
-        }
-        setIsReady(true);
-        await Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+  const revenueCatHook = useRevenueCat(async (user: Partial<User>) => {
+    // Callback when user subscription status changes
+    await fetchUserData?.();
+  });
 
-        Purchases.addCustomerInfoUpdateListener(updateCustomerInformation);
-        await loadOfferings();
-      } catch (error) {
-        console.error('Error during initialization: ', error);
-      }
-    };
-    init();
-  }, []);
-
-  const loadOfferings = async () => {
-    try {
-      const offerings = await Purchases.getOfferings();
-      if (offerings.current) {
-        setPackages(offerings.current.availablePackages);
-      } else {
-        console.warn('No current offerings found.');
-      }
-    } catch (error) {
-      console.error('Error loading offerings: ', error);
-    }
-  };
-
-  const updateCustomerInformation = async (customerInfo: CustomerInfo) => {
-    const newUser: Partial<User> = { premium: false };
-
-    if (customerInfo?.entitlements.active['subscription'] !== undefined) {
-      newUser.premium = true;
-    }
-
-    setCurrentUser(newUser);
-    await setUser(newUser);
-    await fetchUserData;
-  };
-
-  const purchasePackage = async (pack: PurchasesPackage) => {
-    try {
-      await Purchases.purchasePackage(pack);
-    } catch (e: any) {
-      if (!e.userCancelled) {
-        alert(e);
-      }
-    }
-  };
-
-  const restorePermissions = async () => {
-    const customer = await Purchases.restorePurchases();
-    return customer;
-  };
-
-  const value = {
-    restorePermissions,
-    currentUser,
-    packages,
-    purchasePackage,
-  };
-
-  if (!isReady) return <></>;
+  if (!revenueCatHook.isReady) {
+    return <>{children}</>;
+  }
 
   return (
-    <RevenueCatContext.Provider value={value}>
+    <RevenueCatContext.Provider value={revenueCatHook}>
       {children}
     </RevenueCatContext.Provider>
   );
 };
 
-const RevenueCatContext = createContext<RevenueCatProps | null>(null);
-
-export const useRevenueCat = () => {
-  return useContext(RevenueCatContext) as RevenueCatProps;
+export const useRevenueCatProvider = () => {
+  const context = useContext(RevenueCatContext);
+  if (!context) {
+    throw new Error(
+      'useRevenueCatProvider must be used within a RevenueCatProvider'
+    );
+  }
+  return context;
 };

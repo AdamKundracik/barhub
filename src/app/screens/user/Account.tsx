@@ -13,20 +13,40 @@ import { Icons } from '../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
 import { useUserContext } from '../../providers/UserProvider';
-import { DeleteUserModal } from '../../components/user/Account/DeleteUserModal';
-import { primaryBgColor, primaryColor } from '../../utils/styles/colors';
+import {
+  primaryBgColor,
+  primaryColor,
+  primaryDeepColor,
+  primaryLightGrey,
+} from '../../utils/styles/colors';
 import EditProfile from '../../components/user/Account/EditProfile';
 import { ScreenLayout } from '../../components/user/Shared/ScreenLayout';
 import { Image } from 'expo-image';
+import {
+  AlertDialog,
+  AlertDialogBackdrop,
+  AlertDialogBody,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+} from '@/components/ui/alert-dialog';
+import { Heading } from '@/components/ui/heading';
+import { commonAppStyles } from '@/src/app/utils/styles/styles';
+import { Button, ButtonText } from '@/components/ui/button';
 
 export const Account = () => {
   const { userData } = useUserContext();
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
+  const [showAlertDialog, setShowAlertDialog] = React.useState(false);
 
-  const [modalOpened, setModalOpened] = useState(false);
+  const handleClose = () => setShowAlertDialog(false);
 
   const navigation = useNavigation<NavigationProp<UserStackList>>();
+
+  const handleDeleteUser = async () => {
+    await auth.currentUser!.delete();
+  };
 
   if (isEditing) {
     return (
@@ -107,14 +127,47 @@ export const Account = () => {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => setModalOpened(true)}>
+        <TouchableOpacity onPress={() => setShowAlertDialog(true)}>
           <Text style={styles.deleteAccount}>{t('delete-account')}</Text>
         </TouchableOpacity>
       </View>
-      <DeleteUserModal
-        isOpen={modalOpened}
-        onClose={() => setModalOpened(false)}
-      />
+      <AlertDialog isOpen={showAlertDialog} onClose={handleClose} size="md">
+        <AlertDialogBackdrop />
+        <AlertDialogContent
+          style={{
+            backgroundColor: primaryDeepColor,
+            borderColor: primaryColor,
+          }}
+        >
+          <AlertDialogHeader>
+            <Heading
+              className="text-typography-950 font-semibold"
+              size="md"
+              style={commonAppStyles.textSecondary}
+            >
+              {t('delete-account-title')}
+            </Heading>
+          </AlertDialogHeader>
+          <AlertDialogBody className="mt-3 mb-4">
+            <Text style={{ color: primaryLightGrey }}>
+              {t('delete-account-info')}
+            </Text>
+          </AlertDialogBody>
+          <AlertDialogFooter>
+            <Button
+              variant="outline"
+              action="secondary"
+              onPress={handleClose}
+              size="sm"
+            >
+              <ButtonText>{t('cancel')}</ButtonText>
+            </Button>
+            <Button size="sm" action={'negative'} onPress={handleDeleteUser}>
+              <ButtonText>{t('submit')}</ButtonText>
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SafeAreaView>
   );
 };

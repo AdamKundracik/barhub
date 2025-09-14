@@ -1,18 +1,8 @@
-import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import AuthLayout from '../../components/auth/AuthLayout';
 import * as React from 'react';
 import { useState } from 'react';
-import { commonAppStyles, formStyles } from '../../utils/styles/styles';
-import { InputWrapper } from '../../components/shared/InputWrapper';
+import { formStyles } from '../../utils/styles/styles';
 import { useTranslation } from 'react-i18next';
 import {
   createUserWithEmailAndPassword,
@@ -24,21 +14,36 @@ import { auth } from '../../../../firebaseConfig';
 import { primaryColor, primaryTextColor } from '../../utils/styles/colors';
 import * as ImagePicker from 'expo-image-picker';
 import Svg, { Circle, Path } from 'react-native-svg';
-import DatePicker from '../../components/shared/DatePicker';
 import { setUser } from '../../utils/services/functions';
 import { uploadProfilePhotoAsync } from '../../utils/helper-functions/imageUploadFunctions';
+import {
+  FormControl,
+  FormControlError,
+  FormControlErrorIcon,
+  FormControlErrorText,
+  FormControlHelper,
+  FormControlHelperText,
+  FormControlLabel,
+  FormControlLabelText,
+} from '@/components/ui/form-control';
+import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
+import { AlertCircleIcon, EyeIcon, EyeOffIcon } from '@/components/ui/icon';
+import DatePicker from 'react-native-date-picker';
+import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
+import { Center } from '@/components/ui/center';
 
-export const Register = ({ navigation }: any) => {
+export const Register = () => {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
-  const [togglePassword, setTogglePassword] = useState(true);
+  const [togglePassword, setTogglePassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [image, setImage] = useState<string | null>(null);
   const [username, setUserName] = useState('');
-  const [date, setDate] = useState(new Date().toISOString());
+  const [date, setDate] = useState(new Date(1598051730000));
   const [acceptsTermsOfUse, setAcceptsTermsOfUse] = useState(false);
+  const [datePickerOpened, setDatePickerOpened] = useState(false);
 
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -59,9 +64,19 @@ export const Register = ({ navigation }: any) => {
     }
   };
 
-  const handleDateChange = (newDate: string) => {
-    setDate(newDate);
-  };
+  // const handleDateChange = (newDate: string) => {
+  //   setDate(newDate);
+  // };
+
+  function validateInputs(): boolean {
+    return (
+      !!email &&
+      !!password &&
+      !!repeatPassword &&
+      !!username &&
+      acceptsTermsOfUse
+    );
+  }
 
   async function handleRegister() {
     setLoading(true);
@@ -102,7 +117,7 @@ export const Register = ({ navigation }: any) => {
     await setUser({
       displayName: username,
       photoURL: image,
-      dateOfBirth: date,
+      dateOfBirth: date.toDateString(),
       acceptTermsOfUse: acceptsTermsOfUse,
     });
   }
@@ -111,21 +126,21 @@ export const Register = ({ navigation }: any) => {
     return password === repeatPassword;
   }
 
-  async function handleSetUserAccount() {
-    if (
-      email &&
-      username &&
-      date &&
-      password &&
-      repeatPassword &&
-      acceptsTermsOfUse &&
-      isSamePassword()
-    ) {
-      await handleRegister();
-    } else {
-      Alert.alert('Error', 'Invalid form');
-    }
-  }
+  // async function handleSetUserAccount() {
+  //   if (
+  //     email &&
+  //     username &&
+  //     date &&
+  //     password &&
+  //     repeatPassword &&
+  //     acceptsTermsOfUse &&
+  //     isSamePassword()
+  //   ) {
+  //     await handleRegister();
+  //   } else {
+  //     Alert.alert('Error', 'Invalid form');
+  //   }
+  // }
 
   return (
     <AuthLayout pageTitle={t('Register')}>
@@ -161,67 +176,191 @@ export const Register = ({ navigation }: any) => {
           </TouchableOpacity>
         )}
       </View>
-      <InputWrapper inputLabel={t('email')}>
-        <TextInput
-          value={email}
-          onChangeText={setEmail}
-          style={formStyles.inputPrimary}
-          placeholder="Email"
-          keyboardType={'email-address'}
-          placeholderTextColor={primaryTextColor}
-        />
-      </InputWrapper>
-      <InputWrapper inputLabel={t('user-name')}>
-        <TextInput
-          value={username}
-          onChangeText={setUserName}
-          style={formStyles.inputPrimary}
-          placeholder={t('user-name')}
-          keyboardType={'default'}
-          placeholderTextColor={primaryTextColor}
-        />
-      </InputWrapper>
-      <DatePicker onDateChange={handleDateChange} />
-      <InputWrapper
-        inputLabel={t('password')}
-        setTogglePassword={setTogglePassword}
-        togglePassword={togglePassword}
-        passwordInput
+      <FormControl
+        size="md"
+        isDisabled={false}
+        isReadOnly={false}
+        isRequired={false}
+        style={formStyles.formControl}
       >
-        <TextInput
-          secureTextEntry={togglePassword}
-          value={password}
-          onChangeText={setPassword}
+        <FormControlLabel>
+          <FormControlLabelText style={{ color: primaryColor }}>
+            {t('email')}
+          </FormControlLabelText>
+        </FormControlLabel>
+        <Input
+          className="my-1"
+          variant={'rounded'}
+          size="xl"
           style={formStyles.inputPrimary}
-          placeholder={t('password')}
-          keyboardType={'visible-password'}
-          placeholderTextColor={primaryTextColor}
-        />
-      </InputWrapper>
-      <InputWrapper
-        inputLabel={t('repeatPassword')}
-        setTogglePassword={setTogglePassword}
-        togglePassword={togglePassword}
-        passwordInput
+        >
+          <InputField
+            type="text"
+            placeholder={t('email')}
+            style={{ color: primaryTextColor }}
+            onChangeText={setEmail}
+            value={email}
+          />
+        </Input>
+      </FormControl>
+
+      <FormControl
+        size="md"
+        isDisabled={false}
+        isReadOnly={false}
+        isRequired={false}
+        style={formStyles.formControl}
       >
-        <TextInput
-          secureTextEntry={togglePassword}
-          value={repeatPassword}
-          onChangeText={setRepeatPassword}
+        <FormControlLabel>
+          <FormControlLabelText style={{ color: primaryColor }}>
+            {t('user-name')}
+          </FormControlLabelText>
+        </FormControlLabel>
+        <Input
+          className="my-1"
+          variant={'rounded'}
+          size="xl"
           style={formStyles.inputPrimary}
-          placeholder={t('repeatPassword')}
-          keyboardType={'visible-password'}
-          placeholderTextColor={primaryTextColor}
+        >
+          <InputField
+            type="text"
+            placeholder={t('user-name')}
+            style={{ color: primaryTextColor }}
+            onChangeText={setUserName}
+            value={username}
+          />
+        </Input>
+      </FormControl>
+
+      <FormControl
+        size="md"
+        isDisabled={false}
+        isReadOnly={false}
+        isRequired={false}
+        style={formStyles.formControl}
+      >
+        <FormControlLabelText style={{ color: primaryColor }}>
+          {t('date-of-birth')}
+        </FormControlLabelText>
+        <Input
+          className="my-1"
+          variant={'rounded'}
+          size="xl"
+          style={formStyles.inputPrimary}
+        >
+          <InputField
+            value={date.toLocaleDateString()}
+            onPress={() => setDatePickerOpened(true)}
+            style={{ color: primaryTextColor }}
+          />
+        </Input>
+        <DatePicker
+          modal
+          open={datePickerOpened}
+          date={date}
+          mode={'date'}
+          onConfirm={date => {
+            setDatePickerOpened(false);
+            setDate(date);
+          }}
+          onCancel={() => {
+            setDatePickerOpened(false);
+          }}
         />
-        {!isSamePassword() && (
-          <View>
-            <Text style={[commonAppStyles.textPrimary, { color: '#f80202' }]}>
-              {t('noMatchingPasswords')}
-            </Text>
-          </View>
-        )}
-      </InputWrapper>
-      <InputWrapper>
+      </FormControl>
+
+      <FormControl
+        size="md"
+        isDisabled={false}
+        isReadOnly={false}
+        isRequired={false}
+        style={formStyles.formControl}
+        isInvalid={!isSamePassword() || password.length < 6}
+      >
+        <FormControlLabel>
+          <FormControlLabelText style={{ color: primaryColor }}>
+            {t('password')}
+          </FormControlLabelText>
+        </FormControlLabel>
+        <Input
+          className="my-1"
+          variant={'rounded'}
+          size="xl"
+          style={formStyles.inputPrimary}
+        >
+          <InputField
+            type={togglePassword ? 'text' : 'password'}
+            placeholder={t('password')}
+            style={{ color: primaryTextColor }}
+            onChangeText={setPassword}
+            value={password}
+          />
+          <InputSlot
+            className="pr-3"
+            onPress={() => setTogglePassword(!togglePassword)}
+          >
+            <InputIcon as={togglePassword ? EyeIcon : EyeOffIcon} />
+          </InputSlot>
+        </Input>
+        <FormControlHelper>
+          <FormControlHelperText>
+            Must be at least 6 characters.
+          </FormControlHelperText>
+        </FormControlHelper>
+        <FormControlError>
+          <FormControlErrorIcon as={AlertCircleIcon} className="text-red-500" />
+          <FormControlErrorText className="text-red-500">
+            At least 6 characters are required.
+          </FormControlErrorText>
+        </FormControlError>
+      </FormControl>
+      <FormControl
+        size="md"
+        isDisabled={false}
+        isReadOnly={false}
+        isRequired={false}
+        style={formStyles.formControl}
+        isInvalid={!isSamePassword()}
+      >
+        <FormControlLabel>
+          <FormControlLabelText style={{ color: primaryColor }}>
+            {t('repeatPassword')}{' '}
+          </FormControlLabelText>
+        </FormControlLabel>
+        <Input
+          className="my-1"
+          variant={'rounded'}
+          size="xl"
+          style={formStyles.inputPrimary}
+        >
+          <InputField
+            type={togglePassword ? 'text' : 'password'}
+            placeholder={t('repeatPassword')}
+            style={{ color: primaryTextColor }}
+            onChangeText={setRepeatPassword}
+            value={repeatPassword}
+          />
+          <InputSlot
+            className="pr-3"
+            onPress={() => setTogglePassword(!togglePassword)}
+          >
+            <InputIcon as={togglePassword ? EyeIcon : EyeOffIcon} />
+          </InputSlot>
+        </Input>
+        <FormControlError>
+          <FormControlErrorIcon as={AlertCircleIcon} className="text-red-500" />
+          <FormControlErrorText className="text-red-500">
+            {t('noMatchingPasswords')}
+          </FormControlErrorText>
+        </FormControlError>
+      </FormControl>
+      <FormControl
+        size="md"
+        isDisabled={false}
+        isReadOnly={false}
+        isRequired={false}
+        style={formStyles.formControl}
+      >
         <BouncyCheckbox
           style={{ padding: 5 }}
           fillColor={primaryColor}
@@ -230,22 +369,24 @@ export const Register = ({ navigation }: any) => {
           isChecked={acceptsTermsOfUse}
           onPress={() => setAcceptsTermsOfUse(!acceptsTermsOfUse)}
         ></BouncyCheckbox>
-      </InputWrapper>
-      <TouchableOpacity
-        onPress={handleSetUserAccount}
-        style={formStyles.buttonPrimary}
-        disabled={!isSamePassword()}
-      >
-        {!loading ? (
-          <Text style={formStyles.buttonText}>{t('register')}</Text>
-        ) : (
-          <ActivityIndicator
-            style={formStyles.buttonText}
-            size="small"
-            color="#000000"
-          />
-        )}
-      </TouchableOpacity>
+      </FormControl>
+      <Center>
+        <Button
+          variant="solid"
+          size="md"
+          action="primary"
+          style={formStyles.buttonPrimary}
+          onPress={handleRegister}
+          isDisabled={!isSamePassword() || !validateInputs()}
+        >
+          {!loading && (
+            <ButtonText style={formStyles.buttonText}>
+              {t('register')}
+            </ButtonText>
+          )}
+          {loading && <ButtonSpinner />}
+        </Button>
+      </Center>
     </AuthLayout>
   );
 };

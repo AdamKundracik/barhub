@@ -1,21 +1,33 @@
 import AuthLayout from '../../components/auth/AuthLayout';
-import { InputWrapper } from '../../components/shared/InputWrapper';
-import { Alert, Text, TextInput, TouchableOpacity } from 'react-native';
+import { Alert } from 'react-native';
 import { formStyles } from '../../utils/styles/styles';
+import * as React from 'react';
 import { useState } from 'react';
 import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
 import { useTranslation } from 'react-i18next';
-import { primaryTextColor } from '../../utils/styles/colors';
+import { primaryColor, primaryTextColor } from '../../utils/styles/colors';
+import {
+  FormControl,
+  FormControlLabel,
+  FormControlLabelText,
+} from '@/components/ui/form-control';
+import { Input, InputField } from '@/components/ui/input';
+import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
+import { Center } from '@/components/ui/center';
+import { Text } from '@/components/ui/text';
 
 export const ForgotPassword = ({ navigation }: any) => {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const triggerResetPassword = async () => {
     const auth = getAuth();
+    setLoading(true);
     await sendPasswordResetEmail(auth, email).then(() =>
       triggerResetPasswordAlert()
     );
+    setLoading(false);
   };
 
   const triggerResetPasswordAlert = () => {
@@ -26,22 +38,56 @@ export const ForgotPassword = ({ navigation }: any) => {
 
   return (
     <AuthLayout pageTitle={'Forgot password'}>
-      <InputWrapper inputLabel={t('email')}>
-        <TextInput
-          value={email}
-          onChangeText={setEmail}
-          style={formStyles.inputPrimary}
-          placeholder={t('email')}
-          keyboardType={'email-address'}
-          placeholderTextColor={primaryTextColor}
-        />
-      </InputWrapper>
-      <TouchableOpacity
-        onPress={triggerResetPassword}
-        style={formStyles.buttonPrimary}
+      <Center>
+        <Text className={'text-4xl'} style={{ color: primaryTextColor }}>
+          {t('forgot-password')}
+        </Text>
+      </Center>
+      <FormControl
+        size="lg"
+        isDisabled={false}
+        isReadOnly={false}
+        isRequired={false}
+        style={{ paddingHorizontal: 10, marginBottom: 10 }}
       >
-        <Text style={formStyles.buttonText}>{t('resetPassword')}</Text>
-      </TouchableOpacity>
+        <FormControlLabel>
+          <FormControlLabelText style={{ color: primaryColor }}>
+            {t('email')}
+          </FormControlLabelText>
+        </FormControlLabel>
+        <Input
+          className="my-1"
+          variant={'rounded'}
+          size="xl"
+          style={formStyles.inputPrimary}
+        >
+          <InputField
+            type="text"
+            keyboardType={'email-address'}
+            placeholder={t('email')}
+            style={{ color: primaryTextColor }}
+            value={email}
+            onChangeText={setEmail}
+          />
+        </Input>
+      </FormControl>
+      <Center>
+        <Button
+          variant="solid"
+          size="md"
+          action="primary"
+          style={formStyles.buttonPrimary}
+          onPress={triggerResetPassword}
+          isDisabled={!email}
+        >
+          {!loading && (
+            <ButtonText style={formStyles.buttonText}>
+              {t('resetPassword')}
+            </ButtonText>
+          )}
+          {loading && <ButtonSpinner />}
+        </Button>
+      </Center>
     </AuthLayout>
   );
 };

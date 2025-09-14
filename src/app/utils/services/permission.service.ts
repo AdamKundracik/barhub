@@ -1,8 +1,8 @@
-import BackgroundGeolocation from 'react-native-background-geolocation';
 import * as Notifications from 'expo-notifications';
 import { Linking, Platform } from 'react-native';
 import { requestCameraPermissionsAsync } from 'expo-image-picker';
 import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
+import BackgroundGeolocation from 'react-native-background-geolocation';
 
 export const requestTrackingPermission = async () => {
   if (Platform.OS === 'android') return true;

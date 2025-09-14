@@ -4,6 +4,7 @@ import {
   FlatList,
   RefreshControl,
   StyleSheet,
+  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -17,6 +18,7 @@ import { useUserContext } from '../../../providers/UserProvider';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
 import { FirebaseTimestamp } from '../../../utils/types/types';
+import { useTranslation } from 'react-i18next';
 
 interface PostsListProps {
   posts: Post[];
@@ -54,6 +56,7 @@ const PostsList = ({
   hasMorePosts,
 }: PostsListProps) => {
   const { users } = useUserContext();
+  const { t } = useTranslation();
   const { placeId } = usePlaceStore();
   const flatListRef = useRef<FlatList>(null);
   const [showScrollTopButton, setShowScrollTopButton] = useState(false);
@@ -88,6 +91,23 @@ const PostsList = ({
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
 
+  const ListFooter = ({
+    isFetchingNextPage,
+    hasMorePosts,
+  }: {
+    isFetchingNextPage: boolean;
+    hasMorePosts?: boolean;
+  }) => {
+    if (isFetchingNextPage) return <LoadingIndicator />;
+    if (!hasMorePosts)
+      return (
+        <Text style={{ textAlign: 'center', padding: 16, color: 'gray' }}>
+          {t('thats-it')}👋
+        </Text>
+      );
+    return null;
+  };
+
   const renderPostItem = ({ item }: { item: Post; index: number }) => (
     <View
       key={item.id}
@@ -97,15 +117,14 @@ const PostsList = ({
       }}
     >
       <UserPost
+        numberOfDaysSinceLastPostedPhoto={numberOfDaysSinceLastPostedPhoto}
         requestPhoto={requestPhoto}
         user={users?.find(user => user.uid === item.userId)}
         onCommentPress={(postId, expoPushToken, userId) =>
           onCommentPress(postId, expoPushToken, userId)
         }
         isFiltering={isFiltering}
-        hasPremium={
-          (userData?.premium || numberOfDaysSinceLastPostedPhoto <= 7) ?? false
-        }
+        hasPremium={userData?.premium ?? false}
         post={item}
         setZoomedPost={setZoomedPost}
         isZoomed={zoomedPost === item.photoUrl}
@@ -121,7 +140,12 @@ const PostsList = ({
         renderItem={renderPostItem}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.scrollView}
-        ListFooterComponent={isFetchingNextPage ? <LoadingIndicator /> : null}
+        ListFooterComponent={
+          <ListFooter
+            isFetchingNextPage={isFetchingNextPage}
+            hasMorePosts={hasMorePosts}
+          />
+        }
         refreshControl={
           <RefreshControl refreshing={loading} onRefresh={onRefresh} />
         }
@@ -130,7 +154,6 @@ const PostsList = ({
         onScroll={handleScroll}
         ListHeaderComponent={
           <>
-            {loading && <LoadingIndicator />}
             {placeId && isOlderThanMinutes(posts[0].creationTime, 30) && (
               <PostOldInfo requestPhoto={requestPhoto} />
             )}

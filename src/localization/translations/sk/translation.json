@@ -12,7 +12,7 @@
   "repeatPassword": "Zopakuj heslo",
   "noMatchingPasswords": "Heslá sa nezhodujú",
   "haveAccount": "Už máš účet?",
-  "Forgot password": "Forgot password",
+  "forgot-password": "Zabudnuté heslo",
   "newPassword": "Nové heslo",
   "repeatNewPassword": "Zopakuj nové heslo",
   "noPermission": "Povolenie sa neudelilo",
@@ -44,7 +44,6 @@
   "remove-picture": "Odstrániť fotku",
   "request-expired": "Žiadosť expirovala",
   "missed-request-info": "To snáď nie! Prišiel si o svoju šancu. Na odfotenie fotky máš len 3 minúty.",
-  "Confirm": "Potvrdiť",
   "user-not-found": "Používateľ nebol nájdený",
   "email-already-in-use": "Tento email je už použitý",
   "operation-not-allowed": "Operácia nie je povolená",
@@ -127,7 +126,7 @@
   "new-comment": "Nový Komentár",
   "request": "Žiadosť",
   "response": "Odpoveď",
-  "notification-processing-error": "notification-processing-error",
+  "notification-processing-error": "Problém pri notifikácii",
   "cancel": "Zrušiť",
   "permissions": {
     "title": "Požadované povolenia",
@@ -156,5 +155,15 @@
   "third-party-libraries": "Knižnice tretích strán",
   "use-different-location": "Použiť iné miesto",
   "select-city": "Vybrať mesto",
-  "Selected-location": "Vybrané miesto"
+  "Selected-location": "Vybrané miesto",
+  "invalid-month": "Nesprávny mesiac",
+  "invalid-year": "Nesprávny rok",
+  "invalid-day": "Nesprávny deň",
+  "password-length": "Musí byť aspoň 6 znakov dlhé",
+  "delete-photo-title": "Naozaj si prajete zmazať túto fotku?",
+  "delete-photo-info": "Po potvrdení bude vaša fotka natrvalo odstránená",
+  "delete-account-title": "Naozaj si prajete odstrániť tento účet?",
+  "delete-account-info": "Po potvrdení bude váš účet natrvalo odstránená",
+  "password-too-short": "Heslo je príliš krátke",
+  "thats-it": "To je všetko"
 }

@@ -8,7 +8,7 @@ import {
   GetFreshnessContentResult,
   GetUserResult,
   SetDocumentFromCollectionRequest,
-} from '../helper-functions/functions-types';
+} from '../types/functions-types';
 import { MISSING_REQUIRED_REQUEST_PARAMS } from '../helper-functions/constants';
 import { Post, User } from '../../../../shared';
 

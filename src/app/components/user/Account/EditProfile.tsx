@@ -5,18 +5,22 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import DatePicker from '../../shared/DatePicker';
+import DatePicker from 'react-native-date-picker';
 import { User } from '../../../../../shared';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
 import { auth } from '../../../../../firebaseConfig';
-import { primaryBgColor, primaryColor } from '../../../utils/styles/colors';
-import { formStyles } from '../../../utils/styles/styles';
+import {
+  primaryBgColor,
+  primaryColor,
+  primaryDeepColor,
+  primaryLightGrey,
+  primaryTextColor,
+} from '../../../utils/styles/colors';
+import { commonAppStyles, formStyles } from '../../../utils/styles/styles';
 import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import {
@@ -26,9 +30,27 @@ import {
 import { setUser } from '../../../utils/services/functions';
 import { updateProfile } from 'firebase/auth';
 import { useUserContext } from '../../../providers/UserProvider';
-import LoadingIndicator from '../NewsFeed/LoadingIndicator';
 import SlidingView from '../../shared/SlidingView';
 import { Image } from 'expo-image';
+import {
+  FormControl,
+  FormControlLabel,
+  FormControlLabelText,
+} from '@/components/ui/form-control';
+import { Input, InputField } from '@/components/ui/input';
+import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
+import { Center } from '@/components/ui/center';
+import {
+  AlertDialog,
+  AlertDialogBackdrop,
+  AlertDialogBody,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+} from '@/components/ui/alert-dialog';
+import { Heading } from '@/components/ui/heading';
+import { Text } from '@/components/ui/text';
+import { useLocales } from 'expo-localization';
 
 type EditProfileProps = {
   user: User | null;
@@ -37,7 +59,8 @@ type EditProfileProps = {
 
 const ProfileEditScreen = (props: EditProfileProps) => {
   const { t } = useTranslation();
-  const { fetchUserData, fetchAllUsers } = useUserContext();
+  const { fetchUserData } = useUserContext();
+  const locales = useLocales();
 
   const [openImageOptions, setOpenImageOptions] = useState(false);
   const [username, setUsername] = useState<string | null | undefined>(
@@ -48,6 +71,10 @@ const ProfileEditScreen = (props: EditProfileProps) => {
     props.user?.dateOfBirth ? new Date(props.user?.dateOfBirth) : new Date()
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [datePickerOpened, setDatePickerOpened] = useState(false);
+  const [showAlertDialog, setShowAlertDialog] = React.useState(false);
+
+  const handleClose = () => setShowAlertDialog(false);
 
   const openGallery = async () => {
     const permissionResult =
@@ -80,7 +107,6 @@ const ProfileEditScreen = (props: EditProfileProps) => {
       });
 
       if (fetchUserData) await fetchUserData();
-      if (fetchAllUsers) await fetchAllUsers();
 
       setOpenImageOptions(false);
     }
@@ -133,7 +159,6 @@ const ProfileEditScreen = (props: EditProfileProps) => {
         displayName: auth.currentUser?.displayName,
       });
       if (fetchUserData) await fetchUserData();
-      if (fetchAllUsers) await fetchAllUsers();
 
       setOpenImageOptions(false);
     }
@@ -152,7 +177,7 @@ const ProfileEditScreen = (props: EditProfileProps) => {
       displayName: auth.currentUser?.displayName,
     });
     if (fetchUserData) await fetchUserData();
-    if (fetchAllUsers) await fetchAllUsers();
+    setShowAlertDialog(false);
     setOpenImageOptions(false);
   };
 
@@ -195,51 +220,117 @@ const ProfileEditScreen = (props: EditProfileProps) => {
           </View>
 
           {/* Username input */}
-          <View style={styles.inputRow}>
-            <Text style={styles.label}>{t('user-name')}</Text>
-            <TextInput
-              value={username ?? ''}
-              onChangeText={setUsername}
-              style={[styles.input, formStyles.inputPrimary]}
-            />
-          </View>
+          <FormControl
+            size="lg"
+            isDisabled={true}
+            isReadOnly={false}
+            isRequired={false}
+            style={formStyles.formControl}
+          >
+            <FormControlLabel>
+              <FormControlLabelText style={{ color: primaryColor }}>
+                {t('email')}
+              </FormControlLabelText>
+            </FormControlLabel>
+            <Input
+              className="my-1"
+              variant={'rounded'}
+              size="xl"
+              style={formStyles.inputPrimary}
+            >
+              <InputField
+                type="text"
+                placeholder={t('email')}
+                style={{ color: primaryTextColor }}
+                value={email!}
+              />
+            </Input>
+          </FormControl>
 
-          {/* Email input (non-editable) */}
-          <View style={styles.inputRow}>
-            <Text style={styles.label}>{t('email')}</Text>
-            <TextInput
-              value={email ?? ''}
-              editable={false}
-              style={[
-                styles.input,
-                formStyles.inputPrimary,
-                styles.nonEditable,
-              ]}
-            />
-          </View>
+          <FormControl
+            size="lg"
+            isDisabled={false}
+            isReadOnly={false}
+            isRequired={false}
+            style={formStyles.formControl}
+          >
+            <FormControlLabel>
+              <FormControlLabelText style={{ color: primaryColor }}>
+                {t('user-name')}
+              </FormControlLabelText>
+            </FormControlLabel>
+            <Input
+              className="my-1"
+              variant={'rounded'}
+              size="xl"
+              style={formStyles.inputPrimary}
+            >
+              <InputField
+                type="text"
+                placeholder={t('user-name')}
+                style={{ color: primaryTextColor }}
+                value={username!}
+                onChangeText={setUsername}
+              />
+            </Input>
+          </FormControl>
 
-          {/* Birthdate picker */}
-          <View style={styles.birthDateContainer}>
-            <Text style={styles.birthDateLabel}>{t('date-of-birth')}</Text>
+          <FormControl
+            size="lg"
+            isDisabled={false}
+            isReadOnly={false}
+            isRequired={false}
+            style={formStyles.formControl}
+          >
+            <FormControlLabelText style={{ color: primaryColor }}>
+              {t('date-of-birth')}
+            </FormControlLabelText>
+            <Input
+              className="my-1"
+              variant={'rounded'}
+              size="xl"
+              style={formStyles.inputPrimary}
+            >
+              <InputField
+                value={birthDate.toLocaleDateString()}
+                onPress={() => setDatePickerOpened(true)}
+                style={{ color: primaryTextColor }}
+              />
+            </Input>
             <DatePicker
-              onDateChange={date => setBirthDate(new Date(date))}
-              initialValue={
-                new Date(props.user ? props.user.dateOfBirth : '') ?? null
-              }
+              modal
+              open={datePickerOpened}
+              date={birthDate}
+              locale={locales[0].languageCode!}
+              mode={'date'}
+              onConfirm={date => {
+                setDatePickerOpened(false);
+                setBirthDate(date);
+              }}
+              onCancel={() => {
+                setDatePickerOpened(false);
+              }}
             />
-          </View>
+          </FormControl>
 
           {/* Save button */}
-          <TouchableOpacity
-            style={formStyles.buttonSecondary}
-            onPress={handleUpdateUser}
-          >
-            {isSaving ? (
-              <LoadingIndicator />
-            ) : (
-              <Text style={styles.saveButtonText}>{t('save')}</Text>
-            )}
-          </TouchableOpacity>
+          <Center>
+            <Button
+              variant="solid"
+              size="md"
+              action="primary"
+              style={formStyles.buttonPrimary}
+              onPress={handleUpdateUser}
+              isDisabled={isSaving}
+            >
+              {!isSaving && (
+                <ButtonText style={formStyles.buttonText}>
+                  {t('save')}
+                </ButtonText>
+              )}
+              {isSaving && <ButtonSpinner />}
+            </Button>
+          </Center>
         </ScrollView>
       </KeyboardAvoidingView>
       <SlidingView
@@ -247,8 +338,45 @@ const ProfileEditScreen = (props: EditProfileProps) => {
         onClose={() => setOpenImageOptions(false)}
         openGallery={openGallery}
         openCamera={openCamera}
-        removePicture={removePicture}
+        removePicture={() => setShowAlertDialog(true)}
       />
+      <AlertDialog isOpen={showAlertDialog} onClose={handleClose} size="md">
+        <AlertDialogBackdrop />
+        <AlertDialogContent
+          style={{
+            backgroundColor: primaryDeepColor,
+            borderColor: primaryColor,
+          }}
+        >
+          <AlertDialogHeader>
+            <Heading
+              className="text-typography-950 font-semibold"
+              size="md"
+              style={commonAppStyles.textSecondary}
+            >
+              {t('delete-photo-title')}
+            </Heading>
+          </AlertDialogHeader>
+          <AlertDialogBody className="mt-3 mb-4">
+            <Text size="sm" style={{ color: primaryLightGrey }}>
+              {t('delete-photo-info')}
+            </Text>
+          </AlertDialogBody>
+          <AlertDialogFooter>
+            <Button
+              variant="outline"
+              action="secondary"
+              onPress={handleClose}
+              size="sm"
+            >
+              <ButtonText>{t('cancel')}</ButtonText>
+            </Button>
+            <Button size="sm" action={'negative'} onPress={removePicture}>
+              <ButtonText>{t('submit')}</ButtonText>
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

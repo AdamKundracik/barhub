@@ -1,10 +1,10 @@
 import React from 'react';
 import {
-  View,
+  SafeAreaView,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -98,7 +98,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 10,
-    paddingVertical: 32,
   },
   header: {
     flexDirection: 'row',

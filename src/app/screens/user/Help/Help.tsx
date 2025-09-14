@@ -1,23 +1,20 @@
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  SafeAreaView,
-  KeyboardAvoidingView,
-  StyleSheet,
-  TouchableWithoutFeedback,
   Keyboard,
+  KeyboardAvoidingView,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { InputWrapper } from '../../../components/shared/InputWrapper';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
 import {
   primaryBgColor,
   primaryColor,
-  primaryGrey,
   primaryTextColor,
   secondaryTextColor,
   textInputPlaceholderColor,
@@ -26,6 +23,15 @@ import { formStyles } from '../../../utils/styles/styles';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { useTranslation } from 'react-i18next';
+import {
+  FormControl,
+  FormControlLabel,
+  FormControlLabelText,
+} from '@/components/ui/form-control';
+import { Input, InputField } from '@/components/ui/input';
+import { Button, ButtonText } from '@/components/ui/button';
+import { Textarea, TextareaInput } from '@/components/ui/textarea';
+import { Center } from '@/components/ui/center';
 
 const MAX_CHAR_COUNT = 300;
 
@@ -70,34 +76,69 @@ const HelpScreen = () => {
 
             <View style={styles.separator} />
 
-            <InputWrapper inputLabel={t('input-email')}>
-              <TextInput
-                value={email}
-                onChangeText={setEmail}
+            {/* Email input */}
+            <FormControl style={formStyles.formControl}>
+              <FormControlLabel>
+                <FormControlLabelText style={{ color: primaryColor }}>
+                  {t('input-email')}
+                </FormControlLabelText>
+              </FormControlLabel>
+              <Input
+                variant="rounded"
+                size="xl"
                 style={formStyles.inputPrimary}
-                placeholder="Email"
-                placeholderTextColor={textInputPlaceholderColor}
-              />
-            </InputWrapper>
+              >
+                <InputField
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="Email"
+                  style={{ color: primaryTextColor }}
+                />
+              </Input>
+            </FormControl>
 
-            <InputWrapper inputLabel={t('any-questions')}>
-              <TextInput
-                value={message}
-                onChangeText={handleMessageChange}
-                style={styles.messageInput}
-                placeholder="..."
-                multiline
-                placeholderTextColor={textInputPlaceholderColor}
-              />
+            {/* Message input */}
+            <FormControl style={formStyles.formControl}>
+              <FormControlLabel>
+                <FormControlLabelText style={{ color: primaryColor }}>
+                  {t('any-questions')}
+                </FormControlLabelText>
+              </FormControlLabel>
+              <Textarea
+                size="md"
+                isReadOnly={false}
+                isInvalid={false}
+                isDisabled={false}
+                className="w-full"
+                style={[formStyles.inputPrimary, { borderRadius: 20 }]}
+              >
+                <TextareaInput
+                  placeholder="..."
+                  placeholderTextColor={textInputPlaceholderColor}
+                  style={{ color: primaryTextColor }}
+                />
+              </Textarea>
               <Text style={styles.characterCount}>
                 {message.length}/{MAX_CHAR_COUNT}
               </Text>
-            </InputWrapper>
+            </FormControl>
 
             {/* Submit Button */}
-            <TouchableOpacity style={formStyles.buttonPrimary}>
-              <Text style={styles.submitText}>{t('send')}</Text>
-            </TouchableOpacity>
+            <Center>
+              <Button
+                variant="solid"
+                size="md"
+                action="primary"
+                style={formStyles.buttonPrimary}
+                onPress={() => {
+                  console.log('Sending help request:', { email, message });
+                }}
+              >
+                <ButtonText style={formStyles.buttonText}>
+                  {t('send')}
+                </ButtonText>
+              </Button>
+            </Center>
           </View>
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
@@ -115,7 +156,7 @@ const styles = StyleSheet.create({
   },
   flexGrow: {
     flexGrow: 1,
-    padding: 10,
+    paddingHorizontal: 10,
   },
   header: {
     flexDirection: 'row',
@@ -146,31 +187,13 @@ const styles = StyleSheet.create({
   },
   messageInput: {
     minHeight: 120,
-    backgroundColor: primaryGrey,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: primaryColor,
-    color: primaryTextColor,
-    textAlignVertical: 'top',
-    padding: 15,
+    padding: 0,
   },
   characterCount: {
     textAlign: 'right',
     color: secondaryTextColor,
     fontSize: 12,
     marginTop: 4,
-  },
-  submitButton: {
-    backgroundColor: primaryColor,
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  submitText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
 });
 
