@@ -164,5 +164,6 @@
   "delete-photo-info": "Po potvrdení bude vaša fotka natrvalo odstránená",
   "delete-account-title": "Naozaj si prajete odstrániť tento účet?",
   "delete-account-info": "Po potvrdení bude váš účet natrvalo odstránená",
-  "password-too-short": "Heslo je príliš krátke"
+  "password-too-short": "Heslo je príliš krátke",
+  "thats-it": "To je všetko"
 }

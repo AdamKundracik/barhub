@@ -1,20 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Alert,
-  Dimensions,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
+import { Alert, Dimensions, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View, } from 'react-native';
 import Device from 'react-native-device-info';
-import {
-  iconInactiveColor,
-  postBgColor,
-  primaryBgColor,
-  primaryColor,
-} from '../../../utils/styles/colors';
+import { iconInactiveColor, postBgColor, primaryBgColor, primaryColor, } from '../../../utils/styles/colors';
 import { Image } from 'expo-image';
 import { OccupancyEnum, Place } from '../../../utils/types/types';
 import { useTranslation } from 'react-i18next';
@@ -150,12 +137,12 @@ export const PostSummary = ({ route }: any) => {
 
   const handleSavePost = async () => {
     setIsSaving(true);
+    const fileId = generateUID();
 
     if (image && place) {
-      const url = await uploadImageAsync(image, place?.id);
+      const url = await uploadImageAsync(image, place?.id, fileId);
 
       if (url) {
-        const uid = generateUID();
         const hash = geohashForLocation([
           place?.location.latitude ?? 0,
           place?.location.longitude ?? 0,
@@ -170,7 +157,7 @@ export const PostSummary = ({ route }: any) => {
           placeTypes: place.types,
           id: '',
           userId: '',
-          fileId: uid,
+          fileId: fileId,
           occupancy: selectedOccupancy ?? '',
           folderId: place?.id ?? '',
           timestamp: Date.now(),

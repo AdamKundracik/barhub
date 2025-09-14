@@ -163,5 +163,8 @@
   "delete-photo-info": "Nach Bestätigung wird Ihr Foto dauerhaft gelöscht",
   "delete-account-title": "Möchten Sie dieses Konto wirklich löschen?",
   "delete-account-info": "Nach Bestätigung wird Ihr Konto dauerhaft gelöscht",
-  "password-too-short": "Passwort ist zu kurz"
+  "password-too-short": "Passwort ist zu kurz",
+  "notification-processing-error": "notification-processing-error",
+  "thats-it": "das war's",
+  "forgot-password": "Passwort vergessen"
 }

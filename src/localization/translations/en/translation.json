@@ -164,5 +164,7 @@
   "delete-photo-info": "Once confirmed, your photo will be permanently deleted",
   "delete-account-title": "Do you really want to delete this account?",
   "delete-account-info": "Once confirmed, your account will be permanently deleted",
-  "password-too-short": "Password is too short"
+  "password-too-short": "Password is too short",
+  "thats-it": "That`s it",
+  "forgot-password": "Forgot password"
 }

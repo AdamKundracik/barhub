@@ -164,5 +164,7 @@
   "delete-photo-info": "Una vez confirmado, su foto será eliminada permanentemente",
   "delete-account-title": "¿Realmente desea eliminar esta cuenta?",
   "delete-account-info": "Una vez confirmado, su cuenta será eliminada permanentemente",
-  "password-too-short": "La contraseña es demasiado corta"
+  "password-too-short": "La contraseña es demasiado corta",
+  "thats-it": "Eso es todo",
+  "forgot-password": "Contraseña perdida"
 }
