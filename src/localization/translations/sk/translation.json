@@ -165,5 +165,14 @@
   "delete-account-title": "Naozaj si prajete odstrániť tento účet?",
   "delete-account-info": "Po potvrdení bude váš účet natrvalo odstránená",
   "password-too-short": "Heslo je príliš krátke",
-  "thats-it": "To je všetko"
+  "thats-it": "To je všetko",
+  "reportPost.title": "Nahlásiť príspevok",
+  "reportPost.chooseReason": "Vyber dôvod nahlásenia",
+  "reportPost.spam": "Spam",
+  "reportPost.inappropriate": "Nevhodný obsah",
+  "reportPost.harassment": "Obťažovanie",
+  "reportPost.other": "Iné",
+  "reportPost.submit": "Nahlásiť",
+  "reportPost.successTitle": "Hlásenie odoslané",
+  "reportPost.successDescription": "Ďakujeme za vaše hlásenie, náš tím sa nim bude zaoberať."
 }

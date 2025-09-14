@@ -8,13 +8,6 @@ export type Settings = {
   // FOR ADDITIONAL SETTINGS
 };
 
-export enum OccupancyEnum {
-  FULL = 'FULL',
-  ALMOST_FULL = 'ALMOST_FULL',
-  SPARSELY_OCCUPIED = 'SPARSELY_OCCUPIED',
-  EMPTY = 'EMPTY',
-}
-
 export type DisplayName = {
   languageCode: string;
   text: string;
@@ -162,22 +155,6 @@ export interface Suggestion {
 export interface AutocompleteResponse {
   suggestions: Suggestion[];
 }
-
-export type PlaceType =
-  | 'bar'
-  | 'bakery'
-  | 'bowling_alley'
-  | 'cafe'
-  | 'casino'
-  | 'night_club'
-  | 'restaurant'
-  | 'tourist_attraction';
-
-export type OccupancyTypes =
-  | 'FULL'
-  | 'ALMOST_FULL'
-  | 'SPARSELY_OCCUPIED'
-  | 'EMPTY';
 
 export type FirebaseTimestamp = {
   seconds?: number;

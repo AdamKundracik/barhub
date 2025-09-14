@@ -21,17 +21,14 @@ import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
 import '@/global.css';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 
-// Configure Reanimated logger
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
   strict: false,
 });
 
-// Create query client with persistence
 const queryClient = createQueryClientWithPersistence();
 
 export default function App() {
-  // Initialize app (localization, ads, tracking, etc.)
   useAppInitialization();
 
   return (

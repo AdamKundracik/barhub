@@ -6,21 +6,21 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { Post, User } from '../../../../../../shared';
-import { useRef, useState } from 'react';
-import { toggleLike } from '../../../../utils/services/functions';
-import { auth } from '../../../../../../firebaseConfig';
-import PlaceNameSeparator from './PlaceNameSeparator';
-import { postBgColor, primaryBgColor } from '../../../../utils/styles/colors';
-import UserLine from './UserLine';
-import InteractionBar from './InteractionBar';
-import BluredPostFrontView from './BluredPostFrontView';
-import { useQueryClient } from 'react-query';
-import { usePlaceStore } from '../../../../utils/store/placesStore';
-import { trimPlaceName } from '../../../../utils/helper-functions/trimPlaceName';
-import { LikeNotificationRequest } from '../../../../utils/types/notification-types';
-import { sendLikeNotification } from '../../../../utils/functions/notofications-handler';
 import { Image } from 'expo-image';
+import { usePlaceStore } from '@/src/app/utils/store/placesStore';
+import { Post, User } from '@/shared';
+import { useQueryClient } from 'react-query';
+import { useRef, useState } from 'react';
+import { toggleLike } from '@/src/app/utils/services/functions';
+import { auth } from '@/firebaseConfig';
+import { LikeNotificationRequest } from '@/src/app/utils/types/notification-types';
+import { sendLikeNotification } from '@/src/app/utils/functions/notofications-handler';
+import PlaceNameSeparator from '@/src/app/components/user/NewsFeed/Post/PlaceNameSeparator';
+import { trimPlaceName } from '@/src/app/utils/helper-functions/trimPlaceName';
+import BluredPostFrontView from '@/src/app/components/user/NewsFeed/Post/BluredPostFrontView';
+import UserLine from '@/src/app/components/user/NewsFeed/Post/UserLine';
+import InteractionBar from '@/src/app/components/user/NewsFeed/Post/InteractionBar';
+import { postBgColor, primaryBgColor } from '@/src/app/utils/styles/colors';
 
 interface PostInterface {
   post: Post;
@@ -94,19 +94,15 @@ export const UserPost = (props: PostInterface) => {
     );
   };
 
-  // Handle like toggle with debouncing
   const handleLikeToggle = async (postId: string) => {
-    // Immediate UI update
     const newLikedState = !liked;
     setLiked(newLikedState);
     setLikeCount(prevCount => (newLikedState ? prevCount + 1 : prevCount - 1));
 
-    // Clear existing timeout
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
     }
 
-    // Debounced API call
     debounceTimeout.current = setTimeout(async () => {
       try {
         if (liked !== previousLikeState) {
@@ -127,7 +123,6 @@ export const UserPost = (props: PostInterface) => {
         }
       } catch (error) {
         console.error('Error updating like status:', error);
-        // Revert UI on error
         setLiked(previousLikeState);
         setLikeCount(prevCount =>
           previousLikeState ? prevCount + 1 : prevCount - 1
@@ -136,7 +131,6 @@ export const UserPost = (props: PostInterface) => {
     }, DEBOUNCE_DELAY);
   };
 
-  // Gesture handlers
   const doubleTap = Gesture.Tap()
     .maxDuration(DOUBLE_TAP_MAX_DURATION)
     .numberOfTaps(2)
@@ -179,7 +173,6 @@ export const UserPost = (props: PostInterface) => {
     };
   });
 
-  // Check if post should be blurred
   const shouldNotBlurPost =
     !hasPremium ||
     props.numberOfDaysSinceLastPostedPhoto >= PREMIUM_UPLOAD_THRESHOLD_DAYS;
@@ -212,6 +205,7 @@ export const UserPost = (props: PostInterface) => {
           date={post.creationTime}
           address={post.placeAddress}
           profileImage={post.user?.photoUrl ?? ''}
+          postId={post.id}
         />
 
         {/* Photo container - NxN square where N is screen width */}

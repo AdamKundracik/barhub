@@ -1,11 +1,11 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../../../utils/icons/icons';
-import { postBgColor } from '../../../../utils/styles/colors';
 import Device from 'react-native-device-info';
 import { useTranslation } from 'react-i18next';
-import { OccupancyEnum } from '../../../../utils/types/types';
+import { OccupancyEnum } from '@/src/app/utils/types/Feed/PostTypes';
+import { Icons } from '@/src/app/utils/icons/icons';
+import { postBgColor } from '@/src/app/utils/styles/colors';
 
 type InteractionBarProps = {
   likes: number | undefined;

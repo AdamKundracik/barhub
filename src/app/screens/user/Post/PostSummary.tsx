@@ -1,9 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Dimensions, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View, } from 'react-native';
+import {
+  Alert,
+  Dimensions,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import Device from 'react-native-device-info';
-import { iconInactiveColor, postBgColor, primaryBgColor, primaryColor, } from '../../../utils/styles/colors';
+import {
+  iconInactiveColor,
+  postBgColor,
+  primaryBgColor,
+  primaryColor,
+} from '../../../utils/styles/colors';
 import { Image } from 'expo-image';
-import { OccupancyEnum, Place } from '../../../utils/types/types';
+import { Place } from '../../../utils/types/types';
 import { useTranslation } from 'react-i18next';
 import { formStyles } from '../../../utils/styles/styles';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -12,14 +25,15 @@ import { uploadImageAsync } from '../../../utils/helper-functions/imageUploadFun
 import { setUser } from '../../../utils/services/functions';
 import LoadingIndicator from '../../../components/user/NewsFeed/LoadingIndicator';
 import { useMutation, useQueryClient } from 'react-query';
-import { Post } from '../../../../../shared';
 import postService from '../../../utils/services/post.service';
 import { geohashForLocation } from 'geofire-common';
-import { auth } from '../../../../../firebaseConfig';
 import { ScreenLayout } from '../../../components/user/Shared/ScreenLayout';
 import { sendPushNotificationResponse } from '../../../utils/functions/notofications-handler';
 import { deleteNotification } from '../../../utils/services/notifications-service';
 import { generateUID } from '../../../utils/helper-functions/generateUID';
+import { auth } from '@/firebaseConfig';
+import { Post } from '@/common/types/postTypes';
+import { OccupancyEnum } from '@/src/app/utils/types/Feed/PostTypes';
 
 type SummaryProps = {
   image: string;
@@ -92,7 +106,6 @@ export const PostSummary = ({ route }: any) => {
           id: auth.currentUser?.uid ?? '',
           displayName: auth.currentUser?.displayName ?? '',
           photoUrl: auth.currentUser?.photoURL ?? '',
-          expoPushToken: '',
         },
       };
 

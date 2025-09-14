@@ -15,17 +15,20 @@ import BottomSheet, {
   BottomSheetFooterProps,
   BottomSheetModal,
 } from '@gorhom/bottom-sheet';
-import { primaryColor } from '../../../../utils/styles/colors';
-import Slider from '@react-native-community/slider';
-import MultiSelectPlaceChips from './MultiSelectPlaceChips';
-import Button from '../../../shared/Button';
-import { OccupancyTypes, PlaceType } from '../../../../utils/types/types';
-import { useFiltersStore } from '../../../../utils/store/filtersStorage';
-import { useLocationStore } from '../../../../utils/store/locationStore';
+import {
+  OccupancyTypes,
+  PlaceType,
+} from '@/src/app/utils/types/Feed/PostTypes';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { UserStackList } from '../../../../utils/types/screen-types';
+import { UserStackList } from '@/src/app/utils/types/screen-types';
+import { useFiltersStore } from '@/src/app/utils/store/filtersStorage';
+import { useLocationStore } from '@/src/app/utils/store/locationStore';
+import Button from '@/src/app/components/shared/Button';
+import { primaryColor } from '@/src/app/utils/styles/colors';
+import Slider from '@react-native-community/slider';
+import MultiSelectPlaceChips from '@/src/app/components/user/NewsFeed/Filters/MultiSelectPlaceChips';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../../../utils/icons/icons';
+import { Icons } from '@/src/app/utils/icons/icons';
 
 type Props = {
   opened: boolean;

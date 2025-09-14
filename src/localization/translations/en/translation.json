@@ -166,5 +166,14 @@
   "delete-account-info": "Once confirmed, your account will be permanently deleted",
   "password-too-short": "Password is too short",
   "thats-it": "That`s it",
-  "forgot-password": "Forgot password"
+  "forgot-password": "Forgot password",
+  "reportPost.title": "Report post",
+  "reportPost.chooseReason": "Choose a reason",
+  "reportPost.spam": "Spam",
+  "reportPost.inappropriate": "Inappropriate content",
+  "reportPost.harassment": "Harassment",
+  "reportPost.other": "Other",
+  "reportPost.submit": "Report",
+  "reportPost.successTitle_en": "Report submitted",
+  "reportPost.successDescription_en": "Thank you for your report, our team will review it."
 }

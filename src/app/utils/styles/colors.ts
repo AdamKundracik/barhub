@@ -12,5 +12,3 @@ export const warningColor = '#FE7878';
 export const successColor = 'rgba(76, 175, 80, 0.8)';
 
 export const secondaryTextColor = '#a0a0a0';
-
-export const defaultFontFamily = 'Roboto';

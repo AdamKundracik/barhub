@@ -166,5 +166,14 @@
   "password-too-short": "Passwort ist zu kurz",
   "notification-processing-error": "notification-processing-error",
   "thats-it": "das war's",
-  "forgot-password": "Passwort vergessen"
+  "forgot-password": "Passwort vergessen",
+  "reportPost.title": "Beitrag melden",
+  "reportPost.chooseReason": "Grund für Meldung auswählen",
+  "reportPost.spam": "Spam",
+  "reportPost.inappropriate": "Unangemessener Inhalt",
+  "reportPost.harassment": "Belästigung",
+  "reportPost.other": "Sonstiges",
+  "reportPost.submit": "Melden",
+  "reportPost.successTitle_de": "Meldung gesendet",
+  "reportPost.successDescription_de": "Danke für Ihre Meldung, unser Team wird sich damit befassen."
 }

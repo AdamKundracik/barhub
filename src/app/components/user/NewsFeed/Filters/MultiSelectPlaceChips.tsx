@@ -1,15 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../../../utils/icons/icons';
-import { OccupancyTypes, PlaceType } from '../../../../utils/types/types';
 import { useTranslation } from 'react-i18next';
+import {
+  OccupancyTypes,
+  PlaceType,
+} from '@/src/app/utils/types/Feed/PostTypes';
+import { Icons } from '@/src/app/utils/icons/icons';
 
 interface MultiSelectPlaceChipsProps {
   onSelectionChange?: (
