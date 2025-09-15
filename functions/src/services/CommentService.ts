@@ -1,5 +1,4 @@
 import * as admin from 'firebase-admin';
-import functions from 'firebase-functions';
 import {
   AddedCommentResponse,
   PostComment,
@@ -7,6 +6,7 @@ import {
 } from '../../../common/types/commentTypes';
 import { PostCommentDocument } from '../documentTypes/Comment';
 import { UserDocument } from '../documentTypes/User';
+import { HttpsError } from 'firebase-functions/https';
 
 class CommentService {
   private db: FirebaseFirestore.Firestore;
@@ -30,7 +30,7 @@ class CommentService {
     commentText: string
   ): Promise<AddedCommentResponse> {
     if (!postId || !userId || !commentText) {
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         'invalid-argument',
         'Missing postId, userId, userName, or commentText'
       );
@@ -67,7 +67,7 @@ class CommentService {
       return { addedComment: addedComment };
     } catch (error) {
       console.error('Error adding comment: ', error);
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         'internal',
         `Error adding comment: ${error.message || 'An unknown error occurred'}`
       );
@@ -82,11 +82,7 @@ class CommentService {
    * @throws HttpsError - Throws an error if the postId is missing or if there is an error fetching comments.
    */
   public async getPostComments(postId: string): Promise<PostCommentsResponse> {
-    if (!postId)
-      throw new functions.https.HttpsError(
-        'invalid-argument',
-        'Missing postId'
-      );
+    if (!postId) throw new HttpsError('invalid-argument', 'Missing postId');
 
     try {
       const postCommentsSnapshot = await this.db
@@ -133,10 +129,7 @@ class CommentService {
     } catch (error) {
       console.error('Error fetching comments: ', error);
 
-      throw new functions.https.HttpsError(
-        'internal',
-        `Error fetching comments: ${error}`
-      );
+      throw new HttpsError('internal', `Error fetching comments: ${error}`);
     }
   }
 }

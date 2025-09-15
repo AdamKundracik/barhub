@@ -1,8 +1,9 @@
 import * as admin from 'firebase-admin';
-import functions, { https, logger } from 'firebase-functions';
+import { https, logger } from 'firebase-functions';
 import { InfinityScrollPost, Post } from '../../../common/types/postTypes';
 import { GeoPointType, PostDocument } from '../documentTypes/Post';
 import * as geofire from 'geofire-common';
+import { HttpsError } from 'firebase-functions/https';
 
 export interface SavePostResponse {
   post: Post;
@@ -25,7 +26,7 @@ class PostService {
    */
   async savePost(userId: string, post: Post): Promise<SavePostResponse> {
     if (!userId || !post) {
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         'invalid-argument',
         'Missing postId, userId, userName, or commentText'
       );
@@ -50,7 +51,7 @@ class PostService {
       return { post: { ...addedPostDocument, id: addedPostReference.id } };
     } catch (error) {
       console.error('Error adding post: ', error);
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         'internal',
         `Error adding post: ${error.message || 'An unknown error occurred'}`
       );

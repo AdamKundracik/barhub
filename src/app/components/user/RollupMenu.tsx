@@ -11,13 +11,13 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  View,
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
 import { signOut } from 'firebase/auth';
-import { auth } from '../../../../firebaseConfig';
 import { useTranslation } from 'react-i18next';
 import {
   BottomSheetBackdrop,
@@ -27,8 +27,8 @@ import {
   BottomSheetModalProvider,
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
-import { formStyles } from '@/src/app/utils/styles/styles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { auth } from '@/firebaseConfig';
 
 type BottomSheetMenuProps = {
   visible: boolean;
@@ -42,10 +42,16 @@ const RollupMenu = ({ visible, setVisible }: BottomSheetMenuProps) => {
 
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 
+  const handleSignOut = () => {
+    signOut(auth)
+      .then(() => alert(t('Signed out')))
+      .catch(console.error);
+  };
+
   const menuItems = [
     {
       title: t('account'),
-      icon: Icons.Gear,
+      icon: Icons.User,
       action: () => navigation.navigate('Account'),
     },
     {
@@ -70,7 +76,7 @@ const RollupMenu = ({ visible, setVisible }: BottomSheetMenuProps) => {
 
   const handleLayout = (event: LayoutChangeEvent) => {
     const { height } = event.nativeEvent.layout;
-    setContentHeight(height + 90 + insets.bottom + 20); // optional extra padding
+    setContentHeight(height + 90 + insets.bottom + 20);
   };
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -120,12 +126,6 @@ const RollupMenu = ({ visible, setVisible }: BottomSheetMenuProps) => {
     else handleClose();
   }, [visible]);
 
-  const handleSignOut = () => {
-    signOut(auth)
-      .then(() => alert(t('Signed out')))
-      .catch(console.error);
-  };
-
   const renderBackdrop = useCallback(
     (props: any) => (
       <BottomSheetBackdrop
@@ -140,18 +140,13 @@ const RollupMenu = ({ visible, setVisible }: BottomSheetMenuProps) => {
 
   const renderFooter = useCallback(
     (props: BottomSheetFooterProps) => (
-      <BottomSheetFooter
-        {...props}
-        style={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
-        bottomInset={insets.bottom + 20}
-      >
+      <BottomSheetFooter {...props} bottomInset={insets.bottom + 20}>
         {/* Cancel button */}
-        <TouchableOpacity
-          style={formStyles.buttonSecondary}
-          onPress={handleClose}
-        >
-          <Text style={styles.cancelText}>{t('cancel')}</Text>
-        </TouchableOpacity>
+        <View style={styles.cancelContainer}>
+          <TouchableOpacity style={styles.cancelButton} onPress={handleClose}>
+            <Text style={styles.cancelText}>{t('cancel')}</Text>
+          </TouchableOpacity>
+        </View>
       </BottomSheetFooter>
     ),
     []
@@ -176,7 +171,6 @@ const RollupMenu = ({ visible, setVisible }: BottomSheetMenuProps) => {
               <Animated.View
                 key={idx}
                 style={{
-                  width: '100%',
                   opacity: menuItemAnims[idx],
                   transform: [
                     {
@@ -189,7 +183,7 @@ const RollupMenu = ({ visible, setVisible }: BottomSheetMenuProps) => {
                 }}
               >
                 <TouchableOpacity
-                  style={styles.button}
+                  style={styles.itemWrapper}
                   activeOpacity={0.7}
                   onPress={() => {
                     item.action();
@@ -209,7 +203,7 @@ const RollupMenu = ({ visible, setVisible }: BottomSheetMenuProps) => {
 
           {/* Logout button */}
           <TouchableOpacity
-            style={[formStyles.buttonSecondary, styles.logoutButton]}
+            style={styles.logoutButton}
             onPress={() => {
               const logoutItem = menuItems.find(
                 item => item.title === t('logout')
@@ -228,31 +222,29 @@ const RollupMenu = ({ visible, setVisible }: BottomSheetMenuProps) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(0,0,0,0.8)',
+    backgroundColor: 'rgba(20,27,34,0.9)',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingVertical: 10,
   },
   handleIndicator: {
-    backgroundColor: '#fff',
-    width: '10%',
+    backgroundColor: '#444',
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    alignSelf: 'center',
     marginBottom: 10,
   },
   content: {
-    alignItems: 'center',
-  },
-  button: {
     width: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    borderWidth: 1,
-    borderColor: '#333',
-    borderRadius: 12,
-    paddingVertical: 16,
     paddingHorizontal: 20,
+  },
+  itemWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    paddingVertical: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#333',
   },
   buttonText: {
     color: '#fff',
@@ -262,19 +254,28 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '500',
+    textAlign: 'center',
   },
   logoutButton: {
-    height: 50,
-    paddingHorizontal: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    borderWidth: 2,
-    borderColor: '#ff3535',
-    marginBottom: 10,
+    marginTop: 16,
+    borderRadius: 12,
+    backgroundColor: '#ff3535',
+    paddingVertical: 14,
+    alignItems: 'center',
   },
   logoutButtonText: {
-    color: '#ff3535',
+    color: '#fff',
     fontWeight: '600',
+    fontSize: 16,
   },
+  cancelButton: {
+    marginTop: 12,
+    marginHorizontal: 20,
+    borderRadius: 12,
+    backgroundColor: '#222',
+    paddingVertical: 14,
+  },
+  cancelContainer: {},
 });
 
 export default RollupMenu;

@@ -17,10 +17,10 @@ import {
   postBgColor,
   primaryColor,
   primaryTextColor,
-  textInputPlaceholderColor,
 } from '@/src/app/utils/styles/colors';
 import { FirebaseTimestamp } from '@/src/app/utils/types/types';
 import { Icons } from '@/src/app/utils/icons/icons';
+import reportClient from '@/src/app/utils/services/reports.service';
 
 const normalizeTimestamp = (timestamp: FirebaseTimestamp): Timestamp => {
   const seconds = timestamp.seconds || timestamp._seconds || 0;
@@ -43,10 +43,67 @@ export const UserLine = (props: Props) => {
   const { t } = useTranslation();
   const [toastId, setToastId] = useState('');
 
-  const handleReport = (reason: ReportReason) => {
-    console.log('Reporting post with ID:', postId, reason);
-    setIsReportModalOpen(false);
-    handleToast();
+  const handleReport = async (reason: ReportReason) => {
+    try {
+      // Call the cloud function to report the post
+      const result = await reportClient.reportPost(
+        postId,
+        props.user?.id || '',
+        reason
+      );
+
+      console.log('Reported post with ID:', result.report.id);
+      setIsReportModalOpen(false);
+      handleToast();
+    } catch (error: any) {
+      console.error('Failed to report post:', error);
+      toast.show({
+        placement: 'top',
+        duration: 3000,
+        render: ({ id }) => (
+          <Toast
+            onTouchCancel={() => {}}
+            nativeID={'error-toast-' + id}
+            action="error"
+            variant="outline"
+            style={{
+              backgroundColor: '#1F1F1F', // Dark background for error
+              borderColor: '#FF4D4F', // Red border
+              borderWidth: 1,
+              paddingVertical: 12,
+              paddingHorizontal: 16,
+              borderRadius: 12,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 6,
+              elevation: 5,
+              width: '100%',
+            }}
+          >
+            <ToastTitle
+              style={{
+                color: '#FF4D4F',
+                fontWeight: 'bold',
+                fontSize: 16,
+                marginBottom: 4,
+              }}
+            >
+              Error
+            </ToastTitle>
+            <ToastDescription
+              style={{
+                color: '#E0E0E0',
+                fontSize: 14,
+                lineHeight: 18,
+              }}
+            >
+              {error.message || 'Could not report post.'}
+            </ToastDescription>
+          </Toast>
+        ),
+      });
+    }
   };
 
   const handleToast = () => {
@@ -66,13 +123,41 @@ export const UserLine = (props: Props) => {
         const uniqueToastId = 'toast-' + id;
         return (
           <Toast
+            onTouchCancel={() => setToastId(id)}
             nativeID={uniqueToastId}
-            action="info"
+            action="success"
             variant="outline"
-            style={{ backgroundColor: textInputPlaceholderColor }}
+            style={{
+              backgroundColor: 'rgba(20,27,34,0.95)',
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: '#333',
+              paddingVertical: 12,
+              paddingHorizontal: 16,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 6,
+              elevation: 6,
+            }}
           >
-            <ToastTitle>{t('reportPost.successTitle')}</ToastTitle>
-            <ToastDescription>
+            <ToastTitle
+              style={{
+                color: '#fff',
+                fontSize: 16,
+                fontWeight: '600',
+                marginBottom: 4,
+              }}
+            >
+              {t('reportPost.successTitle')}
+            </ToastTitle>
+            <ToastDescription
+              style={{
+                color: '#aaa',
+                fontSize: 14,
+                lineHeight: 18,
+              }}
+            >
               {t('reportPost.successDescription')}
             </ToastDescription>
           </Toast>

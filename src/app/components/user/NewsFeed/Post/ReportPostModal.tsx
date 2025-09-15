@@ -1,16 +1,17 @@
 import React, { useCallback, useEffect, useRef } from 'react';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
-import { BottomSheetBackdrop, BottomSheetModal } from '@gorhom/bottom-sheet';
+  BottomSheetBackdrop,
+  BottomSheetFooter,
+  BottomSheetFooterProps,
+  BottomSheetModal,
+  BottomSheetView,
+} from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { ReportReason } from '@/src/app/utils/types/Feed/PostTypes';
-import { Center } from '@/components/ui/center';
-import { formStyles } from '@/src/app/utils/styles/styles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { Icons } from '@/src/app/utils/icons/icons';
 
 type PostReportModalProps = {
   visible: boolean;
@@ -25,6 +26,7 @@ export const PostReportModal = ({
 }: PostReportModalProps) => {
   const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (visible) {
@@ -71,18 +73,31 @@ export const PostReportModal = ({
     { value: ReportReason.OTHER, label: t('reportPost.other') },
   ];
 
+  const renderFooter = useCallback(
+    (props: BottomSheetFooterProps) => (
+      <BottomSheetFooter {...props} bottomInset={insets.bottom + 20}>
+        <View style={styles.cancelContainer}>
+          <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+            <Text style={styles.cancelText}>{t('cancel')}</Text>
+          </TouchableOpacity>
+        </View>
+      </BottomSheetFooter>
+    ),
+    []
+  );
+
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
       snapPoints={['60%']}
       backdropComponent={renderBackdrop}
       onDismiss={onClose}
-      backgroundStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
-      handleHeight={50}
-      enablePanDownToClose
+      backgroundStyle={styles.container}
       handleIndicatorStyle={styles.handleIndicator}
+      enablePanDownToClose
+      footerComponent={renderFooter}
     >
-      <ScrollView contentContainerStyle={styles.content}>
+      <BottomSheetView style={styles.content}>
         <Text style={styles.title}>{t('reportPost.title')}</Text>
         <Text style={styles.subtitle}>{t('reportPost.chooseReason')}</Text>
 
@@ -90,33 +105,42 @@ export const PostReportModal = ({
           <TouchableOpacity
             key={r.value}
             style={styles.option}
+            activeOpacity={0.7}
             onPress={() => handleSelect(r.value, r.label)}
           >
-            <Text style={styles.optionText}>{r.label}</Text>
-          </TouchableOpacity>
-        ))}
-        <Center>
-          <TouchableOpacity style={formStyles.buttonSecondary}>
-            <Text
+            <View
               style={{
-                color: 'white',
-                fontSize: 16,
-                fontWeight: '600',
-                textTransform: 'uppercase',
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'space-between',
               }}
             >
-              {t('cancel')}
-            </Text>
+              <View>
+                <Text style={styles.optionText}>{r.label}</Text>
+              </View>
+              <View>
+                <FontAwesomeIcon
+                  icon={Icons.ChevronRight}
+                  size={16}
+                  color={'white'}
+                />
+              </View>
+            </View>
           </TouchableOpacity>
-        </Center>
-      </ScrollView>
+        ))}
+      </BottomSheetView>
     </BottomSheetModal>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    backgroundColor: 'rgba(20,27,34,0.9)',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
   content: {
-    paddingHorizontal: 15,
+    paddingHorizontal: 20,
     paddingVertical: 10,
   },
   title: {
@@ -131,20 +155,36 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   option: {
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    backgroundColor: '#222',
-    marginBottom: 10,
+    paddingVertical: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#333',
   },
   optionText: {
     color: 'white',
     fontSize: 16,
   },
   handleIndicator: {
-    backgroundColor: 'white',
-    width: '10%',
-    margin: 5,
+    backgroundColor: '#444',
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginVertical: 10,
+  },
+  cancelContainer: {
+    paddingHorizontal: 20,
+  },
+  cancelButton: {
+    marginTop: 12,
+    borderRadius: 12,
+    backgroundColor: '#222',
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  cancelText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });
 

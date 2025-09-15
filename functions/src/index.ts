@@ -1,4 +1,3 @@
-import { CallableContext } from 'firebase-functions/lib/common/providers/https';
 import { Post, User } from '../../shared';
 import PostService, { SavePostResponse } from './services/postService';
 import CommentService from './services/CommentService';
@@ -9,8 +8,13 @@ import {
   SaveNotificationResponse,
 } from '../../common/types/notificationTypes';
 import NotifiationService from './services/notifiationService';
+import { ReportService } from './services/reportService';
 
-const admin = require('firebase-admin');
+import admin from 'firebase-admin';
+import { CallableContext, HttpsError } from 'firebase-functions/https';
+import { onSchedule } from 'firebase-functions/scheduler';
+
+const { onRequest, onCall } = require('firebase-functions/v2/https');
 
 admin.initializeApp();
 
@@ -20,20 +24,35 @@ const functions = require('firebase-functions');
 const postService = new PostService();
 const commentService = new CommentService();
 const notificationService = new NotifiationService();
+const reportService = new ReportService();
 
-export const createUser = functions.auth.user().onCreate(user => {
-  return admin
-    .firestore()
-    .collection('users')
-    .doc(user.uid)
-    .set(JSON.parse(JSON.stringify(user)), { merge: true });
-});
+exports.reportPostSecondGen = onCall(
+  async (data: { postId: string; userId: string; reason: string }) => {
+    try {
+      return await reportService.reportPost(
+        data.userId,
+        data.postId,
+        data.reason
+      );
+    } catch (error: any) {
+      throw new HttpsError('internal', error.message || 'Error reporting post');
+    }
+  }
+);
 
-export const deleteUser = functions.auth.user().onDelete(user => {
-  return admin.firestore().collection('users').doc(user.uid).delete();
-});
+// exports.createUser = functions.auth.user().onCreate(user => {
+//   return admin
+//     .firestore()
+//     .collection('users')
+//     .doc(user.uid)
+//     .set(JSON.parse(JSON.stringify(user)), { merge: true });
+// });
+//
+// exports.deleteUser = functions.auth.user().onDelete(user => {
+//   return admin.firestore().collection('users').doc(user.uid).delete();
+// });
 
-export const setUser = functions.https.onCall(
+exports.setUserSecondGen = onCall(
   async (user: User, context: CallableContext) => {
     await db
       .collection('users')
@@ -42,14 +61,14 @@ export const setUser = functions.https.onCall(
   }
 );
 
-exports.savePost = functions.https.onCall(
+exports.savePostSecondGen = onCall(
   async (data, context: CallableContext): Promise<SavePostResponse> => {
     const { post } = data;
     return await postService.savePost(context.auth.uid, post);
   }
 );
 
-exports.getAllExistingUsers = functions.https.onCall(async () => {
+exports.getAllExistingUsersSecondGen = onCall(async () => {
   const usersCollection = db.collection('users');
   try {
     const snapshot = await usersCollection.get();
@@ -61,17 +80,14 @@ exports.getAllExistingUsers = functions.https.onCall(async () => {
     return { users };
   } catch (error) {
     console.error('Error getting users collection: ', error);
-    throw new functions.https.HttpsError(
-      'internal',
-      'Unable to retrieve users'
-    );
+    throw new HttpsError('internal', 'Unable to retrieve users');
   }
 });
 
-export const getCurrentUser = functions.https.onCall(
+exports.getCurrentUserSecondGen = onCall(
   async (data, context: CallableContext) => {
     if (!context.auth) {
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         'unauthenticated',
         'The function must be called while authenticated.'
       );
@@ -93,14 +109,11 @@ export const getCurrentUser = functions.https.onCall(
   }
 );
 
-exports.toggleLike = functions.https.onCall(async data => {
+exports.toggleLikeSecondGen = onCall(async data => {
   const { postId, userId } = data;
 
   if (!postId || !userId) {
-    throw new functions.https.HttpsError(
-      'invalid-argument',
-      'Missing postId or userId'
-    );
+    throw new HttpsError('invalid-argument', 'Missing postId or userId');
   }
 
   try {
@@ -121,46 +134,38 @@ exports.toggleLike = functions.https.onCall(async data => {
   }
 });
 
-export const testLog = functions.https.onCall(
-  async (data, context: CallableContext) => {
-    if (!context.auth) {
-      throw new functions.https.HttpsError(
-        'unauthenticated',
-        'The function must be called while authenticated.'
-      );
-    }
-
-    const usersCollection = db.collection('users');
-
-    try {
-      const snapshot = await usersCollection
-        .where('uid', '!=', context.auth.uid)
-        .get();
-      const users: User[] = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      return { users };
-    } catch (error) {
-      console.error('Error getting users collection: ', error);
-
-      throw new functions.https.HttpsError(
-        'internal',
-        'Unknown error occurred.'
-      );
-    }
+exports.testLogSecondGen = onCall(async (data, context: CallableContext) => {
+  if (!context.auth) {
+    throw new HttpsError(
+      'unauthenticated',
+      'The function must be called while authenticated.'
+    );
   }
-);
 
-exports.getPostById = functions.https.onCall(async (data, context) => {
+  const usersCollection = db.collection('users');
+
+  try {
+    const snapshot = await usersCollection
+      .where('uid', '!=', context.auth.uid)
+      .get();
+    const users: User[] = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    return { users };
+  } catch (error) {
+    console.error('Error getting users collection: ', error);
+
+    throw new HttpsError('internal', 'Unknown error occurred.');
+  }
+});
+
+exports.getPostByIdSecondGen = onCall(async (data, context) => {
   const { postId } = data;
 
   if (!postId) {
-    throw new functions.https.HttpsError(
-      'invalid-argument',
-      'Post ID is required'
-    );
+    throw new HttpsError('invalid-argument', 'Post ID is required');
   }
 
   try {
@@ -171,7 +176,7 @@ exports.getPostById = functions.https.onCall(async (data, context) => {
       .get();
 
     if (!postDoc.exists) {
-      throw new functions.https.HttpsError('not-found', 'Post not found');
+      throw new HttpsError('not-found', 'Post not found');
     }
 
     const postData = postDoc.data();
@@ -215,11 +220,11 @@ exports.getPostById = functions.https.onCall(async (data, context) => {
     };
   } catch (error) {
     console.error('Error fetching post:', error);
-    throw new functions.https.HttpsError('internal', 'Error fetching post');
+    throw new HttpsError('internal', 'Error fetching post');
   }
 });
 
-exports.getFreshContent = functions.https.onCall(
+exports.getFreshContentSecondGen = onCall(
   async (
     data: {
       geoPoint: GeoPointType;
@@ -231,7 +236,7 @@ exports.getFreshContent = functions.https.onCall(
   ) => {
     try {
       if (!context.auth) {
-        throw new functions.https.HttpsError(
+        throw new HttpsError(
           'unauthenticated',
           'User must be authenticated to fetch posts.'
         );
@@ -250,7 +255,7 @@ exports.getFreshContent = functions.https.onCall(
       return result;
     } catch (error) {
       functions.logger.error('Error in getFreshContent:', error);
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         'internal',
         `Error in getFreshContent: ${error.message || 'Unknown error'}`
       );
@@ -258,7 +263,7 @@ exports.getFreshContent = functions.https.onCall(
   }
 );
 
-exports.getPostsByPlaceId = functions.https.onCall(
+exports.getPostsByPlaceIdSecondGen = onCall(
   async (
     data: {
       placeId: string;
@@ -269,7 +274,7 @@ exports.getPostsByPlaceId = functions.https.onCall(
   ) => {
     try {
       if (!context.auth) {
-        throw new functions.https.HttpsError(
+        throw new HttpsError(
           'unauthenticated',
           'User must be authenticated to fetch posts.'
         );
@@ -287,7 +292,7 @@ exports.getPostsByPlaceId = functions.https.onCall(
       return result;
     } catch (error) {
       functions.logger.error('Error in getPostsByPlaceId:', error);
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         'internal',
         `Error in getPostsByPlaceId: ${error.message || 'Unknown error'}`
       );
@@ -295,10 +300,10 @@ exports.getPostsByPlaceId = functions.https.onCall(
   }
 );
 
-exports.saveNotification = functions.https.onCall(
+exports.saveNotificationSecondGen = onCall(
   async (data, context): Promise<SaveNotificationResponse> => {
     if (!context.auth) {
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         'unauthenticated',
         'User must be authenticated to save notifications'
       );
@@ -312,10 +317,10 @@ exports.saveNotification = functions.https.onCall(
   }
 );
 
-exports.getUserNotifications = functions.https.onCall(
+exports.getUserNotificationsSecondGen = onCall(
   async (data, context): Promise<GetUserNotificationsResponse> => {
     if (!context.auth) {
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         'unauthenticated',
         'User must be authenticated to get notifications'
       );
@@ -326,7 +331,7 @@ exports.getUserNotifications = functions.https.onCall(
   }
 );
 
-exports.markAllNotificationsAsSeen = functions.https.onCall(
+exports.markAllNotificationsAsSeenSecondGen = onCall(
   async (
     data,
     context
@@ -335,7 +340,7 @@ exports.markAllNotificationsAsSeen = functions.https.onCall(
     updatedCount: number;
   }> => {
     if (!context.auth) {
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         'unauthenticated',
         'User must be authenticated to get notifications'
       );
@@ -346,7 +351,7 @@ exports.markAllNotificationsAsSeen = functions.https.onCall(
   }
 );
 
-exports.deleteNotification = functions.https.onCall(
+exports.deleteNotificationSecondGen = onCall(
   async (
     data: { notificationId: string },
     context
@@ -354,37 +359,31 @@ exports.deleteNotification = functions.https.onCall(
     success: boolean;
   }> => {
     if (!context.auth) {
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         'unauthenticated',
         'User must be authenticated to delete notifications'
       );
     }
 
     if (!data.notificationId) {
-      throw new functions.https.HttpsError(
-        'invalid-argument',
-        'Notification ID is required'
-      );
+      throw new HttpsError('invalid-argument', 'Notification ID is required');
     }
 
     try {
       return await notificationService.deleteNotification(data.notificationId);
     } catch (error) {
       console.error('Error in deleteNotification:', error);
-      throw new functions.https.HttpsError(
-        'internal',
-        'Failed to delete notification'
-      );
+      throw new HttpsError('internal', 'Failed to delete notification');
     }
   }
 );
 
-exports.addComment = functions.https.onCall(async (data, context) => {
+exports.addCommentSecondGen = onCall(async (data, context) => {
   const { postId, userId, commentText } = data;
   return await commentService.addComment(postId, userId, commentText);
 });
 
-exports.getPostComments = functions.https.onCall(
+exports.getPostCommentsSecondGen = onCall(
   async (data, context): Promise<{ comments: PostComment[] }> => {
     const { postId } = data;
     return await commentService.getPostComments(postId);
@@ -393,9 +392,9 @@ exports.getPostComments = functions.https.onCall(
 
 // SCHEDULE FUNCTIONS
 
-exports.deleteOldPostsAndImages = functions.pubsub
-  .schedule('every 60 minutes')
-  .onRun(async context => {
+exports.deleteOldPostsAndImagesSecondGen = onSchedule(
+  'every 60 minutes',
+  async () => {
     const threeDaysInSeconds = 3 * 24 * 60 * 60;
     const threeDaysAgo =
       admin.firestore.Timestamp.now().seconds - threeDaysInSeconds;
@@ -447,12 +446,13 @@ exports.deleteOldPostsAndImages = functions.pubsub
       console.error('Error in deletion process:', error);
       throw error;
     }
-  });
+  }
+);
 
 // Quick cleanup (every 15 minutes)
-export const deleteRecentExpiredRequests = functions.pubsub
-  .schedule('every 15 minutes')
-  .onRun(async (context): Promise<void> => {
+exports.deleteRecentExpiredRequestsSecondGen = onSchedule(
+  'every 60 minutes',
+  async () => {
     const threeMinutesInSeconds = 3 * 60;
     const timeThreeMinutesAgo =
       admin.firestore.Timestamp.now().seconds - threeMinutesInSeconds;
@@ -498,12 +498,13 @@ export const deleteRecentExpiredRequests = functions.pubsub
       console.error('Error in quick cleanup of expired notifications:', error);
       throw error;
     }
-  });
+  }
+);
 
 // Deep cleanup (every 6 hours)
-export const deleteAllExpiredRequests = functions.pubsub
-  .schedule('every 6 hours')
-  .onRun(async (context): Promise<void> => {
+export const deleteAllExpiredRequestsSecondGen = onSchedule(
+  'every 60 minutes',
+  async () => {
     const threeDaysInSeconds = 3 * 24 * 60 * 60;
     const timeThreeDaysAgo =
       admin.firestore.Timestamp.now().seconds - threeDaysInSeconds;
@@ -549,7 +550,8 @@ export const deleteAllExpiredRequests = functions.pubsub
       console.error('Error in deep cleanup of expired notifications:', error);
       throw error;
     }
-  });
+  }
+);
 
 async function deleteSubcollection(postRef, subcollectionName) {
   const subcollectionSnapshot = await postRef
