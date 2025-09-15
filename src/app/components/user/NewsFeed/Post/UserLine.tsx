@@ -130,7 +130,7 @@ export const UserLine = (props: Props) => {
       </View>
 
       <PostReportModal
-        isOpened={isReportModalOpen}
+        visible={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
         onSave={handleReport}
       />

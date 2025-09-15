@@ -18,6 +18,7 @@
       "associatedDomains": [
         "applinks:expo.dev"
       ],
+      "usesAppleSignIn": true,
       "googleServicesFile": "./GoogleService-Info.plist",
       "supportsTablet": true,
       "config": {
@@ -139,6 +140,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      ["expo-apple-authentication"],
       [
         "react-native-background-geolocation",
         {

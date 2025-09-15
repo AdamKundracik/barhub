@@ -167,13 +167,18 @@
   "password-too-short": "Password is too short",
   "thats-it": "That`s it",
   "forgot-password": "Forgot password",
-  "reportPost.title": "Report post",
-  "reportPost.chooseReason": "Choose a reason",
-  "reportPost.spam": "Spam",
-  "reportPost.inappropriate": "Inappropriate content",
-  "reportPost.harassment": "Harassment",
-  "reportPost.other": "Other",
-  "reportPost.submit": "Report",
-  "reportPost.successTitle_en": "Report submitted",
-  "reportPost.successDescription_en": "Thank you for your report, our team will review it."
+  "reportPost": {
+    "title": "Report Post",
+    "chooseReason": "Choose a reason for reporting",
+    "spam": "Spam",
+    "inappropriate": "Inappropriate content",
+    "harassment": "Harassment",
+    "other": "Other",
+    "submit": "Report",
+    "successTitle": "Report Sent",
+    "successDescription": "Thank you for your report, our team will review it.",
+    "confirmTitle": "Confirm Report",
+    "confirmMessage": "Do you really want to report this as {{reason}}?"
+  },
+  "or": "or"
 }

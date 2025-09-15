@@ -1,126 +1,151 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import {
-  Modal,
-  ModalBackdrop,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-} from '@/components/ui/modal';
-import { Button, ButtonText } from '@/components/ui/button';
-import { CircleIcon, CloseIcon, Icon } from '@/components/ui/icon';
-import { Heading } from '@/components/ui/heading';
-import { postBgColor, primaryTextColor } from '@/src/app/utils/styles/colors';
-import {
-  Radio,
-  RadioGroup,
-  RadioIcon,
-  RadioIndicator,
-  RadioLabel,
-} from '@/components/ui/radio';
-
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
+import { BottomSheetBackdrop, BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { ReportReason } from '@/src/app/utils/types/Feed/PostTypes';
+import { Center } from '@/components/ui/center';
+import { formStyles } from '@/src/app/utils/styles/styles';
 
-interface ModalProps {
-  isOpened: boolean;
+type PostReportModalProps = {
+  visible: boolean;
   onClose: () => void;
   onSave: (reason: ReportReason) => void;
-}
+};
 
-export const PostReportModal = (props: ModalProps) => {
-  const { isOpened, onClose, onSave } = props;
-  const [reason, setReason] = useState<ReportReason>(ReportReason.SPAM);
+export const PostReportModal = ({
+  visible,
+  onClose,
+  onSave,
+}: PostReportModalProps) => {
   const { t } = useTranslation();
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
+
+  useEffect(() => {
+    if (visible) {
+      bottomSheetRef.current?.present();
+    } else {
+      bottomSheetRef.current?.dismiss();
+    }
+  }, [visible]);
+
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.5}
+      />
+    ),
+    []
+  );
+
+  const handleSelect = (reason: ReportReason, label: string) => {
+    Alert.alert(
+      t('reportPost.confirmTitle'),
+      t('reportPost.confirmMessage', { reason: label }),
+      [
+        { text: t('cancel'), style: 'cancel' },
+        {
+          text: t('reportPost.submit'),
+          style: 'destructive',
+          onPress: () => {
+            onSave(reason);
+            bottomSheetRef.current?.dismiss();
+          },
+        },
+      ]
+    );
+  };
+
+  const reasons = [
+    { value: ReportReason.SPAM, label: t('reportPost.spam') },
+    { value: ReportReason.INAPPROPRIATE, label: t('reportPost.inappropriate') },
+    { value: ReportReason.HARASSMENT, label: t('reportPost.harassment') },
+    { value: ReportReason.OTHER, label: t('reportPost.other') },
+  ];
 
   return (
-    <Modal isOpen={isOpened} onClose={onClose} size="lg">
-      <ModalBackdrop />
-      <ModalContent
-        style={{
-          backgroundColor: postBgColor,
-          borderColor: 'white',
-        }}
-      >
-        <ModalHeader>
-          <Heading size="2xl" style={{ color: primaryTextColor }}>
-            {t('reportPost.title')}
-          </Heading>
-          <ModalCloseButton>
-            <Icon as={CloseIcon} style={{ color: primaryTextColor }} />
-          </ModalCloseButton>
-        </ModalHeader>
+    <BottomSheetModal
+      ref={bottomSheetRef}
+      snapPoints={['60%']}
+      backdropComponent={renderBackdrop}
+      onDismiss={onClose}
+      backgroundStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
+      handleHeight={50}
+      enablePanDownToClose
+      handleIndicatorStyle={styles.handleIndicator}
+    >
+      <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.title}>{t('reportPost.title')}</Text>
+        <Text style={styles.subtitle}>{t('reportPost.chooseReason')}</Text>
 
-        <ModalBody>
-          <Heading
-            size={'md'}
-            style={{ color: primaryTextColor, marginBottom: 12 }}
+        {reasons.map(r => (
+          <TouchableOpacity
+            key={r.value}
+            style={styles.option}
+            onPress={() => handleSelect(r.value, r.label)}
           >
-            {t('reportPost.chooseReason')}
-          </Heading>
-
-          <RadioGroup
-            style={{ marginVertical: 15 }}
-            value={reason}
-            onChange={val => setReason(val as ReportReason)}
-          >
-            <Radio value={ReportReason.SPAM} size="lg">
-              <RadioIndicator>
-                <RadioIcon as={CircleIcon} color={'white'} />
-              </RadioIndicator>
-              <RadioLabel style={{ color: primaryTextColor }}>
-                {t('reportPost.spam')}
-              </RadioLabel>
-            </Radio>
-
-            <Radio value={ReportReason.INAPPROPRIATE} size="lg">
-              <RadioIndicator>
-                <RadioIcon as={CircleIcon} color={'white'} />
-              </RadioIndicator>
-              <RadioLabel style={{ color: primaryTextColor }}>
-                {t('reportPost.inappropriate')}
-              </RadioLabel>
-            </Radio>
-
-            <Radio value={ReportReason.HARASSMENT} size="lg">
-              <RadioIndicator>
-                <RadioIcon as={CircleIcon} color={'white'} />
-              </RadioIndicator>
-              <RadioLabel style={{ color: primaryTextColor }}>
-                {t('reportPost.harassment')}
-              </RadioLabel>
-            </Radio>
-
-            <Radio value={ReportReason.OTHER} size="lg">
-              <RadioIndicator>
-                <RadioIcon as={CircleIcon} color={'white'} />
-              </RadioIndicator>
-              <RadioLabel style={{ color: primaryTextColor }}>
-                {t('reportPost.other')}
-              </RadioLabel>
-            </Radio>
-          </RadioGroup>
-        </ModalBody>
-
-        <ModalFooter>
-          <Button
-            variant="outline"
-            action="secondary"
-            className="mr-3"
-            onPress={onClose}
-          >
-            <ButtonText style={{ color: primaryTextColor }}>
+            <Text style={styles.optionText}>{r.label}</Text>
+          </TouchableOpacity>
+        ))}
+        <Center>
+          <TouchableOpacity style={formStyles.buttonSecondary}>
+            <Text
+              style={{
+                color: 'white',
+                fontSize: 16,
+                fontWeight: '600',
+                textTransform: 'uppercase',
+              }}
+            >
               {t('cancel')}
-            </ButtonText>
-          </Button>
-          <Button action="negative" onPress={() => onSave(reason)}>
-            <ButtonText style={{ color: primaryTextColor }}>
-              {t('reportPost.submit')}
-            </ButtonText>
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+            </Text>
+          </TouchableOpacity>
+        </Center>
+      </ScrollView>
+    </BottomSheetModal>
   );
 };
+
+const styles = StyleSheet.create({
+  content: {
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+  },
+  title: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  subtitle: {
+    color: '#ccc',
+    fontSize: 14,
+    marginBottom: 16,
+  },
+  option: {
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    backgroundColor: '#222',
+    marginBottom: 10,
+  },
+  optionText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  handleIndicator: {
+    backgroundColor: 'white',
+    width: '10%',
+    margin: 5,
+  },
+});
+
+export default PostReportModal;

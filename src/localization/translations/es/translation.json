@@ -167,14 +167,18 @@
   "password-too-short": "La contraseña es demasiado corta",
   "thats-it": "Eso es todo",
   "forgot-password": "Contraseña perdida",
-  "reportPost.title": "Denunciar publicación",
-  "reportPost.chooseReason": "Elige el motivo de la denuncia",
-  "reportPost.spam": "Spam",
-  "reportPost.inappropriate": "Contenido inapropiado",
-  "reportPost.harassment": "Acoso",
-  "reportPost.other": "Otro",
-  "reportPost.submit": "Denunciar",
-  "reportPost.successTitle_es": "Informe enviado",
-  "reportPost.successDescription_es": "Gracias por tu informe, nuestro equipo lo revisará."
-
+  "reportPost": {
+    "title": "Reportar publicación",
+    "chooseReason": "Elige un motivo para reportar",
+    "spam": "Spam",
+    "inappropriate": "Contenido inapropiado",
+    "harassment": "Acoso",
+    "other": "Otro",
+    "submit": "Reportar",
+    "successTitle": "Reporte enviado",
+    "successDescription": "Gracias por su reporte, nuestro equipo lo revisará.",
+    "confirmTitle": "Confirmar reporte",
+    "confirmMessage": "¿Realmente quieres reportar esto como {{reason}}?"
+  },
+  "or": "o"
 }

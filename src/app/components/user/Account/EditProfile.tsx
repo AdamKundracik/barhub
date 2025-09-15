@@ -16,11 +16,9 @@ import { auth } from '../../../../../firebaseConfig';
 import {
   primaryBgColor,
   primaryColor,
-  primaryDeepColor,
-  primaryLightGrey,
   primaryTextColor,
 } from '../../../utils/styles/colors';
-import { commonAppStyles, formStyles } from '../../../utils/styles/styles';
+import { formStyles } from '../../../utils/styles/styles';
 import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import {
@@ -40,16 +38,6 @@ import {
 import { Input, InputField } from '@/components/ui/input';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { Center } from '@/components/ui/center';
-import {
-  AlertDialog,
-  AlertDialogBackdrop,
-  AlertDialogBody,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-} from '@/components/ui/alert-dialog';
-import { Heading } from '@/components/ui/heading';
-import { Text } from '@/components/ui/text';
 import { useLocales } from 'expo-localization';
 
 type EditProfileProps = {
@@ -179,6 +167,25 @@ const ProfileEditScreen = (props: EditProfileProps) => {
     if (fetchUserData) await fetchUserData();
     setShowAlertDialog(false);
     setOpenImageOptions(false);
+  };
+
+  const confirmRemovePicture = () => {
+    Alert.alert(
+      t('delete-photo-title'),
+      t('delete-photo-info'),
+      [
+        {
+          text: t('cancel'),
+          style: 'cancel',
+        },
+        {
+          text: t('submit'),
+          style: 'destructive',
+          onPress: removePicture,
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   return (
@@ -338,45 +345,8 @@ const ProfileEditScreen = (props: EditProfileProps) => {
         onClose={() => setOpenImageOptions(false)}
         openGallery={openGallery}
         openCamera={openCamera}
-        removePicture={() => setShowAlertDialog(true)}
+        removePicture={confirmRemovePicture}
       />
-      <AlertDialog isOpen={showAlertDialog} onClose={handleClose} size="md">
-        <AlertDialogBackdrop />
-        <AlertDialogContent
-          style={{
-            backgroundColor: primaryDeepColor,
-            borderColor: primaryColor,
-          }}
-        >
-          <AlertDialogHeader>
-            <Heading
-              className="text-typography-950 font-semibold"
-              size="md"
-              style={commonAppStyles.textSecondary}
-            >
-              {t('delete-photo-title')}
-            </Heading>
-          </AlertDialogHeader>
-          <AlertDialogBody className="mt-3 mb-4">
-            <Text size="sm" style={{ color: primaryLightGrey }}>
-              {t('delete-photo-info')}
-            </Text>
-          </AlertDialogBody>
-          <AlertDialogFooter>
-            <Button
-              variant="outline"
-              action="secondary"
-              onPress={handleClose}
-              size="sm"
-            >
-              <ButtonText>{t('cancel')}</ButtonText>
-            </Button>
-            <Button size="sm" action={'negative'} onPress={removePicture}>
-              <ButtonText>{t('submit')}</ButtonText>
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 };

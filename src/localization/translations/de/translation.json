@@ -167,13 +167,18 @@
   "notification-processing-error": "notification-processing-error",
   "thats-it": "das war's",
   "forgot-password": "Passwort vergessen",
-  "reportPost.title": "Beitrag melden",
-  "reportPost.chooseReason": "Grund für Meldung auswählen",
-  "reportPost.spam": "Spam",
-  "reportPost.inappropriate": "Unangemessener Inhalt",
-  "reportPost.harassment": "Belästigung",
-  "reportPost.other": "Sonstiges",
-  "reportPost.submit": "Melden",
-  "reportPost.successTitle_de": "Meldung gesendet",
-  "reportPost.successDescription_de": "Danke für Ihre Meldung, unser Team wird sich damit befassen."
+  "reportPost": {
+    "title": "Beitrag melden",
+    "chooseReason": "Wählen Sie einen Grund für die Meldung",
+    "spam": "Spam",
+    "inappropriate": "Unangemessener Inhalt",
+    "harassment": "Belästigung",
+    "other": "Andere",
+    "submit": "Melden",
+    "successTitle": "Meldung gesendet",
+    "successDescription": "Vielen Dank für Ihre Meldung, unser Team wird dies prüfen.",
+    "confirmTitle": "Meldung bestätigen",
+    "confirmMessage": "Möchten Sie diesen Beitrag wirklich als {{reason}} melden?"
+  },
+  "or": "oder"
 }

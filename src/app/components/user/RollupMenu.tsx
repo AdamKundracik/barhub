@@ -1,245 +1,279 @@
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
-  Alert,
   Animated,
-  Dimensions,
+  LayoutChangeEvent,
   StyleSheet,
   Text,
   TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
-import { useEffect, useRef } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../../../firebaseConfig';
 import { useTranslation } from 'react-i18next';
+import {
+  BottomSheetBackdrop,
+  BottomSheetFooter,
+  BottomSheetFooterProps,
+  BottomSheetModal,
+  BottomSheetModalProvider,
+  BottomSheetView,
+} from '@gorhom/bottom-sheet';
+import { formStyles } from '@/src/app/utils/styles/styles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-type MenuProps = {
-  setOpenMenu: (isOpen: boolean) => void;
-  isOpen: boolean;
+type BottomSheetMenuProps = {
+  visible: boolean;
+  setVisible: (isOpen: boolean) => void;
 };
 
-export enum MenuItemType {
-  ACCOUNT = 'ACCOUNT',
-  INFO = 'INFO',
-  HELP = 'HELP',
-  SUBSCRIPTION = 'SUBSCRIPTION',
-  LOGOUT = 'LOGOUT',
-}
-
-const { height } = Dimensions.get('window');
-
-export const RollupMenu = (props: MenuProps) => {
-  const { setOpenMenu, isOpen } = props;
+const RollupMenu = ({ visible, setVisible }: BottomSheetMenuProps) => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
 
   const menuItems = [
     {
-      type: MenuItemType.ACCOUNT,
       title: t('account'),
       icon: Icons.Gear,
-      function: () => navigation.navigate('Account'),
+      action: () => navigation.navigate('Account'),
     },
     {
-      type: MenuItemType.INFO,
       title: t('info'),
       icon: Icons.Info,
-      function: () => navigation.navigate('Info'),
+      action: () => navigation.navigate('Info'),
     },
     {
-      type: MenuItemType.HELP,
       title: t('help'),
       icon: Icons.Help,
-      function: () => navigation.navigate('Help'),
+      action: () => navigation.navigate('Help'),
     },
-
-    {
-      type: MenuItemType.LOGOUT,
-      title: t('logout'),
-      icon: Icons.LogOut,
-      function: () => handleSignOut(),
-    },
+    { title: t('logout'), icon: Icons.LogOut, action: () => handleSignOut() },
   ];
 
+  const [contentHeight, setContentHeight] = useState(0);
+
+  const snapPoints = useMemo(
+    () => (contentHeight ? [contentHeight] : ['50%']),
+    [contentHeight]
+  );
+
+  const handleLayout = (event: LayoutChangeEvent) => {
+    const { height } = event.nativeEvent.layout;
+    setContentHeight(height + 90 + insets.bottom + 20); // optional extra padding
+  };
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(height)).current;
-  const menuItemAnimations = useRef(
+  const menuItemAnims = useRef(
     menuItems.map(() => new Animated.Value(0))
   ).current;
 
-  useEffect(() => {
-    if (isOpen) {
-      showMenu();
-    } else {
-      hideMenu();
-    }
-  }, [isOpen]);
-
-  const showMenu = () => {
+  const handlePresent = useCallback(() => {
+    bottomSheetRef.current?.present();
     Animated.timing(fadeAnim, {
-      toValue: 0.9,
-      duration: 300,
+      toValue: 1,
+      duration: 200,
       useNativeDriver: true,
     }).start();
 
-    Animated.timing(slideAnim, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-
-    menuItemAnimations.forEach((itemAnim, index) => {
-      Animated.timing(itemAnim, {
+    menuItemAnims.forEach((anim, idx) => {
+      Animated.timing(anim, {
         toValue: 1,
         duration: 300,
-        delay: index * 100,
+        delay: idx * 100,
         useNativeDriver: true,
       }).start();
     });
-  };
+  }, []);
 
-  const hideMenu = () => {
+  const handleClose = useCallback(() => {
     Animated.timing(fadeAnim, {
       toValue: 0,
-      duration: 800,
+      duration: 150,
       useNativeDriver: true,
     }).start();
 
-    Animated.timing(slideAnim, {
-      toValue: height,
-      duration: 800,
-      useNativeDriver: true,
-    }).start(() => {
-      setOpenMenu(false);
-      menuItemAnimations.forEach(itemAnim => {
-        itemAnim.setValue(0);
-      });
+    menuItemAnims.forEach((anim, idx) => {
+      Animated.timing(anim, {
+        toValue: 0,
+        duration: 150,
+        delay: idx * 50,
+        useNativeDriver: true,
+      }).start();
     });
-  };
+
+    bottomSheetRef.current?.dismiss();
+  }, []);
+
+  useEffect(() => {
+    if (visible) handlePresent();
+    else handleClose();
+  }, [visible]);
 
   const handleSignOut = () => {
     signOut(auth)
-      .then(() => {
-        Alert.alert(t('Signed out'), t('You have been signed out'), [
-          { text: 'Ok' },
-        ]);
-      })
-      .catch(error => {
-        console.error(error);
-      });
+      .then(() => alert(t('Signed out')))
+      .catch(console.error);
   };
 
-  function handleOutsideClick() {
-    if (isOpen) {
-      hideMenu();
-    }
-  }
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.5}
+      />
+    ),
+    []
+  );
+
+  const renderFooter = useCallback(
+    (props: BottomSheetFooterProps) => (
+      <BottomSheetFooter
+        {...props}
+        style={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
+        bottomInset={insets.bottom + 20}
+      >
+        {/* Cancel button */}
+        <TouchableOpacity
+          style={formStyles.buttonSecondary}
+          onPress={handleClose}
+        >
+          <Text style={styles.cancelText}>{t('cancel')}</Text>
+        </TouchableOpacity>
+      </BottomSheetFooter>
+    ),
+    []
+  );
 
   return (
-    <>
-      {isOpen && (
-        <TouchableWithoutFeedback onPress={handleOutsideClick}>
-          <View style={StyleSheet.absoluteFillObject}>
-            <Animated.View style={[styles.overlay, { opacity: fadeAnim }]} />
-          </View>
-        </TouchableWithoutFeedback>
-      )}
-
-      <Animated.View
-        style={[
-          styles.menuContainer,
-          { transform: [{ translateY: slideAnim }] },
-        ]}
+    <BottomSheetModalProvider>
+      <BottomSheetModal
+        ref={bottomSheetRef}
+        index={0}
+        snapPoints={snapPoints}
+        backdropComponent={renderBackdrop}
+        onDismiss={() => setVisible(false)}
+        backgroundStyle={styles.container}
+        handleIndicatorStyle={styles.handleIndicator}
+        footerComponent={renderFooter}
       >
-        <View style={{ justifyContent: 'center' }}>
-          {menuItems.map((item, index) => (
-            <Animated.View
-              key={index}
-              style={{
-                opacity: menuItemAnimations[index],
-                transform: [
-                  {
-                    translateY: menuItemAnimations[index].interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [20, 0],
-                    }),
-                  },
-                ],
-              }}
-            >
-              <TouchableOpacity style={styles.menuItem} onPress={item.function}>
-                <FontAwesomeIcon
-                  style={styles.icon}
-                  icon={item.icon}
-                  color={'white'}
-                  size={20}
-                />
-                <Text
-                  style={[
-                    styles.menuText,
+        <BottomSheetView style={styles.content} onLayout={handleLayout}>
+          {menuItems
+            .filter(item => item.title !== t('logout'))
+            .map((item, idx) => (
+              <Animated.View
+                key={idx}
+                style={{
+                  width: '100%',
+                  opacity: menuItemAnims[idx],
+                  transform: [
                     {
-                      color:
-                        item.type === MenuItemType.SUBSCRIPTION
-                          ? '#FBBC05'
-                          : 'white',
+                      translateY: menuItemAnims[idx].interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [20, 0],
+                      }),
                     },
-                  ]}
+                  ],
+                }}
+              >
+                <TouchableOpacity
+                  style={styles.button}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    item.action();
+                    handleClose();
+                  }}
                 >
-                  {item.title}
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
-          ))}
-        </View>
+                  <FontAwesomeIcon
+                    icon={item.icon}
+                    size={20}
+                    color="#fff"
+                    style={{ marginRight: 12 }}
+                  />
+                  <Text style={styles.buttonText}>{item.title}</Text>
+                </TouchableOpacity>
+              </Animated.View>
+            ))}
 
-        <View style={styles.bottomTab}>
-          <TouchableOpacity onPress={hideMenu}>
-            <FontAwesomeIcon icon={Icons.Remove} size={28} color={'white'} />
+          {/* Logout button */}
+          <TouchableOpacity
+            style={[formStyles.buttonSecondary, styles.logoutButton]}
+            onPress={() => {
+              const logoutItem = menuItems.find(
+                item => item.title === t('logout')
+              );
+              logoutItem?.action();
+              handleClose();
+            }}
+          >
+            <Text style={styles.logoutButtonText}>{t('logout')}</Text>
           </TouchableOpacity>
-        </View>
-      </Animated.View>
-    </>
+        </BottomSheetView>
+      </BottomSheetModal>
+    </BottomSheetModalProvider>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'black',
-  },
-  bottomTab: {
-    flexDirection: 'row',
-    paddingVertical: 30,
-  },
-  menuContainer: {
-    position: 'absolute',
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
-    bottom: 0,
-    width: '100%',
+  container: {
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 20,
     paddingVertical: 20,
-    paddingHorizontal: 30,
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
-    zIndex: 10000,
   },
-  menuItem: {
+  handleIndicator: {
+    backgroundColor: '#fff',
+    width: '10%',
+    marginBottom: 10,
+  },
+  content: {
+    alignItems: 'center',
+  },
+  button: {
+    width: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    borderWidth: 1,
+    borderColor: '#333',
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 15,
-    width: '100%',
+    marginBottom: 12,
   },
-  icon: {
-    marginRight: 20,
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
   },
-  menuText: {
-    fontSize: 18,
-    color: 'white',
+  cancelText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  logoutButton: {
+    height: 50,
+    paddingHorizontal: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    borderWidth: 2,
+    borderColor: '#ff3535',
+    marginBottom: 10,
+  },
+  logoutButtonText: {
+    color: '#ff3535',
+    fontWeight: '600',
   },
 });
 

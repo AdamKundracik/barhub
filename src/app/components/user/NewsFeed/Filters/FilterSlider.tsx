@@ -29,6 +29,7 @@ import Slider from '@react-native-community/slider';
 import MultiSelectPlaceChips from '@/src/app/components/user/NewsFeed/Filters/MultiSelectPlaceChips';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = {
   opened: boolean;
@@ -58,6 +59,7 @@ export const OCCUPANCY_TYPES: OccupancyTypes[] = [
 
 const FilterSlider = (props: Props) => {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 
@@ -164,7 +166,7 @@ const FilterSlider = (props: Props) => {
       <BottomSheetFooter
         {...props}
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
-        bottomInset={20}
+        bottomInset={insets.bottom}
       >
         <View style={styles.footerContainer}>
           <Button

@@ -1,13 +1,16 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { commonAppStyles } from '../../utils/styles/styles';
+import { useTranslation } from 'react-i18next';
 
 const OrSeparator = () => {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
       <View style={styles.line} />
       <View style={styles.textContainer}>
-        <Text style={commonAppStyles.textSecondary}>or</Text>
+        <Text style={commonAppStyles.textSecondary}>{t('or')}</Text>
       </View>
       <View style={styles.line} />
     </View>
