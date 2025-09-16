@@ -40,17 +40,17 @@ exports.reportPostSecondGen = onCall(
   }
 );
 
-// exports.createUser = functions.auth.user().onCreate(user => {
-//   return admin
-//     .firestore()
-//     .collection('users')
-//     .doc(user.uid)
-//     .set(JSON.parse(JSON.stringify(user)), { merge: true });
-// });
-//
-// exports.deleteUser = functions.auth.user().onDelete(user => {
-//   return admin.firestore().collection('users').doc(user.uid).delete();
-// });
+exports.createUser = functions.auth.user().onCreate(user => {
+  return admin
+    .firestore()
+    .collection('users')
+    .doc(user.uid)
+    .set(JSON.parse(JSON.stringify(user)), { merge: true });
+});
+
+exports.deleteUser = functions.auth.user().onDelete(user => {
+  return admin.firestore().collection('users').doc(user.uid).delete();
+});
 
 exports.setUserSecondGen = onCall(
   async (user: User, context: CallableContext) => {

@@ -1,5 +1,12 @@
-import React, { useCallback, useEffect, useRef } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {
   BottomSheetBackdrop,
   BottomSheetFooter,
@@ -16,7 +23,7 @@ import { Icons } from '@/src/app/utils/icons/icons';
 type PostReportModalProps = {
   visible: boolean;
   onClose: () => void;
-  onSave: (reason: ReportReason) => void;
+  onSave: (reason: ReportReason) => Promise<void> | void; // môže byť async
 };
 
 export const PostReportModal = ({
@@ -27,6 +34,7 @@ export const PostReportModal = ({
   const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const insets = useSafeAreaInsets();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -57,9 +65,13 @@ export const PostReportModal = ({
         {
           text: t('reportPost.submit'),
           style: 'destructive',
-          onPress: () => {
-            onSave(reason);
-            bottomSheetRef.current?.dismiss();
+          onPress: async () => {
+            try {
+              setLoading(true);
+              await onSave(reason);
+            } finally {
+              setLoading(false);
+            }
           },
         },
       ]
@@ -77,7 +89,11 @@ export const PostReportModal = ({
     (props: BottomSheetFooterProps) => (
       <BottomSheetFooter {...props} bottomInset={insets.bottom + 20}>
         <View style={styles.cancelContainer}>
-          <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={onClose}
+            disabled={loading}
+          >
             <Text style={styles.cancelText}>{t('cancel')}</Text>
           </TouchableOpacity>
         </View>
@@ -107,28 +123,25 @@ export const PostReportModal = ({
             style={styles.option}
             activeOpacity={0.7}
             onPress={() => handleSelect(r.value, r.label)}
+            disabled={loading}
           >
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-              }}
-            >
-              <View>
-                <Text style={styles.optionText}>{r.label}</Text>
-              </View>
-              <View>
-                <FontAwesomeIcon
-                  icon={Icons.ChevronRight}
-                  size={16}
-                  color={'white'}
-                />
-              </View>
+            <View style={styles.optionRow}>
+              <Text style={styles.optionText}>{r.label}</Text>
+              <FontAwesomeIcon
+                icon={Icons.ChevronRight}
+                size={16}
+                color={'white'}
+              />
             </View>
           </TouchableOpacity>
         ))}
       </BottomSheetView>
+
+      {loading && (
+        <View style={styles.loaderOverlay}>
+          <ActivityIndicator size="large" color="#fff" />
+        </View>
+      )}
     </BottomSheetModal>
   );
 };
@@ -159,6 +172,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#333',
   },
+  optionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
   optionText: {
     color: 'white',
     fontSize: 16,
@@ -186,6 +203,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
   },
+  loaderOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
 });
-
-export default PostReportModal;
