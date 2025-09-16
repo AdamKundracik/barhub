@@ -179,5 +179,7 @@
     "confirmTitle": "Potvrdenie nahlásenia",
     "confirmMessage": "Naozaj chcete nahlásiť ako {{reason}}?"
   },
-  "or": "alebo"
+  "or": "alebo",
+  "delete-post": "Zmazať príspevok"
+
 }

@@ -180,5 +180,6 @@
     "confirmTitle": "Confirm Report",
     "confirmMessage": "Do you really want to report this as {{reason}}?"
   },
-  "or": "or"
+  "or": "or",
+  "delete-post": "Delete post"
 }

@@ -29,6 +29,10 @@ import {
 } from '@gorhom/bottom-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { auth } from '@/firebaseConfig';
+import {
+  bottomModalBgColor,
+  warningColor,
+} from '@/src/app/utils/styles/colors';
 
 type BottomSheetMenuProps = {
   visible: boolean;
@@ -222,7 +226,7 @@ const RollupMenu = ({ visible, setVisible }: BottomSheetMenuProps) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(20,27,34,0.9)',
+    backgroundColor: bottomModalBgColor,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingVertical: 10,
@@ -259,7 +263,7 @@ const styles = StyleSheet.create({
   logoutButton: {
     marginTop: 16,
     borderRadius: 12,
-    backgroundColor: '#ff3535',
+    backgroundColor: warningColor,
     paddingVertical: 14,
     alignItems: 'center',
   },

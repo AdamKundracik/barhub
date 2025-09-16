@@ -21,6 +21,7 @@ import {
   faCommenting,
   faComments,
   faCrown,
+  faEllipsisVertical,
   faFilter,
   faGear,
   faHeart as faHeartSolid,
@@ -47,6 +48,7 @@ import {
   faSliders,
   faThumbsDown,
   faThumbsUp,
+  faTrashCan,
   faUser,
   faUserCircle,
   faUsers,
@@ -121,4 +123,6 @@ export const Icons = {
   Location: faLocationArrow,
   ChevronRight: faChevronRight,
   Apple: faApple,
+  EllipsisVertical: faEllipsisVertical,
+  TrashCan: faTrashCan,
 };

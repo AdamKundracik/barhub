@@ -180,5 +180,7 @@
     "confirmTitle": "Confirmar reporte",
     "confirmMessage": "¿Realmente quieres reportar esto como {{reason}}?"
   },
-  "or": "o"
+  "or": "o",
+  "delete-post": "Eliminar publicación"
+
 }

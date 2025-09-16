@@ -180,5 +180,7 @@
     "confirmTitle": "Meldung bestätigen",
     "confirmMessage": "Möchten Sie diesen Beitrag wirklich als {{reason}} melden?"
   },
-  "or": "oder"
+  "or": "oder",
+  "delete-post": "Beitrag löschen"
+
 }

@@ -21,6 +21,7 @@ import {
 import { FirebaseTimestamp } from '@/src/app/utils/types/types';
 import { Icons } from '@/src/app/utils/icons/icons';
 import reportClient from '@/src/app/utils/services/reports.service';
+import { PostOptionsModal } from '@/src/app/components/user/NewsFeed/Post/PostOptionsModal';
 
 const normalizeTimestamp = (timestamp: FirebaseTimestamp): Timestamp => {
   const seconds = timestamp.seconds || timestamp._seconds || 0;
@@ -38,6 +39,7 @@ type Props = {
 
 export const UserLine = ({ postId, user, date, address }: Props) => {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
   const toast = useToast();
   const { t } = useTranslation();
 
@@ -100,6 +102,11 @@ export const UserLine = ({ postId, user, date, address }: Props) => {
     }
   };
 
+  const handleDelete = async () => {
+    console.log('Delete post with ID:', postId);
+    // tu spravíš delete logiku (volanie na backend)
+  };
+
   return (
     <>
       <View style={styles.container}>
@@ -130,14 +137,28 @@ export const UserLine = ({ postId, user, date, address }: Props) => {
           </View>
         </View>
 
-        <TouchableOpacity
-          style={styles.iconContainer}
-          onPress={() => setIsReportModalOpen(true)}
-        >
-          <FontAwesomeIcon icon={Icons.Flag} size={20} color={'#FE7878'} />
+        {/* --- OPTIONS BUTTON --- */}
+        <TouchableOpacity onPress={() => setIsOptionsModalOpen(true)}>
+          <FontAwesomeIcon
+            icon={Icons.EllipsisVertical}
+            size={24}
+            color={'white'}
+          />
         </TouchableOpacity>
       </View>
 
+      {/* --- OPTIONS MODAL --- */}
+      <PostOptionsModal
+        visible={isOptionsModalOpen}
+        onClose={() => setIsOptionsModalOpen(false)}
+        onDelete={handleDelete}
+        onReport={() => {
+          setIsOptionsModalOpen(false);
+          setIsReportModalOpen(true);
+        }}
+      />
+
+      {/* --- REPORT MODAL --- */}
       <PostReportModal
         visible={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
@@ -186,11 +207,6 @@ const styles = StyleSheet.create({
   address: {
     fontSize: 14,
     color: '#999999',
-  },
-  iconContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 10,
   },
 });
 

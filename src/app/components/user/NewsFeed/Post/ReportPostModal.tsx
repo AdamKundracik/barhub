@@ -19,6 +19,7 @@ import { ReportReason } from '@/src/app/utils/types/Feed/PostTypes';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
+import { bottomModalBgColor } from '@/src/app/utils/styles/colors';
 
 type PostReportModalProps = {
   visible: boolean;
@@ -148,7 +149,7 @@ export const PostReportModal = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(20,27,34,0.9)',
+    backgroundColor: bottomModalBgColor,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
