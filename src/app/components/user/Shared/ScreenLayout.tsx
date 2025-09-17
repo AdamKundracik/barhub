@@ -54,7 +54,7 @@ export const ScreenLayout = ({
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  mainContainer: { flex: 1 },
+  mainContainer: { flex: 1, paddingHorizontal: 16 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

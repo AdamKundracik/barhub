@@ -88,7 +88,7 @@
   "save-changes": "Uložiť zmeny",
   "account-state": "stav účtu",
   "date-of-birth-not-set": "dátum narodenia nenastavený",
-  "delete-account": "vymazať účet",
+  "delete-account": "Vymazať účet",
   "contact-us": "Nevàhaj sa nám ozvať ohl’adom pripomienok a želaní",
   "input-email": "Zadaj svoj email",
   "any-questions": "Pripomienka alebo dotaz",
@@ -180,6 +180,8 @@
     "confirmMessage": "Naozaj chcete nahlásiť ako {{reason}}?"
   },
   "or": "alebo",
-  "delete-post": "Zmazať príspevok"
+  "delete-post": "Zmazať príspevok",
+  "about-me": "O mne",
+  "change-password": "Zmeniť heslo"
 
 }

@@ -181,6 +181,8 @@
     "confirmMessage": "¿Realmente quieres reportar esto como {{reason}}?"
   },
   "or": "o",
-  "delete-post": "Eliminar publicación"
+  "delete-post": "Eliminar publicación",
+  "about-me": "Sobre mí",
+  "change-password": "Cambiar contraseña"
 
 }

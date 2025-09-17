@@ -142,8 +142,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
   },
   content: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingHorizontal: 16,
   },
   option: {
     paddingVertical: 16,

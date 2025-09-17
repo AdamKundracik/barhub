@@ -181,5 +181,7 @@
     "confirmMessage": "Do you really want to report this as {{reason}}?"
   },
   "or": "or",
-  "delete-post": "Delete post"
+  "delete-post": "Delete post",
+  "about-me": "About me",
+  "change-password": "Change password"
 }

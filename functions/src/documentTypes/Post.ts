@@ -1,6 +1,3 @@
-import firebase from 'firebase/compat';
-import { GeoPoint } from 'firebase/firestore';
-import Timestamp = firebase.firestore.Timestamp;
 import * as admin from 'firebase-admin';
 
 export interface PostDocument {

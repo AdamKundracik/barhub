@@ -181,6 +181,7 @@
     "confirmMessage": "Möchten Sie diesen Beitrag wirklich als {{reason}} melden?"
   },
   "or": "oder",
-  "delete-post": "Beitrag löschen"
-
+  "delete-post": "Beitrag löschen",
+  "about-me": "Über mich",
+  "change-password": "Passwort ändern"
 }

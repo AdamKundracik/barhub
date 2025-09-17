@@ -7,17 +7,17 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { auth } from '../../../../firebaseConfig';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
 import { useUserContext } from '../../providers/UserProvider';
-import { primaryBgColor, primaryColor } from '../../utils/styles/colors';
+import { primaryBgColor, warningColor } from '../../utils/styles/colors';
 import EditProfile from '../../components/user/Account/EditProfile';
 import { ScreenLayout } from '../../components/user/Shared/ScreenLayout';
 import { Image } from 'expo-image';
+import { auth } from '@/firebaseConfig';
 
 export const Account = () => {
   const { userData } = useUserContext();
@@ -85,52 +85,96 @@ export const Account = () => {
               }
               style={[
                 styles.profilePicture,
+                { borderWidth: 3, borderColor: '#00E1C9' }, // Green border for all, as in the design
                 userData?.premium && {
-                  borderWidth: 1,
-                  borderColor: '#FFC107',
+                  borderColor: '#FFC107', // Gold for premium
                 },
               ]}
               contentFit="cover"
             />
           </View>
           <Text style={styles.username}>{auth.currentUser?.displayName}</Text>
-          <Text style={{ color: primaryColor }}>{t('account-state')}</Text>
-          <View style={styles.accountStatus}>
-            {userData?.premium && (
-              <FontAwesomeIcon icon={Icons.Crown} size={20} color="#FFC107" />
-            )}
+          <Text style={styles.accountStatusText}>
+            {t('account-state')}:{' '}
             <Text
               style={userData?.premium ? styles.premiumText : styles.basicText}
             >
               {userData?.premium ? 'Premium' : 'Basic'}
             </Text>
+          </Text>
+        </View>
+
+        {/* Moje údaje Section */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            {/* Toto je flex container */}
+            <Text style={styles.cardTitle}>{t('about-me')}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <FontAwesomeIcon
+              icon={Icons.Envelope}
+              size={16}
+              color={'white'}
+              style={styles.infoIcon}
+            />
+            <View>
+              <Text style={styles.infoLabel}>{t('email')}</Text>
+              <Text style={styles.infoValue}>{auth.currentUser?.email}</Text>
+            </View>
+          </View>
+          <View style={styles.infoRow}>
+            <FontAwesomeIcon
+              icon={Icons.Calendar}
+              size={16}
+              color={'white'}
+              style={styles.infoIcon}
+            />
+            <View>
+              <Text style={styles.infoLabel}>{t('date-of-birth')}</Text>
+              <Text style={styles.infoValue}>
+                {userData?.dateOfBirth
+                  ? new Date(userData?.dateOfBirth!).toLocaleDateString()
+                  : t('date-of-birth-not-set')}
+              </Text>
+            </View>
           </View>
         </View>
-      </View>
 
-      <View style={styles.infoSection}>
-        <Text style={styles.label}>{t('email')}</Text>
-        <Text style={styles.value}>{auth.currentUser?.email}</Text>
-        <Text style={styles.label}>{t('date-of-birth')}</Text>
-        <Text style={styles.value}>
-          {userData?.dateOfBirth
-            ? new Date(userData?.dateOfBirth!).toLocaleDateString()
-            : t('date-of-birth-not-set')}
-        </Text>
+        {/* Nastavenia účtu Section */}
+        <View style={styles.card}>
+          {/* Change Password Button */}
+          <TouchableOpacity
+            style={[styles.fullButton, styles.changePasswordButton]}
+            onPress={() => navigation.navigate('PasswordChangeScreen')}
+          >
+            <FontAwesomeIcon
+              icon={Icons.Lock}
+              size={18}
+              color={primaryBgColor}
+              style={styles.buttonIcon}
+            />
+            <Text style={styles.changePasswordButtonText}>
+              {t('change-password-title')}
+            </Text>
+          </TouchableOpacity>
 
-        {/* Change Password */}
-        <TouchableOpacity
-          style={{ marginBottom: 15 }}
-          onPress={() => navigation.navigate('PasswordChangeScreen')}
-        >
-          <Text style={styles.changePassword}>
-            {t('change-password-title')}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={confirmDeleteAccount}>
-          <Text style={styles.deleteAccount}>{t('delete-account')}</Text>
-        </TouchableOpacity>
+          {/* Delete Account Button */}
+          <TouchableOpacity
+            style={[styles.fullButton, styles.deleteAccountButton]}
+            onPress={confirmDeleteAccount}
+          >
+            <FontAwesomeIcon
+              icon={Icons.TrashCan}
+              size={18}
+              color={'white'}
+              style={styles.buttonIconRight}
+            />
+            {/* Using Lock for delete as well, adjust if there's a specific delete icon */}
+            <Text style={styles.deleteAccountButtonText}>
+              {t('delete-account')}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -140,12 +184,14 @@ const commonColors = {
   white: '#fff',
   primaryTeal: '#00E1C9',
   premium: '#FFC107',
-  deleteRed: '#FE7878',
+  darkGrayCard: 'rgba(58,58,58,0.8)', // Darker gray for cards
+  lightGrayText: '#A9A9A9', // Lighter gray for labels
 };
 
 const commonTypography = {
   baseSize: 16,
   smallSize: 14,
+  largeSize: 20,
 };
 
 export const styles = StyleSheet.create({
@@ -154,7 +200,9 @@ export const styles = StyleSheet.create({
     backgroundColor: primaryBgColor,
   },
   container: {
-    paddingHorizontal: 10,
+    flex: 1, // Ensure container takes full height
+    paddingHorizontal: 16,
+    paddingTop: 20, // Add some padding from the top
   },
 
   header: {
@@ -167,67 +215,101 @@ export const styles = StyleSheet.create({
 
   profileSection: {
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 30, // Increased margin for spacing
   },
   profilePicture: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    marginBottom: 20,
-  },
-  premiumBorder: {
-    borderWidth: 1,
-    borderColor: commonColors.premium,
-  },
-
-  username: {
-    color: commonColors.primaryTeal,
-    fontSize: 20,
-    fontWeight: 'bold',
-    paddingVertical: 8,
+    width: 120, // Slightly smaller avatar for better spacing
+    height: 120,
+    borderRadius: 60,
     marginBottom: 10,
+    // Border color is handled inline based on premium status
   },
-  accountStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
+  username: {
+    color: commonColors.white, // Changed to white for better contrast
+    fontSize: commonTypography.largeSize,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  accountStatusText: {
+    color: commonColors.white,
+    fontSize: commonTypography.baseSize,
   },
   premiumText: {
     color: commonColors.premium,
-    marginLeft: 4,
-    fontSize: commonTypography.baseSize,
+    fontWeight: 'bold',
   },
   basicText: {
-    color: 'white',
-    marginLeft: 4,
-    fontSize: commonTypography.baseSize,
+    color: commonColors.white, // Basic text color remains white
+    fontWeight: 'bold',
   },
 
-  infoSection: {
-    paddingHorizontal: 15,
-    justifyContent: 'center',
+  card: {
+    backgroundColor: commonColors.darkGrayCard, // Darker background for cards
+    borderRadius: 15,
+    padding: 20,
+    marginBottom: 20,
+    gap: 10,
   },
-  label: {
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  cardTitle: {
     color: commonColors.white,
+    fontSize: commonTypography.largeSize,
+    fontWeight: 'bold',
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  infoIcon: {
+    marginRight: 10,
+    color: commonColors.primaryTeal, // Icons in info section are teal
+  },
+  infoLabel: {
+    color: commonColors.primaryTeal, // Lighter gray for labels
     fontSize: commonTypography.smallSize,
-    marginTop: 16,
   },
-  value: {
-    color: commonColors.primaryTeal,
+  infoValue: {
+    color: commonColors.white,
     fontSize: commonTypography.baseSize,
-    marginBottom: 8,
+    fontWeight: 'bold',
   },
-  changePassword: {
-    color: 'white',
-    textAlign: 'center',
-    marginTop: 24,
-    textDecorationLine: 'underline',
-    fontSize: commonTypography.baseSize,
+
+  fullButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 15,
+    borderRadius: 10,
   },
-  deleteAccount: {
-    color: commonColors.deleteRed,
+  changePasswordButton: {
+    backgroundColor: commonColors.white,
+  },
+  changePasswordButtonText: {
+    color: primaryBgColor, // Text color for white button
     fontSize: commonTypography.baseSize,
-    textAlign: 'center',
+    fontWeight: 'bold',
+    marginLeft: 10, // Space for icon
+  },
+  deleteAccountButton: {
+    backgroundColor: warningColor,
+  },
+  deleteAccountButtonText: {
+    color: commonColors.white,
+    fontSize: commonTypography.baseSize,
+    fontWeight: 'bold',
+    marginLeft: 10, // Space for icon
+  },
+  buttonIcon: {
+    marginRight: 5,
+  },
+  buttonIconRight: {
+    marginLeft: 10,
   },
 });
 export default Account;

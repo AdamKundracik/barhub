@@ -9,10 +9,8 @@ import {
   View,
 } from 'react-native';
 import DatePicker from 'react-native-date-picker';
-import { User } from '../../../../../shared';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
-import { auth } from '../../../../../firebaseConfig';
 import {
   primaryBgColor,
   primaryColor,
@@ -39,6 +37,8 @@ import { Input, InputField } from '@/components/ui/input';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { Center } from '@/components/ui/center';
 import { useLocales } from 'expo-localization';
+import { auth } from '@/firebaseConfig';
+import { User } from '@/shared';
 
 type EditProfileProps = {
   user: User | null;
@@ -60,9 +60,6 @@ const ProfileEditScreen = (props: EditProfileProps) => {
   );
   const [isSaving, setIsSaving] = useState(false);
   const [datePickerOpened, setDatePickerOpened] = useState(false);
-  const [showAlertDialog, setShowAlertDialog] = React.useState(false);
-
-  const handleClose = () => setShowAlertDialog(false);
 
   const openGallery = async () => {
     const permissionResult =
@@ -165,7 +162,6 @@ const ProfileEditScreen = (props: EditProfileProps) => {
       displayName: auth.currentUser?.displayName,
     });
     if (fetchUserData) await fetchUserData();
-    setShowAlertDialog(false);
     setOpenImageOptions(false);
   };
 
@@ -195,9 +191,7 @@ const ProfileEditScreen = (props: EditProfileProps) => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 10 }}
-        >
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
           {/* Profile Picture Section */}
           <View style={styles.profileSection}>
             <TouchableOpacity onPress={() => setOpenImageOptions(true)}>
@@ -227,117 +221,119 @@ const ProfileEditScreen = (props: EditProfileProps) => {
           </View>
 
           {/* Username input */}
-          <FormControl
-            size="lg"
-            isDisabled={true}
-            isReadOnly={false}
-            isRequired={false}
-            style={formStyles.formControl}
-          >
-            <FormControlLabel>
+          <View>
+            <FormControl
+              size="lg"
+              isDisabled={true}
+              isReadOnly={false}
+              isRequired={false}
+              style={formStyles.formControl}
+            >
+              <FormControlLabel>
+                <FormControlLabelText style={{ color: primaryColor }}>
+                  {t('email')}
+                </FormControlLabelText>
+              </FormControlLabel>
+              <Input
+                className="my-1"
+                variant={'rounded'}
+                size="xl"
+                style={formStyles.inputPrimary}
+              >
+                <InputField
+                  type="text"
+                  placeholder={t('email')}
+                  style={{ color: primaryTextColor }}
+                  value={email!}
+                />
+              </Input>
+            </FormControl>
+
+            <FormControl
+              size="lg"
+              isDisabled={false}
+              isReadOnly={false}
+              isRequired={false}
+              style={formStyles.formControl}
+            >
+              <FormControlLabel>
+                <FormControlLabelText style={{ color: primaryColor }}>
+                  {t('user-name')}
+                </FormControlLabelText>
+              </FormControlLabel>
+              <Input
+                className="my-1"
+                variant={'rounded'}
+                size="xl"
+                style={formStyles.inputPrimary}
+              >
+                <InputField
+                  type="text"
+                  placeholder={t('user-name')}
+                  style={{ color: primaryTextColor }}
+                  value={username!}
+                  onChangeText={setUsername}
+                />
+              </Input>
+            </FormControl>
+
+            <FormControl
+              size="lg"
+              isDisabled={false}
+              isReadOnly={false}
+              isRequired={false}
+              style={formStyles.formControl}
+            >
               <FormControlLabelText style={{ color: primaryColor }}>
-                {t('email')}
+                {t('date-of-birth')}
               </FormControlLabelText>
-            </FormControlLabel>
-            <Input
-              className="my-1"
-              variant={'rounded'}
-              size="xl"
-              style={formStyles.inputPrimary}
-            >
-              <InputField
-                type="text"
-                placeholder={t('email')}
-                style={{ color: primaryTextColor }}
-                value={email!}
+              <Input
+                className="my-1"
+                variant={'rounded'}
+                size="xl"
+                style={formStyles.inputPrimary}
+              >
+                <InputField
+                  value={birthDate.toLocaleDateString()}
+                  onPress={() => setDatePickerOpened(true)}
+                  style={{ color: primaryTextColor }}
+                />
+              </Input>
+              <DatePicker
+                modal
+                open={datePickerOpened}
+                date={birthDate}
+                locale={locales[0].languageCode!}
+                mode={'date'}
+                onConfirm={date => {
+                  setDatePickerOpened(false);
+                  setBirthDate(date);
+                }}
+                onCancel={() => {
+                  setDatePickerOpened(false);
+                }}
               />
-            </Input>
-          </FormControl>
+            </FormControl>
 
-          <FormControl
-            size="lg"
-            isDisabled={false}
-            isReadOnly={false}
-            isRequired={false}
-            style={formStyles.formControl}
-          >
-            <FormControlLabel>
-              <FormControlLabelText style={{ color: primaryColor }}>
-                {t('user-name')}
-              </FormControlLabelText>
-            </FormControlLabel>
-            <Input
-              className="my-1"
-              variant={'rounded'}
-              size="xl"
-              style={formStyles.inputPrimary}
-            >
-              <InputField
-                type="text"
-                placeholder={t('user-name')}
-                style={{ color: primaryTextColor }}
-                value={username!}
-                onChangeText={setUsername}
-              />
-            </Input>
-          </FormControl>
-
-          <FormControl
-            size="lg"
-            isDisabled={false}
-            isReadOnly={false}
-            isRequired={false}
-            style={formStyles.formControl}
-          >
-            <FormControlLabelText style={{ color: primaryColor }}>
-              {t('date-of-birth')}
-            </FormControlLabelText>
-            <Input
-              className="my-1"
-              variant={'rounded'}
-              size="xl"
-              style={formStyles.inputPrimary}
-            >
-              <InputField
-                value={birthDate.toLocaleDateString()}
-                onPress={() => setDatePickerOpened(true)}
-                style={{ color: primaryTextColor }}
-              />
-            </Input>
-            <DatePicker
-              modal
-              open={datePickerOpened}
-              date={birthDate}
-              locale={locales[0].languageCode!}
-              mode={'date'}
-              onConfirm={date => {
-                setDatePickerOpened(false);
-                setBirthDate(date);
-              }}
-              onCancel={() => {
-                setDatePickerOpened(false);
-              }}
-            />
-          </FormControl>
-
-          {/* Save button */}
-          <Center>
-            <Button
-              variant="solid"
-              size="md"
-              action="primary"
-              style={formStyles.buttonPrimary}
-              onPress={handleUpdateUser}
-              isDisabled={isSaving}
-            >
-              {!isSaving && (
-                <ButtonText style={formStyles.buttonText}>
-                  {t('save')}
-                </ButtonText>
-              )}
-              {isSaving && <ButtonSpinner />}
-            </Button>
-          </Center>
+            {/* Save button */}
+            <Center>
+              <Button
+                variant="solid"
+                size="md"
+                action="primary"
+                style={formStyles.buttonPrimary}
+                onPress={handleUpdateUser}
+                isDisabled={isSaving}
+              >
+                {!isSaving && (
+                  <ButtonText style={formStyles.buttonText}>
+                    {t('save')}
+                  </ButtonText>
+                )}
+                {isSaving && <ButtonSpinner />}
+              </Button>
+            </Center>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
       <SlidingView
@@ -415,7 +411,6 @@ export const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: typography.baseSize,
-    padding: 10,
   },
   nonEditable: {
     backgroundColor: colors.darkBackground,

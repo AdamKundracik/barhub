@@ -140,7 +140,15 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      ["expo-apple-authentication"],
+      [
+        "expo-web-browser",
+        {
+          "experimentalLauncherActivity": true
+        }
+      ],
+      [
+        "expo-apple-authentication"
+      ],
       [
         "react-native-background-geolocation",
         {
@@ -277,7 +285,9 @@
             "3qcr597p9d.skadnetwork"
           ]
         }
-      ]
+      ],
+      "expo-web-browser",
+      "expo-mail-composer"
     ],
     "extra": {
       "eas": {
@@ -285,5 +295,4 @@
       }
     }
   }
-
 }

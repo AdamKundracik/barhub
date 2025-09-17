@@ -23,13 +23,13 @@ export const formStyles = StyleSheet.create({
     color: primaryTextColor,
   },
   formControl: {
-    paddingHorizontal: 10,
     marginBottom: 10,
   },
   buttonPrimary: {
     marginTop: 10,
     borderRadius: 10,
     height: 50,
+    width: '100%',
     minWidth: 250,
     backgroundColor: primaryColor,
   },
