@@ -1,23 +1,18 @@
-import { Post, User } from '../../shared';
-import PostService, { SavePostResponse } from './services/postService';
+import PostService from './services/postService';
 import CommentService from './services/CommentService';
-import { PostComment } from '../../common/types/commentTypes';
-import { GeoPointType } from './documentTypes/Post';
-import {
-  GetUserNotificationsResponse,
-  SaveNotificationResponse,
-} from '../../common/types/notificationTypes';
 import NotifiationService from './services/notifiationService';
 import { ReportService } from './services/reportService';
-
 import admin from 'firebase-admin';
-import { CallableContext, HttpsError } from 'firebase-functions/https';
-import { onSchedule } from 'firebase-functions/scheduler';
+import { GeoPointType } from './documentTypes/Post';
 
-const { onRequest, onCall } = require('firebase-functions/v2/https');
+// ----------------- CALLABLE FUNCTIONS -----------------
+import { onCall } from 'firebase-functions/v2/https';
+import { HttpsError } from 'firebase-functions/https';
+import { Post } from '../../common/types/postTypes';
+import { onSchedule } from 'firebase-functions/scheduler';
+import * as logger from 'firebase-functions/logger';
 
 admin.initializeApp();
-
 const db = admin.firestore();
 const functions = require('firebase-functions');
 
@@ -26,373 +21,312 @@ const commentService = new CommentService();
 const notificationService = new NotifiationService();
 const reportService = new ReportService();
 
-exports.reportPostSecondGen = onCall(
-  async (data: { postId: string; userId: string; reason: string }) => {
-    try {
-      return await reportService.reportPost(
-        data.userId,
-        data.postId,
-        data.reason
-      );
-    } catch (error: any) {
-      throw new HttpsError('internal', error.message || 'Error reporting post');
-    }
-  }
-);
+// exports.createUser = functions.auth.user().onCreate(user => {
+//   return admin
+//     .firestore()
+//     .collection('users')
+//     .doc(user.uid)
+//     .set(JSON.parse(JSON.stringify(user)), { merge: true });
+// });
+//
+// exports.deleteUser = functions.auth.user().onDelete(user => {
+//   return admin.firestore().collection('users').doc(user.uid).delete();
+// });
 
-exports.createUser = functions.auth.user().onCreate(user => {
-  return admin
-    .firestore()
-    .collection('users')
-    .doc(user.uid)
-    .set(JSON.parse(JSON.stringify(user)), { merge: true });
-});
+type User = {
+  id: string;
+  [key: string]: any;
+};
 
-exports.deleteUser = functions.auth.user().onDelete(user => {
-  return admin.firestore().collection('users').doc(user.uid).delete();
-});
+type SavePostResponse = {
+  success: boolean;
+  postId?: string;
+};
 
-exports.setUserSecondGen = onCall(
-  async (user: User, context: CallableContext) => {
-    await db
-      .collection('users')
-      .doc(context.auth.uid)
-      .set(user, { merge: true });
-  }
-);
+type ReportPostData = {
+  postId: string;
+  userId: string;
+  reason: string;
+};
 
-exports.savePostSecondGen = onCall(
-  async (data, context: CallableContext): Promise<SavePostResponse> => {
-    const { post } = data;
-    return await postService.savePost(context.auth.uid, post);
-  }
-);
+export const reportPostSecondGen = onCall<ReportPostData, any>(async req => {
+  const { postId, userId, reason } = req.data;
 
-exports.getAllExistingUsersSecondGen = onCall(async () => {
-  const usersCollection = db.collection('users');
   try {
-    const snapshot = await usersCollection.get();
-    const users: User[] = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-
-    return { users };
-  } catch (error) {
-    console.error('Error getting users collection: ', error);
-    throw new HttpsError('internal', 'Unable to retrieve users');
+    return await reportService.reportPost(userId, postId, reason);
+  } catch (error: any) {
+    logger.error('Error reporting post:', error);
+    throw new Error(error.message || 'Error reporting post');
   }
 });
 
-exports.getCurrentUserSecondGen = onCall(
-  async (data, context: CallableContext) => {
-    if (!context.auth) {
-      throw new HttpsError(
-        'unauthenticated',
-        'The function must be called while authenticated.'
-      );
+export const setUserSecondGen = onCall<{ user: User }, void>(async req => {
+  const uid = req.auth?.uid;
+  if (!uid) {
+    throw new Error('Unauthenticated: must be logged in');
+  }
+
+  const { user } = req.data;
+  try {
+    await db.collection('users').doc(uid).set(user, { merge: true });
+    logger.info(`User ${uid} updated successfully`);
+  } catch (error) {
+    logger.error('Failed to set user:', error);
+    throw new Error('Failed to set user');
+  }
+});
+
+export const savePostSecondGen = onCall<{ post: any }, SavePostResponse>(
+  async req => {
+    const uid = req.auth?.uid;
+    if (!uid) {
+      throw new Error('Unauthenticated: must be logged in');
     }
 
-    const uid = context.auth.uid;
-
+    const { post } = req.data;
     try {
-      const userDoc = await db.collection('users').doc(uid).get();
-
-      if (!userDoc.exists) {
-        return console.error('USER NOT FOUND');
-      }
-
-      return { id: userDoc.id, ...userDoc.data() };
+      return await postService.savePost(uid, post);
     } catch (error) {
-      console.error('Error getting user data: ', error);
+      logger.error('Failed to save post:', error);
+      throw new Error('Failed to save post');
     }
   }
 );
 
-exports.toggleLikeSecondGen = onCall(async data => {
-  const { postId, userId } = data;
+export const deletePostSecondGen = onCall(async request => {
+  if (!request.auth) {
+    throw new HttpsError(
+      'unauthenticated',
+      'User must be authenticated to delete a post.'
+    );
+  }
+
+  const { postId } = request.data as { postId: string };
+  if (!postId) {
+    throw new HttpsError('invalid-argument', 'Missing postId');
+  }
+
+  const result = await postService.deletePost(postId);
+  return result;
+});
+
+export const toggleLikeSecondGen = onCall(async request => {
+  const { postId, userId } = request.data as {
+    postId: string;
+    userId: string;
+  };
 
   if (!postId || !userId) {
     throw new HttpsError('invalid-argument', 'Missing postId or userId');
   }
 
-  try {
-    const likeDocRef = db
-      .collection('posts')
-      .doc(postId)
-      .collection('likes')
-      .doc(userId);
-    const likeDoc = await likeDocRef.get();
+  const likeDocRef = db
+    .collection('posts')
+    .doc(postId)
+    .collection('likes')
+    .doc(userId);
+  const likeDoc = await likeDocRef.get();
 
-    if (likeDoc.exists) {
-      await likeDocRef.delete();
-    } else {
-      await likeDocRef.set({});
-    }
-  } catch (error) {
-    console.error('Error toggling like: ', error);
+  if (likeDoc.exists) {
+    await likeDocRef.delete();
+  } else {
+    await likeDocRef.set({});
   }
 });
 
-exports.testLogSecondGen = onCall(async (data, context: CallableContext) => {
-  if (!context.auth) {
+export const getFreshContentSecondGen = onCall(async request => {
+  if (!request.auth) {
     throw new HttpsError(
       'unauthenticated',
-      'The function must be called while authenticated.'
+      'User must be authenticated to fetch posts.'
     );
   }
 
-  const usersCollection = db.collection('users');
+  const uid = request.auth.uid;
+  const {
+    geoPoint,
+    radius,
+    pageSize = 3,
+    lastVisible = null,
+  } = request.data as {
+    geoPoint: GeoPointType;
+    radius: number;
+    pageSize?: number;
+    lastVisible?: string | null;
+  };
+
+  const result = await postService.getFreshContent(
+    geoPoint,
+    radius,
+    uid,
+    pageSize,
+    lastVisible
+  );
+  return result;
+});
+
+export const getPostsByPlaceIdSecondGen = onCall(async request => {
+  if (!request.auth) {
+    throw new HttpsError(
+      'unauthenticated',
+      'User must be authenticated to fetch posts.'
+    );
+  }
+
+  const uid = request.auth.uid;
+  const {
+    placeId,
+    pageSize = 3,
+    lastVisible = null,
+  } = request.data as {
+    placeId: string;
+    pageSize?: number;
+    lastVisible?: string | null;
+  };
+
+  const result = await postService.getPostsByPlaceId(
+    uid,
+    placeId,
+    pageSize,
+    lastVisible
+  );
+  return result;
+});
+
+export const saveNotificationSecondGen = onCall(async request => {
+  if (!request.auth) {
+    throw new HttpsError(
+      'unauthenticated',
+      'User must be authenticated to save notifications'
+    );
+  }
+
+  const userId = request.auth.uid;
+  return await notificationService.saveNotification({
+    userId,
+    ...request.data,
+  });
+});
+
+export const getCurrentUserSecondGen = onCall<void, User>(async req => {
+  const uid = req.auth?.uid;
+  if (!uid) {
+    throw new Error('Unauthenticated: must be logged in');
+  }
 
   try {
-    const snapshot = await usersCollection
-      .where('uid', '!=', context.auth.uid)
-      .get();
-    const users: User[] = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const userDoc = await db.collection('users').doc(uid).get();
 
-    return { users };
+    if (!userDoc.exists) {
+      logger.error(`User ${uid} not found`);
+      throw new Error('User not found');
+    }
+
+    return { id: userDoc.id, ...userDoc.data() } as User;
   } catch (error) {
-    console.error('Error getting users collection: ', error);
-
-    throw new HttpsError('internal', 'Unknown error occurred.');
+    logger.error('Error getting user data:', error);
+    throw new Error('Failed to get user data');
   }
 });
 
-exports.getPostByIdSecondGen = onCall(async (data, context) => {
-  const { postId } = data;
-
-  if (!postId) {
-    throw new HttpsError('invalid-argument', 'Post ID is required');
+export const getUserNotificationsSecondGen = onCall(async request => {
+  if (!request.auth) {
+    throw new HttpsError(
+      'unauthenticated',
+      'User must be authenticated to get notifications'
+    );
   }
 
-  try {
-    const postDoc = await admin
-      .firestore()
-      .collection('posts')
-      .doc(postId)
-      .get();
-
-    if (!postDoc.exists) {
-      throw new HttpsError('not-found', 'Post not found');
-    }
-
-    const postData = postDoc.data();
-
-    const likesSnapshot = await admin
-      .firestore()
-      .collection('posts')
-      .doc(postId)
-      .collection('likes')
-      .get();
-    const likesCount = likesSnapshot.size;
-
-    const commentsSnapshot = await admin
-      .firestore()
-      .collection('posts')
-      .doc(postId)
-      .collection('comments')
-      .get();
-    const commentsCount = commentsSnapshot.size;
-
-    let isLiked = false;
-    if (context.auth) {
-      const uid = context.auth.uid;
-      const likeSnapshot = await admin
-        .firestore()
-        .collection('posts')
-        .doc(postId)
-        .collection('likes')
-        .doc(uid)
-        .get();
-      isLiked = likeSnapshot.exists;
-    }
-
-    // Return the post data along with likes and comments count, and if the user liked it
-    return {
-      ...postData,
-      id: postId,
-      likesCount,
-      commentsCount,
-      isLiked,
-    };
-  } catch (error) {
-    console.error('Error fetching post:', error);
-    throw new HttpsError('internal', 'Error fetching post');
-  }
+  const userId = request.auth.uid;
+  return await notificationService.getUserNotifications(userId);
 });
 
-exports.getFreshContentSecondGen = onCall(
-  async (
-    data: {
-      geoPoint: GeoPointType;
-      radius: number;
-      pageSize?: number;
-      lastVisible?: string;
-    },
-    context: CallableContext
-  ) => {
-    try {
-      if (!context.auth) {
-        throw new HttpsError(
-          'unauthenticated',
-          'User must be authenticated to fetch posts.'
-        );
-      }
-
-      const { geoPoint, radius, pageSize = 3, lastVisible = null } = data;
-      const uid = context.auth.uid;
-
-      const result = await postService.getFreshContent(
-        geoPoint,
-        radius,
-        uid,
-        pageSize,
-        lastVisible
-      );
-      return result;
-    } catch (error) {
-      functions.logger.error('Error in getFreshContent:', error);
-      throw new HttpsError(
-        'internal',
-        `Error in getFreshContent: ${error.message || 'Unknown error'}`
-      );
-    }
+export const markAllNotificationsAsSeenSecondGen = onCall(async request => {
+  if (!request.auth) {
+    throw new HttpsError(
+      'unauthenticated',
+      'User must be authenticated to mark notifications'
+    );
   }
-);
 
-exports.getPostsByPlaceIdSecondGen = onCall(
-  async (
-    data: {
-      placeId: string;
-      pageSize?: number;
-      lastVisible?: string;
-    },
-    context: CallableContext
-  ) => {
-    try {
-      if (!context.auth) {
-        throw new HttpsError(
-          'unauthenticated',
-          'User must be authenticated to fetch posts.'
-        );
-      }
+  const userId = request.auth.uid;
+  return await notificationService.markAllNotificationsAsSeen(userId);
+});
 
-      const { placeId, pageSize = 3, lastVisible = null } = data;
-      const uid = context.auth.uid;
-
-      const result = await postService.getPostsByPlaceId(
-        uid,
-        placeId,
-        pageSize,
-        lastVisible
-      );
-      return result;
-    } catch (error) {
-      functions.logger.error('Error in getPostsByPlaceId:', error);
-      throw new HttpsError(
-        'internal',
-        `Error in getPostsByPlaceId: ${error.message || 'Unknown error'}`
-      );
-    }
+export const deleteNotificationSecondGen = onCall(async request => {
+  if (!request.auth) {
+    throw new HttpsError(
+      'unauthenticated',
+      'User must be authenticated to delete notifications'
+    );
   }
-);
 
-exports.saveNotificationSecondGen = onCall(
-  async (data, context): Promise<SaveNotificationResponse> => {
-    if (!context.auth) {
-      throw new HttpsError(
-        'unauthenticated',
-        'User must be authenticated to save notifications'
-      );
-    }
-
-    const userId = context.auth.uid;
-    return await notificationService.saveNotification({
-      userId,
-      ...data,
-    });
+  const { notificationId } = request.data as { notificationId: string };
+  if (!notificationId) {
+    throw new HttpsError('invalid-argument', 'Notification ID is required');
   }
-);
 
-exports.getUserNotificationsSecondGen = onCall(
-  async (data, context): Promise<GetUserNotificationsResponse> => {
-    if (!context.auth) {
-      throw new HttpsError(
-        'unauthenticated',
-        'User must be authenticated to get notifications'
-      );
-    }
+  return await notificationService.deleteNotification(notificationId);
+});
 
-    const userId = context.auth.uid;
-    return await notificationService.getUserNotifications(userId);
-  }
-);
+export const addCommentSecondGen = onCall(async request => {
+  const { postId, userId, commentText } = request.data as {
+    postId: string;
+    userId: string;
+    commentText: string;
+  };
 
-exports.markAllNotificationsAsSeenSecondGen = onCall(
-  async (
-    data,
-    context
-  ): Promise<{
-    success: boolean;
-    updatedCount: number;
-  }> => {
-    if (!context.auth) {
-      throw new HttpsError(
-        'unauthenticated',
-        'User must be authenticated to get notifications'
-      );
-    }
-
-    const userId = context.auth.uid;
-    return await notificationService.markAllNotificationsAsSeen(userId);
-  }
-);
-
-exports.deleteNotificationSecondGen = onCall(
-  async (
-    data: { notificationId: string },
-    context
-  ): Promise<{
-    success: boolean;
-  }> => {
-    if (!context.auth) {
-      throw new HttpsError(
-        'unauthenticated',
-        'User must be authenticated to delete notifications'
-      );
-    }
-
-    if (!data.notificationId) {
-      throw new HttpsError('invalid-argument', 'Notification ID is required');
-    }
-
-    try {
-      return await notificationService.deleteNotification(data.notificationId);
-    } catch (error) {
-      console.error('Error in deleteNotification:', error);
-      throw new HttpsError('internal', 'Failed to delete notification');
-    }
-  }
-);
-
-exports.addCommentSecondGen = onCall(async (data, context) => {
-  const { postId, userId, commentText } = data;
   return await commentService.addComment(postId, userId, commentText);
 });
 
-exports.getPostCommentsSecondGen = onCall(
-  async (data, context): Promise<{ comments: PostComment[] }> => {
-    const { postId } = data;
-    return await commentService.getPostComments(postId);
+export const getPostCommentsSecondGen = onCall(async request => {
+  const { postId } = request.data as { postId: string };
+  return await commentService.getPostComments(postId);
+});
+
+export const getPostByIdSecondGen = onCall(async request => {
+  const { postId } = request.data as { postId: string };
+  if (!postId) throw new HttpsError('invalid-argument', 'Post ID is required');
+
+  const postDoc = await db.collection('posts').doc(postId).get();
+  if (!postDoc.exists) throw new HttpsError('not-found', 'Post not found');
+
+  const postData = postDoc.data() as Post;
+  const likesSnapshot = await db
+    .collection('posts')
+    .doc(postId)
+    .collection('likes')
+    .get();
+  const commentsSnapshot = await db
+    .collection('posts')
+    .doc(postId)
+    .collection('comments')
+    .get();
+
+  let isLiked = false;
+  if (request.auth) {
+    const uid = request.auth.uid;
+    const likeSnapshot = await db
+      .collection('posts')
+      .doc(postId)
+      .collection('likes')
+      .doc(uid)
+      .get();
+    isLiked = likeSnapshot.exists;
   }
-);
 
-// SCHEDULE FUNCTIONS
+  return {
+    ...postData,
+    id: postId,
+    likesCount: likesSnapshot.size,
+    commentsCount: commentsSnapshot.size,
+    isLiked,
+  };
+});
 
-exports.deleteOldPostsAndImagesSecondGen = onSchedule(
+// ----------------- SCHEDULE FUNCTIONS -----------------
+
+export const deleteOldPostsAndImagesSecondGen = onSchedule(
   'every 60 minutes',
   async () => {
     const threeDaysInSeconds = 3 * 24 * 60 * 60;
@@ -403,81 +337,54 @@ exports.deleteOldPostsAndImagesSecondGen = onSchedule(
       0
     );
 
-    try {
-      const postsSnapshot = await db
-        .collection('posts')
-        .where('creationTime', '<', timestampThreeDaysAgo)
+    const postsSnapshot = await db
+      .collection('posts')
+      .where('creationTime', '<', timestampThreeDaysAgo)
+      .get();
+
+    const deleteOperations = postsSnapshot.docs.map(async doc => {
+      const postData = doc.data() as Post;
+      const filePath = `${postData.folderId}/${postData.fileId}`;
+
+      const notificationsSnapshot = await db
+        .collection('notifications')
+        .where('postId', '==', doc.id)
         .get();
-
-      const deleteOperations = postsSnapshot.docs.map(async doc => {
-        const postData: Post = doc.data();
-        const filePath = `${postData.folderId}/${postData.fileId}`;
-
-        // Delete notifications associated with the post
-        const notificationsSnapshot = await db
-          .collection('notifications')
-          .where('postId', '==', doc.id)
-          .get();
-
-        const deleteNotificationsPromises = notificationsSnapshot.docs.map(
-          notificationDoc => notificationDoc.ref.delete()
-        );
-
-        return Promise.all([
-          admin.storage().bucket().file(filePath).delete(),
-          deleteSubcollection(doc.ref, 'likes'),
-          deleteSubcollection(doc.ref, 'comments'),
-          doc.ref.delete(),
-          ...deleteNotificationsPromises,
-        ]).catch(error => {
-          console.error(
-            `Failed to delete post ${doc.id} and associated data:`,
-            error
-          );
-          throw error;
-        });
-      });
-
-      await Promise.all(deleteOperations);
-      console.info(
-        `Successfully deleted ${postsSnapshot.size} posts and their associated data`
+      const deleteNotificationsPromises = notificationsSnapshot.docs.map(n =>
+        n.ref.delete()
       );
-    } catch (error) {
-      console.error('Error in deletion process:', error);
-      throw error;
-    }
+
+      return Promise.all([
+        admin.storage().bucket().file(filePath).delete(),
+        deleteSubcollection(doc.ref, 'likes'),
+        deleteSubcollection(doc.ref, 'comments'),
+        doc.ref.delete(),
+        ...deleteNotificationsPromises,
+      ]);
+    });
+
+    await Promise.all(deleteOperations);
+    console.info(
+      `Deleted ${postsSnapshot.size} old posts and their associated data`
+    );
   }
 );
 
-// Quick cleanup (every 15 minutes)
-exports.deleteRecentExpiredRequestsSecondGen = onSchedule(
-  'every 60 minutes',
+export const deleteRecentExpiredRequestsSecondGen = onSchedule(
+  'every 15 minutes',
   async () => {
-    const threeMinutesInSeconds = 3 * 60;
-    const timeThreeMinutesAgo =
-      admin.firestore.Timestamp.now().seconds - threeMinutesInSeconds;
-    const timestampThreeMinutesAgo = new admin.firestore.Timestamp(
-      timeThreeMinutesAgo,
-      0
-    );
+    const threeMinutesAgo = admin.firestore.Timestamp.now().seconds - 3 * 60;
+    const timestamp = new admin.firestore.Timestamp(threeMinutesAgo, 0);
 
-    try {
-      const expiredNotificationsSnapshot = await admin
-        .firestore()
-        .collection('notifications')
-        .where('notificationType', '==', 'REQUEST')
-        .where('creationTime', '<', timestampThreeMinutesAgo)
-        .limit(1000)
-        .get();
+    const expiredNotificationsSnapshot = await db
+      .collection('notifications')
+      .where('notificationType', '==', 'REQUEST')
+      .where('creationTime', '<', timestamp)
+      .limit(1000)
+      .get();
 
-      if (expiredNotificationsSnapshot.empty) {
-        console.info('No recent expired request notifications to delete');
-        return;
-      }
-
+    if (!expiredNotificationsSnapshot.empty) {
       const batchSize = 500;
-      const batches: Promise<void>[][] = [];
-
       for (
         let i = 0;
         i < expiredNotificationsSnapshot.docs.length;
@@ -486,50 +393,29 @@ exports.deleteRecentExpiredRequestsSecondGen = onSchedule(
         const batch = expiredNotificationsSnapshot.docs
           .slice(i, i + batchSize)
           .map(doc => doc.ref.delete());
-
-        batches.push(batch);
+        await Promise.all(batch);
       }
-
-      await Promise.all(batches.flat());
       console.info(
-        `Quick cleanup: Deleted ${expiredNotificationsSnapshot.size} expired request notifications`
+        `Deleted ${expiredNotificationsSnapshot.size} expired request notifications`
       );
-    } catch (error) {
-      console.error('Error in quick cleanup of expired notifications:', error);
-      throw error;
     }
   }
 );
 
-// Deep cleanup (every 6 hours)
 export const deleteAllExpiredRequestsSecondGen = onSchedule(
-  'every 60 minutes',
+  'every 6 hours',
   async () => {
-    const threeDaysInSeconds = 3 * 24 * 60 * 60;
-    const timeThreeDaysAgo =
-      admin.firestore.Timestamp.now().seconds - threeDaysInSeconds;
-    const timestampThreeDaysAgo = new admin.firestore.Timestamp(
-      timeThreeDaysAgo,
-      0
-    );
+    const threeDaysAgo =
+      admin.firestore.Timestamp.now().seconds - 3 * 24 * 60 * 60;
+    const timestamp = new admin.firestore.Timestamp(threeDaysAgo, 0);
 
-    try {
-      const expiredNotificationsSnapshot = await admin
-        .firestore()
-        .collection('notifications')
-        .where('creationTime', '<', timestampThreeDaysAgo)
-        .get();
+    const expiredNotificationsSnapshot = await db
+      .collection('notifications')
+      .where('creationTime', '<', timestamp)
+      .get();
 
-      if (expiredNotificationsSnapshot.empty) {
-        console.info(
-          'No expired request notifications to delete in deep cleanup'
-        );
-        return;
-      }
-
+    if (!expiredNotificationsSnapshot.empty) {
       const batchSize = 500;
-      const batches: Promise<void>[][] = [];
-
       for (
         let i = 0;
         i < expiredNotificationsSnapshot.docs.length;
@@ -538,27 +424,21 @@ export const deleteAllExpiredRequestsSecondGen = onSchedule(
         const batch = expiredNotificationsSnapshot.docs
           .slice(i, i + batchSize)
           .map(doc => doc.ref.delete());
-
-        batches.push(batch);
+        await Promise.all(batch);
       }
-
-      await Promise.all(batches.flat());
       console.info(
-        `Deep cleanup: Deleted ${expiredNotificationsSnapshot.size} expired request notifications`
+        `Deleted ${expiredNotificationsSnapshot.size} expired request notifications`
       );
-    } catch (error) {
-      console.error('Error in deep cleanup of expired notifications:', error);
-      throw error;
     }
   }
 );
 
-async function deleteSubcollection(postRef, subcollectionName) {
-  const subcollectionSnapshot = await postRef
-    .collection(subcollectionName)
-    .get();
-  const deletePromises = subcollectionSnapshot.docs.map(doc =>
-    doc.ref.delete()
-  );
-  await Promise.all(deletePromises);
+// ----------------- HELPER FUNCTIONS -----------------
+
+async function deleteSubcollection(
+  postRef: FirebaseFirestore.DocumentReference,
+  subcollectionName: string
+) {
+  const snapshot = await postRef.collection(subcollectionName).get();
+  await Promise.all(snapshot.docs.map(doc => doc.ref.delete()));
 }

@@ -1,11 +1,11 @@
-import { SaveNotificationResponse } from '../../../../common/types/notificationTypes';
 import { httpsCallable } from 'firebase/functions';
-import { functions } from '../../../../firebaseConfig';
 import {
   GetNotificationsResult,
   MarkNotificationReadResult,
   SaveNotificationRequest,
 } from '../types/notification-types';
+import { functions } from '@/firebaseConfig';
+import { SaveNotificationResponse } from '@/common/types/notificationTypes';
 
 /**
  * Saves a new notification
@@ -31,7 +31,10 @@ export const saveNotification = async (
  */
 export const getUserNotifications =
   async (): Promise<GetNotificationsResult> => {
-    const cloudFunction = httpsCallable(functions, 'getUserNotifications');
+    const cloudFunction = httpsCallable(
+      functions,
+      'getUserNotificationsSecondGen'
+    );
     const response =
       (await cloudFunction()) as unknown as GetNotificationsResult;
     return response;

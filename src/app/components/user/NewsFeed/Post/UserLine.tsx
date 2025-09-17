@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Timestamp } from 'firebase/firestore';
 import { PostReportModal } from '@/src/app/components/user/NewsFeed/Post/ReportPostModal';
 import { ReportReason } from '@/src/app/utils/types/Feed/PostTypes';
-import {
-  Toast,
-  ToastDescription,
-  ToastTitle,
-  useToast,
-} from '@/components/ui/toast';
 import { useTranslation } from 'react-i18next';
-import { UserInfo } from '@/shared';
+import { Post, UserInfo } from '@/shared';
 import {
   postBgColor,
   primaryColor,
@@ -22,6 +23,10 @@ import { FirebaseTimestamp } from '@/src/app/utils/types/types';
 import { Icons } from '@/src/app/utils/icons/icons';
 import reportClient from '@/src/app/utils/services/reports.service';
 import { PostOptionsModal } from '@/src/app/components/user/NewsFeed/Post/PostOptionsModal';
+import postService from '@/src/app/utils/services/post.service';
+import { useQueryClient } from 'react-query';
+import { usePlaceStore } from '@/src/app/utils/store/placesStore';
+import { useCustomToast } from '@/src/app/components/shared/Toaster';
 
 const normalizeTimestamp = (timestamp: FirebaseTimestamp): Timestamp => {
   const seconds = timestamp.seconds || timestamp._seconds || 0;
@@ -35,77 +40,102 @@ type Props = {
   profileImage: string | null;
   user: UserInfo | undefined;
   postId: string;
+  postUserId: string;
 };
 
-export const UserLine = ({ postId, user, date, address }: Props) => {
+export const UserLine = ({
+  postId,
+  user,
+  date,
+  address,
+  postUserId,
+}: Props) => {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
-  const toast = useToast();
+  const queryClient = useQueryClient();
+  const { placeId } = usePlaceStore();
   const { t } = useTranslation();
+  const { showSuccessToast, showErrorToast } = useCustomToast();
 
-  const showSuccessToast = () => {
-    toast.show({
-      placement: 'top right',
-      duration: 3000,
-      render: ({ id }) => (
-        <Toast
-          nativeID={`toast-${id}`}
-          action="success"
-          variant="outline"
-          style={toastStyles.successContainer}
-        >
-          <ToastTitle style={toastStyles.successTitle}>
-            {t('reportPost.successTitle')}
-          </ToastTitle>
-          <ToastDescription style={toastStyles.successDescription}>
-            {t('reportPost.successDescription')}
-          </ToastDescription>
-        </Toast>
-      ),
-    });
-  };
-
-  const showErrorToast = (message?: string) => {
-    toast.show({
-      placement: 'top',
-      duration: 3000,
-      render: ({ id }) => (
-        <Toast
-          nativeID={`error-toast-${id}`}
-          action="error"
-          variant="outline"
-          style={toastStyles.errorContainer}
-        >
-          <ToastTitle style={toastStyles.errorTitle}>Error</ToastTitle>
-          <ToastDescription style={toastStyles.errorDescription}>
-            {message || 'Could not report post.'}
-          </ToastDescription>
-        </Toast>
-      ),
-    });
-  };
-
+  // Report post
   const handleReport = async (reason: ReportReason) => {
     try {
-      const result = await reportClient.reportPost(
-        postId,
-        user?.id || '',
-        reason
+      await reportClient.reportPost(postId, user?.id || '', reason);
+      showSuccessToast(
+        t('deletePost.successTitle'),
+        t('deletePost.successDescription')
       );
-      console.log('Reported post with ID:', result.report.id);
-      showSuccessToast();
     } catch (error: any) {
       console.error('Failed to report post:', error);
-      showErrorToast(error.message);
+      showErrorToast('Failed to report post', error.message);
     } finally {
       setIsReportModalOpen(false);
     }
   };
 
-  const handleDelete = async () => {
-    console.log('Delete post with ID:', postId);
-    // tu spravíš delete logiku (volanie na backend)
+  const confirmDelete = (onConfirm: () => void) => {
+    Alert.alert(
+      t('deletePost.confirmTitle'),
+      t('deletePost.confirmMessage'),
+      [
+        { text: t('cancel'), style: 'cancel' },
+        {
+          text: t('submit'),
+          style: 'destructive',
+          onPress: onConfirm,
+        },
+      ],
+      { cancelable: true }
+    );
   };
+
+  const deletePost = async (postId: string, placeId?: string) => {
+    try {
+      const result = await postService.deletePost(postId);
+      if (!result.success) throw new Error('Failed to delete post');
+
+      queryClient.setQueryData(['posts'], (oldData: any) => {
+        if (!oldData) return oldData;
+        const newPages = oldData.pages.map((page: any) => ({
+          ...page,
+          posts: page.posts.filter((p: Post) => p.id !== postId),
+        }));
+        return {
+          ...oldData,
+          pages: newPages,
+          pageParams: [...oldData.pageParams],
+        };
+      });
+
+      if (placeId) {
+        queryClient.setQueryData(['posts', placeId], (oldData: any) => {
+          if (!oldData) return oldData;
+          const newPages = oldData.pages.map((page: any) => ({
+            ...page,
+            posts: page.posts.filter((p: Post) => p.id !== postId),
+          }));
+          return {
+            ...oldData,
+            pages: newPages,
+            pageParams: [...oldData.pageParams],
+          };
+        });
+      }
+
+      showSuccessToast(
+        t('deletePost.successTitle'),
+        t('deletePost.successDescription')
+      );
+    } catch (error: any) {
+      console.error('Failed to delete post:', error);
+      showErrorToast('Failed to delete post', error.message);
+    } finally {
+      setIsOptionsModalOpen(false);
+    }
+  };
+
+  const handleDelete = () =>
+    confirmDelete(() => deletePost(postId, placeId ?? ''));
 
   return (
     <>
@@ -149,6 +179,7 @@ export const UserLine = ({ postId, user, date, address }: Props) => {
 
       {/* --- OPTIONS MODAL --- */}
       <PostOptionsModal
+        showDelete={user?.id === postUserId}
         visible={isOptionsModalOpen}
         onClose={() => setIsOptionsModalOpen(false)}
         onDelete={handleDelete}
@@ -209,57 +240,3 @@ const styles = StyleSheet.create({
     color: '#999999',
   },
 });
-
-const toastStyles = StyleSheet.create({
-  successContainer: {
-    backgroundColor: 'rgba(20,27,34,0.95)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#333',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 6,
-  },
-  successTitle: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  successDescription: {
-    color: '#aaa',
-    fontSize: 14,
-    lineHeight: 18,
-  },
-  errorContainer: {
-    backgroundColor: '#1F1F1F',
-    borderColor: '#FF4D4F',
-    borderWidth: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 5,
-    width: '100%',
-  },
-  errorTitle: {
-    color: '#FF4D4F',
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 4,
-  },
-  errorDescription: {
-    color: '#E0E0E0',
-    fontSize: 14,
-    lineHeight: 18,
-  },
-});
-
-export default UserLine;

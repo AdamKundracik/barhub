@@ -18,7 +18,7 @@ import { sendLikeNotification } from '@/src/app/utils/functions/notofications-ha
 import PlaceNameSeparator from '@/src/app/components/user/NewsFeed/Post/PlaceNameSeparator';
 import { trimPlaceName } from '@/src/app/utils/helper-functions/trimPlaceName';
 import BluredPostFrontView from '@/src/app/components/user/NewsFeed/Post/BluredPostFrontView';
-import UserLine from '@/src/app/components/user/NewsFeed/Post/UserLine';
+import { UserLine } from '@/src/app/components/user/NewsFeed/Post/UserLine';
 import InteractionBar from '@/src/app/components/user/NewsFeed/Post/InteractionBar';
 import { postBgColor, primaryBgColor } from '@/src/app/utils/styles/colors';
 
@@ -206,6 +206,7 @@ export const UserPost = (props: PostInterface) => {
           address={post.placeAddress}
           profileImage={post.user?.photoUrl ?? ''}
           postId={post.id}
+          postUserId={post.userId ?? ''}
         />
 
         {/* Photo container - NxN square where N is screen width */}
@@ -287,5 +288,95 @@ const tabletStyles = StyleSheet.create({
     borderRadius: 20,
   },
 });
+
+// READY FOR ANY IMAGE SIZE
+// return (
+//   <>
+//     {!isFiltering && (
+//       <View style={[styles.placeName, isTablet && tabletStyles.placeName]}>
+//         <PlaceNameSeparator
+//           placeNameLocal={trimPlaceName(post.placeName)}
+//           placeIdLocal={post.folderId}
+//         />
+//       </View>
+//     )}
+//
+//     <View
+//       style={[
+//         styles.contentContainer,
+//         isTablet && tabletStyles.contentContainer,
+//       ]}
+//     >
+//       {!shouldNotBlurPost && <BluredPostFrontView />}
+//
+//       <UserLine
+//         user={post.user}
+//         date={post.creationTime}
+//         address={post.placeAddress}
+//         profileImage={post.user?.photoUrl ?? ''}
+//         postId={post.id}
+//       />
+//
+//       {/* Dynamic photo container */}
+//       <View style={[styles.photoWrapper, { height: imageHeight }]}>
+//         <GestureDetector gesture={doubleTap}>
+//           <GestureDetector gesture={pinch}>
+//             <Animated.View style={[styles.photoContainer, animatedStyle]}>
+//               <Image
+//                 style={[styles.photo, isTablet && tabletStyles.photo]}
+//                 source={{ uri: post.photoUrl }}
+//                 priority="high"
+//                 contentFit="cover"
+//               />
+//             </Animated.View>
+//           </GestureDetector>
+//         </GestureDetector>
+//       </View>
+//
+//       <InteractionBar
+//         likes={likeCount}
+//         comments={post.commentsCount}
+//         onLikeToggle={() => handleLikeToggle(post.id)}
+//         onCommentToggle={() =>
+//           onCommentPress(
+//             post.id,
+//             post.user?.expoPushToken ?? '',
+//             post.userId ?? ''
+//           )
+//         }
+//         isLiked={liked}
+//         occupancy={post.occupancy}
+//       />
+//     </View>
+//   </>
+// );
+// };
+//
+// const styles = StyleSheet.create({
+//   placeName: {
+//     backgroundColor: primaryBgColor,
+//     alignItems: 'center',
+//   },
+//   contentContainer: {
+//     backgroundColor: postBgColor,
+//     borderRadius: 20,
+//     overflow: 'hidden',
+//   },
+//   photoWrapper: {
+//     width: screenWidth,
+//     position: 'relative',
+//   },
+//   photoContainer: {
+//     width: '100%',
+//     height: '100%',
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//   },
+//   photo: {
+//     width: '100%',
+//     height: '100%',
+//     borderRadius: 20,
+//   },
+// });
 
 export default UserPost;

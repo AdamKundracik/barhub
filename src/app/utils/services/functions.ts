@@ -1,16 +1,14 @@
 import { httpsCallable } from 'firebase/functions';
-import { functions } from '../../../../firebaseConfig';
 import {
   EmptyDataResponse,
   EmptyDataResult,
-  GetAllPostsResult,
   GetAllUsersResult,
-  GetFreshnessContentResult,
   GetUserResult,
   SetDocumentFromCollectionRequest,
 } from '../types/functions-types';
 import { MISSING_REQUIRED_REQUEST_PARAMS } from '../helper-functions/constants';
-import { Post, User } from '../../../../shared';
+import { Post, User } from '@/shared';
+import { functions } from '@/firebaseConfig';
 
 export const savePost = async (
   data: Partial<Post>
@@ -18,7 +16,7 @@ export const savePost = async (
   if (!data) return MISSING_REQUIRED_REQUEST_PARAMS;
   const cloudFunction = httpsCallable<
     SetDocumentFromCollectionRequest['data']['data']
-  >(functions, 'savePost');
+  >(functions, 'savePostSecondGen');
   const { data: response } = (await cloudFunction({
     ...data,
   })) as unknown as EmptyDataResponse;
@@ -31,7 +29,7 @@ export const setUser = async (
   if (!data) return MISSING_REQUIRED_REQUEST_PARAMS;
   const cloudFunction = httpsCallable<
     SetDocumentFromCollectionRequest['data']['data']
-  >(functions, 'setUser');
+  >(functions, 'setUserSecondGen');
   const { data: response } = (await cloudFunction({
     ...data,
   })) as unknown as EmptyDataResponse;
@@ -45,33 +43,11 @@ export const getCurrentUser = async (): Promise<User | undefined> => {
 };
 
 export const getAllExistingUsers = async (): Promise<GetAllUsersResult> => {
-  const cloudFunction = httpsCallable(functions, 'getAllExistingUsers');
+  const cloudFunction = httpsCallable(
+    functions,
+    'getAllExistingUsersSecondGen'
+  );
   const response = (await cloudFunction()) as unknown as GetAllUsersResult;
-  return response;
-};
-
-export const testLog = async (): Promise<GetAllUsersResult> => {
-  const cloudFunction = httpsCallable(functions, 'testLog');
-  const response = (await cloudFunction()) as unknown as GetAllUsersResult;
-  return response;
-};
-
-export const getPosts = async (): Promise<GetAllPostsResult> => {
-  const cloudFunction = httpsCallable(functions, 'getPosts');
-  const response = (await cloudFunction()) as unknown as GetAllPostsResult;
-  return response;
-};
-
-export const getPostsByPlaceID = async (
-  placeId: string,
-  lastVisible?: string
-): Promise<GetFreshnessContentResult> => {
-  const cloudFunction = httpsCallable(functions, 'getPostsByPlaceId');
-  const response = (await cloudFunction({
-    pageSize: 5,
-    lastVisible: lastVisible,
-    placeId,
-  })) as unknown as GetFreshnessContentResult;
   return response;
 };
 
@@ -88,7 +64,7 @@ export const toggleLike = async (
 };
 
 export const fetchPostById = async (postId: string) => {
-  const cloudFunction = httpsCallable(functions, 'getPostById');
+  const cloudFunction = httpsCallable(functions, 'getPostByIdSecondGen');
   const response = await cloudFunction({ postId });
   return response.data;
 };

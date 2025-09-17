@@ -182,6 +182,15 @@
   "or": "alebo",
   "delete-post": "Zmazať príspevok",
   "about-me": "O mne",
-  "change-password": "Zmeniť heslo"
+  "change-password": "Zmeniť heslo",
+  "deletePost": {
+    "title": "Vymazať príspevok",
+    "confirmTitle": "Potvrdenie vymazania",
+    "confirmMessage": "Naozaj chcete vymazať tento príspevok?",
+    "successTitle": "Príspevok vymazaný",
+    "successDescription": "Príspevok bol úspešne vymazaný.",
+    "errorTitle": "Chyba",
+    "errorDescription": "Nepodarilo sa vymazať príspevok. Skúste to znova."
+  }
 
 }
