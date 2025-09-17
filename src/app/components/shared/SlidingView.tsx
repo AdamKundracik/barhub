@@ -88,8 +88,7 @@ export const SlidingView = ({
 
 const styles = StyleSheet.create({
   content: {
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+    paddingHorizontal: 16,
   },
   option: {
     paddingVertical: 20,
@@ -116,7 +115,6 @@ const styles = StyleSheet.create({
   footerContainer: {
     backgroundColor: 'rgba(0, 0, 0, 0.9)',
     paddingVertical: 12,
-    paddingHorizontal: 20,
     alignItems: 'center',
   },
   footerText: {

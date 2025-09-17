@@ -166,5 +166,22 @@
   "delete-account-info": "Once confirmed, your account will be permanently deleted",
   "password-too-short": "Password is too short",
   "thats-it": "That`s it",
-  "forgot-password": "Forgot password"
+  "forgot-password": "Forgot password",
+  "reportPost": {
+    "title": "Report Post",
+    "chooseReason": "Choose a reason for reporting",
+    "spam": "Spam",
+    "inappropriate": "Inappropriate content",
+    "harassment": "Harassment",
+    "other": "Other",
+    "submit": "Report",
+    "successTitle": "Report Sent",
+    "successDescription": "Thank you for your report, our team will review it.",
+    "confirmTitle": "Confirm Report",
+    "confirmMessage": "Do you really want to report this as {{reason}}?"
+  },
+  "or": "or",
+  "delete-post": "Delete post",
+  "about-me": "About me",
+  "change-password": "Change password"
 }

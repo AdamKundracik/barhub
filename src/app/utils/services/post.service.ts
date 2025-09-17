@@ -1,9 +1,9 @@
 import { httpsCallable } from 'firebase/functions';
-import { functions } from '../../../../firebaseConfig';
-import { SavePostResponse } from '../../../../functions/src/services/postService';
-import { Post } from '../../../../shared';
 import { GetFreshnessContentResult } from '../types/functions-types';
 import { GeoPointType } from '../types/types';
+import { SavePostResponse } from '@/functions/src/services/postService';
+import { Post } from '@/shared';
+import { functions } from '@/firebaseConfig';
 
 class PostService {
   public savePost = async (post: Omit<Post, 'creationTime'>) => {

@@ -1,7 +1,10 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { OccupancyTypes, PlaceType } from '../types/types';
+import {
+  OccupancyTypes,
+  PlaceType,
+} from '@/src/app/utils/types/Feed/PostTypes';
 
 interface FiltersState {
   distance: number;

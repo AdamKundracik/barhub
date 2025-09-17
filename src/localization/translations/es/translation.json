@@ -166,5 +166,23 @@
   "delete-account-info": "Una vez confirmado, su cuenta será eliminada permanentemente",
   "password-too-short": "La contraseña es demasiado corta",
   "thats-it": "Eso es todo",
-  "forgot-password": "Contraseña perdida"
+  "forgot-password": "Contraseña perdida",
+  "reportPost": {
+    "title": "Reportar publicación",
+    "chooseReason": "Elige un motivo para reportar",
+    "spam": "Spam",
+    "inappropriate": "Contenido inapropiado",
+    "harassment": "Acoso",
+    "other": "Otro",
+    "submit": "Reportar",
+    "successTitle": "Reporte enviado",
+    "successDescription": "Gracias por su reporte, nuestro equipo lo revisará.",
+    "confirmTitle": "Confirmar reporte",
+    "confirmMessage": "¿Realmente quieres reportar esto como {{reason}}?"
+  },
+  "or": "o",
+  "delete-post": "Eliminar publicación",
+  "about-me": "Sobre mí",
+  "change-password": "Cambiar contraseña"
+
 }

@@ -11,6 +11,7 @@ import Info from '../screens/user/Info/Info';
 import PostSummary from '../screens/user/Post/PostSummary';
 import NotificationsList from '../screens/user/Notifications/NotificationsList';
 import { SelectFakeLocation } from '../screens/user/SelectFakeLocation';
+import Licenses from '@/src/app/screens/user/Info/Screens/LIcenses';
 
 const UserStack = createNativeStackNavigator();
 
@@ -70,6 +71,7 @@ export function UserNav() {
         name={'SelectFakeLocation'}
         component={SelectFakeLocation}
       />
+      <UserStack.Screen name={'Licenses'} component={Licenses} />
     </UserStack.Navigator>
   );
 }

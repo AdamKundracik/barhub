@@ -193,7 +193,7 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
           </TouchableOpacity>
         </View>
       )}
-      {menuOpen && <RollupMenu setOpenMenu={setMenuOpen} isOpen={menuOpen} />}
+      {menuOpen && <RollupMenu setVisible={setMenuOpen} visible={menuOpen} />}
       <FilterSlider
         opened={filtersOpened}
         onClose={() => setFiltersOpened(false)}

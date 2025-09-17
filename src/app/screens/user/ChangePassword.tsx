@@ -6,21 +6,26 @@ import {
   reauthenticateWithCredential,
   updatePassword,
 } from 'firebase/auth';
-
 import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
+  Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { formStyles } from '../../utils/styles/styles';
-import { primaryColor, primaryTextColor } from '../../utils/styles/colors';
+import {
+  primaryBgColor,
+  primaryColor,
+  primaryTextColor,
+} from '../../utils/styles/colors';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { auth } from '../../../../firebaseConfig';
 import { ScreenLayout } from '@/src/app/components/user/Shared/ScreenLayout';
 import {
   FormControl,
@@ -34,6 +39,7 @@ import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
 import { AlertCircleIcon, EyeIcon, EyeOffIcon } from '@/components/ui/icon';
 import { Center } from '@/components/ui/center';
 import { Heading } from '@/components/ui/heading';
+import { auth } from '@/firebaseConfig';
 
 const PasswordChangeScreen = () => {
   const { t } = useTranslation();
@@ -58,24 +64,11 @@ const PasswordChangeScreen = () => {
     .includes('password');
 
   const getUserLoginMethod = () => {
-    const auth = getAuth();
-    const user = auth.currentUser;
-
-    if (!user) {
-      console.error('No user is currently logged in.');
-      return null;
-    }
-
-    const providers = user.providerData.map(provider => provider.providerId);
-
-    if (providers.includes('google.com')) {
-      return 'google';
-    }
-
-    if (providers.includes('password')) {
-      return 'email';
-    }
-
+    const user = getAuth().currentUser;
+    if (!user) return null;
+    const providers = user.providerData.map(p => p.providerId);
+    if (providers.includes('google.com')) return 'google';
+    if (providers.includes('password')) return 'email';
     return 'other';
   };
 
@@ -84,48 +77,40 @@ const PasswordChangeScreen = () => {
     newPassword: string
   ) => {
     setLoading(true);
-
-    const auth = getAuth();
-    const user = auth.currentUser;
-
-    if (!user) {
-      console.error('No authenticated user found.');
-      return;
-    }
+    const user = getAuth().currentUser;
+    if (!user) return;
 
     const loginMethod = getUserLoginMethod();
 
     try {
       if (loginMethod === 'email' && user.email) {
-        // Re-authenticate with Email/Password
         const credential = EmailAuthProvider.credential(
           user.email,
           currentPassword
         );
         await reauthenticateWithCredential(user, credential);
       } else if (loginMethod === 'google') {
-        // Re-authenticate with Google
         await GoogleSignin.hasPlayServices();
         const userInfo = await GoogleSignin.signIn();
         const googleCredential = GoogleAuthProvider.credential(
           userInfo.idToken
         );
-
         await reauthenticateWithCredential(user, googleCredential);
-        setLoading(false);
       } else {
         console.error('Unsupported login method for re-authentication.');
         return;
       }
 
-      // After re-authentication, update the password
       await updatePassword(user, newPassword);
-      Alert.alert('Password changed successfully.');
+      Alert.alert('Success', t('password-changed-success'));
+      setOldPassword('');
+      setPassword('');
+      setConfirmPassword('');
     } catch (error) {
-      console.error(
-        'Error during re-authentication or updating password:',
-        error
-      );
+      console.error('Error updating password:', error);
+      Alert.alert('Error', t('password-change-error'));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -136,139 +121,157 @@ const PasswordChangeScreen = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
       >
-        <View style={styles.container}>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
           <Center>
-            <Heading size={'2xl'} style={styles.header}>
+            <Heading size="2xl" style={styles.header}>
               {t('change-password-title')}
             </Heading>
           </Center>
-          {/* Old password */}
-          {hasPasswordLogin && (
-            <FormControl style={formStyles.formControl} size="lg">
+
+          <View style={styles.formWrapper}>
+            {hasPasswordLogin && (
+              <FormControl style={formStyles.formControl} size="lg">
+                <FormControlLabel>
+                  <FormControlLabelText style={{ color: primaryColor }}>
+                    {t('old-password')}
+                  </FormControlLabelText>
+                </FormControlLabel>
+                <Input
+                  variant="rounded"
+                  size="xl"
+                  style={
+                    focusedInput === 'oldPassword'
+                      ? formStyles.inputPrimaryFocused
+                      : formStyles.inputPrimary
+                  }
+                >
+                  <InputField
+                    type={oldPasswordVisible ? 'text' : 'password'}
+                    placeholder={t('old-password')}
+                    value={oldPassword}
+                    onChangeText={setOldPassword}
+                    style={{ color: primaryTextColor }}
+                    onFocus={() => setFocusedInput('oldPassword')}
+                    onBlur={() => setFocusedInput(null)}
+                  />
+                  <InputSlot
+                    onPress={() => setOldPasswordVisible(!oldPasswordVisible)}
+                  >
+                    <InputIcon as={oldPasswordVisible ? EyeIcon : EyeOffIcon} />
+                  </InputSlot>
+                </Input>
+              </FormControl>
+            )}
+
+            <FormControl
+              style={formStyles.formControl}
+              size="lg"
+              isInvalid={password.length > 0 && password.length < 6}
+            >
               <FormControlLabel>
                 <FormControlLabelText style={{ color: primaryColor }}>
-                  {t('old-password')}
+                  {t('new-password')}
                 </FormControlLabelText>
               </FormControlLabel>
               <Input
                 variant="rounded"
                 size="xl"
                 style={
-                  focusedInput === 'oldPassword'
+                  focusedInput === 'password'
                     ? formStyles.inputPrimaryFocused
                     : formStyles.inputPrimary
                 }
               >
                 <InputField
-                  type={oldPasswordVisible ? 'text' : 'password'}
-                  placeholder={t('old-password')}
-                  value={oldPassword}
-                  onChangeText={setOldPassword}
+                  type={passwordVisible ? 'text' : 'password'}
+                  placeholder={t('new-password')}
+                  value={password}
+                  onChangeText={setPassword}
                   style={{ color: primaryTextColor }}
-                  onFocus={() => setFocusedInput('oldPassword')}
+                  onFocus={() => setFocusedInput('password')}
+                  onBlur={() => setFocusedInput(null)}
+                />
+                <InputSlot onPress={() => setPasswordVisible(!passwordVisible)}>
+                  <InputIcon as={passwordVisible ? EyeIcon : EyeOffIcon} />
+                </InputSlot>
+              </Input>
+              <FormControlError>
+                <FormControlErrorIcon
+                  as={AlertCircleIcon}
+                  className="text-red-500"
+                />
+                <FormControlErrorText className="text-red-500">
+                  {t('password-too-short')}
+                </FormControlErrorText>
+              </FormControlError>
+            </FormControl>
+
+            <FormControl
+              style={formStyles.formControl}
+              size="lg"
+              isInvalid={confirmPassword.length > 0 && !passwordsMatch}
+            >
+              <FormControlLabel>
+                <FormControlLabelText style={{ color: primaryColor }}>
+                  {t('confirm-password')}
+                </FormControlLabelText>
+              </FormControlLabel>
+              <Input
+                variant="rounded"
+                size="xl"
+                style={
+                  focusedInput === 'confirmPassword'
+                    ? formStyles.inputPrimaryFocused
+                    : formStyles.inputPrimary
+                }
+              >
+                <InputField
+                  type={confirmPasswordVisible ? 'text' : 'password'}
+                  placeholder={t('confirm-password')}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  style={{ color: primaryTextColor }}
+                  onFocus={() => setFocusedInput('confirmPassword')}
                   onBlur={() => setFocusedInput(null)}
                 />
                 <InputSlot
-                  onPress={() => setOldPasswordVisible(!oldPasswordVisible)}
+                  onPress={() =>
+                    setConfirmPasswordVisible(!confirmPasswordVisible)
+                  }
                 >
-                  <InputIcon as={oldPasswordVisible ? EyeIcon : EyeOffIcon} />
+                  <InputIcon
+                    as={confirmPasswordVisible ? EyeIcon : EyeOffIcon}
+                  />
                 </InputSlot>
               </Input>
+              <FormControlError>
+                <FormControlErrorIcon
+                  as={AlertCircleIcon}
+                  className="text-red-500"
+                />
+                <FormControlErrorText className="text-red-500">
+                  {t('noMatchingPasswords')}
+                </FormControlErrorText>
+              </FormControlError>
             </FormControl>
-          )}
 
-          {/* New password */}
-          <FormControl
-            style={formStyles.formControl}
-            size="lg"
-            isInvalid={password.length > 0 && password.length < 6}
-          >
-            <FormControlLabel>
-              <FormControlLabelText style={{ color: primaryColor }}>
-                {t('new-password')}
-              </FormControlLabelText>
-            </FormControlLabel>
-            <Input
-              variant="rounded"
-              size="xl"
-              style={
-                focusedInput === 'password'
-                  ? formStyles.inputPrimaryFocused
-                  : formStyles.inputPrimary
+            {/* Submit button */}
+            <TouchableOpacity
+              style={styles.submitButton}
+              onPress={() =>
+                reauthenticateAndChangePassword(oldPassword, password)
               }
+              disabled={loading || password.length < 6 || !passwordsMatch}
             >
-              <InputField
-                type={passwordVisible ? 'text' : 'password'}
-                placeholder={t('new-password')}
-                value={password}
-                onChangeText={setPassword}
-                style={{ color: primaryTextColor }}
-                onFocus={() => setFocusedInput('password')}
-                onBlur={() => setFocusedInput(null)}
-              />
-              <InputSlot onPress={() => setPasswordVisible(!passwordVisible)}>
-                <InputIcon as={passwordVisible ? EyeIcon : EyeOffIcon} />
-              </InputSlot>
-            </Input>
-            <FormControlError>
-              <FormControlErrorIcon
-                as={AlertCircleIcon}
-                className="text-red-500"
-              />
-              <FormControlErrorText className="text-red-500">
-                {t('password-too-short')}
-              </FormControlErrorText>
-            </FormControlError>
-          </FormControl>
-
-          {/* Confirm password */}
-          <FormControl
-            style={formStyles.formControl}
-            size="lg"
-            isInvalid={confirmPassword.length > 0 && !passwordsMatch}
-          >
-            <FormControlLabel>
-              <FormControlLabelText style={{ color: primaryColor }}>
-                {t('confirm-password')}
-              </FormControlLabelText>
-            </FormControlLabel>
-            <Input
-              variant="rounded"
-              size="xl"
-              style={
-                focusedInput === 'confirmPassword'
-                  ? formStyles.inputPrimaryFocused
-                  : formStyles.inputPrimary
-              }
-            >
-              <InputField
-                type={confirmPasswordVisible ? 'text' : 'password'}
-                placeholder={t('confirm-password')}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                style={{ color: primaryTextColor }}
-                onFocus={() => setFocusedInput('confirmPassword')}
-                onBlur={() => setFocusedInput(null)}
-              />
-              <InputSlot
-                onPress={() =>
-                  setConfirmPasswordVisible(!confirmPasswordVisible)
-                }
-              >
-                <InputIcon as={confirmPasswordVisible ? EyeIcon : EyeOffIcon} />
-              </InputSlot>
-            </Input>
-            <FormControlError>
-              <FormControlErrorIcon
-                as={AlertCircleIcon}
-                className="text-red-500"
-              />
-              <FormControlErrorText className="text-red-500">
-                {t('noMatchingPasswords')}
-              </FormControlErrorText>
-            </FormControlError>
-          </FormControl>
-        </View>
+              <Text style={styles.submitButtonText}>
+                {loading ? t('loading') : t('change-password')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </ScreenLayout>
   );
@@ -276,31 +279,36 @@ const PasswordChangeScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
+    padding: 24,
+    backgroundColor: primaryBgColor,
   },
   header: {
     color: 'white',
-    marginBottom: 10,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-    padding: 10,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
     marginBottom: 24,
+    textAlign: 'center',
   },
-  textInput: {
-    flex: 1,
-    paddingRight: 40,
+  formWrapper: {
+    backgroundColor: '#1f1f1f',
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5,
   },
-  checkIcon: {
-    marginLeft: 10,
+  submitButton: {
+    backgroundColor: primaryColor,
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  submitButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 16,
   },
 });
 

@@ -1,5 +1,3 @@
-import firebase from 'firebase/compat';
-import { GeoPoint } from 'firebase/firestore';
 import * as admin from 'firebase-admin';
 
 export interface Post {

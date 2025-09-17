@@ -88,7 +88,7 @@
   "save-changes": "Uložiť zmeny",
   "account-state": "stav účtu",
   "date-of-birth-not-set": "dátum narodenia nenastavený",
-  "delete-account": "vymazať účet",
+  "delete-account": "Vymazať účet",
   "contact-us": "Nevàhaj sa nám ozvať ohl’adom pripomienok a želaní",
   "input-email": "Zadaj svoj email",
   "any-questions": "Pripomienka alebo dotaz",
@@ -165,5 +165,23 @@
   "delete-account-title": "Naozaj si prajete odstrániť tento účet?",
   "delete-account-info": "Po potvrdení bude váš účet natrvalo odstránená",
   "password-too-short": "Heslo je príliš krátke",
-  "thats-it": "To je všetko"
+  "thats-it": "To je všetko",
+  "reportPost": {
+    "title": "Nahlásiť príspevok",
+    "chooseReason": "Vyber dôvod nahlásenia",
+    "spam": "Spam",
+    "inappropriate": "Nevhodný obsah",
+    "harassment": "Obťažovanie",
+    "other": "Iné",
+    "submit": "Nahlásiť",
+    "successTitle": "Hlásenie odoslané",
+    "successDescription": "Ďakujeme za vaše hlásenie, náš tím sa nim bude zaoberať.",
+    "confirmTitle": "Potvrdenie nahlásenia",
+    "confirmMessage": "Naozaj chcete nahlásiť ako {{reason}}?"
+  },
+  "or": "alebo",
+  "delete-post": "Zmazať príspevok",
+  "about-me": "O mne",
+  "change-password": "Zmeniť heslo"
+
 }

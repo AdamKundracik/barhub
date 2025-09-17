@@ -1,6 +1,8 @@
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 import * as React from 'react';
 import { useState } from 'react';
+import * as AppleAuthentication from 'expo-apple-authentication';
+import { AppleAuthenticationButtonStyle } from 'expo-apple-authentication';
 
 import AuthLayout from '../../components/auth/AuthLayout';
 import { commonAppStyles, formStyles } from '../../utils/styles/styles';
@@ -252,13 +254,39 @@ export const LogIn = ({ navigation }: any) => {
 
       <OSeparator />
 
-      <TouchableOpacity
-        style={styles.googleIcom}
-        onPress={onGoogleButtonPress}
-        disabled={loading}
-      >
-        <GoogleIcon />
-      </TouchableOpacity>
+      <Center>
+        <TouchableOpacity style={{ marginVertical: 10 }}>
+          <AppleAuthentication.AppleAuthenticationButton
+            buttonType={
+              AppleAuthentication.AppleAuthenticationButtonType.CONTINUE
+            }
+            buttonStyle={AppleAuthenticationButtonStyle.WHITE_OUTLINE}
+            cornerRadius={10}
+            style={styles.button}
+            onPress={async () => {
+              try {
+                const credential = await AppleAuthentication.signInAsync({
+                  requestedScopes: [
+                    AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+                    AppleAuthentication.AppleAuthenticationScope.EMAIL,
+                  ],
+                });
+                // signed in
+              } catch (e: any) {
+                if (e.code === 'ERR_REQUEST_CANCELED') {
+                  // handle that the user canceled the sign-in flow
+                } else {
+                  // handle other errors
+                }
+              }
+            }}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={onGoogleButtonPress} disabled={loading}>
+          <GoogleIcon />
+        </TouchableOpacity>
+      </Center>
 
       <Center>
         <Button
@@ -324,6 +352,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     marginBottom: 10,
     alignSelf: 'flex-end',
+  },
+  button: {
+    width: 200,
+    height: 44,
   },
 });
 

@@ -23,6 +23,8 @@ export type UserStackList = {
   NotificationsList: undefined;
 
   SelectFakeLocation: undefined;
+
+  Licenses: undefined;
 };
 
 export type FeedsScreenProps = NativeStackScreenProps<

@@ -1,4 +1,5 @@
 import React from 'react';
+
 import {
   SafeAreaView,
   StyleSheet,
@@ -17,10 +18,15 @@ import {
   secondaryTextColor,
 } from '../../../utils/styles/colors';
 import { useTranslation } from 'react-i18next';
+import * as WebBrowser from 'expo-web-browser';
 
 const InfoScreen = () => {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
+
+  const handlePressButtonAsync = async () => {
+    await WebBrowser.openBrowserAsync('https://buymeacoffee.com/');
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -66,7 +72,10 @@ const InfoScreen = () => {
           ></FontAwesomeIcon>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.infoLink}>
+        <TouchableOpacity
+          style={styles.infoLink}
+          onPress={() => navigation.navigate('Licenses')}
+        >
           <Text style={styles.infoText}>{t('third-party-libraries')}</Text>
           <FontAwesomeIcon
             style={{ alignSelf: 'center' }}
@@ -76,7 +85,10 @@ const InfoScreen = () => {
           ></FontAwesomeIcon>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.infoLink}>
+        <TouchableOpacity
+          style={styles.infoLink}
+          onPress={handlePressButtonAsync}
+        >
           <Text style={styles.infoText}>{t('support-us')}</Text>
           <FontAwesomeIcon
             style={{ alignSelf: 'center' }}
@@ -97,7 +109,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingHorizontal: 10,
+    paddingHorizontal: 16,
   },
   header: {
     flexDirection: 'row',

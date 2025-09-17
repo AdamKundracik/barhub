@@ -1,10 +1,13 @@
 import { useMemo } from 'react';
 import { useInfiniteQuery } from 'react-query';
 import { handleFreshContent } from '../../functions/posts-functions';
-import { OccupancyTypes, PlaceType } from '../../types/types';
 import { useFiltersStore } from '../../store/filtersStorage';
 import { useLocationStore } from '../../store/locationStore';
 import { usePlaceStore } from '../../store/placesStore';
+import {
+  OccupancyTypes,
+  PlaceType,
+} from '@/src/app/utils/types/Feed/PostTypes';
 
 export const useNewsFeedData = () => {
   const { distance, selectedPlaces, selectedOccupancy } = useFiltersStore();
