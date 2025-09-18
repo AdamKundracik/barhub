@@ -21,6 +21,8 @@ export const sendNotificationHandler = async (
       placeLocation.longitude,
     ];
 
+    console.log(locationArray);
+
     const bounds = geohashQueryBounds(locationArray, 8000);
     const promises = [];
 
@@ -38,6 +40,7 @@ export const sendNotificationHandler = async (
     const snapshots = await Promise.all(promises);
 
     const matchingDocs: User[] = [];
+    console.log(matchingDocs);
     for (const snap of snapshots) {
       for (const doc of snap.docs) {
         const location = doc.get('location');

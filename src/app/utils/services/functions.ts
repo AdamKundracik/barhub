@@ -9,6 +9,7 @@ import {
 import { MISSING_REQUIRED_REQUEST_PARAMS } from '../helper-functions/constants';
 import { Post, User } from '@/shared';
 import { functions } from '@/firebaseConfig';
+import { StatusResponse } from '@/functions/src';
 
 export const savePost = async (
   data: Partial<Post>
@@ -23,16 +24,18 @@ export const savePost = async (
   return response;
 };
 
-export const setUser = async (
-  data: Partial<User>
-): Promise<EmptyDataResult> => {
-  if (!data) return MISSING_REQUIRED_REQUEST_PARAMS;
-  const cloudFunction = httpsCallable<
-    SetDocumentFromCollectionRequest['data']['data']
-  >(functions, 'setUserSecondGen');
-  const { data: response } = (await cloudFunction({
-    ...data,
-  })) as unknown as EmptyDataResponse;
+export const setUser = async (data: Partial<User>): Promise<StatusResponse> => {
+  if (!data) return { success: false };
+
+  const cloudFunction = httpsCallable<{ user: Partial<User> }, StatusResponse>(
+    functions,
+    'setUserSecondGen'
+  );
+
+  const { data: response } = await cloudFunction({
+    user: data,
+  });
+
   return response;
 };
 

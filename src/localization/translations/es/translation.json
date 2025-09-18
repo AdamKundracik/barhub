@@ -183,6 +183,23 @@
   "or": "o",
   "delete-post": "Eliminar publicación",
   "about-me": "Sobre mí",
-  "change-password": "Cambiar contraseña"
+  "change-password": "Cambiar contraseña",
+  "deletePost": {
+    "title": "Vymazať príspevok",
+    "confirmTitle": "Potvrdenie vymazania",
+    "confirmMessage": "Naozaj chcete vymazať tento príspevok?",
+    "successTitle": "Príspevok vymazaný",
+    "successDescription": "Príspevok bol úspešne vymazaný.",
+    "errorTitle": "Chyba",
+    "errorDescription": "Nepodarilo sa vymazať príspevok. Skúste to znova."
+  },
+  "toastPhotoDeletedTitle": "Eliminado con éxito.",
+  "toastPhotoDeletedDesc": "Tu foto ha sido eliminada.",
+  "toastPhotoUpdatedTitle": "Guardado con éxito.",
+  "toastPhotoUpdatedDesc": "Tu foto ha sido actualizada.",
+  "toastDataUpdatedTitle": "Guardado con éxito.",
+  "toastDataUpdatedDesc": "Tus datos han sido actualizados.",
+  "toastErrorTitle": "Algo salió mal.",
+  "toastErrorDesc": "Inténtalo de nuevo más tarde."
 
 }

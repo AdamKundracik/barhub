@@ -12,6 +12,10 @@ import { Post } from '../../common/types/postTypes';
 import { onSchedule } from 'firebase-functions/scheduler';
 import * as logger from 'firebase-functions/logger';
 
+export interface StatusResponse {
+  success: boolean;
+}
+
 admin.initializeApp();
 const db = admin.firestore();
 const functions = require('firebase-functions');
@@ -60,21 +64,24 @@ export const reportPostSecondGen = onCall<ReportPostData, any>(async req => {
   }
 });
 
-export const setUserSecondGen = onCall<{ user: User }, void>(async req => {
-  const uid = req.auth?.uid;
-  if (!uid) {
-    throw new Error('Unauthenticated: must be logged in');
-  }
+export const setUserSecondGen = onCall<{ user: User }, StatusResponse>(
+  async req => {
+    const uid = req.auth?.uid;
+    if (!uid) {
+      throw new Error('Unauthenticated: must be logged in');
+    }
 
-  const { user } = req.data;
-  try {
-    await db.collection('users').doc(uid).set(user, { merge: true });
-    logger.info(`User ${uid} updated successfully`);
-  } catch (error) {
-    logger.error('Failed to set user:', error);
-    throw new Error('Failed to set user');
+    const { user } = req.data;
+    try {
+      await db.collection('users').doc(uid).set(user, { merge: true });
+      logger.info(`User ${uid} updated successfully`);
+      return { success: true };
+    } catch (error) {
+      logger.error('Failed to set user:', error);
+      throw new Error('Failed to set user');
+    }
   }
-});
+);
 
 export const savePostSecondGen = onCall<{ post: any }, SavePostResponse>(
   async req => {

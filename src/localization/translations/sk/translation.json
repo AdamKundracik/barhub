@@ -191,6 +191,14 @@
     "successDescription": "Príspevok bol úspešne vymazaný.",
     "errorTitle": "Chyba",
     "errorDescription": "Nepodarilo sa vymazať príspevok. Skúste to znova."
-  }
+  },
+  "toastPhotoDeletedTitle": "Úspešne zmazané.",
+  "toastPhotoDeletedDesc": "Vaša fotografia bola zmazaná.",
+  "toastPhotoUpdatedTitle": "Úspešne uložené.",
+  "toastPhotoUpdatedDesc": "Vaša fotografia bola aktualizovaná.",
+  "toastDataUpdatedTitle": "Úspešne uložené.",
+  "toastDataUpdatedDesc": "Vaše údaje boli aktualizované.",
+  "toastErrorTitle": "Niečo sa pokazilo.",
+  "toastErrorDesc": "Skúste to neskôr."
 
 }

@@ -3,8 +3,8 @@ import { AppState } from 'react-native';
 import BackgroundGeolocation from 'react-native-background-geolocation';
 import { useLocationStore } from '../store/locationStore';
 import { LocationType } from '../types/types';
-import { setUserIntoDB } from '../helper-functions/setUserLocationIntoDB';
 import { getCoords } from '../helper-functions/get-coords';
+import { setUserIntoDB } from '../helper-functions/setUserLocationIntoDB';
 import { useNewsFeedData } from './NewsFeed/usePostData';
 
 export const useLocation = () => {
@@ -31,8 +31,7 @@ export const useLocation = () => {
   }, []);
 
   const getCurrentLocation = useCallback(async () => {
-    if (useFakeLocation) return;
-
+    if (useFakeLocation) return; // keď je fake, nerefreshujeme real
     try {
       const coords = await getCoords();
       setRealLocation(coords);
@@ -42,28 +41,29 @@ export const useLocation = () => {
     }
   }, [useFakeLocation, setRealLocation, updateLocationInDB]);
 
+  // inicializácia background geolocation listenerov
   useEffect(() => {
     const setupBackgroundLocation = async () => {
       const onLocation = BackgroundGeolocation.onLocation(async location => {
-        const currentLocation: LocationType = {
+        const coords: LocationType = {
           latitude: location.coords?.latitude,
           longitude: location.coords?.longitude,
         };
 
         if (location.coords?.speed && location.coords?.speed <= 4) {
-          setRealLocation(currentLocation);
-          await updateLocationInDB(currentLocation);
+          setRealLocation(coords);
+          await updateLocationInDB(coords);
         }
       });
 
       const onMotionChange = BackgroundGeolocation.onMotionChange(
         async event => {
           const { latitude, longitude } = event.location.coords;
-          const currentLocation: LocationType = { latitude, longitude };
+          const coords: LocationType = { latitude, longitude };
 
           if (!event.isMoving) {
-            setRealLocation(currentLocation);
-            await updateLocationInDB(currentLocation);
+            setRealLocation(coords);
+            await updateLocationInDB(coords);
           }
         }
       );
@@ -89,27 +89,27 @@ export const useLocation = () => {
     setupBackgroundLocation();
   }, [setRealLocation, updateLocationInDB]);
 
+  // spusti/stopni tracking podľa fake režimu
   useEffect(() => {
     if (!useFakeLocation) {
       BackgroundGeolocation.start();
+      refetch();
     } else {
       BackgroundGeolocation.stop();
+      // keď prepneme na fake → zapíšeme fake polohu do DB
+      if (fakeLocation) {
+        updateLocationInDB(fakeLocation);
+        refetch();
+      }
     }
-  }, [useFakeLocation]);
+  }, [useFakeLocation, fakeLocation, updateLocationInDB, refetch]);
 
+  // pri návrate do appky vyžiadame čerstvú polohu (iba ak nie je fake)
   useEffect(() => {
     if (AppState.currentState === 'active') {
       getCurrentLocation();
     }
-  }, [getCurrentLocation]);
-
-  useEffect(() => {
-    const locationToUpdate = useFakeLocation ? fakeLocation : realLocation;
-    if (locationToUpdate) {
-      updateLocationInDB(locationToUpdate);
-      refetch();
-    }
-  }, [useFakeLocation, realLocation, fakeLocation, updateLocationInDB]);
+  }, [AppState.currentState]);
 
   return {
     currentLocation,
