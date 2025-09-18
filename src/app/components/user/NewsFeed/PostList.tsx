@@ -79,7 +79,7 @@ const PostsList = ({
     timestamp: FirebaseTimestamp,
     minutes: number
   ): boolean => {
-    const seconds = timestamp.seconds || timestamp._seconds || 0;
+    const seconds = timestamp?._seconds || 0;
     const now = Date.now();
     const timestampMs = seconds * 1000;
     const minutesInMs = minutes * 60 * 1000;

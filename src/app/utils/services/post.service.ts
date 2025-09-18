@@ -10,7 +10,7 @@ import { functions } from '@/firebaseConfig';
 
 class PostService {
   public savePost = async (post: Omit<Post, 'creationTime'>) => {
-    const cloudFunction = httpsCallable(functions, 'savePost');
+    const cloudFunction = httpsCallable(functions, 'savePostSecondGen');
     const response = await cloudFunction({
       post,
     });
@@ -26,7 +26,6 @@ class PostService {
       >(functions, 'deletePostSecondGen');
 
       const response = await cloudFunction({ postId });
-      console.log('delete response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error calling deletePost:', error);
@@ -47,7 +46,6 @@ export const getFreshContent = async (
     pageSize: 10,
     lastVisible: lastVisible,
   })) as unknown as GetFreshnessContentResult;
-  console.log('resp', response);
   return response;
 };
 

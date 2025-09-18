@@ -1,5 +1,5 @@
 import { LocationType } from '../types/types';
-import { distanceBetween, geohashQueryBounds, Geopoint } from 'geofire-common';
+import { distanceBetween, geohashQueryBounds } from 'geofire-common';
 import { auth, db } from '../../../../firebaseConfig';
 import {
   collection,
@@ -16,16 +16,21 @@ export const sendNotificationHandler = async (
   placeLocation: LocationType
 ): Promise<string[] | undefined> => {
   try {
-    const locationArray: Geopoint = [
-      placeLocation.latitude,
-      placeLocation.longitude,
+    if (!placeLocation.latitude || !placeLocation.longitude) {
+      throw new Error('Invalid location');
+    }
+
+    const center = [placeLocation.latitude, placeLocation.longitude] as [
+      number,
+      number,
     ];
+    const radiusInM = 800000; // 8 km
 
-    console.log(locationArray);
+    // Compute geohash query bounds
+    const bounds = geohashQueryBounds(center, radiusInM);
+    const promises: Promise<any>[] = [];
 
-    const bounds = geohashQueryBounds(locationArray, 8000);
-    const promises = [];
-
+    // Issue Firestore query for each geohash bound
     for (const b of bounds) {
       const q = query(
         collection(db, 'users'),
@@ -33,14 +38,15 @@ export const sendNotificationHandler = async (
         startAt(b[0]),
         endAt(b[1])
       );
-
       promises.push(getDocs(q));
     }
 
+    // Wait for all queries
     const snapshots = await Promise.all(promises);
 
-    const matchingDocs: User[] = [];
-    console.log(matchingDocs);
+    // Collect all users within actual distance
+    const matchingUsers: User[] = [];
+
     for (const snap of snapshots) {
       for (const doc of snap.docs) {
         const location = doc.get('location');
@@ -48,28 +54,30 @@ export const sendNotificationHandler = async (
         const lng = location?.longitude;
 
         if (lat !== undefined && lng !== undefined) {
-          const distanceInKm = distanceBetween([lat, lng], locationArray);
-          const distanceInM = distanceInKm * 1000;
+          const distanceInM = distanceBetween([lat, lng], center) * 1000;
 
+          // Only include users within radius and exclude current user
           if (
-            Math.floor(distanceInM) <= 30 &&
+            distanceInM <= radiusInM &&
             (doc.data() as User).uid !== auth.currentUser?.uid
           ) {
-            matchingDocs.push(doc.data() as User);
+            matchingUsers.push(doc.data() as User);
           }
         }
       }
     }
 
-    if (!matchingDocs || matchingDocs.length === 0) {
+    if (matchingUsers.length === 0) {
       Alert.alert('No nearby users found.');
       console.error('No nearby users found.');
       return;
     }
-    // If I am at same place, filter my ID so notification insnt sent to me as well
-    const tokens = matchingDocs
+
+    // Return push tokens (filter out invalid)
+    const tokens = matchingUsers
       .map(user => user.pushToken)
-      .filter(token => token != auth.currentUser?.uid);
+      .filter(token => token && token !== auth.currentUser?.uid);
+
     return tokens;
   } catch (error) {
     console.error('Error in sendNotificationHandler:', error);

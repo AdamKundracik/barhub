@@ -52,7 +52,7 @@ const PostOldInfo = (props: Props) => {
       </View>
       <Text style={styles.text}>{t('older-photo-info')}</Text>
       <View style={styles.buttonContainer}>
-        <Pressable onPress={() => handlePress()} disabled={isDisabled}>
+        <Pressable onPress={() => handlePress()}>
           {({ pressed }) =>
             pressed ? (
               <Text

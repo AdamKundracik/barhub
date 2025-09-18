@@ -23,17 +23,17 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { uploadImageAsync } from '../../../utils/helper-functions/imageUploadFunctions';
 import { setUser } from '../../../utils/services/functions';
-import LoadingIndicator from '../../../components/user/NewsFeed/LoadingIndicator';
-import { useMutation, useQueryClient } from 'react-query';
+import { useQueryClient } from 'react-query';
 import postService from '../../../utils/services/post.service';
 import { geohashForLocation } from 'geofire-common';
 import { ScreenLayout } from '../../../components/user/Shared/ScreenLayout';
 import { sendPushNotificationResponse } from '../../../utils/functions/notofications-handler';
 import { deleteNotification } from '../../../utils/services/notifications-service';
 import { generateUID } from '../../../utils/helper-functions/generateUID';
-import { auth } from '@/firebaseConfig';
 import { Post } from '@/common/types/postTypes';
 import { OccupancyEnum } from '@/src/app/utils/types/Feed/PostTypes';
+import { Center } from '@/components/ui/center';
+import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 
 type SummaryProps = {
   image: string;
@@ -88,66 +88,6 @@ export const PostSummary = ({ route }: any) => {
     }
   };
 
-  const { mutate } = useMutation({
-    mutationFn: (post: Omit<Post, 'creationTime'>) =>
-      postService.savePost(post),
-    onMutate: async newPost => {
-      await queryClient.cancelQueries({ queryKey: ['posts'] });
-
-      const previousPosts = queryClient.getQueryData<any>(['posts']);
-
-      const newCachedPost: Omit<Post, 'creationTime'> = {
-        ...newPost,
-        id: 'temp-' + Date.now(),
-        isLiked: false,
-        commentsCount: 0,
-        likesCount: 0,
-        user: {
-          id: auth.currentUser?.uid ?? '',
-          displayName: auth.currentUser?.displayName ?? '',
-          photoUrl: auth.currentUser?.photoURL ?? '',
-        },
-      };
-
-      queryClient.setQueryData(['posts'], (oldData: any) => {
-        if (!oldData) return oldData;
-        return {
-          ...oldData,
-          pages: oldData.pages.map((page: any, index: number) =>
-            index === 0
-              ? { ...page, posts: [newCachedPost, ...page.posts] }
-              : page
-          ),
-        };
-      });
-
-      return { previousPosts };
-    },
-    onError: (err, newPost, context) => {
-      if (context?.previousPosts) {
-        queryClient.setQueryData(['posts'], context.previousPosts);
-      }
-    },
-    onSuccess: savedPost => {
-      queryClient.setQueryData(['posts'], (oldData: any) => {
-        if (!oldData) return oldData;
-        return {
-          ...oldData,
-          pages: oldData.pages.map((page: any, index: number) =>
-            index === 0
-              ? {
-                  ...page,
-                  posts: page.posts.map((p: Post) =>
-                    p.id.startsWith('temp-') ? savedPost : p
-                  ),
-                }
-              : page
-          ),
-        };
-      });
-    },
-  });
-
   const handleSavePost = async () => {
     setIsSaving(true);
     const fileId = generateUID();
@@ -181,7 +121,7 @@ export const PostSummary = ({ route }: any) => {
 
         try {
           await postService.savePost(newPost);
-          mutate(newPost);
+          await queryClient.invalidateQueries({ queryKey: ['posts'] });
           navigation.navigate('Feed');
           if (senderToken)
             await sendPushNotificationResponse(senderToken, place.id);
@@ -285,17 +225,24 @@ export const PostSummary = ({ route }: any) => {
               />
             </View>
 
-            <TouchableOpacity
-              style={formStyles.buttonPrimary}
-              onPress={handleSavePost}
-              disabled={isSaving}
-            >
-              {isSaving ? (
-                <LoadingIndicator />
-              ) : (
-                <Text style={formStyles.buttonText}>{t('save')}</Text>
-              )}
-            </TouchableOpacity>
+            <Center>
+              <Button
+                variant="solid"
+                size="md"
+                action="primary"
+                style={formStyles.buttonPrimary}
+                onPress={handleSavePost}
+                isDisabled={isSaving}
+              >
+                {!isSaving ? (
+                  <ButtonText style={formStyles.buttonText}>
+                    {t('save')}
+                  </ButtonText>
+                ) : (
+                  <ButtonSpinner />
+                )}
+              </Button>
+            </Center>
           </View>
         </View>
       </TouchableWithoutFeedback>

@@ -17,7 +17,7 @@ export const savePost = async (
   if (!data) return MISSING_REQUIRED_REQUEST_PARAMS;
   const cloudFunction = httpsCallable<
     SetDocumentFromCollectionRequest['data']['data']
-  >(functions, 'savePostSecondGen');
+  >(functions, 'savePost');
   const { data: response } = (await cloudFunction({
     ...data,
   })) as unknown as EmptyDataResponse;

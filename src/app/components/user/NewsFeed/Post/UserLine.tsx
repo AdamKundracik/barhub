@@ -27,10 +27,11 @@ import postService from '@/src/app/utils/services/post.service';
 import { useQueryClient } from 'react-query';
 import { usePlaceStore } from '@/src/app/utils/store/placesStore';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
+import { getAuth } from 'firebase/auth';
 
 const normalizeTimestamp = (timestamp: FirebaseTimestamp): Timestamp => {
-  const seconds = timestamp.seconds || timestamp._seconds || 0;
-  const nanoseconds = timestamp.nanoseconds || timestamp._nanoseconds || 0;
+  const seconds = timestamp?._seconds || 0;
+  const nanoseconds = timestamp?._nanoseconds || 0;
   return new Timestamp(seconds, nanoseconds);
 };
 
@@ -56,6 +57,7 @@ export const UserLine = ({
   const { placeId } = usePlaceStore();
   const { t } = useTranslation();
   const { showSuccessToast, showErrorToast } = useCustomToast();
+  const auth = getAuth();
 
   // Report post
   const handleReport = async (reason: ReportReason) => {
@@ -179,7 +181,7 @@ export const UserLine = ({
 
       {/* --- OPTIONS MODAL --- */}
       <PostOptionsModal
-        showDelete={user?.id === postUserId}
+        showDelete={auth.currentUser?.uid === postUserId}
         visible={isOptionsModalOpen}
         onClose={() => setIsOptionsModalOpen(false)}
         onDelete={handleDelete}

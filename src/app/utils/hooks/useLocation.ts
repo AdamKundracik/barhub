@@ -102,14 +102,21 @@ export const useLocation = () => {
         refetch();
       }
     }
-  }, [useFakeLocation, fakeLocation, updateLocationInDB, refetch]);
+  }, [useFakeLocation, fakeLocation, updateLocationInDB]);
 
-  // pri návrate do appky vyžiadame čerstvú polohu (iba ak nie je fake)
   useEffect(() => {
     if (AppState.currentState === 'active') {
       getCurrentLocation();
     }
-  }, [AppState.currentState]);
+  }, [getCurrentLocation]);
+
+  useEffect(() => {
+    const locationToUpdate = useFakeLocation ? fakeLocation : realLocation;
+    if (locationToUpdate) {
+      updateLocationInDB(locationToUpdate);
+      refetch();
+    }
+  }, [useFakeLocation]);
 
   return {
     currentLocation,

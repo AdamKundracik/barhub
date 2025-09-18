@@ -43,8 +43,7 @@ type User = {
 };
 
 type SavePostResponse = {
-  success: boolean;
-  postId?: string;
+  post: Post;
 };
 
 type ReportPostData = {
