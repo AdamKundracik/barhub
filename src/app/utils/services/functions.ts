@@ -40,7 +40,7 @@ export const setUser = async (data: Partial<User>): Promise<StatusResponse> => {
 };
 
 export const getCurrentUser = async (): Promise<User | undefined> => {
-  const cloudFunction = httpsCallable(functions, 'getCurrentUser');
+  const cloudFunction = httpsCallable(functions, 'getCurrentUserSecondGen');
   const response = (await cloudFunction()) as unknown as GetUserResult;
   return response.data;
 };
@@ -58,7 +58,7 @@ export const toggleLike = async (
   postId: string,
   userId: string
 ): Promise<any> => {
-  const cloudFunction = httpsCallable(functions, 'toggleLike');
+  const cloudFunction = httpsCallable(functions, 'toggleLikeSecondGen');
   const response = await cloudFunction({
     postId,
     userId,

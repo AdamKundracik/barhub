@@ -18,7 +18,7 @@ export const saveNotification = async (
     'creationTime' | 'userId' | 'id' | 'postId'
   >
 ): Promise<SaveNotificationResponse> => {
-  const cloudFunction = httpsCallable(functions, 'saveNotification');
+  const cloudFunction = httpsCallable(functions, 'saveNotificationSecondGen');
   const response = (await cloudFunction({
     ...notification,
   })) as unknown as SaveNotificationResponse;
@@ -63,7 +63,7 @@ export const markAllNotificationsAsSeen =
 export const deleteNotification = async (
   notificationId: string
 ): Promise<{ success: boolean }> => {
-  const cloudFunction = httpsCallable(functions, 'deleteNotification');
+  const cloudFunction = httpsCallable(functions, 'deleteNotificationSecondGen');
   const response = (await cloudFunction({
     notificationId,
   })) as unknown as { success: boolean };

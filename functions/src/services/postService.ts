@@ -5,7 +5,7 @@ import { GeoPointType, PostDocument } from '../documentTypes/Post';
 import * as geofire from 'geofire-common';
 import { HttpsError } from 'firebase-functions/https';
 
-type SavePostResponse = {
+export type SavePostResponse = {
   post: Post;
 };
 export interface DeletePostResponse {

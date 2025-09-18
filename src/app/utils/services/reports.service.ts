@@ -12,7 +12,7 @@ class ReportClient {
     const cloudFunction = httpsCallable<
       { postId: string; userId: string; reason: string },
       ReportResponse
-    >(functions, 'reportPost');
+    >(functions, 'reportPostSecondGen');
 
     const response = await cloudFunction({ postId, userId, reason });
     return response.data;
