@@ -43,7 +43,7 @@ export const getFreshContent = async (
   const response = (await cloudFunction({
     geoPoint,
     radius,
-    pageSize: 10,
+    pageSize: 5,
     lastVisible: lastVisible,
   })) as unknown as GetFreshnessContentResult;
   return response;
@@ -56,7 +56,7 @@ export const getPostsByPlaceId = async (
   const cloudFunction = httpsCallable(functions, 'getPostsByPlaceIdSecondGen');
   const response = (await cloudFunction({
     placeId,
-    pageSize: 10,
+    pageSize: 5,
     lastVisible: lastVisible,
   })) as unknown as GetFreshnessContentResult;
   return response;

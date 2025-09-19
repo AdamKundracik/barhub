@@ -40,6 +40,7 @@ import { useLocales } from 'expo-localization';
 import { auth } from '@/firebaseConfig';
 import { User } from '@/shared';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
+import { useQueryClient } from 'react-query';
 
 type EditProfileProps = {
   user: User | null;
@@ -51,6 +52,7 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
   const { fetchUserData } = useUserContext();
   const locales = useLocales();
   const { showSuccessToast, showErrorToast } = useCustomToast();
+  const queryClient = useQueryClient();
 
   const [openImageOptions, setOpenImageOptions] = useState(false);
   const [username, setUsername] = useState<string | null | undefined>(
@@ -82,7 +84,9 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
         const response = await setUser({ photoURL: uri });
         if (response.success) {
           await updateProfile(auth.currentUser!, { photoURL: uri });
-          if (fetchUserData) await fetchUserData();
+          await queryClient.invalidateQueries({
+            queryKey: ['userData', auth.currentUser?.uid],
+          });
           showSuccessToast(
             t('toastPhotoUpdatedTitle'),
             t('toastPhotoUpdatedDesc')
@@ -119,7 +123,9 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
 
         if (response.success) {
           await updateProfile(auth.currentUser!, { photoURL: uri });
-          if (fetchUserData) await fetchUserData();
+          await queryClient.invalidateQueries({
+            queryKey: ['userData', auth.currentUser?.uid],
+          });
           showSuccessToast(
             t('toastPhotoUpdatedTitle'),
             t('toastPhotoUpdatedDesc')
@@ -143,7 +149,9 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
       const response = await setUser({ photoURL: '' });
       if (response.success) {
         await updateProfile(auth.currentUser!, { photoURL: '' });
-        if (fetchUserData) await fetchUserData();
+        await queryClient.invalidateQueries({
+          queryKey: ['userData', auth.currentUser?.uid],
+        });
         showSuccessToast(
           t('toastPhotoDeletedTitle'),
           t('toastPhotoDeletedDesc')
