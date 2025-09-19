@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { sendNotificationHandler } from '../../helper-functions/sendNotificationHandler';
 import { sendRequestNotification } from '../../functions/notofications-handler';
 import { usePlaceStore } from '../../store/placesStore';
 import { useUserContext } from '../../../providers/UserProvider';
 import { fetchPlaceDetails } from '../../helper-functions/fetchPlacesAPI';
+import { sendNotification } from '@/src/app/utils/services/notifications-service';
 
 export const usePhotoRequest = () => {
   const [isRequestingPhoto, setIsRequestingPhoto] = useState(false);
@@ -20,10 +20,12 @@ export const usePhotoRequest = () => {
       setPlaceDetail(detail);
 
       if (detail) {
-        const tokens = await sendNotificationHandler({
-          latitude: detail.geometry.location?.lat,
-          longitude: detail.geometry.location?.lng,
-        });
+        const tokens = await sendNotification(
+          detail.geometry.location?.lat,
+          detail.geometry.location?.lng
+        );
+
+        console.log('TOKENS', tokens);
 
         const notificationPromises =
           tokens?.map(token =>

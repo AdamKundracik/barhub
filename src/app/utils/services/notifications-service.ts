@@ -69,3 +69,22 @@ export const deleteNotification = async (
   })) as unknown as { success: boolean };
   return response;
 };
+
+export const sendNotification = async (
+  latitude: number,
+  longitude: number
+): Promise<string[]> => {
+  if (latitude === undefined || longitude === undefined) return [];
+
+  const cloudFunction = httpsCallable<
+    { latitude: number; longitude: number },
+    string[]
+  >(functions, 'sendNotificationHandler');
+
+  const { data: response } = await cloudFunction({
+    latitude,
+    longitude,
+  });
+
+  return response ?? [];
+};

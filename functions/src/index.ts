@@ -214,6 +214,26 @@ export const saveNotificationSecondGen = onCall(async request => {
   });
 });
 
+export const sendNotificationHandler = onCall<
+  { latitude: number; longitude: number },
+  string[]
+>(async request => {
+  if (!request.auth) {
+    throw new HttpsError(
+      'unauthenticated',
+      'User must be logged in to send notifications'
+    );
+  }
+
+  const uid = request.auth.uid;
+  const { latitude, longitude } = request.data;
+
+  return await notificationService.sendNotification(uid, {
+    latitude,
+    longitude,
+  });
+});
+
 export const getCurrentUserSecondGen = onCall<void, User>(async req => {
   const uid = req.auth?.uid;
   if (!uid) {
