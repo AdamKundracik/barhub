@@ -200,5 +200,7 @@
   "toastDataUpdatedTitle": "Saved successfully.",
   "toastDataUpdatedDesc": "Your data has been updated.",
   "toastErrorTitle": "Something went wrong.",
-  "toastErrorDesc": "Try again later."
+  "toastErrorDesc": "Try again later.",
+  "cannot-OpenCamera-FakeLocation": "Cannot open camera because a fake location is being used."
+
 }

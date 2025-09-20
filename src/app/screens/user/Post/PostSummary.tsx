@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import {
   Alert,
   Dimensions,
+  Modal,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -34,6 +36,7 @@ import { Post } from '@/common/types/postTypes';
 import { OccupancyEnum } from '@/src/app/utils/types/Feed/PostTypes';
 import { Center } from '@/components/ui/center';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
+import { Picker } from '@react-native-picker/picker';
 
 type SummaryProps = {
   image: string;
@@ -51,10 +54,14 @@ export const PostSummary = ({ route }: any) => {
   const routeParams = route.params as SummaryProps;
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 
-  const [selectedOccupancy, setSelectedOccupancy] = useState(
+  const [selectedOccupancy, setSelectedOccupancy] = useState<OccupancyEnum>(
     OccupancyEnum.FULL
   );
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [tempOccupancy, setTempOccupancy] = useState<OccupancyEnum>(
+    OccupancyEnum.FULL
+  );
+  const [showPicker, setShowPicker] = useState(false);
+
   const [image, setImage] = useState<string | null>(null);
   const [place, setPlace] = useState<Place | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -67,25 +74,34 @@ export const PostSummary = ({ route }: any) => {
       setPlace(routeParams.place);
       setSenderToken(routeParams.senderToken ?? null);
       setNotificationId(routeParams.notificationId ?? null);
+      // initialize both selected and temp
+      const initial = OccupancyEnum.FULL;
+      setSelectedOccupancy(initial);
+      setTempOccupancy(initial);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routeParams]);
 
-  const occupancyLabels = {
+  const occupancyLabels: Record<OccupancyEnum, string> = {
     [OccupancyEnum.FULL]: t('full'),
     [OccupancyEnum.ALMOST_FULL]: t('almost-full'),
     [OccupancyEnum.SPARSELY_OCCUPIED]: t('sparsely-occupied'),
     [OccupancyEnum.EMPTY]: t('empty'),
   };
 
-  const handleSelect = (option: OccupancyEnum) => {
-    setSelectedOccupancy(option);
-    setIsDropdownOpen(false);
+  const openPicker = () => {
+    setTempOccupancy(selectedOccupancy); // start with current selection
+    setShowPicker(true);
   };
 
-  const handleOutsideClick = () => {
-    if (isDropdownOpen) {
-      setIsDropdownOpen(false);
-    }
+  const onPickerCancel = () => {
+    setShowPicker(false);
+    setTempOccupancy(selectedOccupancy); // revert temp
+  };
+
+  const onPickerDone = () => {
+    setSelectedOccupancy(tempOccupancy);
+    setShowPicker(false);
   };
 
   const handleSavePost = async () => {
@@ -93,53 +109,57 @@ export const PostSummary = ({ route }: any) => {
     const fileId = generateUID();
 
     if (image && place) {
-      const url = await uploadImageAsync(image, place?.id, fileId);
+      try {
+        const url = await uploadImageAsync(image, place?.id, fileId);
 
-      if (url) {
-        const hash = geohashForLocation([
-          place?.location.latitude ?? 0,
-          place?.location.longitude ?? 0,
-        ]);
+        if (url) {
+          const hash = geohashForLocation([
+            place?.location.latitude ?? 0,
+            place?.location.longitude ?? 0,
+          ]);
 
-        const newPost: Omit<Post, 'creationTime'> = {
-          geohash: hash,
-          location: {
-            _lat: place?.location.latitude ?? 0,
-            _long: place?.location.longitude ?? 0,
-          },
-          placeTypes: place.types,
-          id: '',
-          userId: '',
-          fileId: fileId,
-          occupancy: selectedOccupancy ?? '',
-          folderId: place?.id ?? '',
-          timestamp: Date.now(),
-          placeName: place?.displayName.text ?? '',
-          placeAddress: place?.formattedAddress ?? '',
-          photoUrl: url,
-        };
+          const newPost: Omit<Post, 'creationTime'> = {
+            geohash: hash,
+            location: {
+              _lat: place?.location.latitude ?? 0,
+              _long: place?.location.longitude ?? 0,
+            },
+            placeTypes: place.types,
+            id: '',
+            userId: '',
+            fileId: fileId,
+            occupancy: selectedOccupancy ?? '',
+            folderId: place?.id ?? '',
+            timestamp: Date.now(),
+            placeName: place?.displayName.text ?? '',
+            placeAddress: place?.formattedAddress ?? '',
+            photoUrl: url,
+          };
 
-        try {
           await postService.savePost(newPost);
           await queryClient.invalidateQueries({ queryKey: ['posts'] });
           navigation.navigate('Feed');
-          if (senderToken)
+
+          if (senderToken) {
             await sendPushNotificationResponse(senderToken, place.id);
+          }
           if (notificationId) await deleteNotification(notificationId);
           await setUser({ lastUploadedPost: new Date().toISOString() });
-        } catch (e) {
-          console.error(e);
-          Alert.alert('Failed to save post');
-        } finally {
-          setIsSaving(false);
         }
+      } catch (e) {
+        console.error(e);
+        Alert.alert('Failed to save post');
+      } finally {
+        setIsSaving(false);
       }
+    } else {
+      setIsSaving(false);
     }
   };
 
   return (
     <ScreenLayout clickFunction={navigation.goBack}>
-      <TouchableWithoutFeedback onPress={handleOutsideClick}>
+      <TouchableWithoutFeedback>
         <View style={{ justifyContent: 'center', alignItems: 'center' }}>
           <Text
             style={{
@@ -175,41 +195,15 @@ export const PostSummary = ({ route }: any) => {
               </Text>
             </View>
 
-            <View style={[styles.textContainer, styles.dropdownContainer]}>
+            {/* Occupancy input-like + Modal picker */}
+            <View style={[styles.textContainer]}>
               <Text style={styles.label}>{t('occupancy')}:</Text>
-
-              <View style={styles.dropdownWrapper}>
-                <TouchableOpacity
-                  onPress={() => setIsDropdownOpen(!isDropdownOpen)}
-                  style={[styles.dropdown, { width: 150 }]}
-                >
-                  <Text style={styles.dropdownText}>
+              <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                <TouchableOpacity onPress={openPicker} style={styles.inputLike}>
+                  <Text style={styles.inputLikeText}>
                     {occupancyLabels[selectedOccupancy]}
                   </Text>
                 </TouchableOpacity>
-
-                {isDropdownOpen && (
-                  <View style={styles.dropdownList}>
-                    {Object.values(OccupancyEnum).map(option => (
-                      <TouchableOpacity
-                        key={option}
-                        onPress={() => handleSelect(option)}
-                        style={styles.dropdownItem}
-                      >
-                        <Text
-                          style={[
-                            styles.dropdownItemText,
-                            selectedOccupancy === option
-                              ? { color: primaryColor }
-                              : { color: 'white' },
-                          ]}
-                        >
-                          {occupancyLabels[option]}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
               </View>
             </View>
 
@@ -244,6 +238,49 @@ export const PostSummary = ({ route }: any) => {
               </Button>
             </Center>
           </View>
+
+          {/* Picker Modal */}
+          <Modal
+            visible={showPicker}
+            transparent
+            animationType="slide"
+            onRequestClose={onPickerCancel}
+          >
+            <TouchableWithoutFeedback onPress={onPickerCancel}>
+              <View style={styles.modalOverlay} />
+            </TouchableWithoutFeedback>
+
+            <View style={styles.modalContainer}>
+              <View style={styles.modalHeader}>
+                <TouchableOpacity onPress={onPickerCancel}>
+                  <Text style={styles.modalHeaderText}>{t('cancel')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={onPickerDone}>
+                  <Text style={[styles.modalHeaderText, { fontWeight: '700' }]}>
+                    {t('submit')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.pickerWrap}>
+                <Picker
+                  selectedValue={tempOccupancy}
+                  onValueChange={(itemValue: OccupancyEnum) =>
+                    setTempOccupancy(itemValue)
+                  }
+                  mode={Platform.OS === 'ios' ? 'dialog' : 'dropdown'}
+                >
+                  {Object.values(OccupancyEnum).map(option => (
+                    <Picker.Item
+                      key={option}
+                      label={occupancyLabels[option]}
+                      value={option}
+                    />
+                  ))}
+                </Picker>
+              </View>
+            </View>
+          </Modal>
         </View>
       </TouchableWithoutFeedback>
     </ScreenLayout>
@@ -251,17 +288,11 @@ export const PostSummary = ({ route }: any) => {
 };
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingVertical: 10,
-  },
   textContainer: {
     flexDirection: 'row',
     marginBottom: 10,
     flexWrap: 'wrap',
+    alignItems: 'center',
   },
   label: {
     color: iconInactiveColor,
@@ -285,59 +316,47 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     zIndex: 1,
   },
-  dropdownContainer: {
-    position: 'relative',
-    justifyContent: 'space-between',
-    zIndex: 20,
+  inputLike: {
+    borderWidth: 1,
+    borderColor: 'white',
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: primaryBgColor,
+    minWidth: 150,
   },
-  dropdownWrapper: {
+  inputLikeText: {
+    color: 'white',
+    textAlign: 'right',
+  },
+
+  /* Modal styles */
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  modalContainer: {
+    backgroundColor: '#111', // dark modal background
+    paddingBottom: 20,
+  },
+  modalHeader: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    width: 'auto',
-    flex: 2,
+    justifyContent: 'space-between',
+    padding: 12,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    backgroundColor: '#0b0b0b',
   },
-  dropdown: {
-    padding: 10,
-    borderColor: 'white',
-    borderWidth: 1,
-    borderRadius: 10,
-    backgroundColor: primaryBgColor,
-    justifyContent: 'center',
-  },
-  dropdownText: {
+  modalHeaderText: {
     color: 'white',
-    textAlign: 'right',
+    fontSize: 16,
   },
-  dropdownList: {
-    position: 'absolute',
-    top: 40,
-    right: 0,
-    backgroundColor: primaryBgColor,
-    borderRadius: 10,
-    borderColor: 'white',
-    borderWidth: 1,
-    zIndex: 30,
-    width: '100%',
-  },
-  dropdownItem: {
-    padding: 10,
-    borderBottomColor: 'white',
-    borderBottomWidth: 0.5,
-  },
-  dropdownItemText: {
-    color: 'white',
-    textAlign: 'right',
+  pickerWrap: {
+    backgroundColor: '#0b0b0b',
   },
 });
 
 const tabletStyles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-    padding: 10,
-  },
   contentContainer: {
     backgroundColor: postBgColor,
     borderRadius: 20,

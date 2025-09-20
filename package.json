@@ -33,7 +33,7 @@
     "@react-native-firebase/functions": "^20.0.0",
     "@react-native-firebase/storage": "^20.0.0",
     "@react-native-google-signin/google-signin": "^12.2.1",
-    "@react-native-picker/picker": "2.11.1",
+    "@react-native-picker/picker": "^2.11.1",
     "@react-navigation/bottom-tabs": "^6.5.20",
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/native-stack": "^6.9.26",
@@ -58,6 +58,7 @@
     "expo-linking": "~7.1.5",
     "expo-localization": "~16.1.5",
     "expo-location": "~18.1.5",
+    "expo-mail-composer": "~14.1.6",
     "expo-media-library": "~17.1.7",
     "expo-modules-core": "~2.5.0",
     "expo-notifications": "~0.31.3",
@@ -101,8 +102,7 @@
     "shared": "file:./modules/shared",
     "tailwind-variants": "^0.1.20",
     "tailwindcss": "^3.4.17",
-    "zustand": "^5.0.0",
-    "expo-mail-composer": "~14.1.6"
+    "zustand": "^5.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

@@ -192,9 +192,9 @@ class NotificationService {
           .orderBy('geohash')
           .startAt(b[0])
           .endAt(b[1])
+          .where('isUsingFakeLocation', '==', true)
           .get()
       );
-
       const snapshots = await Promise.all(promises);
 
       const matchingUsers: UserDocument[] = [];

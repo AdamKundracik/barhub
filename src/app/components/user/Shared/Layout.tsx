@@ -1,4 +1,10 @@
-import { SafeAreaView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  SafeAreaView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import React, { ReactNode, useState } from 'react';
 import {
   iconInactiveColor,
@@ -23,6 +29,7 @@ import { auth } from '../../../../../firebaseConfig';
 import RollupMenu from '../RollupMenu';
 import FilterSlider from '../NewsFeed/Filters/FilterSlider';
 import { useNotifications } from '../../../utils/store/notificationsStore';
+import { useTranslation } from 'react-i18next';
 
 type LayoutProps = {
   children: ReactNode | ReactNode[];
@@ -35,9 +42,18 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const route = useRoute();
   const { data } = useNotifications();
+  const { t } = useTranslation();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [filtersOpened, setFiltersOpened] = useState(false);
+
+  async function handleCameraAction() {
+    if (userData?.isUsingFakeLocation) {
+      Alert.alert(t('cannot-OpenCamera-FakeLocation'));
+    } else {
+      await openCamera(null, auth.currentUser?.uid, navigation);
+    }
+  }
 
   const handleTabPress = (tab: TabsTypes) => {
     if (route.name === tab) {
@@ -130,7 +146,7 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
           <TouchableOpacity
             style={styles.tabButton}
             onPress={async () => {
-              await openCamera(null, auth.currentUser?.uid, navigation);
+              handleCameraAction();
             }}
           >
             <FontAwesomeIcon

@@ -200,5 +200,7 @@
   "toastDataUpdatedTitle": "Erfolgreich gespeichert.",
   "toastDataUpdatedDesc": "Deine Daten wurden aktualisiert.",
   "toastErrorTitle": "Etwas ist schief gelaufen.",
-  "toastErrorDesc": "Versuche es später erneut."
+  "toastErrorDesc": "Versuche es später erneut.",
+  "cannot-OpenCamera-FakeLocation": "Die Kamera kann nicht geöffnet werden, da ein falscher Standort verwendet wird."
+
 }

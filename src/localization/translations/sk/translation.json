@@ -199,6 +199,8 @@
   "toastDataUpdatedTitle": "Úspešne uložené.",
   "toastDataUpdatedDesc": "Vaše údaje boli aktualizované.",
   "toastErrorTitle": "Niečo sa pokazilo.",
-  "toastErrorDesc": "Skúste to neskôr."
+  "toastErrorDesc": "Skúste to neskôr.",
+  "cannot-OpenCamera-FakeLocation": "Nie je možné otvoriť kameru, pretože sa používa falošná poloha."
+
 
 }
