@@ -44,23 +44,21 @@ export const FeedContent: React.FC<FeedContentProps> = ({
 
   if (posts?.length > 0) {
     return (
-      <>
-        <PostsList
-          hasMorePosts={hasNextPage}
-          posts={posts}
-          zoomedPost={zoomedPost}
-          setZoomedPost={setZoomedPost}
-          userData={userData}
-          numberOfDaysSinceLastPostedPhoto={daysSinceLastUpload}
-          requestPhoto={requestPhoto}
-          onCommentPress={onCommentPress}
-          isFiltering={isFiltering}
-          onRefresh={onRefresh}
-          loading={isRefetching}
-          isFetchingNextPage={isFetchingNextPage}
-          fetchMorePosts={fetchMorePosts}
-        />
-      </>
+      <PostsList
+        hasMorePosts={hasNextPage}
+        posts={posts}
+        zoomedPost={zoomedPost}
+        setZoomedPost={setZoomedPost}
+        userData={userData}
+        numberOfDaysSinceLastPostedPhoto={daysSinceLastUpload}
+        requestPhoto={requestPhoto}
+        onCommentPress={onCommentPress}
+        isFiltering={isFiltering}
+        onRefresh={onRefresh}
+        loading={isRefetching}
+        isFetchingNextPage={isFetchingNextPage}
+        fetchMorePosts={fetchMorePosts}
+      />
     );
   }
 

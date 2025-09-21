@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
-    paddingHorizontal: 10,
+    // paddingHorizontal: 10,
     paddingVertical: 10,
   },
   bottomTab: {
