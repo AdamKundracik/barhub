@@ -64,8 +64,8 @@ export const UserLine = ({
     try {
       await reportClient.reportPost(postId, user?.id || '', reason);
       showSuccessToast(
-        t('deletePost.successTitle'),
-        t('deletePost.successDescription')
+        t('reportPost.confirmTitle'),
+        t('reportPost.confirmMessage', { reason: t(`reportPost.${reason}`) })
       );
     } catch (error: any) {
       console.error('Failed to report post:', error);
