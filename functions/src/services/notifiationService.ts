@@ -192,7 +192,6 @@ class NotificationService {
           .orderBy('geohash')
           .startAt(b[0])
           .endAt(b[1])
-          .where('isUsingFakeLocation', '==', true)
           .get()
       );
       const snapshots = await Promise.all(promises);
@@ -201,6 +200,10 @@ class NotificationService {
 
       for (const snap of snapshots) {
         snap.docs.forEach(doc => {
+          const isUsingFakeLocation = doc.get('isUsingFakeLocation');
+
+          if (isUsingFakeLocation) return;
+
           const location = doc.get('location');
           const lat = location?.latitude;
           const lng = location?.longitude;

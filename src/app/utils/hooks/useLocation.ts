@@ -96,20 +96,15 @@ export const useLocation = () => {
   // Start/stop tracking based on fake mode
   useEffect(() => {
     if (!initialized) return;
-    console.log('Start/Stop effect, useFakeLocation:', useFakeLocation);
     if (!useFakeLocation) {
-      BackgroundGeolocation.start()
-        .then(() => console.log('BackgroundGeolocation started'))
-        .catch(error =>
-          console.error('Failed to start BackgroundGeolocation:', error)
-        );
+      BackgroundGeolocation.start().catch(error =>
+        console.error('Failed to start BackgroundGeolocation:', error)
+      );
       refetch();
     } else {
-      BackgroundGeolocation.stop()
-        .then(() => console.log('BackgroundGeolocation stopped'))
-        .catch(error =>
-          console.error('Failed to stop BackgroundGeolocation:', error)
-        );
+      BackgroundGeolocation.stop().catch(error =>
+        console.error('Failed to stop BackgroundGeolocation:', error)
+      );
       if (location) {
         refetch();
       }

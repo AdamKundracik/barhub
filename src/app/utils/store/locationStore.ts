@@ -27,14 +27,12 @@ export const useLocationStore = create<LocationStore>()(
     initialized: false,
 
     setLocation: (loc: LocationType) => {
-      console.log('setLocationStore', loc);
       set({ location: loc });
     },
     setFakeLocation: (location: LocationType) => {
       set({ fakeLocation: location });
     },
     setUseFakeLocation: (val: boolean) => {
-      console.log('setUseFakeLocation', val);
       set({ useFakeLocation: val });
     },
     setFakeLocationName: (name: string) => {
@@ -48,9 +46,7 @@ export const useLocationStore = create<LocationStore>()(
 useLocationStore.subscribe(
   state => state.useFakeLocation,
   (newVal, prevVal) => {
-    const { initialized } = useLocationStore.getState();
     if (newVal !== prevVal) {
-      // console.log('CALLED2');
       useUserStore.getState().setUserData({ isUsingFakeLocation: newVal });
       setUser({ isUsingFakeLocation: newVal });
     }
@@ -61,7 +57,6 @@ useLocationStore.subscribe(
   state => state.location,
   (newVal, prevVal) => {
     if (newVal !== prevVal && newVal) {
-      // console.log('CALLED1');
       setUser({
         location: newVal,
       });
@@ -73,7 +68,6 @@ useLocationStore.subscribe(
   state => state.fakeLocation,
   (newVal, prevVal) => {
     if (newVal !== prevVal && newVal) {
-      // console.log('CALLED1');
       setUser({
         fakeLocation: newVal,
       });
@@ -85,7 +79,6 @@ useLocationStore.subscribe(
   state => state.fakeLocationName,
   (newVal, prevVal) => {
     if (newVal !== prevVal) {
-      // console.log('CALLED');
       setUser({ fakeLocationName: newVal });
     }
   }

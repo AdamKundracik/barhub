@@ -25,8 +25,6 @@ export const usePhotoRequest = () => {
           detail.geometry.location?.lng
         );
 
-        console.log('TOKENS', tokens);
-
         const notificationPromises =
           tokens?.map(token =>
             sendRequestNotification(
