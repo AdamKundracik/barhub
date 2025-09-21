@@ -1,34 +1,67 @@
-import React, { SafeAreaView, StyleSheet, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Easing, SafeAreaView, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 export const Loading = () => {
+  const floatAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Pulse (scale up/down
+
+    // Floating up/down
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatAnim, {
+          toValue: -20,
+          duration: 1500,
+          useNativeDriver: true,
+          easing: Easing.inOut(Easing.sin),
+        }),
+        Animated.timing(floatAnim, {
+          toValue: 0,
+          duration: 1500,
+          useNativeDriver: true,
+          easing: Easing.inOut(Easing.sin),
+        }),
+      ])
+    ).start();
+  }, []);
+
   return (
     <SafeAreaView style={styles.wrapper}>
-      <Svg
+      {/* Your main SVG */}
+      <Animated.View
         style={{
+          transform: [{ translateY: floatAnim }],
           position: 'absolute',
           left: 0,
           top: 75,
         }}
-        width="390"
-        height="430"
-        viewBox="0 0 390 430"
-        fill="none"
       >
-        <Path
-          d="M340.897 59.988L279.707 100.938V235.304L243.7 220.88L217.496 237.38V103.905L185.401 71.5505L90.2854 51L54.7047 82.7905V169.668L17.771 157.274L0 172.046V178.228L15.7241 165.154V251.517L20.0333 254.429V163.274L54.7047 174.907V357.615L59.0139 360.522V85.2793L88.6781 58.7789V426.123L92.9872 429.035V56.7082L181.092 75.7422V407.391L185.401 404.479V78.2008L213.187 106.213V361.02L217.496 358.113V243.103L241.739 227.838V339.13L246.048 336.223V227.153L279.707 240.62V384.392L284.016 387.309V103.684L338.786 67.4746V421.15L343.095 418.238V67.2026L390 96.7814V91.0127L340.897 59.988Z"
-          fill="#031824"
-        />
-        <Path
-          d="M247 60C263.541 60 277 46.5406 277 30C277 13.4594 263.541 0 247 0C230.459 0 217 13.4594 217 30C217 46.5406 230.459 60 247 60ZM247 3.87097C261.408 3.87097 273.129 15.5923 273.129 30C273.129 44.4077 261.408 56.129 247 56.129C232.592 56.129 220.871 44.4077 220.871 30C220.871 15.5923 232.592 3.87097 247 3.87097Z"
-          fill="#031824"
-        />
-      </Svg>
+        <Svg
+          style={{ position: 'absolute', left: 0, top: 75 }}
+          width="390"
+          height="430"
+          viewBox="0 0 390 430"
+          fill="none"
+        >
+          <Path
+            d="M340.897 59.988L279.707 100.938V235.304L243.7 220.88L217.496 237.38V103.905L185.401 71.5505L90.2854 51L54.7047 82.7905V169.668L17.771 157.274L0 172.046V178.228L15.7241 165.154V251.517L20.0333 254.429V163.274L54.7047 174.907V357.615L59.0139 360.522V85.2793L88.6781 58.7789V426.123L92.9872 429.035V56.7082L181.092 75.7422V407.391L185.401 404.479V78.2008L213.187 106.213V361.02L217.496 358.113V243.103L241.739 227.838V339.13L246.048 336.223V227.153L279.707 240.62V384.392L284.016 387.309V103.684L338.786 67.4746V421.15L343.095 418.238V67.2026L390 96.7814V91.0127L340.897 59.988Z"
+            fill="#031824"
+          />
+          <Path
+            d="M247 60C263.541 60 277 46.5406 277 30C277 13.4594 263.541 0 247 0C230.459 0 217 13.4594 217 30C217 46.5406 230.459 60 247 60ZM247 3.87097C261.408 3.87097 273.129 15.5923 273.129 30C273.129 44.4077 261.408 56.129 247 56.129C232.592 56.129 220.871 44.4077 220.871 30C220.871 15.5923 232.592 3.87097 247 3.87097Z"
+            fill="#031824"
+          />
+        </Svg>
+      </Animated.View>
 
-      <View
+      {/* Floating text SVG */}
+      <Animated.View
         style={{
           position: 'absolute',
           top: '60%',
+          transform: [{ translateY: floatAnim }],
         }}
       >
         <Svg width="430" height="204" viewBox="0 0 430 204" fill="none">
@@ -41,7 +74,7 @@ export const Loading = () => {
             fill="white"
           />
         </Svg>
-      </View>
+      </Animated.View>
     </SafeAreaView>
   );
 };
@@ -52,11 +85,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#000000',
-  },
-  text: {
-    fontSize: 72,
-    textAlign: 'center',
-    fontWeight: 'bold',
-    paddingHorizontal: 5,
   },
 });

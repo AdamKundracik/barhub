@@ -49,11 +49,7 @@ export const PhotoResolver = ({ route }: any) => {
   const renderItem = ({ item }: { item: Place; index: number }) => (
     <Pressable
       key={item.id}
-      style={({ pressed }) => [
-        {
-          padding: pressed ? 16 : 16,
-        },
-      ]}
+      style={{ paddingVertical: 10 }}
       onPress={() => {
         navigation.navigate('PostSummary', { image: image ?? '', place: item });
       }}
@@ -62,7 +58,7 @@ export const PhotoResolver = ({ route }: any) => {
         <View>
           <Text
             style={[
-              { fontSize: 14, fontWeight: 'bold' },
+              { fontSize: 16, fontWeight: 'bold' },
               pressed ? { color: primaryColor } : { color: 'white' },
             ]}
           >
@@ -70,7 +66,7 @@ export const PhotoResolver = ({ route }: any) => {
           </Text>
           <Text
             style={[
-              { fontSize: 12 },
+              { fontSize: 14 },
               pressed ? { color: primaryDeepColor } : { color: 'grey' },
             ]}
           >

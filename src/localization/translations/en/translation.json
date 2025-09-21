@@ -184,6 +184,23 @@
   "delete-post": "Delete post",
   "about-me": "About me",
   "change-password": "Change password",
-  "camera-cannot-open-fake-location": "Camera cannot be opened while using a fake location"
+  "camera-cannot-open-fake-location": "Camera cannot be opened while using a fake location",
+  "deletePost": {
+    "title": "Vymazať príspevok",
+    "confirmTitle": "Potvrdenie vymazania",
+    "confirmMessage": "Naozaj chcete vymazať tento príspevok?",
+    "successTitle": "Príspevok vymazaný",
+    "successDescription": "Príspevok bol úspešne vymazaný.",
+    "errorTitle": "Chyba",
+    "errorDescription": "Nepodarilo sa vymazať príspevok. Skúste to znova."
+  },
+  "toastPhotoDeletedTitle": "Deleted successfully.",
+  "toastPhotoDeletedDesc": "Your photo has been deleted.",
+  "toastPhotoUpdatedTitle": "Saved successfully.",
+  "toastPhotoUpdatedDesc": "Your photo has been updated.",
+  "toastDataUpdatedTitle": "Saved successfully.",
+  "toastDataUpdatedDesc": "Your data has been updated.",
+  "toastErrorTitle": "Something went wrong.",
+  "toastErrorDesc": "Try again later."
 
 }

@@ -25,7 +25,7 @@ export const createQueryClientWithPersistence = () => {
   persistQueryClient({
     queryClient,
     persistor: asyncStoragePersistor,
-    maxAge: 1000 * 60 * 15, // Cache for 15 minutes
+    maxAge: 1000 * 60 * 5, // Cache for 15 minutes
   });
 
   return queryClient;
