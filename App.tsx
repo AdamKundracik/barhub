@@ -9,7 +9,6 @@ import {
 
 import { Navigation } from './src/app/navigation';
 import { RevenueCatProvider } from './src/app/providers/RevenueCatProvider';
-import { UserProvider } from './src/app/providers/UserProvider';
 import { PermissionsProvider } from './src/app/providers/PermissionsProvider';
 import { AppStateProvider } from './src/app/providers/AppStateProvider';
 
@@ -38,13 +37,13 @@ export default function App() {
           <I18nextProvider i18n={i18n}>
             <AppStateProvider>
               <PermissionsProvider>
-                <UserProvider>
-                  <RevenueCatProvider>
-                    <BottomSheetModalProvider>
-                      <Navigation />
-                    </BottomSheetModalProvider>
-                  </RevenueCatProvider>
-                </UserProvider>
+                {/*<UserProvider>*/}
+                <RevenueCatProvider>
+                  <BottomSheetModalProvider>
+                    <Navigation />
+                  </BottomSheetModalProvider>
+                </RevenueCatProvider>
+                {/*</UserProvider>*/}
               </PermissionsProvider>
             </AppStateProvider>
           </I18nextProvider>

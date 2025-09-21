@@ -22,7 +22,7 @@ export const SelectFakeLocation = () => {
 
   const navigation = useNavigation();
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const { setFakeLocation } = useLocationStore();
+  const { setFakeLocation, setFakeLocationName } = useLocationStore();
 
   useEffect(() => {
     if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
@@ -73,10 +73,8 @@ export const SelectFakeLocation = () => {
       const details = await res.json();
       const location = details.result.geometry.location;
 
-      setFakeLocation(
-        { latitude: location.lat, longitude: location.lng },
-        place.description
-      );
+      setFakeLocation({ latitude: location.lat, longitude: location.lng });
+      setFakeLocationName(place.description);
 
       navigation.goBack();
     } catch (e) {

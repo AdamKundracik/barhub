@@ -25,6 +25,8 @@ import { radius } from '../../../utils/helper-functions/constants';
 import { mapPlaceToPlacePrediction } from '../../../utils/helper-functions/mapPlaceToPlacePrediction';
 import { usePlaceStore } from '../../../utils/store/placesStore';
 import { fetchNearbyPlaces } from '../../../utils/helper-functions/fetchPlacesAPI';
+import { useLocation } from '@/src/app/utils/hooks/useLocation';
+import { useLocationStore } from '@/src/app/utils/store/locationStore';
 
 const latitudeDelta = 0.0045;
 const longitudeDelta = 0.0045;
@@ -36,7 +38,7 @@ type LayoutProps = {
 export const MapSearch = (props: LayoutProps) => {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
-  const { location } = useUserContext();
+  const { location } = useLocationStore();
 
   const mapRef = useRef<MapView>(null);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);

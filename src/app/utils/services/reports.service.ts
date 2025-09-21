@@ -8,7 +8,6 @@ class ReportClient {
     userId: string,
     reason: string
   ): Promise<ReportResponse> => {
-    console.log(postId, userId, reason);
     const cloudFunction = httpsCallable<
       { postId: string; userId: string; reason: string },
       ReportResponse

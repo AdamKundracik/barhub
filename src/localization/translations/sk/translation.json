@@ -182,6 +182,8 @@
   "or": "alebo",
   "delete-post": "Zmazať príspevok",
   "about-me": "O mne",
-  "change-password": "Zmeniť heslo"
+  "change-password": "Zmeniť heslo",
+  "camera-cannot-open-fake-location": "Fotoaparát nemožno otvoriť počas použitia falošnej polohy"
+
 
 }

@@ -25,7 +25,6 @@ import {
 } from '../../../utils/helper-functions/imageUploadFunctions';
 import { setUser } from '../../../utils/services/functions';
 import { updateProfile } from 'firebase/auth';
-import { useUserContext } from '../../../providers/UserProvider';
 import SlidingView from '../../shared/SlidingView';
 import { Image } from 'expo-image';
 import {
@@ -39,6 +38,7 @@ import { Center } from '@/components/ui/center';
 import { useLocales } from 'expo-localization';
 import { auth } from '@/firebaseConfig';
 import { User } from '@/shared';
+import { useUserData } from '@/src/app/utils/hooks/useUserData';
 
 type EditProfileProps = {
   user: User | null;
@@ -47,7 +47,7 @@ type EditProfileProps = {
 
 const ProfileEditScreen = (props: EditProfileProps) => {
   const { t } = useTranslation();
-  const { fetchUserData } = useUserContext();
+  const { refetch } = useUserData();
   const locales = useLocales();
 
   const [openImageOptions, setOpenImageOptions] = useState(false);
@@ -91,7 +91,7 @@ const ProfileEditScreen = (props: EditProfileProps) => {
         photoURL: uri,
       });
 
-      if (fetchUserData) await fetchUserData();
+      if (refetch) await refetch();
 
       setOpenImageOptions(false);
     }
@@ -107,7 +107,7 @@ const ProfileEditScreen = (props: EditProfileProps) => {
       await updateProfile(auth.currentUser, {
         displayName: username,
       });
-      if (fetchUserData) await fetchUserData();
+      if (refetch) await refetch();
 
       props.onEditCLose();
       setIsSaving(false);
@@ -143,7 +143,7 @@ const ProfileEditScreen = (props: EditProfileProps) => {
         photoURL: uri,
         displayName: auth.currentUser?.displayName,
       });
-      if (fetchUserData) await fetchUserData();
+      if (refetch) await refetch();
 
       setOpenImageOptions(false);
     }
@@ -161,7 +161,7 @@ const ProfileEditScreen = (props: EditProfileProps) => {
       photoURL: '',
       displayName: auth.currentUser?.displayName,
     });
-    if (fetchUserData) await fetchUserData();
+    if (refetch) await refetch();
     setOpenImageOptions(false);
   };
 

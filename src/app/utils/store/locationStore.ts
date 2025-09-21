@@ -2,45 +2,69 @@ import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { LocationType } from '../types/types';
 import { setUser } from '../services/functions';
+import { useUserStore } from '@/src/app/utils/store/userStore';
 
 interface LocationStore {
+  location: LocationType | null;
+  fakeLocation: LocationType | null;
   useFakeLocation: boolean;
-  fakeLocation: LocationType;
   fakeLocationName: string;
-  realLocation: LocationType;
   initialized: boolean;
+  setLocation: (loc: LocationType) => void;
+  setFakeLocation: (location: LocationType) => void;
   setUseFakeLocation: (val: boolean) => void;
-  setFakeLocation: (loc: LocationType, name: string) => void;
-  setRealLocation: (loc: LocationType) => void;
+  setFakeLocationName: (name: string) => void;
   setInitialized: (val: boolean) => void;
 }
 
-// ✅ Create store with subscribeWithSelector middleware
+// ✅ Jednoduchší store
 export const useLocationStore = create<LocationStore>()(
   subscribeWithSelector((set, get) => ({
+    location: null,
+    fakeLocation: null,
     useFakeLocation: false,
-    fakeLocation: { latitude: 0, longitude: 0 },
     fakeLocationName: '',
-    realLocation: { latitude: 0, longitude: 0 },
     initialized: false,
+
+    setLocation: (loc: LocationType) => {
+      console.log('setLocationStore', loc);
+      set({ location: loc });
+    },
+    setFakeLocation: (location: LocationType) => {
+      set({ fakeLocation: location });
+    },
     setUseFakeLocation: (val: boolean) => {
+      console.log('setUseFakeLocation', val);
       set({ useFakeLocation: val });
     },
-    setFakeLocation: (location: LocationType, name: string) => {
-      set({ fakeLocation: location, fakeLocationName: name });
+    setFakeLocationName: (name: string) => {
+      set({ fakeLocationName: name });
     },
-    setRealLocation: (loc: LocationType) => set({ realLocation: loc }),
     setInitialized: (val: boolean) => set({ initialized: val }),
   }))
 );
 
-// ✅ React to useFakeLocation changes only after initialization
+// ✅ Subscribe – vždy update do DB
 useLocationStore.subscribe(
   state => state.useFakeLocation,
   (newVal, prevVal) => {
     const { initialized } = useLocationStore.getState();
-    if (initialized && newVal !== prevVal) {
+    if (newVal !== prevVal) {
+      // console.log('CALLED2');
+      useUserStore.getState().setUserData({ isUsingFakeLocation: newVal });
       setUser({ isUsingFakeLocation: newVal });
+    }
+  }
+);
+
+useLocationStore.subscribe(
+  state => state.location,
+  (newVal, prevVal) => {
+    if (newVal !== prevVal && newVal) {
+      // console.log('CALLED1');
+      setUser({
+        location: newVal,
+      });
     }
   }
 );
@@ -48,9 +72,21 @@ useLocationStore.subscribe(
 useLocationStore.subscribe(
   state => state.fakeLocation,
   (newVal, prevVal) => {
-    const { initialized, fakeLocationName } = useLocationStore.getState();
-    if (initialized && newVal !== prevVal) {
-      setUser({ fakeLocation: newVal, fakeLocationName: fakeLocationName });
+    if (newVal !== prevVal && newVal) {
+      // console.log('CALLED1');
+      setUser({
+        fakeLocation: newVal,
+      });
+    }
+  }
+);
+
+useLocationStore.subscribe(
+  state => state.fakeLocationName,
+  (newVal, prevVal) => {
+    if (newVal !== prevVal) {
+      // console.log('CALLED');
+      setUser({ fakeLocationName: newVal });
     }
   }
 );

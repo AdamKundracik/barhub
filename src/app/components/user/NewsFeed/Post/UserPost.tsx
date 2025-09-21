@@ -8,7 +8,7 @@ import Animated, {
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { Image } from 'expo-image';
 import { usePlaceStore } from '@/src/app/utils/store/placesStore';
-import { Post, User } from '@/shared';
+import { Post } from '@/shared';
 import { useQueryClient } from 'react-query';
 import { useRef, useState } from 'react';
 import { toggleLike } from '@/src/app/utils/services/functions';
@@ -29,7 +29,6 @@ interface PostInterface {
   isZoomed: boolean;
   hasPremium: boolean;
   isFiltering: boolean;
-  user: User | undefined;
   onCommentPress: (
     postId: string,
     expoPushToken: string,

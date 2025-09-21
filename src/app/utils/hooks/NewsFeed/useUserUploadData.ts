@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { getDaysSince } from '../../helper-functions/getDaysSince';
-import { useUserContext } from '../../../providers/UserProvider';
+import { useUserStore } from '@/src/app/utils/store/userStore';
 
 export const useUserUploadData = () => {
-  const { userData } = useUserContext();
+  const { userData } = useUserStore();
   const [daysSinceLastUpload, setDaysSinceLastUpload] = useState(0);
 
   useEffect(() => {

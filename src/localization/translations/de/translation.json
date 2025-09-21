@@ -183,5 +183,7 @@
   "or": "oder",
   "delete-post": "Beitrag löschen",
   "about-me": "Über mich",
-  "change-password": "Passwort ändern"
+  "change-password": "Passwort ändern",
+  "camera-cannot-open-fake-location": "Die Kamera kann während der Verwendung eines gefälschten Standorts nicht geöffnet werden"
+
 }

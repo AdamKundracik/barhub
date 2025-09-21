@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
+import { useLocation } from '@/src/app/utils/hooks/useLocation';
 
 type AppStateContextType = {
   appState: AppStateStatus;
@@ -15,6 +16,8 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({
   const [appState, setAppState] = useState<AppStateStatus>(
     AppState.currentState
   );
+
+  useLocation();
 
   useEffect(() => {
     const handleAppStateChange = (nextAppState: AppStateStatus) => {

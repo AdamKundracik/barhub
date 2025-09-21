@@ -1,72 +1,76 @@
 import { useCallback, useEffect } from 'react';
-import { AppState } from 'react-native';
+import { AppState, AppStateStatus } from 'react-native';
 import BackgroundGeolocation from 'react-native-background-geolocation';
 import { useLocationStore } from '../store/locationStore';
 import { LocationType } from '../types/types';
-import { setUserIntoDB } from '../helper-functions/setUserLocationIntoDB';
 import { getCoords } from '../helper-functions/get-coords';
 import { useNewsFeedData } from './NewsFeed/usePostData';
 
 export const useLocation = () => {
   const {
     useFakeLocation,
-    realLocation,
+    location,
+    setLocation,
+    initialized,
     fakeLocation,
-    setRealLocation,
-    setUseFakeLocation,
     setFakeLocation,
   } = useLocationStore();
-
   const { refetch } = useNewsFeedData();
-
-  const currentLocation =
-    useFakeLocation && fakeLocation ? fakeLocation : realLocation;
-
-  const updateLocationInDB = useCallback(async (location: LocationType) => {
-    try {
-      await setUserIntoDB(location);
-    } catch (error) {
-      console.error('Error updating location in DB:', error);
-    }
-  }, []);
 
   const getCurrentLocation = useCallback(async () => {
     if (useFakeLocation) return;
 
     try {
       const coords = await getCoords();
-      setRealLocation(coords);
-      await updateLocationInDB(coords);
+      // Only update if location actually changed
+      if (
+        !location ||
+        location.latitude !== coords.latitude ||
+        location.longitude !== coords.longitude
+      ) {
+        setLocation(coords);
+      }
     } catch (error) {
       console.error('Error getting location:', error);
     }
-  }, [useFakeLocation, setRealLocation, updateLocationInDB]);
+  }, [useFakeLocation, location, setLocation]);
 
+  // Background tracking setup
   useEffect(() => {
     const setupBackgroundLocation = async () => {
-      const onLocation = BackgroundGeolocation.onLocation(async location => {
+      const onLocation = BackgroundGeolocation.onLocation(event => {
         const currentLocation: LocationType = {
-          latitude: location.coords?.latitude,
-          longitude: location.coords?.longitude,
+          latitude: event.coords.latitude,
+          longitude: event.coords.longitude,
         };
 
-        if (location.coords?.speed && location.coords?.speed <= 4) {
-          setRealLocation(currentLocation);
-          await updateLocationInDB(currentLocation);
+        if (!event.coords.speed || event.coords.speed <= 4) {
+          if (
+            !location ||
+            location.latitude !== currentLocation.latitude ||
+            location.longitude !== currentLocation.longitude
+          ) {
+            setLocation(currentLocation);
+          }
         }
       });
 
-      const onMotionChange = BackgroundGeolocation.onMotionChange(
-        async event => {
-          const { latitude, longitude } = event.location.coords;
-          const currentLocation: LocationType = { latitude, longitude };
+      const onMotionChange = BackgroundGeolocation.onMotionChange(event => {
+        const currentLocation: LocationType = {
+          latitude: event.location.coords.latitude,
+          longitude: event.location.coords.longitude,
+        };
 
-          if (!event.isMoving) {
-            setRealLocation(currentLocation);
-            await updateLocationInDB(currentLocation);
+        if (!event.isMoving) {
+          if (
+            !location ||
+            location.latitude !== currentLocation.latitude ||
+            location.longitude !== currentLocation.longitude
+          ) {
+            setLocation(currentLocation);
           }
         }
-      );
+      });
 
       await BackgroundGeolocation.ready({
         disableLocationAuthorizationAlert: true,
@@ -87,36 +91,48 @@ export const useLocation = () => {
     };
 
     setupBackgroundLocation();
-  }, [setRealLocation, updateLocationInDB]);
+  }, [setLocation]);
 
+  // Start/stop tracking based on fake mode
   useEffect(() => {
+    if (!initialized) return;
+    console.log('Start/Stop effect, useFakeLocation:', useFakeLocation);
     if (!useFakeLocation) {
-      BackgroundGeolocation.start();
-    } else {
-      BackgroundGeolocation.stop();
-    }
-  }, [useFakeLocation]);
-
-  useEffect(() => {
-    if (AppState.currentState === 'active') {
-      getCurrentLocation();
-    }
-  }, [getCurrentLocation]);
-
-  useEffect(() => {
-    const locationToUpdate = useFakeLocation ? fakeLocation : realLocation;
-    if (locationToUpdate) {
-      updateLocationInDB(locationToUpdate);
+      BackgroundGeolocation.start()
+        .then(() => console.log('BackgroundGeolocation started'))
+        .catch(error =>
+          console.error('Failed to start BackgroundGeolocation:', error)
+        );
       refetch();
+    } else {
+      BackgroundGeolocation.stop()
+        .then(() => console.log('BackgroundGeolocation stopped'))
+        .catch(error =>
+          console.error('Failed to stop BackgroundGeolocation:', error)
+        );
+      if (location) {
+        refetch();
+      }
     }
-  }, [useFakeLocation, realLocation, fakeLocation, updateLocationInDB]);
+  }, [useFakeLocation, location, refetch, initialized]);
+
+  // Fetch location when app becomes active
+  useEffect(() => {
+    const handleAppStateChange = (state: AppStateStatus) => {
+      if (state === 'active') {
+        getCurrentLocation();
+      }
+    };
+
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange
+    );
+    return () => subscription.remove();
+  }, []);
 
   return {
-    currentLocation,
     useFakeLocation,
-    fakeLocation,
-    setUseFakeLocation,
-    setFakeLocation,
     getCurrentLocation,
   };
 };

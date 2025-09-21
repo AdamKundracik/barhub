@@ -8,16 +8,16 @@ import {
 } from 'react-native';
 import Layout from '../../../components/user/Shared/Layout';
 import { Place } from '../../../utils/types/types';
-import { useUserContext } from '../../../providers/UserProvider';
 import { primaryColor, primaryDeepColor } from '../../../utils/styles/colors';
 import { useTranslation } from 'react-i18next';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { ScreenLayout } from '../../../components/user/Shared/ScreenLayout';
 import { fetchNearbyPlaces } from '../../../utils/helper-functions/fetchPlacesAPI';
+import { useLocationStore } from '@/src/app/utils/store/locationStore';
 
 export const PhotoResolver = ({ route }: any) => {
-  const { location } = useUserContext();
+  const { location } = useLocationStore();
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 

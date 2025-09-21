@@ -14,7 +14,6 @@ import LoadingIndicator from './LoadingIndicator';
 import PostOldInfo from './Post/PostOldInfo';
 import { usePlaceStore } from '../../../utils/store/placesStore';
 import { primaryColor } from '../../../utils/styles/colors';
-import { useUserContext } from '../../../providers/UserProvider';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
 import { FirebaseTimestamp } from '../../../utils/types/types';
@@ -55,7 +54,6 @@ const PostsList = ({
   isFetchingNextPage,
   hasMorePosts,
 }: PostsListProps) => {
-  const { users } = useUserContext();
   const { t } = useTranslation();
   const { placeId } = usePlaceStore();
   const flatListRef = useRef<FlatList>(null);
@@ -119,7 +117,6 @@ const PostsList = ({
       <UserPost
         numberOfDaysSinceLastPostedPhoto={numberOfDaysSinceLastPostedPhoto}
         requestPhoto={requestPhoto}
-        user={users?.find(user => user.uid === item.userId)}
         onCommentPress={(postId, expoPushToken, userId) =>
           onCommentPress(postId, expoPushToken, userId)
         }

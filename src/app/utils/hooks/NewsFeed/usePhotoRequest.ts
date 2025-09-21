@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { sendNotificationHandler } from '../../helper-functions/sendNotificationHandler';
 import { sendRequestNotification } from '../../functions/notofications-handler';
 import { usePlaceStore } from '../../store/placesStore';
-import { useUserContext } from '../../../providers/UserProvider';
 import { fetchPlaceDetails } from '../../helper-functions/fetchPlacesAPI';
+import { useUserStore } from '@/src/app/utils/store/userStore';
 
 export const usePhotoRequest = () => {
   const [isRequestingPhoto, setIsRequestingPhoto] = useState(false);
   const { placeId, placeName, setPlaceDetail } = usePlaceStore();
-  const { userData } = useUserContext();
+  const { userData } = useUserStore();
 
   const requestPhoto = async () => {
     if (!placeId || !placeName || isRequestingPhoto) return;

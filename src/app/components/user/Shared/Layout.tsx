@@ -1,4 +1,10 @@
-import { SafeAreaView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  SafeAreaView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import React, { ReactNode, useState } from 'react';
 import {
   iconInactiveColor,
@@ -8,7 +14,6 @@ import {
 } from '../../../utils/styles/colors';
 import { Image } from 'expo-image';
 import Svg, { Path } from 'react-native-svg';
-import { useUserContext } from '../../../providers/UserProvider';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
 import { TabsTypes } from '../../../utils/types/types';
@@ -23,6 +28,9 @@ import { auth } from '../../../../../firebaseConfig';
 import RollupMenu from '../RollupMenu';
 import FilterSlider from '../NewsFeed/Filters/FilterSlider';
 import { useNotifications } from '../../../utils/store/notificationsStore';
+import { useUserStore } from '@/src/app/utils/store/userStore';
+import { useLocationStore } from '@/src/app/utils/store/locationStore';
+import { useTranslation } from 'react-i18next';
 
 type LayoutProps = {
   children: ReactNode | ReactNode[];
@@ -31,13 +39,24 @@ type LayoutProps = {
 };
 
 export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
-  const { userData } = useUserContext();
+  const { userData } = useUserStore();
+  const { useFakeLocation } = useLocationStore();
+
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const route = useRoute();
   const { data } = useNotifications();
+  const { t } = useTranslation();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [filtersOpened, setFiltersOpened] = useState(false);
+
+  async function handleOpenCamera() {
+    if (useFakeLocation) {
+      Alert.alert(t('camera-cannot-open-fake-location'));
+    } else {
+      await openCamera(null, auth.currentUser?.uid, navigation);
+    }
+  }
 
   const handleTabPress = (tab: TabsTypes) => {
     if (route.name === tab) {
@@ -129,9 +148,7 @@ export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
         <View style={styles.bottomTab}>
           <TouchableOpacity
             style={styles.tabButton}
-            onPress={async () => {
-              await openCamera(null, auth.currentUser?.uid, navigation);
-            }}
+            onPress={async () => handleOpenCamera()}
           >
             <FontAwesomeIcon
               icon={Icons.Camera}

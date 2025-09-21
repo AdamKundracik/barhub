@@ -30,6 +30,7 @@ import MultiSelectPlaceChips from '@/src/app/components/user/NewsFeed/Filters/Mu
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNewsFeedData } from '@/src/app/utils/hooks/NewsFeed/usePostData';
 
 type Props = {
   opened: boolean;
@@ -66,9 +67,15 @@ const FilterSlider = (props: Props) => {
   const {
     useFakeLocation,
     setUseFakeLocation,
-    fakeLocation,
     fakeLocationName,
+    location,
+    setLocation,
+    setFakeLocationName,
+    setInitialized,
   } = useLocationStore();
+
+  const { isRefetching } = useNewsFeedData(); // inside FilterSlider
+
   const {
     distance: storeDistance,
     selectedPlaces: storeSelectedPlaces,
@@ -89,12 +96,15 @@ const FilterSlider = (props: Props) => {
     latitude: 0,
     longitude: 0,
   });
+
+  const [tempUseFakeLocation, setTempUseFakeLocation] =
+    useState(useFakeLocation);
   const [fakeLocationNameVal, setFakeLocationNameVal] = useState('');
 
   useEffect(() => {
-    setFakeLocationVal(fakeLocation);
+    setTempUseFakeLocation(useFakeLocation);
     setFakeLocationNameVal(fakeLocationName);
-  }, [fakeLocation, fakeLocationName, useFakeLocation]);
+  }, [props.opened, useFakeLocation, fakeLocationName]);
 
   useEffect(() => {
     if (props.opened) {
@@ -238,6 +248,7 @@ const FilterSlider = (props: Props) => {
             <Switch
               value={useFakeLocation}
               onValueChange={setUseFakeLocation}
+              disabled={isRefetching}
             />
           </View>
 

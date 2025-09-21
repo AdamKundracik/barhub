@@ -1,8 +1,8 @@
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, ReactNode, useContext } from 'react';
 import { PurchasesPackage } from 'react-native-purchases';
 import { User } from '../../../shared';
-import { useUserContext } from './UserProvider';
 import { useRevenueCat } from '../utils/hooks/useRevenueCat';
+import { useUserData } from '@/src/app/utils/hooks/useUserData';
 
 interface RevenueCatContextType {
   purchasePackage: (pack: PurchasesPackage) => Promise<void>;
@@ -17,11 +17,11 @@ const RevenueCatContext = createContext<RevenueCatContextType | null>(null);
 export const RevenueCatProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const { fetchUserData } = useUserContext();
+  const { refetch } = useUserData();
 
   const revenueCatHook = useRevenueCat(async (user: Partial<User>) => {
     // Callback when user subscription status changes
-    await fetchUserData?.();
+    await refetch?.();
   });
 
   if (!revenueCatHook.isReady) {

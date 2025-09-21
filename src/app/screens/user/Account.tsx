@@ -12,15 +12,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
-import { useUserContext } from '../../providers/UserProvider';
 import { primaryBgColor, warningColor } from '../../utils/styles/colors';
 import EditProfile from '../../components/user/Account/EditProfile';
 import { ScreenLayout } from '../../components/user/Shared/ScreenLayout';
 import { Image } from 'expo-image';
 import { auth } from '@/firebaseConfig';
+import { useUserStore } from '@/src/app/utils/store/userStore';
 
 export const Account = () => {
-  const { userData } = useUserContext();
+  const { userData } = useUserStore();
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
 

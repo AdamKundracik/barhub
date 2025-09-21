@@ -1,7 +1,12 @@
 import { useQuery } from 'react-query';
-import { getAllExistingUsers, getCurrentUser } from '../services/functions';
+import { getCurrentUser } from '../services/functions';
+import { useUserStore } from '../store/userStore';
+import { auth } from '@/firebaseConfig';
 
-export const useUserData = (uid: string | undefined) => {
+export const useUserData = () => {
+  const uid = auth.currentUser?.uid;
+  const { setUserData } = useUserStore();
+
   return useQuery(
     ['userData', uid],
     async () => {
@@ -11,13 +16,12 @@ export const useUserData = (uid: string | undefined) => {
       enabled: !!uid,
       retry: 2,
       staleTime: 1000 * 60 * 5,
+      onSuccess: data => {
+        if (data) {
+          console.log('data', data);
+          setUserData(data); // 👈 automaticky uložíme do store
+        }
+      },
     }
   );
-};
-
-export const useAllUsers = () => {
-  return useQuery('allUsers', async () => {
-    const allUsers = await getAllExistingUsers();
-    return allUsers?.data?.users ?? [];
-  });
 };

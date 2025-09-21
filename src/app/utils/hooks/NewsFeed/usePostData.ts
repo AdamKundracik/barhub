@@ -11,10 +11,10 @@ import {
 
 export const useNewsFeedData = () => {
   const { distance, selectedPlaces, selectedOccupancy } = useFiltersStore();
-  const { realLocation, fakeLocation, useFakeLocation } = useLocationStore();
+  const { location, fakeLocation, useFakeLocation } = useLocationStore();
   const { placeId } = usePlaceStore();
 
-  const currentLocation = useFakeLocation ? fakeLocation! : realLocation!;
+  const currentLocation = useFakeLocation ? fakeLocation : location;
 
   const {
     data: postsData,
@@ -27,7 +27,7 @@ export const useNewsFeedData = () => {
   } = useInfiniteQuery(
     placeId ? ['posts', placeId] : ['posts'],
     ({ pageParam = null }) =>
-      handleFreshContent(distance, pageParam, placeId, currentLocation),
+      handleFreshContent(distance, pageParam, placeId, currentLocation!),
     {
       getNextPageParam: lastPage => lastPage?.lastVisible || null,
       enabled: !!currentLocation,

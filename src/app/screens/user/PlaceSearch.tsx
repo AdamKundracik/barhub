@@ -5,7 +5,6 @@ import { UserStackList } from '../../utils/types/screen-types';
 import { useTranslation } from 'react-i18next';
 import { generateId } from '../../utils/helper-functions/generate-hash';
 import { usePlaceStore } from '../../utils/store/placesStore';
-import { useUserContext } from '../../providers/UserProvider';
 import { useQuery } from 'react-query';
 import { primaryColor, primaryDeepColor } from '../../utils/styles/colors';
 import Layout from '../../components/user/Shared/Layout';
@@ -15,6 +14,7 @@ import { Icons } from '../../utils/icons/icons';
 import { fetchPlaceAutocomplete } from '../../utils/helper-functions/fetchPlacesAPI';
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
 import { XIcon } from 'lucide-react-native';
+import { useLocationStore } from '@/src/app/utils/store/locationStore';
 
 export const PlaceSearch = () => {
   const [isMapShown, setIsMapShown] = useState<boolean>(false);
@@ -32,7 +32,7 @@ export const PlaceSearch = () => {
   }
 
   const usePlaceAutocomplete = (query: string, sessionToken: string) => {
-    const { location } = useUserContext();
+    const { location } = useLocationStore();
 
     return useQuery(
       ['places-autocomplete', query],
