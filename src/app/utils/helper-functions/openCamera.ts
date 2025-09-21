@@ -28,14 +28,13 @@ export const openCamera = async (
     });
 
     if (!result.canceled) {
-      if (placeId && senderToken && notificationId) {
+      if (placeId && senderToken) {
         const placeDetail = await fetchPlaceDetails(placeId);
         const place: Place = mapPlaceDetailToPlace(placeDetail);
         navigation.navigate('PostSummary', {
           image: result.assets[0].uri ?? '',
           place: place,
           senderToken: senderToken,
-          notificationId: notificationId,
         });
       } else {
         navigation?.navigate('PhotoResolver', { image: result.assets[0].uri });

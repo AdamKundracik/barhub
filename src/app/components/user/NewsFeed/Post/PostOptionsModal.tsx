@@ -24,6 +24,7 @@ import {
 
 type PostOptionsModalProps = {
   visible: boolean;
+  showDelete: boolean;
   onClose: () => void;
   onDelete: () => Promise<void> | void;
   onReport: () => void; // otvorí Report modal
@@ -34,6 +35,7 @@ export const PostOptionsModal = ({
   onClose,
   onDelete,
   onReport,
+  showDelete,
 }: PostOptionsModalProps) => {
   const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
@@ -99,17 +101,19 @@ export const PostOptionsModal = ({
       footerComponent={renderFooter}
     >
       <BottomSheetView style={styles.content}>
-        <TouchableOpacity
-          style={styles.option}
-          activeOpacity={0.7}
-          onPress={handleDelete}
-          disabled={loading}
-        >
-          <View style={styles.optionRow}>
-            <Text style={styles.optionText}>{t('delete-post')}</Text>
-            <FontAwesomeIcon icon={Icons.TrashCan} size={16} color="white" />
-          </View>
-        </TouchableOpacity>
+        {showDelete && (
+          <TouchableOpacity
+            style={styles.option}
+            activeOpacity={0.7}
+            onPress={handleDelete}
+            disabled={loading}
+          >
+            <View style={styles.optionRow}>
+              <Text style={styles.optionText}>{t('delete-post')}</Text>
+              <FontAwesomeIcon icon={Icons.TrashCan} size={16} color="white" />
+            </View>
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity
           style={styles.option}

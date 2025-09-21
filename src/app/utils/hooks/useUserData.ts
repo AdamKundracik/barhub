@@ -18,8 +18,7 @@ export const useUserData = () => {
       staleTime: 1000 * 60 * 5,
       onSuccess: data => {
         if (data) {
-          console.log('data', data);
-          setUserData(data); // 👈 automaticky uložíme do store
+          setUserData(data);
         }
       },
     }

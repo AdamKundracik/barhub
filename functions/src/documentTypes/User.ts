@@ -1,5 +1,6 @@
 export interface UserDocument {
-  id?: string;
+  id: string;
   userName: string;
   userPhotoUrl: string;
+  pushToken?: string;
 }

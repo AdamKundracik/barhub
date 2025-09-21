@@ -3,10 +3,10 @@ export function generateUID(): string {
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const length = 18;
   let uid = '';
-  const randomValues = crypto.getRandomValues(new Uint8Array(length));
 
   for (let i = 0; i < length; i++) {
-    uid += chars[randomValues[i] % chars.length];
+    const randomIndex = Math.floor(Math.random() * chars.length);
+    uid += chars[randomIndex];
   }
 
   return uid;

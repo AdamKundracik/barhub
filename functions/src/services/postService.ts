@@ -5,8 +5,11 @@ import { GeoPointType, PostDocument } from '../documentTypes/Post';
 import * as geofire from 'geofire-common';
 import { HttpsError } from 'firebase-functions/https';
 
-export interface SavePostResponse {
+export type SavePostResponse = {
   post: Post;
+};
+export interface DeletePostResponse {
+  success: boolean;
 }
 
 class PostService {
@@ -301,6 +304,52 @@ class PostService {
       throw new https.HttpsError(
         'internal',
         `Error fetching posts by place ID: ${error.message || 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Deletes a post by its ID, including its subcollections (likes, comments).
+   *
+   * @param postId - ID of the post to delete
+   * @returns A success message when deleted
+   * @throws HttpsError if the post does not exist or deletion fails
+   */
+  async deletePost(postId: string): Promise<{ success: boolean }> {
+    if (!postId) {
+      throw new HttpsError('invalid-argument', 'Missing postId');
+    }
+
+    try {
+      const postRef = this.db.collection('posts').doc(postId);
+      const postSnap = await postRef.get();
+
+      if (!postSnap.exists) {
+        throw new HttpsError('not-found', `Post with ID ${postId} not found`);
+      }
+
+      // batch delete subcollections (likes, comments)
+      const [likesSnap, commentsSnap] = await Promise.all([
+        postRef.collection('likes').get(),
+        postRef.collection('comments').get(),
+      ]);
+
+      const batch = this.db.batch();
+
+      likesSnap.forEach(doc => batch.delete(doc.ref));
+      commentsSnap.forEach(doc => batch.delete(doc.ref));
+
+      // delete main post
+      batch.delete(postRef);
+
+      await batch.commit();
+
+      return { success: true };
+    } catch (error: any) {
+      logger.error('Error deleting post:', error);
+      throw new HttpsError(
+        'internal',
+        `Error deleting post: ${error.message || 'Unknown error'}`
       );
     }
   }

@@ -5,9 +5,13 @@ import {
   SaveNotificationResponse,
 } from '../../../common/types/notificationTypes';
 import { https } from 'firebase-functions';
-import * as admin from 'firebase-admin';
+import { distanceBetween, geohashQueryBounds } from 'geofire-common';
 
-class NotifiationService {
+import * as admin from 'firebase-admin';
+import { HttpsError } from 'firebase-functions/https';
+import { UserDocument } from '../documentTypes/User';
+
+class NotificationService {
   private db: FirebaseFirestore.Firestore;
 
   constructor() {
@@ -39,19 +43,12 @@ class NotifiationService {
         id: addedNotificationRef.id,
         ...addedNotification,
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding notification: ', error);
       throw new Error(`Failed to save notification: ${error.message}`);
     }
   }
 
-  /**
-   * Retrieves all notifications for a specific user and checks for new ones
-   * @param userId - The ID of the user whose notifications to fetch
-   * @param lastCheckedTime - Optional timestamp of when notifications were last checked
-   * @returns Promise with an array of notifications and new notifications info
-   * @throws HttpsError if userId is missing or if there's an internal error
-   */
   async getUserNotifications(
     userId: string,
     lastCheckedTime?: admin.firestore.Timestamp
@@ -95,7 +92,7 @@ class NotifiationService {
         hasNewNotifications,
         newNotificationsCount,
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching notifications: ', error);
       throw new https.HttpsError(
         'internal',
@@ -131,7 +128,7 @@ class NotifiationService {
         success: true,
         updatedCount: notificationsSnapshot.docs.length,
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error marking notifications as seen: ', error);
       throw new https.HttpsError(
         'internal',
@@ -163,13 +160,85 @@ class NotifiationService {
       } else {
         throw new https.HttpsError('not-found', 'Notification not found');
       }
-    } catch (error) {
+    } catch (error: any) {
       throw new https.HttpsError(
         'internal',
         `Error deleting notification: ${error.message || 'An unknown error occurred'}`
       );
     }
   }
+
+  async sendNotification(
+    uid: string,
+    placeLocation: { latitude: number; longitude: number }
+  ): Promise<string[]> {
+    if (
+      placeLocation.latitude === undefined ||
+      placeLocation.longitude === undefined
+    ) {
+      throw new HttpsError('invalid-argument', 'Invalid location data.');
+    }
+
+    const locationArray: [number, number] = [
+      placeLocation.latitude,
+      placeLocation.longitude,
+    ];
+
+    try {
+      const bounds = geohashQueryBounds(locationArray, 8000); // 8 km radius
+      const promises = bounds.map(b =>
+        this.db
+          .collection('users')
+          .orderBy('geohash')
+          .startAt(b[0])
+          .endAt(b[1])
+          .get()
+      );
+      const snapshots = await Promise.all(promises);
+
+      const matchingUsers: UserDocument[] = [];
+
+      for (const snap of snapshots) {
+        snap.docs.forEach(doc => {
+          const isUsingFakeLocation = doc.get('isUsingFakeLocation');
+
+          if (isUsingFakeLocation) return;
+
+          const location = doc.get('location');
+          const lat = location?.latitude;
+          const lng = location?.longitude;
+
+          if (lat !== undefined && lng !== undefined) {
+            const distanceInM =
+              distanceBetween([lat, lng], locationArray) * 1000;
+
+            if (
+              //TODO: Change radius to 30
+              Math.floor(distanceInM) <= 8000 &&
+              (doc.data() as UserDocument).id !== uid
+            ) {
+              matchingUsers.push(doc.data() as UserDocument);
+            }
+          }
+        });
+      }
+
+      if (matchingUsers.length === 0) {
+        return [];
+      }
+
+      const tokens = matchingUsers
+        .map(user => user.pushToken)
+        .filter(token => token && token !== uid);
+
+      return tokens;
+    } catch (error: any) {
+      throw new HttpsError(
+        'internal',
+        `Failed to fetch nearby users: ${error.message}`
+      );
+    }
+  }
 }
 
-export default NotifiationService;
+export default NotificationService;
