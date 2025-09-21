@@ -39,14 +39,16 @@ const NotificationHandler: React.FC<NotificationHandlerProps> = ({
 
     notificationListener.current =
       Notifications.addNotificationReceivedListener(async notification => {
-        const { notificationType, placeId, senderToken } =
+        const { notificationType, placeId, senderToken, id } =
           notification.request.content.data;
+
         await saveNotification({
           label: notification.request.content.title ?? 'No title text',
           text: notification.request.content.body ?? 'no body text',
           notificationType: notificationType,
           placeId: placeId,
           senderToken: senderToken,
+          id: id,
         });
         await refetch();
       });
@@ -59,6 +61,7 @@ const NotificationHandler: React.FC<NotificationHandlerProps> = ({
           notificationTTL,
           sentAt,
           notificationType,
+          id,
         } = response.notification.request.content.data;
 
         switch (notificationType as NotificationType) {
@@ -75,7 +78,7 @@ const NotificationHandler: React.FC<NotificationHandlerProps> = ({
             ) {
               Alert.alert(t('request-expired'), t('missed-request-info'));
             } else {
-              await openCamera(placeId, senderToken, navigation);
+              await openCamera(placeId, senderToken, navigation, id);
             }
             break;
           case NotificationType.RESPONSE:

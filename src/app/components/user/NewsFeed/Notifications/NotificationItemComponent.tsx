@@ -145,6 +145,8 @@ export const NotificationItemComponent: React.FC<NotificationItemProps> = ({
       const { placeId, notificationType, senderToken, creationTime, id } =
         notification;
 
+      console.log('notif', notification);
+
       if (!creationTime || typeof creationTime !== 'object') {
         throw new Error('Creation time is missing or not an object');
       }

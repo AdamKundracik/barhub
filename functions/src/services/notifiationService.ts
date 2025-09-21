@@ -33,7 +33,8 @@ class NotificationService {
 
       const addedNotificationRef = await this.db
         .collection('notifications')
-        .add(notificationDoc);
+        .doc(notificationDoc.id)
+        .set(notificationDoc);
 
       const addedNotificationSnapshot = await addedNotificationRef.get();
       const addedNotification =

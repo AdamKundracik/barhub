@@ -15,7 +15,7 @@ import { SaveNotificationResponse } from '@/common/types/notificationTypes';
 export const saveNotification = async (
   notification: Omit<
     SaveNotificationRequest,
-    'creationTime' | 'userId' | 'id' | 'postId'
+    'creationTime' | 'userId' | 'postId'
   >
 ): Promise<SaveNotificationResponse> => {
   const cloudFunction = httpsCallable(functions, 'saveNotificationSecondGen');

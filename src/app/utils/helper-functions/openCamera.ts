@@ -35,6 +35,7 @@ export const openCamera = async (
           image: result.assets[0].uri ?? '',
           place: place,
           senderToken: senderToken,
+          notificationId: notificationId ?? null,
         });
       } else {
         navigation?.navigate('PhotoResolver', { image: result.assets[0].uri });
