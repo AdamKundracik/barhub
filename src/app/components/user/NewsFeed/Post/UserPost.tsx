@@ -1,6 +1,7 @@
 import { Dimensions, StyleSheet, View } from 'react-native';
 import Device from 'react-native-device-info';
 import Animated, {
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -144,7 +145,7 @@ export const UserPost = (props: PostInterface) => {
     .maxDuration(DOUBLE_TAP_MAX_DURATION)
     .numberOfTaps(2)
     .onStart(() => {
-      handleLikeToggle(post.id);
+      runOnJS(handleLikeToggle)(post.id);
     });
 
   const pinch = Gesture.Pinch()
