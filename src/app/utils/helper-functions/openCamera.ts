@@ -22,9 +22,9 @@ export const openCamera = async (
     }
 
     const result = await ImagePicker.launchCameraAsync({
-      quality: 1,
-      allowsEditing: true,
-      aspect: [4, 4],
+      quality: 0.9,
+      allowsEditing: false, // ✅ zakáže cropovanie
+      aspect: undefined, // ✅ nenechaj ho fixovať pomer strán
     });
 
     if (!result.canceled) {

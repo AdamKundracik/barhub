@@ -1,19 +1,18 @@
-import { StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import * as React from 'react';
 import { useState } from 'react';
-import * as AppleAuthentication from 'expo-apple-authentication';
-import { AppleAuthenticationButtonStyle } from 'expo-apple-authentication';
-
-import AuthLayout from '../../components/auth/AuthLayout';
-import { commonAppStyles, formStyles } from '../../utils/styles/styles';
-import { auth } from '../../../../firebaseConfig';
-import { useTranslation } from 'react-i18next';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import * as AppleAuth from 'expo-apple-authentication';
 import {
   GoogleAuthProvider,
+  OAuthProvider,
   signInWithCredential,
   signInWithEmailAndPassword,
 } from 'firebase/auth';
+import { AppleButton } from '@invertase/react-native-apple-authentication';
+import AuthLayout from '../../components/auth/AuthLayout';
+import { commonAppStyles, formStyles } from '../../utils/styles/styles';
+import { useTranslation } from 'react-i18next';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import Svg, { Path } from 'react-native-svg';
 import { GoogleIcon } from '../../utils/icons/GoogleIcon';
 import OSeparator from '../../components/auth/OSeparator';
@@ -32,6 +31,7 @@ import { AlertCircleIcon, EyeIcon, EyeOffIcon } from '@/components/ui/icon';
 import { primaryColor, primaryTextColor } from '@/src/app/utils/styles/colors';
 import { Center } from '@/components/ui/center';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
+import { auth } from '@/firebaseConfig';
 
 export const LogIn = ({ navigation }: any) => {
   const { t } = useTranslation();
@@ -47,6 +47,28 @@ export const LogIn = ({ navigation }: any) => {
       '995791421821-fjmj5qmj8j48e4s13nktbiqkt6gq83jb.apps.googleusercontent.com',
     offlineAccess: true,
   });
+
+  async function onAppleButtonPress() {
+    try {
+      const idToken = await AppleAuth.signInAsync({
+        requestedScopes: [
+          AppleAuth.AppleAuthenticationScope.FULL_NAME,
+          AppleAuth.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      const provider = new OAuthProvider('apple.com');
+      if (idToken.identityToken) {
+        const appleCredentials = provider.credential({
+          idToken: idToken.identityToken,
+        });
+        await signInWithCredential(auth, appleCredentials);
+      }
+    } catch (error: any) {
+      console.error('Apple sign-in error:', error);
+      throw error;
+    }
+  }
 
   async function onGoogleButtonPress() {
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
@@ -255,37 +277,23 @@ export const LogIn = ({ navigation }: any) => {
       <OSeparator />
 
       <Center>
-        <TouchableOpacity style={{ marginVertical: 10 }}>
-          <AppleAuthentication.AppleAuthenticationButton
-            buttonType={
-              AppleAuthentication.AppleAuthenticationButtonType.CONTINUE
-            }
-            buttonStyle={AppleAuthenticationButtonStyle.WHITE_OUTLINE}
+        <View style={styles.socialButtonsContainer}>
+          <AppleButton
+            buttonStyle={AppleButton.Style.WHITE}
+            buttonType={AppleButton.Type.SIGN_IN}
+            style={styles.socialButton}
             cornerRadius={10}
-            style={styles.button}
-            onPress={async () => {
-              try {
-                const credential = await AppleAuthentication.signInAsync({
-                  requestedScopes: [
-                    AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-                    AppleAuthentication.AppleAuthenticationScope.EMAIL,
-                  ],
-                });
-                // signed in
-              } catch (e: any) {
-                if (e.code === 'ERR_REQUEST_CANCELED') {
-                  // handle that the user canceled the sign-in flow
-                } else {
-                  // handle other errors
-                }
-              }
-            }}
+            onPress={onAppleButtonPress}
           />
-        </TouchableOpacity>
 
-        <TouchableOpacity onPress={onGoogleButtonPress} disabled={loading}>
-          <GoogleIcon />
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.socialButton}
+            onPress={onGoogleButtonPress}
+            disabled={loading}
+          >
+            <GoogleIcon />
+          </TouchableOpacity>
+        </View>
       </Center>
 
       <Center>
@@ -355,6 +363,18 @@ const styles = StyleSheet.create({
   },
   button: {
     width: 200,
+    height: 44,
+  },
+  socialButtonsContainer: {
+    flexDirection: 'column',
+    width: '80%',
+    marginVertical: 10,
+    alignItems: 'center',
+  },
+  socialButton: {
+    width: '100%',
+    marginVertical: 10, // medzera medzi tlačidlami
+    alignItems: 'center',
     height: 44,
   },
 });

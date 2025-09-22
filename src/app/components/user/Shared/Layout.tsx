@@ -24,13 +24,14 @@ import {
 } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { openCamera } from '../../../utils/helper-functions/openCamera';
-import { auth } from '../../../../../firebaseConfig';
 import RollupMenu from '../RollupMenu';
 import FilterSlider from '../NewsFeed/Filters/FilterSlider';
 import { useNotifications } from '../../../utils/store/notificationsStore';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
 import { useTranslation } from 'react-i18next';
+import { useNotificationsHandler } from '@/src/app/components/user/NewsFeed/NotificationHandler';
+import { auth } from '@/firebaseConfig';
 
 type LayoutProps = {
   children: ReactNode | ReactNode[];
@@ -41,6 +42,7 @@ type LayoutProps = {
 export const Layout = ({ children, showBottomTabs = true }: LayoutProps) => {
   const { userData } = useUserStore();
   const { useFakeLocation } = useLocationStore();
+  useNotificationsHandler();
 
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const route = useRoute();
@@ -226,7 +228,6 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
-    // paddingHorizontal: 10,
     paddingVertical: 10,
   },
   bottomTab: {

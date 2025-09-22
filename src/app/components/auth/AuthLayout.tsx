@@ -81,6 +81,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   mainContent: {
+    paddingHorizontal: 10,
     flex: 1,
   },
   bottomBar: {

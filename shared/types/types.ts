@@ -1,5 +1,5 @@
-import { LocationType } from '../../src/app/utils/types/types';
 import { Timestamp } from 'firebase/firestore';
+import { LocationType } from '@/src/app/utils/types/types';
 
 export interface UserRecord {
   customClaims: { [key: string]: any };
@@ -28,7 +28,7 @@ export interface User extends UserRecord {
   dateOfBirth: string;
   location: LocationType;
   geohash: string;
-  pushToken: string;
+  pushToken: string[] | null;
   lastUploadedPost: string;
   premium: boolean;
   acceptTermsOfUse: boolean;

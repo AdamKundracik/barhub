@@ -1,97 +1,58 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Alert } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
 import * as Notifications from 'expo-notifications';
-import { useTranslation } from 'react-i18next';
-import { UserStackList } from '../../../utils/types/screen-types';
-import { setUser } from '../../../utils/services/functions';
 import { registerForPushNotificationsAsync } from '../../../utils/functions/notofications-handler';
-import { openCamera } from '../../../utils/helper-functions/openCamera';
-import { saveNotification } from '../../../utils/services/notifications-service';
-import { NavigationProp } from '@react-navigation/native';
-import { NotificationType } from '../../../utils/types/notification-types';
-import { useNotificationsStore } from '../../../utils/store/notificationsStore';
+import { useUserStore } from '@/src/app/utils/store/userStore';
+import userClient from '@/src/app/utils/services/user.service';
 
-interface NotificationHandlerProps {
-  navigation: NavigationProp<UserStackList>;
-  userData: any;
-}
-
-const NotificationHandler: React.FC<NotificationHandlerProps> = ({
-  navigation,
-}) => {
-  const { t } = useTranslation();
-  const { refetch } = useNotificationsStore();
+export function useNotificationsHandler() {
   const [expoPushToken, setExpoPushToken] = useState<string>('');
-  const notificationListener = useRef<Notifications.Subscription>();
-  const responseListener = useRef<Notifications.Subscription>();
+  const notificationListener = useRef<Notifications.Subscription | null>(null);
+  const responseListener = useRef<Notifications.Subscription | null>(null);
+  const { setCurrentPushToken, currentPushToken } = useUserStore();
+
+  const unsubscribeNotifications = async () => {
+    notificationListener.current?.remove();
+    responseListener.current?.remove();
+    notificationListener.current = null;
+    responseListener.current = null;
+
+    await removePushToken(currentPushToken ?? expoPushToken);
+    setExpoPushToken('');
+  };
+
+  const addPushToken = async (token: string) => {
+    if (!token) return;
+    const response = await userClient.addPushToken(token);
+    if (response.success) setCurrentPushToken(token);
+  };
+
+  const removePushToken = async (token: string) => {
+    if (!token) return;
+    await userClient.removePushToken(token);
+  };
 
   useEffect(() => {
-    const setTokenToDatabase = async (pushToken: string) => {
-      await setUser({ pushToken: pushToken });
-    };
-
     registerForPushNotificationsAsync()
       .then(token => {
         setExpoPushToken(token ?? '');
-        setTokenToDatabase(token ?? '');
+        addPushToken(token ?? '');
       })
       .catch(error => setExpoPushToken(`${error}`));
 
     notificationListener.current =
-      Notifications.addNotificationReceivedListener(async notification => {
-        const { notificationType, placeId, senderToken, id } =
-          notification.request.content.data;
-
-        await saveNotification({
-          label: notification.request.content.title ?? 'No title text',
-          text: notification.request.content.body ?? 'no body text',
-          notificationType: notificationType,
-          placeId: placeId,
-          senderToken: senderToken,
-          id: id,
-        });
-        await refetch();
+      Notifications.addNotificationReceivedListener(notification => {
+        console.log('Got notification', notification);
       });
 
     responseListener.current =
-      Notifications.addNotificationResponseReceivedListener(async response => {
-        const {
-          placeId,
-          senderToken,
-          notificationTTL,
-          sentAt,
-          notificationType,
-          id,
-        } = response.notification.request.content.data;
-
-        switch (notificationType as NotificationType) {
-          case NotificationType.LIKE:
-            navigation.navigate('NotificationsList');
-            break;
-          case NotificationType.COMMENT:
-            navigation.navigate('NotificationsList');
-            break;
-          case NotificationType.REQUEST:
-            if (
-              new Date().getTime() >
-              new Date(sentAt).getTime() + notificationTTL
-            ) {
-              Alert.alert(t('request-expired'), t('missed-request-info'));
-            } else {
-              await openCamera(placeId, senderToken, navigation, id);
-            }
-            break;
-          case NotificationType.RESPONSE:
-        }
+      Notifications.addNotificationResponseReceivedListener(response => {
+        console.log('Notification response', response);
       });
 
     return () => {
-      notificationListener.current!.remove();
-      responseListener.current!.remove();
+      unsubscribeNotifications();
     };
   }, []);
 
-  return null;
-};
-
-export default NotificationHandler;
+  return { expoPushToken, unsubscribeNotifications };
+}
