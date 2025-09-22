@@ -2,8 +2,8 @@ import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Layout from '../../components/user/Shared/Layout';
 import { commonAppStyles, formStyles } from '../../utils/styles/styles';
 import { signOut } from 'firebase/auth';
-import { auth } from '../../../../firebaseConfig';
 import { useTranslation } from 'react-i18next';
+import { auth } from '@/firebaseConfig';
 
 const EmailNotVerified = () => {
   const { t } = useTranslation();
@@ -40,6 +40,7 @@ const EmailNotVerified = () => {
 
 const styles = StyleSheet.create({
   container: {
+    paddingHorizontal: 16,
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',

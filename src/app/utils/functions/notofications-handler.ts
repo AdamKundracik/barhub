@@ -6,6 +6,7 @@ import {
   LikeNotificationRequest,
   NotificationType,
 } from '../types/notification-types';
+import { generateUID } from '@/src/app/utils/helper-functions/generateUID';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -56,6 +57,7 @@ export async function sendRequestNotification(
       notificationTTL: notificationTTL,
       sentAt: new Date().toISOString(),
       notificationType: NotificationType.REQUEST,
+      id: generateUID(),
     },
   };
 

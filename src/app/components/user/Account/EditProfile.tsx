@@ -65,6 +65,10 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
   const [isSaving, setIsSaving] = useState(false);
   const [datePickerOpened, setDatePickerOpened] = useState(false);
 
+  function validateInputs(): boolean {
+    return !username;
+  }
+
   const openGallery = async () => {
     try {
       const permission =
@@ -252,7 +256,11 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
         </FormControl>
 
         {/* Username input */}
-        <FormControl size="lg" style={formStyles.formControl}>
+        <FormControl
+          size="lg"
+          style={formStyles.formControl}
+          isInvalid={username?.length === 0}
+        >
           <FormControlLabel>
             <FormControlLabelText style={{ color: primaryColor }}>
               {t('user-name')}
@@ -303,7 +311,7 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
             action="primary"
             style={formStyles.buttonPrimary}
             onPress={handleUpdateUser}
-            isDisabled={isSaving}
+            isDisabled={isSaving || validateInputs()}
           >
             {!isSaving ? (
               <ButtonText style={formStyles.buttonText}>{t('save')}</ButtonText>

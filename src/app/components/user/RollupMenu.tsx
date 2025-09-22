@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import {
+  Alert,
   Animated,
   LayoutChangeEvent,
   StyleSheet,
@@ -33,6 +34,7 @@ import {
   bottomModalBgColor,
   warningColor,
 } from '@/src/app/utils/styles/colors';
+import { useNotificationsHandler } from '@/src/app/components/user/NewsFeed/NotificationHandler';
 
 type BottomSheetMenuProps = {
   visible: boolean;
@@ -43,12 +45,14 @@ const RollupMenu = ({ visible, setVisible }: BottomSheetMenuProps) => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { unsubscribeNotifications } = useNotificationsHandler();
 
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 
-  const handleSignOut = () => {
-    signOut(auth)
-      .then(() => alert(t('Signed out')))
+  const handleSignOut = async () => {
+    await unsubscribeNotifications();
+    await signOut(auth)
+      .then(() => Alert.alert(t('signed-out'), t('you-have-been-signed-out')))
       .catch(console.error);
   };
 

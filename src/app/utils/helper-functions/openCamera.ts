@@ -22,9 +22,9 @@ export const openCamera = async (
     }
 
     const result = await ImagePicker.launchCameraAsync({
-      quality: 1,
-      allowsEditing: true,
-      aspect: [4, 4],
+      quality: 0.9,
+      allowsEditing: false, // ✅ zakáže cropovanie
+      aspect: undefined, // ✅ nenechaj ho fixovať pomer strán
     });
 
     if (!result.canceled) {
@@ -35,6 +35,7 @@ export const openCamera = async (
           image: result.assets[0].uri ?? '',
           place: place,
           senderToken: senderToken,
+          notificationId: notificationId ?? null,
         });
       } else {
         navigation?.navigate('PhotoResolver', { image: result.assets[0].uri });

@@ -1,6 +1,7 @@
 import { Dimensions, StyleSheet, View } from 'react-native';
 import Device from 'react-native-device-info';
 import Animated, {
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -64,6 +65,16 @@ export const UserPost = (props: PostInterface) => {
   const [liked, setLiked] = useState(post.isLiked);
   const [likeCount, setLikeCount] = useState<number>(post.likesCount ?? 0);
   const [previousLikeState, setPreviousLikeState] = useState(!post.isLiked);
+
+  const [imageHeight, setImageHeight] = useState<number>(300); // fallback výška
+
+  const handleImageLoad = (event: any) => {
+    const { width, height } = event.source;
+    if (width && height) {
+      const ratio = height / width;
+      setImageHeight(screenWidth * ratio);
+    }
+  };
 
   // Optimistic update for like functionality
   const optimisticUpdate = (currentLiked: boolean) => {
@@ -134,7 +145,7 @@ export const UserPost = (props: PostInterface) => {
     .maxDuration(DOUBLE_TAP_MAX_DURATION)
     .numberOfTaps(2)
     .onStart(() => {
-      handleLikeToggle(post.id);
+      runOnJS(handleLikeToggle)(post.id);
     });
 
   const pinch = Gesture.Pinch()
@@ -178,7 +189,6 @@ export const UserPost = (props: PostInterface) => {
 
   return (
     <>
-      {/* Place name header - only show when not filtering */}
       {!isFiltering && (
         <View style={[styles.placeName, isTablet && tabletStyles.placeName]}>
           <PlaceNameSeparator
@@ -188,28 +198,25 @@ export const UserPost = (props: PostInterface) => {
         </View>
       )}
 
-      {/* Main post content */}
       <View
         style={[
           styles.contentContainer,
           isTablet && tabletStyles.contentContainer,
         ]}
       >
-        {/* Blur overlay for non-premium users */}
         {!shouldNotBlurPost && <BluredPostFrontView />}
 
-        {/* User information line */}
         <UserLine
           user={post.user}
           date={post.creationTime}
           address={post.placeAddress}
           profileImage={post.user?.photoUrl ?? ''}
           postId={post.id}
-          postUserId={post.userId ?? ''}
+          postUserId={post.userId!}
         />
 
-        {/* Photo container - NxN square where N is screen width */}
-        <View style={styles.photoWrapper}>
+        {/* Dynamic photo container */}
+        <View style={[styles.photoWrapper, { height: imageHeight }]}>
           <GestureDetector gesture={doubleTap}>
             <GestureDetector gesture={pinch}>
               <Animated.View style={[styles.photoContainer, animatedStyle]}>
@@ -218,13 +225,13 @@ export const UserPost = (props: PostInterface) => {
                   source={{ uri: post.photoUrl }}
                   priority="high"
                   contentFit="cover"
+                  onLoad={handleImageLoad}
                 />
               </Animated.View>
             </GestureDetector>
           </GestureDetector>
         </View>
 
-        {/* Interaction bar */}
         <InteractionBar
           likes={likeCount}
           comments={post.commentsCount}
@@ -256,17 +263,15 @@ const styles = StyleSheet.create({
   },
   photoWrapper: {
     width: screenWidth,
-    height: screenWidth, // NxN square where N is screen width
     position: 'relative',
   },
   photoContainer: {
-    width: '100%',
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
   },
   photo: {
-    width: '100%',
+    width: screenWidth - 10,
     height: '100%',
     borderRadius: 20,
   },
@@ -280,102 +285,15 @@ const tabletStyles = StyleSheet.create({
     backgroundColor: postBgColor,
     borderRadius: 20,
     overflow: 'hidden',
+    width: screenWidth,
   },
   photo: {
-    width: '100%',
+    width: screenWidth - 10,
     height: '100%',
     borderRadius: 20,
   },
 });
 
 // READY FOR ANY IMAGE SIZE
-// return (
-//   <>
-//     {!isFiltering && (
-//       <View style={[styles.placeName, isTablet && tabletStyles.placeName]}>
-//         <PlaceNameSeparator
-//           placeNameLocal={trimPlaceName(post.placeName)}
-//           placeIdLocal={post.folderId}
-//         />
-//       </View>
-//     )}
-//
-//     <View
-//       style={[
-//         styles.contentContainer,
-//         isTablet && tabletStyles.contentContainer,
-//       ]}
-//     >
-//       {!shouldNotBlurPost && <BluredPostFrontView />}
-//
-//       <UserLine
-//         user={post.user}
-//         date={post.creationTime}
-//         address={post.placeAddress}
-//         profileImage={post.user?.photoUrl ?? ''}
-//         postId={post.id}
-//       />
-//
-//       {/* Dynamic photo container */}
-//       <View style={[styles.photoWrapper, { height: imageHeight }]}>
-//         <GestureDetector gesture={doubleTap}>
-//           <GestureDetector gesture={pinch}>
-//             <Animated.View style={[styles.photoContainer, animatedStyle]}>
-//               <Image
-//                 style={[styles.photo, isTablet && tabletStyles.photo]}
-//                 source={{ uri: post.photoUrl }}
-//                 priority="high"
-//                 contentFit="cover"
-//               />
-//             </Animated.View>
-//           </GestureDetector>
-//         </GestureDetector>
-//       </View>
-//
-//       <InteractionBar
-//         likes={likeCount}
-//         comments={post.commentsCount}
-//         onLikeToggle={() => handleLikeToggle(post.id)}
-//         onCommentToggle={() =>
-//           onCommentPress(
-//             post.id,
-//             post.user?.expoPushToken ?? '',
-//             post.userId ?? ''
-//           )
-//         }
-//         isLiked={liked}
-//         occupancy={post.occupancy}
-//       />
-//     </View>
-//   </>
-// );
-// };
-//
-// const styles = StyleSheet.create({
-//   placeName: {
-//     backgroundColor: primaryBgColor,
-//     alignItems: 'center',
-//   },
-//   contentContainer: {
-//     backgroundColor: postBgColor,
-//     borderRadius: 20,
-//     overflow: 'hidden',
-//   },
-//   photoWrapper: {
-//     width: screenWidth,
-//     position: 'relative',
-//   },
-//   photoContainer: {
-//     width: '100%',
-//     height: '100%',
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//   },
-//   photo: {
-//     width: '100%',
-//     height: '100%',
-//     borderRadius: 20,
-//   },
-// });
 
 export default UserPost;

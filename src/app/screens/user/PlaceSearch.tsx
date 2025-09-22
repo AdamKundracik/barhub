@@ -67,7 +67,7 @@ export const PlaceSearch = () => {
 
   return (
     <Layout pageTitle="Search places">
-      <View>
+      <View style={{ paddingHorizontal: 16 }}>
         <View
           style={{
             paddingBottom: 20,

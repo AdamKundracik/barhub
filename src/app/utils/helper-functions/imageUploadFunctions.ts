@@ -5,8 +5,8 @@ import {
   ref,
   uploadBytes,
 } from 'firebase/storage';
-import { auth, storage } from '../../../../firebaseConfig';
 import * as ImageManipulator from 'expo-image-manipulator';
+import { auth, storage } from '@/firebaseConfig';
 
 export const uploadImageAsync = async (
   uri: string,
@@ -19,9 +19,12 @@ export const uploadImageAsync = async (
       return null;
     }
 
-    const blob: Blob = await uriToBlob(uri);
+    const manipulatedImage = await manupulateOmage(uri);
+
+    const response = await fetch(manipulatedImage.uri);
     const path = `${placeId}/${fileId + '_' + auth.currentUser?.uid}`;
     const storageRef = ref(storage, path);
+    const blob = await response.blob();
 
     await uploadBytes(storageRef, blob);
     return await getDownloadURL(storageRef);
@@ -31,33 +34,45 @@ export const uploadImageAsync = async (
   }
 };
 
-const uriToBlob = async (uri: string): Promise<Blob> => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const width = 720;
-      const height = 720;
-
-      const manipResult = await ImageManipulator.manipulateAsync(
-        uri,
-        [{ resize: { width, height } }],
-        { compress: 0.7, format: ImageManipulator.SaveFormat.WEBP }
-      );
-
-      const xhr = new XMLHttpRequest();
-      xhr.onload = function () {
-        resolve(xhr.response);
-      };
-      xhr.onerror = function () {
-        reject(new Error('uriToBlob failed'));
-      };
-      xhr.responseType = 'blob';
-      xhr.open('GET', manipResult.uri, true);
-      xhr.send(null);
-    } catch (error) {
-      reject(error);
+async function manupulateOmage(uri: string) {
+  const width = 720;
+  return await ImageManipulator.manipulateAsync(
+    uri,
+    [{ resize: { width: width } }],
+    {
+      compress: 0.7,
+      format: ImageManipulator.SaveFormat.WEBP,
     }
-  });
-};
+  );
+}
+
+// const uriToBlob = async (uri: string): Promise<Blob> => {
+//   return new Promise(async (resolve, reject) => {
+//     try {
+//       const width = 720;
+//       const height = 720;
+//
+//       const manipResult = await ImageManipulator.manipulateAsync(
+//         uri,
+//         [{ resize: { width, height } }],
+//         { compress: 0.7, format: ImageManipulator.SaveFormat.WEBP }
+//       );
+//
+//       const xhr = new XMLHttpRequest();
+//       xhr.onload = function () {
+//         resolve(xhr.response);
+//       };
+//       xhr.onerror = function () {
+//         reject(new Error('uriToBlob failed'));
+//       };
+//       xhr.responseType = 'blob';
+//       xhr.open('GET', manipResult.uri, true);
+//       xhr.send(null);
+//     } catch (error) {
+//       reject(error);
+//     }
+//   });
+// };
 
 export const uploadProfilePhotoAsync = async (uri: string): Promise<string> => {
   try {
@@ -68,7 +83,10 @@ export const uploadProfilePhotoAsync = async (uri: string): Promise<string> => {
     const fileId = `profile_photos/${auth.currentUser?.uid}`;
     const storageRef = ref(storage, fileId);
 
-    const blob: Blob = await uriToBlob(uri);
+    const manipulatedImage = await manupulateOmage(uri);
+
+    const response = await fetch(manipulatedImage.uri);
+    const blob = await response.blob();
     const result = await uploadBytes(storageRef, blob);
 
     return getProfilePicture(result.metadata.name);

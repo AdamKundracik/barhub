@@ -1,10 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
 import Layout from '../../components/user/Shared/Layout';
-import NotificationHandler from '../../components/user/NewsFeed/NotificationHandler';
 import FeedHeader from '../../components/user/NewsFeed/FeedHeader';
-import { UserStackList } from '../../utils/types/screen-types';
 import { usePlaceStore } from '../../utils/store/placesStore';
 import { useFiltersStore } from '../../utils/store/filtersStorage';
 import { usePhotoRequest } from '../../utils/hooks/NewsFeed/usePhotoRequest';
@@ -16,10 +13,8 @@ import { useComments } from '../../utils/hooks/NewsFeed/useComments';
 import { FeedContent } from './NewsFeed/FeedContent';
 
 export const NewsFeed = () => {
-  const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
 
-  // Store hooks
   const { placeId, placeName } = usePlaceStore();
   const { distance } = useFiltersStore();
 
@@ -34,13 +29,10 @@ export const NewsFeed = () => {
     fetchMorePosts,
   } = useNewsFeedData();
 
-  // Feature hooks
   const { requestPhoto } = usePhotoRequest();
   const { commentsState, openComments, closeComments } = useComments();
   const { zoomedPost, setZoomedPost } = usePostZoom();
   const { daysSinceLastUpload, userData } = useUserUploadData();
-
-  // Effects
   useNewsFeedEffects({ placeId, distance, refetch });
 
   const handleRefresh = async () => {
@@ -50,8 +42,6 @@ export const NewsFeed = () => {
   return (
     <Layout pageTitle={t('feed')}>
       <FeedHeader placeName={placeName} />
-      <NotificationHandler navigation={navigation} userData={userData} />
-
       <FeedContent
         isLoading={isLoading}
         posts={posts}

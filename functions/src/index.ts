@@ -6,11 +6,11 @@ import admin from 'firebase-admin';
 import { GeoPointType } from './documentTypes/Post';
 
 // ----------------- CALLABLE FUNCTIONS -----------------
-import { onCall } from 'firebase-functions/v2/https';
-import { HttpsError } from 'firebase-functions/https';
+import { HttpsError, onCall } from 'firebase-functions/v2/https';
 import { Post } from '../../common/types/postTypes';
 import { onSchedule } from 'firebase-functions/scheduler';
 import * as logger from 'firebase-functions/logger';
+import { UserService } from './services/userService'; // service, ktorý sme pripravili
 
 export interface StatusResponse {
   success: boolean;
@@ -24,6 +24,46 @@ const postService = new PostService();
 const commentService = new CommentService();
 const notificationService = new NotifiationService();
 const reportService = new ReportService();
+const userService = new UserService();
+
+export const addPushTokenSecondGen = onCall(async request => {
+  if (!request.auth) {
+    throw new HttpsError(
+      'unauthenticated',
+      'User must be authenticated to add push token'
+    );
+  }
+
+  const userId = request.auth.uid;
+  const token: string = request.data?.token;
+
+  if (!token) {
+    throw new HttpsError('invalid-argument', 'Push token must be provided');
+  }
+
+  await userService.addPushToken({ userId, token });
+  return { success: true };
+});
+
+// --- Remove Push Token ---
+export const removePushTokenSecondGen = onCall(async request => {
+  if (!request.auth) {
+    throw new HttpsError(
+      'unauthenticated',
+      'User must be authenticated to remove push token'
+    );
+  }
+
+  const userId = request.auth.uid;
+  const token: string = request.data?.token;
+
+  if (!token) {
+    throw new HttpsError('invalid-argument', 'Push token must be provided');
+  }
+
+  await userService.removePushToken({ userId, token });
+  return { success: true };
+});
 
 // exports.createUser = functions.auth.user().onCreate(user => {
 //   return admin

@@ -4,42 +4,41 @@ import { User } from '@/shared';
 import { auth } from '@/firebaseConfig';
 
 interface UserStore {
-  // Auth state
   authUser: typeof auth.currentUser | null;
   isAuthLoading: boolean;
 
-  // Cached user data
   userData: User | null;
   isUserDataLoading: boolean;
 
-  // Actions
   setAuthUser: (user: typeof auth.currentUser | null) => void;
   setAuthLoading: (loading: boolean) => void;
   setUserData: (data: Partial<User>) => void;
   setUserDataLoading: (loading: boolean) => void;
 
-  // Data fetching methods
-  // fetchUserData: () => Promise<void>;
-
-  // Utility methods
-  // refreshUserData: () => Promise<void>;
+  currentPushToken: string | null;
+  setCurrentPushToken: (token: string | null) => void;
 }
 
 export const useUserStore = create<UserStore>()(
   subscribeWithSelector((set, get) => ({
-    // Initial state
     authUser: null,
     isAuthLoading: true,
     userData: null,
     allUsers: [],
     isUserDataLoading: false,
+    currentPushToken: null,
 
-    // Basic setters
     setAuthUser: user => set({ authUser: user }),
     setAuthLoading: loading => set({ isAuthLoading: loading }),
     setUserData: (data: User | Partial<User>) => {
       set(state => ({
         userData: { ...state.userData, ...data } as User,
+      }));
+    },
+
+    setCurrentPushToken: (token: string | null) => {
+      set(state => ({
+        currentPushToken: token,
       }));
     },
 
