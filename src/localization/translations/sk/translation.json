@@ -200,6 +200,10 @@
   "toastDataUpdatedTitle": "Úspešne uložené.",
   "toastDataUpdatedDesc": "Vaše údaje boli aktualizované.",
   "toastErrorTitle": "Niečo sa pokazilo.",
-  "toastErrorDesc": "Skúste to neskôr."
+  "toastErrorDesc": "Skúste to neskôr.",
+  "mailer-not-available": "Emailový klient nie je dostupný",
+  "help-request": "Žiadosť o pomoc",
+  "please-describe-your-issue": "Prosím, popíšte svoj problém"
+
 
 }

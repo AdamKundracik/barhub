@@ -20,6 +20,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
 import { signOut } from 'firebase/auth';
 import { useTranslation } from 'react-i18next';
+import * as MailComposer from 'expo-mail-composer';
 import {
   BottomSheetBackdrop,
   BottomSheetFooter,
@@ -56,6 +57,21 @@ const RollupMenu = ({ visible, setVisible }: BottomSheetMenuProps) => {
       .catch(console.error);
   };
 
+  // nová funkcia pre Help
+  const handleHelpMail = async () => {
+    const isAvailable = await MailComposer.isAvailableAsync();
+    if (!isAvailable) {
+      Alert.alert(t('error'), t('mailer-not-available'));
+      return;
+    }
+
+    await MailComposer.composeAsync({
+      recipients: ['support@example.com'], // zmeniť na tvoj support e-mail
+      subject: t('help-request'),
+      body: t('please-describe-your-issue'),
+    });
+  };
+
   const menuItems = [
     {
       title: t('account'),
@@ -70,9 +86,13 @@ const RollupMenu = ({ visible, setVisible }: BottomSheetMenuProps) => {
     {
       title: t('help'),
       icon: Icons.Help,
-      action: () => navigation.navigate('Help'),
+      action: handleHelpMail,
     },
-    { title: t('logout'), icon: Icons.LogOut, action: () => handleSignOut() },
+    {
+      title: t('logout'),
+      icon: Icons.LogOut,
+      action: () => handleSignOut(),
+    },
   ];
 
   const [contentHeight, setContentHeight] = useState(0);

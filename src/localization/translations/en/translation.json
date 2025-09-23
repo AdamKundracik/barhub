@@ -201,6 +201,9 @@
   "toastDataUpdatedTitle": "Saved successfully.",
   "toastDataUpdatedDesc": "Your data has been updated.",
   "toastErrorTitle": "Something went wrong.",
-  "toastErrorDesc": "Try again later."
+  "toastErrorDesc": "Try again later.",
+  "mailer-not-available": "Mail client is not available",
+  "help-request": "Help request",
+  "please-describe-your-issue": "Please describe your issue"
 
 }

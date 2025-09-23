@@ -201,6 +201,9 @@
   "toastDataUpdatedTitle": "Erfolgreich gespeichert.",
   "toastDataUpdatedDesc": "Deine Daten wurden aktualisiert.",
   "toastErrorTitle": "Etwas ist schief gelaufen.",
-  "toastErrorDesc": "Versuche es später erneut."
+  "toastErrorDesc": "Versuche es später erneut.",
+  "mailer-not-available": "Mail-Client nicht verfügbar",
+  "help-request": "Hilfeanfrage",
+  "please-describe-your-issue": "Bitte beschreiben Sie Ihr Problem"
 
 }

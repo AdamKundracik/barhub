@@ -201,5 +201,8 @@
   "toastDataUpdatedTitle": "Guardado con éxito.",
   "toastDataUpdatedDesc": "Tus datos han sido actualizados.",
   "toastErrorTitle": "Algo salió mal.",
-  "toastErrorDesc": "Inténtalo de nuevo más tarde."
+  "toastErrorDesc": "Inténtalo de nuevo más tarde.",
+  "mailer-not-available": "Cliente de correo no disponible",
+  "help-request": "Solicitud de ayuda",
+  "please-describe-your-issue": "Por favor, describa su problema"
 }
