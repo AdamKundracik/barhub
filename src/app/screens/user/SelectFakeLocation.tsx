@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ScreenLayout } from '../../components/user/Shared/ScreenLayout';
+import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { formStyles } from '../../utils/styles/styles';
 import { primaryColor, primaryDeepColor } from '../../utils/styles/colors';
 import { useLocationStore } from '../../utils/store/locationStore';

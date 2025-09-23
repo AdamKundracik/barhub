@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
-import { User } from '@/shared';
+import { SearchHistoryItem, User } from '@/shared';
 import { auth } from '@/firebaseConfig';
+import { setUser } from '@/src/app/utils/services/functions';
 
 interface UserStore {
   authUser: typeof auth.currentUser | null;
@@ -9,14 +10,20 @@ interface UserStore {
 
   userData: User | null;
   isUserDataLoading: boolean;
+  premium: boolean;
 
   setAuthUser: (user: typeof auth.currentUser | null) => void;
   setAuthLoading: (loading: boolean) => void;
   setUserData: (data: Partial<User>) => void;
   setUserDataLoading: (loading: boolean) => void;
+  setPremium: (premium: boolean) => void;
 
   currentPushToken: string | null;
   setCurrentPushToken: (token: string | null) => void;
+
+  searchHistory: SearchHistoryItem[];
+  addToSearchHistory: (item: SearchHistoryItem) => Promise<void>;
+  setSearchHistory: (history: SearchHistoryItem[]) => void;
 }
 
 export const useUserStore = create<UserStore>()(
@@ -27,6 +34,24 @@ export const useUserStore = create<UserStore>()(
     allUsers: [],
     isUserDataLoading: false,
     currentPushToken: null,
+    premium: false,
+
+    searchHistory: [],
+
+    setSearchHistory: (history: SearchHistoryItem[]) =>
+      set({ searchHistory: history }),
+
+    addToSearchHistory: async (item: SearchHistoryItem) => {
+      const { searchHistory } = get();
+      const filtered = searchHistory.filter(h => h.placeId !== item.placeId);
+      const updatedHistory = [item, ...filtered].slice(0, 5);
+      set({ searchHistory: updatedHistory });
+      try {
+        await setUser({ searchHistory: updatedHistory });
+      } catch (err) {
+        console.error('Error saving search history:', err);
+      }
+    },
 
     setAuthUser: user => set({ authUser: user }),
     setAuthLoading: loading => set({ isAuthLoading: loading }),
@@ -36,58 +61,14 @@ export const useUserStore = create<UserStore>()(
       }));
     },
 
+    setPremium: (premium: boolean) => {
+      set({ premium });
+    },
+
     setCurrentPushToken: (token: string | null) => {
-      set(state => ({
-        currentPushToken: token,
-      }));
+      set({ currentPushToken: token });
     },
 
     setUserDataLoading: loading => set({ isUserDataLoading: loading }),
-
-    // Fetch user data
-    // fetchUserData: async () => {
-    //   const { authUser, queryClient } = get();
-    //   if (!authUser?.uid) return;
-    //
-    //   set({ isUserDataLoading: true });
-    //
-    //   try {
-    //     // Try to get from cache first
-    //     const cachedData = queryClient?.getQueryData<User>([
-    //       'userData',
-    //       authUser.uid,
-    //     ]);
-    //
-    //     if (cachedData) {
-    //       set({ userData: cachedData, isUserDataLoading: false });
-    //     }
-    //
-    //     console.log('STORE USER DATA', get().userData?.isUsingFakeLocation);
-    //
-    //     // Fetch fresh data
-    //     const freshData = await getCurrentUser();
-    //
-    //     if (freshData) {
-    //       // Update cache
-    //       queryClient?.setQueryData(['userData', authUser.uid], freshData);
-    //       // Update store
-    //       set({ userData: freshData });
-    //     }
-    //   } catch (error) {
-    //     console.error('Failed to fetch user data:', error);
-    //   } finally {
-    //     set({ isUserDataLoading: false });
-    //   }
-    // },
-
-    // Refresh user data (force refetch)
-    // refreshUserData: async () => {
-    //   const { authUser, queryClient } = get();
-    //   if (!authUser?.uid) return;
-    //
-    //   // Invalidate cache to force refetch
-    //   await queryClient?.invalidateQueries(['userData', authUser.uid]);
-    //   await get().fetchUserData();
-    // },
   }))
 );

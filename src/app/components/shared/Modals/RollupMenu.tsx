@@ -15,11 +15,12 @@ import {
   View,
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../utils/icons/icons';
+import { Icons } from '../../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { UserStackList } from '../../utils/types/screen-types';
+import { UserStackList } from '../../../utils/types/screen-types';
 import { signOut } from 'firebase/auth';
 import { useTranslation } from 'react-i18next';
+import * as MailComposer from 'expo-mail-composer';
 import {
   BottomSheetBackdrop,
   BottomSheetFooter,
@@ -35,6 +36,7 @@ import {
   warningColor,
 } from '@/src/app/utils/styles/colors';
 import { useNotificationsHandler } from '@/src/app/components/user/NewsFeed/NotificationHandler';
+import { useUserStore } from '@/src/app/utils/store/userStore';
 
 type BottomSheetMenuProps = {
   visible: boolean;
@@ -45,15 +47,33 @@ const RollupMenu = ({ visible, setVisible }: BottomSheetMenuProps) => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { unsubscribeNotifications } = useNotificationsHandler();
+  const { unsubscribeNotifications, removePushToken } =
+    useNotificationsHandler();
+  const { currentPushToken } = useUserStore();
 
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 
   const handleSignOut = async () => {
     await unsubscribeNotifications();
-    await signOut(auth)
+    await await signOut(auth)
       .then(() => Alert.alert(t('signed-out'), t('you-have-been-signed-out')))
       .catch(console.error);
+    await removePushToken(currentPushToken ?? '');
+  };
+
+  // nová funkcia pre Help
+  const handleHelpMail = async () => {
+    const isAvailable = await MailComposer.isAvailableAsync();
+    if (!isAvailable) {
+      Alert.alert(t('error'), t('mailer-not-available'));
+      return;
+    }
+
+    await MailComposer.composeAsync({
+      recipients: ['support@example.com'], // zmeniť na tvoj support e-mail
+      subject: t('help-request'),
+      body: t('please-describe-your-issue'),
+    });
   };
 
   const menuItems = [
@@ -68,11 +88,20 @@ const RollupMenu = ({ visible, setVisible }: BottomSheetMenuProps) => {
       action: () => navigation.navigate('Info'),
     },
     {
+      title: t('leaderboard.title'),
+      icon: Icons.RankingStar,
+      action: () => navigation.navigate('Leaderboard'),
+    },
+    {
       title: t('help'),
       icon: Icons.Help,
-      action: () => navigation.navigate('Help'),
+      action: handleHelpMail,
     },
-    { title: t('logout'), icon: Icons.LogOut, action: () => handleSignOut() },
+    {
+      title: t('logout'),
+      icon: Icons.LogOut,
+      action: () => handleSignOut(),
+    },
   ];
 
   const [contentHeight, setContentHeight] = useState(0);

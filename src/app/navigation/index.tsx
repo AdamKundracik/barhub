@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { Loading } from '../screens/Loading';
+import { Loading } from '../components/shared/Loading';
 import AuthNav from './AuthNav';
 import NotVerifiedNav from './NotVerifiedNav';
 import { UserNav } from './UserNav';

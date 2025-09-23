@@ -10,7 +10,7 @@ import {
 import Svg, { Path } from 'react-native-svg';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Timestamp } from 'firebase/firestore';
-import { PostReportModal } from '@/src/app/components/user/NewsFeed/Post/ReportPostModal';
+import { PostReportModal } from '@/src/app/components/shared/Modals/ReportPostModal';
 import { ReportReason } from '@/src/app/utils/types/Feed/PostTypes';
 import { useTranslation } from 'react-i18next';
 import { Post, UserInfo } from '@/shared';
@@ -22,7 +22,7 @@ import {
 import { FirebaseTimestamp } from '@/src/app/utils/types/types';
 import { Icons } from '@/src/app/utils/icons/icons';
 import reportClient from '@/src/app/utils/services/reports.service';
-import { PostOptionsModal } from '@/src/app/components/user/NewsFeed/Post/PostOptionsModal';
+import { PostOptionsModal } from '@/src/app/components/shared/Modals/PostOptionsModal';
 import postService from '@/src/app/utils/services/post.service';
 import { useQueryClient } from 'react-query';
 import { usePlaceStore } from '@/src/app/utils/store/placesStore';

@@ -1,94 +1,94 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Purchases, {
   CustomerInfo,
   LOG_LEVEL,
   PurchasesPackage,
 } from 'react-native-purchases';
 import { Platform } from 'react-native';
-import { User } from '../../../../shared';
+import { useUserStore } from '../store/userStore';
 import { setUser } from '../services/functions';
+import { User } from '@/shared';
+import { auth } from '@/firebaseConfig';
 
 const APIKeys = {
   apple: 'appl_LBCUSpmuKrFDpsDAngQHiPdmGKN',
   google: 'your_google_api_key_here',
 };
 
-export const useRevenueCat = (onUserUpdate?: (user: Partial<User>) => void) => {
-  const [currentUser, setCurrentUser] = useState<Partial<User>>({
-    premium: false,
-  });
+export const useRevenueCat = ({
+  onCustomerInfoUpdated,
+}: {
+  onCustomerInfoUpdated?: () => Promise<void> | void;
+} = {}) => {
   const [packages, setPackages] = useState<PurchasesPackage[]>([]);
   const [isReady, setIsReady] = useState(false);
 
+  const { premium, setPremium } = useUserStore();
+
   useEffect(() => {
+    if (!auth.currentUser) return;
+
     const initRevenueCat = async () => {
       try {
         const apiKey =
           Platform.OS === 'android' ? APIKeys.google : APIKeys.apple;
         Purchases.configure({ apiKey });
+        await Purchases.setLogLevel(LOG_LEVEL.WARN);
 
-        await Purchases.setLogLevel(LOG_LEVEL.DEBUG);
-
+        const { customerInfo } = await Purchases.logIn(auth.currentUser!.uid);
         Purchases.addCustomerInfoUpdateListener(updateCustomerInformation);
-        await loadOfferings();
 
+        await loadOfferings();
+        await updateCustomerInformation(customerInfo);
         setIsReady(true);
-      } catch (error) {
-        console.error('Error during RevenueCat initialization:', error);
+      } catch (err) {
+        console.error('RevenueCat init error:', err);
       }
     };
 
     initRevenueCat();
-  }, []);
+  }, [auth.currentUser]);
 
   const loadOfferings = async () => {
-    try {
-      const offerings = await Purchases.getOfferings();
-      if (offerings.current) {
-        setPackages(offerings.current.availablePackages);
-      } else {
-        console.warn('No current offerings found.');
-      }
-    } catch (error) {
-      console.error('Error loading offerings:', error);
+    const offerings = await Purchases.getOfferings();
+    if (offerings.current) {
+      setPackages(offerings.current.availablePackages);
     }
   };
 
   const updateCustomerInformation = async (customerInfo: CustomerInfo) => {
-    const newUser: Partial<User> = { premium: false };
+    try {
+      const entitlements = customerInfo?.entitlements?.active ?? {};
+      const isPremium = !!entitlements['subscription']; // názov podľa RC Dashboard
 
-    if (customerInfo?.entitlements.active['subscription'] !== undefined) {
-      newUser.premium = true;
+      setPremium(isPremium);
+      await setUser({ premium: isPremium } as Partial<User>);
+
+      if (onCustomerInfoUpdated) {
+        await onCustomerInfoUpdated();
+      }
+    } catch (err) {
+      console.error('updateCustomerInformation error:', err);
     }
-
-    setCurrentUser(newUser);
-    await setUser(newUser);
-    onUserUpdate?.(newUser);
   };
 
   const purchasePackage = async (pack: PurchasesPackage) => {
     try {
-      await Purchases.purchasePackage(pack);
+      const { customerInfo } = await Purchases.purchasePackage(pack);
+      await updateCustomerInformation(customerInfo);
     } catch (e: any) {
-      if (!e.userCancelled) {
-        console.error('Purchase error:', e);
-        // Handle error appropriately
-      }
+      if (!e.userCancelled) console.error('Purchase error:', e);
     }
   };
 
   const restorePermissions = async () => {
-    try {
-      const customer = await Purchases.restorePurchases();
-      return customer;
-    } catch (error) {
-      console.error('Error restoring purchases:', error);
-      throw error;
-    }
+    const info = await Purchases.restorePurchases();
+    await updateCustomerInformation(info);
+    return info;
   };
 
   return {
-    currentUser,
+    premium,
     packages,
     isReady,
     purchasePackage,

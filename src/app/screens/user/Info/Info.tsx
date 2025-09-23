@@ -25,7 +25,7 @@ const InfoScreen = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 
   const handlePressButtonAsync = async () => {
-    await WebBrowser.openBrowserAsync('https://buymeacoffee.com/');
+    await WebBrowser.openBrowserAsync('https://buymeacoffee.com/adamkundracik');
   };
 
   return (

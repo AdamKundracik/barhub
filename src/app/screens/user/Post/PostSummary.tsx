@@ -28,7 +28,7 @@ import { setUser } from '../../../utils/services/functions';
 import { useQueryClient } from 'react-query';
 import postService from '../../../utils/services/post.service';
 import { geohashForLocation } from 'geofire-common';
-import { ScreenLayout } from '../../../components/user/Shared/ScreenLayout';
+import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { sendPushNotificationResponse } from '../../../utils/functions/notofications-handler';
 import { deleteNotification } from '../../../utils/services/notifications-service';
 import { generateUID } from '../../../utils/helper-functions/generateUID';
@@ -73,7 +73,6 @@ export const PostSummary = ({ route }: any) => {
       setImage(routeParams.image);
       setPlace(routeParams.place);
       setSenderToken(routeParams.senderToken ?? null);
-      console.log('notificatioNId', routeParams.notificationId);
       setNotificationId(routeParams.notificationId ?? null);
       // initialize both selected and temp
       const initial = OccupancyEnum.FULL;
@@ -146,7 +145,6 @@ export const PostSummary = ({ route }: any) => {
           }
           if (notificationId) {
             await deleteNotification(notificationId);
-            console.log('NOTIF DELETED');
           }
           await setUser({ lastUploadedPost: new Date().toISOString() });
         }

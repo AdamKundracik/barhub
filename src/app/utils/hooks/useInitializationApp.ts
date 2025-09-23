@@ -63,6 +63,9 @@ export const useAppInitialization = () => {
           if (userData) {
             // Populate user store
             useUserStore.getState().setUserData(userData);
+            useUserStore
+              .getState()
+              .setSearchHistory(userData.searchHistory ?? []);
 
             // Populate location store
             useLocationStore.getState().setLocation(userData.location);

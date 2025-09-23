@@ -18,6 +18,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
 import { FirebaseTimestamp } from '../../../utils/types/types';
 import { useTranslation } from 'react-i18next';
+import NativeAdComponent from '@/src/app/components/user/NativeAd';
+import { useUserStore } from '@/src/app/utils/store/userStore';
 
 interface PostsListProps {
   posts: Post[];
@@ -56,6 +58,7 @@ const PostsList = ({
 }: PostsListProps) => {
   const { t } = useTranslation();
   const { placeId } = usePlaceStore();
+  const { premium } = useUserStore();
   const flatListRef = useRef<FlatList>(null);
   const [showScrollTopButton, setShowScrollTopButton] = useState(false);
   const scrollButtonAnimation = useRef(new Animated.Value(0)).current;
@@ -106,35 +109,69 @@ const PostsList = ({
     return null;
   };
 
-  const renderPostItem = ({ item }: { item: Post; index: number }) => (
-    <View
-      key={item.id}
-      style={{
-        marginVertical: 10,
-        zIndex: zoomedPost === item.photoUrl ? 1 : 0,
-      }}
-    >
-      <UserPost
-        numberOfDaysSinceLastPostedPhoto={numberOfDaysSinceLastPostedPhoto}
-        requestPhoto={requestPhoto}
-        onCommentPress={(postId, expoPushToken, userId) =>
-          onCommentPress(postId, expoPushToken, userId)
-        }
-        isFiltering={isFiltering}
-        hasPremium={userData?.premium ?? false}
-        post={item}
-        setZoomedPost={setZoomedPost}
-        isZoomed={zoomedPost === item.photoUrl}
-      />
-    </View>
-  );
+  const renderItem = ({ item, index }: { item: Post; index: number }) => {
+    // Každých 5 položiek zobrazíme Native Ad
+    if (index > 0 && index % 3 === 0 && !premium) {
+      return (
+        <>
+          <NativeAdComponent />
+
+          <View
+            key={item.id}
+            style={{
+              marginVertical: 10,
+              zIndex: zoomedPost === item.photoUrl ? 1 : 0,
+            }}
+          >
+            <UserPost
+              numberOfDaysSinceLastPostedPhoto={
+                numberOfDaysSinceLastPostedPhoto
+              }
+              requestPhoto={requestPhoto}
+              onCommentPress={(postId, expoPushToken, userId) =>
+                onCommentPress(postId, expoPushToken, userId)
+              }
+              isFiltering={isFiltering}
+              hasPremium={userData?.premium ?? false}
+              post={item}
+              setZoomedPost={setZoomedPost}
+              isZoomed={zoomedPost === item.photoUrl}
+            />
+          </View>
+        </>
+      );
+    }
+
+    return (
+      <View
+        key={item.id}
+        style={{
+          marginVertical: 10,
+          zIndex: zoomedPost === item.photoUrl ? 1 : 0,
+        }}
+      >
+        <UserPost
+          numberOfDaysSinceLastPostedPhoto={numberOfDaysSinceLastPostedPhoto}
+          requestPhoto={requestPhoto}
+          onCommentPress={(postId, expoPushToken, userId) =>
+            onCommentPress(postId, expoPushToken, userId)
+          }
+          isFiltering={isFiltering}
+          hasPremium={userData?.premium ?? false}
+          post={item}
+          setZoomedPost={setZoomedPost}
+          isZoomed={zoomedPost === item.photoUrl}
+        />
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
       <FlatList
         ref={flatListRef}
         data={posts}
-        renderItem={renderPostItem}
+        renderItem={renderItem}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.scrollView}
         ListFooterComponent={

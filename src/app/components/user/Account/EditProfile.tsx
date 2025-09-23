@@ -25,7 +25,7 @@ import {
 } from '../../../utils/helper-functions/imageUploadFunctions';
 import { setUser } from '../../../utils/services/functions';
 import { updateProfile } from 'firebase/auth';
-import SlidingView from '../../shared/SlidingView';
+import SlidingView from '@/src/app/components/shared/Modals/SlidingView';
 import { Image } from 'expo-image';
 import {
   FormControl,

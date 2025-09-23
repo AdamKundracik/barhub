@@ -124,6 +124,7 @@
   "notifications": "Notifications",
   "no-notifications": "No notifications",
   "new-like": "New Like",
+  "stepCount": "Step {{current}} of {{total}}",
   "new-comment": "New Comment",
   "request": "Request",
   "response": "Response",
@@ -186,13 +187,13 @@
   "change-password": "Change password",
   "camera-cannot-open-fake-location": "Camera cannot be opened while using a fake location",
   "deletePost": {
-    "title": "Vymazať príspevok",
-    "confirmTitle": "Potvrdenie vymazania",
-    "confirmMessage": "Naozaj chcete vymazať tento príspevok?",
-    "successTitle": "Príspevok vymazaný",
-    "successDescription": "Príspevok bol úspešne vymazaný.",
-    "errorTitle": "Chyba",
-    "errorDescription": "Nepodarilo sa vymazať príspevok. Skúste to znova."
+    "title": "Delete Post",
+    "confirmTitle": "Delete Confirmation",
+    "confirmMessage": "Are you sure you want to delete this post?",
+    "successTitle": "Post Deleted",
+    "successDescription": "The post was successfully deleted.",
+    "errorTitle": "Error",
+    "errorDescription": "Failed to delete the post. Please try again."
   },
   "toastPhotoDeletedTitle": "Deleted successfully.",
   "toastPhotoDeletedDesc": "Your photo has been deleted.",
@@ -201,6 +202,15 @@
   "toastDataUpdatedTitle": "Saved successfully.",
   "toastDataUpdatedDesc": "Your data has been updated.",
   "toastErrorTitle": "Something went wrong.",
-  "toastErrorDesc": "Try again later."
+  "toastErrorDesc": "Try again later.",
+  "mailer-not-available": "Mail client is not available",
+  "help-request": "Help request",
+  "please-describe-your-issue": "Please describe your issue",
+  "leaderboard": {
+    "title": "Leaderboard",
+    "topUsers": "Top Users",
+    "week": "This Week",
+    "allTime": "All-Time"
+  }
 
 }

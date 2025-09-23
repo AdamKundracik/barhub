@@ -6,12 +6,12 @@ import NewsFeed from '../screens/user/NewsFeed';
 import PlaceSearch from '../screens/user/PlaceSearch';
 import Account from '../screens/user/Account';
 import PasswordChangeScreen from '../screens/user/ChangePassword';
-import Help from '../screens/user/Help/Help';
 import Info from '../screens/user/Info/Info';
 import PostSummary from '../screens/user/Post/PostSummary';
 import NotificationsList from '../screens/user/Notifications/NotificationsList';
 import { SelectFakeLocation } from '../screens/user/SelectFakeLocation';
 import Licenses from '@/src/app/screens/user/Info/Screens/LIcenses';
+import LeaderboardScreen from '@/src/app/screens/user/LeaderBoard';
 
 const UserStack = createNativeStackNavigator();
 
@@ -45,14 +45,19 @@ export function UserNav() {
         options={{ animation: 'fade_from_bottom' }}
       />
       <UserStack.Screen
+        name={'Leaderboard'}
+        component={LeaderboardScreen}
+        options={{ animation: 'fade_from_bottom' }}
+      />
+      <UserStack.Screen
         name={'PasswordChangeScreen'}
         component={PasswordChangeScreen}
       />
-      <UserStack.Screen
-        name={'Help'}
-        component={Help}
-        options={{ animation: 'fade_from_bottom' }}
-      />
+      {/*<UserStack.Screen*/}
+      {/*  name={'Help'}*/}
+      {/*  component={Help}*/}
+      {/*  options={{ animation: 'fade_from_bottom' }}*/}
+      {/*/>*/}
       <UserStack.Screen
         name={'Info'}
         component={Info}

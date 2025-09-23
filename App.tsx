@@ -37,13 +37,11 @@ export default function App() {
           <I18nextProvider i18n={i18n}>
             <AppStateProvider>
               <PermissionsProvider>
-                {/*<UserProvider>*/}
                 <RevenueCatProvider>
                   <BottomSheetModalProvider>
                     <Navigation />
                   </BottomSheetModalProvider>
                 </RevenueCatProvider>
-                {/*</UserProvider>*/}
               </PermissionsProvider>
             </AppStateProvider>
           </I18nextProvider>

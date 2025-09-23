@@ -8,7 +8,7 @@ export type NotificationItem = {
   read: boolean;
   creationTime: admin.firestore.Timestamp;
   userId: string;
-  norificationType: NotificationType;
+  notificationType: NotificationType;
   senderToken?: string;
   placeId?: string;
 };

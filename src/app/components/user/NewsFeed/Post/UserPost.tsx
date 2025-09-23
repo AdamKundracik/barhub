@@ -22,6 +22,7 @@ import BluredPostFrontView from '@/src/app/components/user/NewsFeed/Post/BluredP
 import { UserLine } from '@/src/app/components/user/NewsFeed/Post/UserLine';
 import InteractionBar from '@/src/app/components/user/NewsFeed/Post/InteractionBar';
 import { postBgColor, primaryBgColor } from '@/src/app/utils/styles/colors';
+import { useUserStore } from '@/src/app/utils/store/userStore';
 
 interface PostInterface {
   post: Post;
@@ -47,11 +48,11 @@ const DOUBLE_TAP_MAX_DURATION = 250;
 const PREMIUM_UPLOAD_THRESHOLD_DAYS = 7;
 
 export const UserPost = (props: PostInterface) => {
-  const { post, setZoomedPost, hasPremium, isFiltering, onCommentPress } =
-    props;
+  const { post, setZoomedPost, isFiltering, onCommentPress } = props;
 
   const queryClient = useQueryClient();
   const { placeId } = usePlaceStore();
+  const { premium } = useUserStore();
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // Animation values
@@ -184,8 +185,8 @@ export const UserPost = (props: PostInterface) => {
   });
 
   const shouldNotBlurPost =
-    !hasPremium ||
-    props.numberOfDaysSinceLastPostedPhoto >= PREMIUM_UPLOAD_THRESHOLD_DAYS;
+    premium ||
+    props.numberOfDaysSinceLastPostedPhoto <= PREMIUM_UPLOAD_THRESHOLD_DAYS;
 
   return (
     <>

@@ -35,6 +35,13 @@ export interface User extends UserRecord {
   isUsingFakeLocation: boolean;
   fakeLocation: LocationType;
   fakeLocationName: string;
+  searchHistory?: SearchHistoryItem[];
+}
+
+export interface SearchHistoryItem {
+  placeId: string;
+  mainText: string;
+  secondaryText: string;
 }
 
 export type Post = {

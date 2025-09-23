@@ -23,6 +23,7 @@ export const PlaceFilterChip = (props: LayoutProps) => {
         style={{
           display: 'flex',
           flexDirection: 'row',
+          paddingVertical: 10,
         }}
       >
         <View style={{ alignSelf: 'center', paddingHorizontal: 15 }}>

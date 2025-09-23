@@ -14,13 +14,14 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
 import { primaryBgColor, warningColor } from '../../utils/styles/colors';
 import EditProfile from '../../components/user/Account/EditProfile';
-import { ScreenLayout } from '../../components/user/Shared/ScreenLayout';
+import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { Image } from 'expo-image';
 import { auth } from '@/firebaseConfig';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 
 export const Account = () => {
-  const { userData } = useUserStore();
+  const { userData, premium } = useUserStore();
+
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
 
@@ -86,7 +87,7 @@ export const Account = () => {
               style={[
                 styles.profilePicture,
                 { borderWidth: 3, borderColor: '#00E1C9' }, // Green border for all, as in the design
-                userData?.premium && {
+                premium && {
                   borderColor: '#FFC107', // Gold for premium
                 },
               ]}
@@ -96,10 +97,8 @@ export const Account = () => {
           <Text style={styles.username}>{auth.currentUser?.displayName}</Text>
           <Text style={styles.accountStatusText}>
             {t('account-state')}:{' '}
-            <Text
-              style={userData?.premium ? styles.premiumText : styles.basicText}
-            >
-              {userData?.premium ? 'Premium' : 'Basic'}
+            <Text style={premium ? styles.premiumText : styles.basicText}>
+              {premium ? 'Premium' : 'Basic'}
             </Text>
           </Text>
         </View>

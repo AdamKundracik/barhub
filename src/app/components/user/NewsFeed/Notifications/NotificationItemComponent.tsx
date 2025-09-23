@@ -10,18 +10,19 @@ import {
   View,
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../../../utils/icons/icons';
-import { primaryColor } from '../../../../utils/styles/colors';
-import {
-  NotificationItem,
-  NotificationItemProps,
-  NotificationType,
-} from '../../../../utils/types/notification-types';
-import { openCamera } from '../../../../utils/helper-functions/openCamera';
+
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { UserStackList } from '../../../../utils/types/screen-types';
 import { useTranslation } from 'react-i18next';
 import { useLocales } from 'expo-localization';
+import { NotificationItemProps } from '@/src/app/utils/types/notification-types';
+import { UserStackList } from '@/src/app/utils/types/screen-types';
+import {
+  NotificationItem,
+  NotificationType,
+} from '@/common/types/notificationTypes';
+import { Icons } from '@/src/app/utils/icons/icons';
+import { openCamera } from '@/src/app/utils/helper-functions/openCamera';
+import { primaryColor } from '@/src/app/utils/styles/colors';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = -150;
@@ -144,8 +145,6 @@ export const NotificationItemComponent: React.FC<NotificationItemProps> = ({
     try {
       const { placeId, notificationType, senderToken, creationTime, id } =
         notification;
-
-      console.log('notif', notification);
 
       if (!creationTime || typeof creationTime !== 'object') {
         throw new Error('Creation time is missing or not an object');

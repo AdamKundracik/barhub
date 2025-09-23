@@ -2,19 +2,22 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { useTranslation } from 'react-i18next';
 import { useCallback, useEffect, useState } from 'react';
-import { ScreenLayout } from '../../../components/user/Shared/ScreenLayout';
+import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import NotificationItemComponent from '../../../components/user/NewsFeed/Notifications/NotificationItemComponent';
 import { NotificationItem } from '../../../utils/types/notification-types';
 import { UndoMessage } from '../../../components/user/NewsFeed/Notifications/UndoMessage';
 import NotificationLoaderView from '../../../components/user/NewsFeed/Post/Loaders/NotificationLoaderView';
 import { useNotificationsStore } from '../../../utils/store/notificationsStore';
+import InlineAd from '@/src/app/components/user/InlineAd';
+import { useUserStore } from '@/src/app/utils/store/userStore';
 
 export const NotificationsList: React.FC = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
   const { data, refetch, isRefetching, isLoading, markAllAsSeen } =
     useNotificationsStore();
+  const { premium } = useUserStore();
 
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isScrollEnabled, setIsScrollEnabled] = useState(true);
@@ -140,6 +143,12 @@ export const NotificationsList: React.FC = () => {
           <UndoMessage onUndo={handleUndo} onHide={handleUndoHide} />
         )}
       </View>
+
+      {!premium && (
+        <View style={{ paddingVertical: 8 }}>
+          <InlineAd />
+        </View>
+      )}
     </ScreenLayout>
   );
 };

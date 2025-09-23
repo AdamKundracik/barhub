@@ -3,7 +3,7 @@ import { FlatList, Text, View } from 'react-native';
 
 // import generovaného JSON
 import licenses from './../../../../../../licenses.json';
-import { ScreenLayout } from '@/src/app/components/user/Shared/ScreenLayout';
+import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { useNavigation } from '@react-navigation/native';
 
 export default function Licenses() {

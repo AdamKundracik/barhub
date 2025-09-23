@@ -82,6 +82,7 @@ export async function sendLikeNotification(request: LikeNotificationRequest) {
       notificationType: NotificationType.LIKE,
       username: request.username,
       postId: request.postId,
+      id: generateUID(),
     },
   };
 
@@ -113,6 +114,7 @@ export async function sendCommentNotification(
       username: request.username,
       postId: request.postId,
       commentText: request.commentText,
+      id: generateUID(),
     },
   };
 

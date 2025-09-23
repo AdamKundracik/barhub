@@ -7,7 +7,7 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { usePermissionsContext } from '../../../providers/PermissionsProvider';
 import { usePermissionStep } from '../../../utils/hooks/usePermissionStep';
 import { getRequiredPermissions } from '../../../utils/constants/permissions';
-import { Loading } from '../../Loading';
+import { Loading } from '../../../components/shared/Loading';
 import { Icons } from '../../../utils/icons/icons';
 import { PermissionCard } from './PermissionsCard';
 import { NavigationControls } from './NavigationControls';
