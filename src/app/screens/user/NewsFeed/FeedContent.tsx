@@ -1,8 +1,10 @@
 import React from 'react';
-import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import PostsList from '../../../components/user/NewsFeed/PostList';
 import PostLoaderView from '../../../components/user/NewsFeed/Post/Loaders/PostLoaderView';
 import EmptyState from '../../../components/user/NewsFeed/EmptyState';
+import InlineAd from '@/src/app/components/user/InlineAd';
+import { useUserStore } from '@/src/app/utils/store/userStore';
 
 interface FeedContentProps {
   isLoading: boolean;
@@ -38,6 +40,8 @@ export const FeedContent: React.FC<FeedContentProps> = ({
   isFetchingNextPage,
   fetchMorePosts,
 }) => {
+  const { premium } = useUserStore();
+
   if (isLoading) {
     return <PostLoaderView />;
   }
@@ -71,6 +75,11 @@ export const FeedContent: React.FC<FeedContentProps> = ({
         }
       >
         <EmptyState requestPhoto={requestPhoto} />
+        {!premium && (
+          <View style={{ paddingVertical: 8 }}>
+            <InlineAd />
+          </View>
+        )}
       </ScrollView>
     </>
   );

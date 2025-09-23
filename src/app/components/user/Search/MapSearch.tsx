@@ -1,13 +1,8 @@
-import MapView, {
-  Circle,
-  Marker,
-  PROVIDER_DEFAULT,
-  Region,
-} from 'react-native-maps';
+import MapView, { Circle, Marker, Region } from 'react-native-maps';
+import MapViewCluster from 'react-native-map-clustering';
 import {
   ActivityIndicator,
   Image,
-  Keyboard,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -18,15 +13,14 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
-import { useUserContext } from '../../../providers/UserProvider';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
 import { radius } from '../../../utils/helper-functions/constants';
 import { mapPlaceToPlacePrediction } from '../../../utils/helper-functions/mapPlaceToPlacePrediction';
 import { usePlaceStore } from '../../../utils/store/placesStore';
 import { fetchNearbyPlaces } from '../../../utils/helper-functions/fetchPlacesAPI';
-import { useLocation } from '@/src/app/utils/hooks/useLocation';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const latitudeDelta = 0.0045;
 const longitudeDelta = 0.0045;
@@ -39,6 +33,7 @@ export const MapSearch = (props: LayoutProps) => {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { location } = useLocationStore();
+  const insets = useSafeAreaInsets();
 
   const mapRef = useRef<MapView>(null);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
@@ -47,20 +42,20 @@ export const MapSearch = (props: LayoutProps) => {
   const [region, setRegion] = useState<Region>({
     latitudeDelta,
     longitudeDelta,
-    latitude: location?.latitude!,
-    longitude: location?.longitude!,
+    latitude: location?.latitude ?? 0,
+    longitude: location?.longitude ?? 0,
   });
 
   const { setPlaceId, setPlaceName } = usePlaceStore();
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
   function pickPlace() {
-    if (selectedPlace) {
-      const placePrediction = mapPlaceToPlacePrediction(selectedPlace);
-      setPlaceId(placePrediction.placeId);
-      setPlaceName(placePrediction.structuredFormat.mainText.text);
-      props.setIsMapShown(false);
-      navigation.navigate('Feed');
-    }
+    if (!selectedPlace) return;
+    const placePrediction = mapPlaceToPlacePrediction(selectedPlace);
+    setPlaceId(placePrediction.placeId);
+    setPlaceName(placePrediction.structuredFormat.mainText.text);
+    props.setIsMapShown(false);
+    navigation.navigate('Feed');
   }
 
   const handleSearchSurrounding = async () => {
@@ -70,59 +65,52 @@ export const MapSearch = (props: LayoutProps) => {
     setPlaces(data.places);
   };
 
-  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
-
   const onRegionChangeComplete = (newRegion: Region) => {
-    setSelectedPlace(null);
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
 
-    if (debounceTimeout.current) {
-      clearTimeout(debounceTimeout.current);
-    }
+    // Debounce pre plynule posúvanie regionu
     debounceTimeout.current = setTimeout(() => {
-      setRegion(newRegion);
-    }, 1000);
+      setRegion(newRegion); // region = stred mapy
+      setSelectedPlace(null);
+    }, 100);
   };
 
   return (
     <>
-      <MapView
+      <MapViewCluster
         style={styles.map}
         region={region}
-        provider={PROVIDER_DEFAULT}
         ref={mapRef}
-        showsMyLocationButton={true}
-        showsCompass={true}
-        onPress={() => {
-          Keyboard.dismiss();
-        }}
         onRegionChangeComplete={onRegionChangeComplete}
+        showsMyLocationButton
+        showsCompass
+        clusterColor="#10D9B9"
+        clusterTextColor="#000"
       >
+        {/* Circle vždy pre stred mapy */}
+        <Circle
+          center={region}
+          radius={radius}
+          strokeColor="rgb(1,82,133)"
+          fillColor="rgba(117,141,166,0.2)"
+          strokeWidth={2}
+        />
+
         {!loading &&
-          places?.map((place: Place, index: number) => (
+          places?.map(place => (
             <Marker
-              key={index}
+              key={`${place.location.latitude}-${place.location.longitude}-${place.id}`}
               coordinate={{
                 latitude: place.location.latitude,
                 longitude: place.location.longitude,
               }}
-              onPress={() => {
-                setSelectedPlace(place);
-              }}
+              onPress={() => setSelectedPlace(place)}
               title={place.displayName.text}
             >
-              <FontAwesomeIcon icon={Icons.Pin} size={24} color={'black'} />
+              <FontAwesomeIcon icon={Icons.Pin} size={24} color="black" />
             </Marker>
           ))}
-        {!loading && (
-          <Circle
-            center={region}
-            radius={radius}
-            strokeColor={'rgb(1,82,133)'}
-            fillColor={'rgba(117,141,166,0.49)'}
-            strokeWidth={2}
-          />
-        )}
-      </MapView>
+      </MapViewCluster>
 
       <View style={styles.markerFixed}>
         <Image
@@ -131,14 +119,16 @@ export const MapSearch = (props: LayoutProps) => {
         />
       </View>
 
+      {/* Close button */}
       <TouchableOpacity
         onPress={() => props.setIsMapShown(false)}
-        style={styles.closeButton}
+        style={[styles.closeButton, { top: 20 + insets.top }]}
       >
-        <FontAwesomeIcon icon={Icons.Remove} size={28} color={'black'} />
+        <FontAwesomeIcon icon={Icons.Remove} size={28} color="black" />
       </TouchableOpacity>
 
-      <View style={styles.buttonsContainer}>
+      {/* Bottom buttons */}
+      <View style={[styles.buttonsContainer, { bottom: 30 + insets.bottom }]}>
         <TouchableOpacity
           style={styles.searchButton}
           onPress={handleSearchSurrounding}
@@ -178,15 +168,6 @@ const styles = StyleSheet.create({
     height: 48,
     width: 48,
   },
-  infoContainer: {
-    position: 'absolute',
-    backgroundColor: 'black',
-    justifyContent: 'center',
-    alignSelf: 'center',
-    padding: 15,
-    borderRadius: 30,
-    bottom: 30,
-  },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.3)',
@@ -207,10 +188,9 @@ const styles = StyleSheet.create({
   },
   buttonsContainer: {
     position: 'absolute',
-    bottom: 30,
     alignSelf: 'center',
     flexDirection: 'column',
-    gap: 12, // aby boli medzi nimi medzery (RN >=0.71 podporuje gap)
+    gap: 12,
   },
   searchButton: {
     backgroundColor: '#007bff',
@@ -218,14 +198,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
   },
-
   selectButton: {
     backgroundColor: 'black',
     padding: 15,
     borderRadius: 30,
     alignItems: 'center',
   },
-
   buttonText: {
     color: 'white',
     fontWeight: 'bold',

@@ -40,7 +40,7 @@ const InlineAd: React.FC = () => {
             setHasError(false);
           }}
           onAdFailedToLoad={error => {
-            console.error('BannerAd failed to load:', error);
+            console.error('InlineAd failed to load:', error);
             setHasError(true);
             setIsAdLoaded(false);
           }}

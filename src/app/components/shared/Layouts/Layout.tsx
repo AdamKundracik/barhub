@@ -48,7 +48,7 @@ export const Layout = ({
             flexDirection: 'row',
             justifyContent: 'space-between',
             paddingHorizontal: 20,
-            // paddingVertical: 5,
+            paddingBottom: 5,
           }}
         >
           <View>

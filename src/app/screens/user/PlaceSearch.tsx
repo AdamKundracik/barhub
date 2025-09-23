@@ -26,7 +26,7 @@ import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
 import { XIcon } from 'lucide-react-native';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
 import { useUserStore } from '@/src/app/utils/store/userStore';
-import InlineAd from '@/src/app/components/user/Ad';
+import InlineAd from '@/src/app/components/user/InlineAd';
 
 export const PlaceSearch = () => {
   const [isMapShown, setIsMapShown] = useState(false);
@@ -96,7 +96,6 @@ export const PlaceSearch = () => {
   /** Render results */
   const renderPlaces = () => {
     if (query.length === 0) {
-      // Ak nie je query, ukáž históriu
       if (searchHistory.length > 0) {
         return (
           <ScrollView
@@ -189,22 +188,21 @@ export const PlaceSearch = () => {
   };
 
   if (isMapShown) {
-    return (
-      <Layout pageTitle="Map search" showTopBar={false}>
-        <MapSearch setIsMapShown={setIsMapShown} />
-      </Layout>
-    );
+    return <MapSearch setIsMapShown={setIsMapShown} />;
   }
 
   return (
     <Layout pageTitle="Search places" showTopBar={false}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <>
-            <View style={{ flex: 1, paddingHorizontal: 16 }}>
+      <View style={{ flex: 1, paddingHorizontal: 16 }}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <TouchableWithoutFeedback
+            onPress={Keyboard.dismiss}
+            accessible={false}
+          >
+            <View style={{ flex: 1 }}>
               {/* Top buttons */}
               <View
                 style={{
@@ -269,12 +267,16 @@ export const PlaceSearch = () => {
               {/* Results */}
               <View style={{ flex: 1, marginTop: 16 }}>{renderPlaces()}</View>
             </View>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
 
-            {/* Banner Ad na spodok */}
-            {!premium && <InlineAd />}
-          </>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
+        {/* Banner Ad nad klávesnicou */}
+        {!premium && (
+          <View style={{ paddingVertical: 8 }}>
+            <InlineAd />
+          </View>
+        )}
+      </View>
     </Layout>
   );
 };

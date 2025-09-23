@@ -58,10 +58,10 @@ export function useNotificationsHandler() {
         await saveNotification({
           label: notification.request.content.title ?? 'No title text',
           text: notification.request.content.body ?? 'no body text',
-          notificationType,
-          placeId,
-          senderToken,
-          id,
+          notificationType: notificationType,
+          placeId: placeId,
+          senderToken: senderToken,
+          id: id,
         });
 
         await refetch();
