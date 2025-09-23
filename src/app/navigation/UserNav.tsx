@@ -6,7 +6,6 @@ import NewsFeed from '../screens/user/NewsFeed';
 import PlaceSearch from '../screens/user/PlaceSearch';
 import Account from '../screens/user/Account';
 import PasswordChangeScreen from '../screens/user/ChangePassword';
-import Help from '../screens/user/Help/Help';
 import Info from '../screens/user/Info/Info';
 import PostSummary from '../screens/user/Post/PostSummary';
 import NotificationsList from '../screens/user/Notifications/NotificationsList';
@@ -48,11 +47,11 @@ export function UserNav() {
         name={'PasswordChangeScreen'}
         component={PasswordChangeScreen}
       />
-      <UserStack.Screen
-        name={'Help'}
-        component={Help}
-        options={{ animation: 'fade_from_bottom' }}
-      />
+      {/*<UserStack.Screen*/}
+      {/*  name={'Help'}*/}
+      {/*  component={Help}*/}
+      {/*  options={{ animation: 'fade_from_bottom' }}*/}
+      {/*/>*/}
       <UserStack.Screen
         name={'Info'}
         component={Info}

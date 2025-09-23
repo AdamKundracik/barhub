@@ -22,7 +22,6 @@ import { useUserStore } from '@/src/app/utils/store/userStore';
 export const Account = () => {
   const { userData, premium } = useUserStore();
 
-  console.log(premium);
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
 

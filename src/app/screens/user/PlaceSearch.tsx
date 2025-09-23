@@ -26,6 +26,7 @@ import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
 import { XIcon } from 'lucide-react-native';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
 import { useUserStore } from '@/src/app/utils/store/userStore';
+import InlineAd from '@/src/app/components/user/Ad';
 
 export const PlaceSearch = () => {
   const [isMapShown, setIsMapShown] = useState(false);
@@ -38,7 +39,7 @@ export const PlaceSearch = () => {
   const [sessionToken] = useState(generateId());
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { setPlaceId, setPlaceName } = usePlaceStore();
-  const { addToSearchHistory, searchHistory } = useUserStore();
+  const { addToSearchHistory, searchHistory, premium } = useUserStore();
 
   /** Cancel search */
   function onCancelClick() {
@@ -202,67 +203,76 @@ export const PlaceSearch = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <View style={{ flex: 1, paddingHorizontal: 16 }}>
-            {/* Top buttons */}
-            <View
-              style={{
-                paddingBottom: 20,
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-              }}
-            >
-              <TouchableOpacity onPress={onCancelClick}>
-                <FontAwesomeIcon icon={Icons.Remove} size={28} color="white" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setIsMapShown(true)}>
-                <FontAwesomeIcon icon={Icons.Map} size={24} color="white" />
-              </TouchableOpacity>
-            </View>
-
-            {/* Search input */}
-            <View style={{ position: 'relative' }}>
-              <Input
-                size="xl"
+          <>
+            <View style={{ flex: 1, paddingHorizontal: 16 }}>
+              {/* Top buttons */}
+              <View
                 style={{
-                  borderRadius: 25,
-                  borderColor: primaryDeepColor,
-                  borderWidth: 3,
-                  backgroundColor: 'white',
+                  paddingBottom: 20,
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
                 }}
               >
-                <InputField
-                  variant="rounded"
-                  placeholder={t('search-place')}
-                  value={query}
-                  onChangeText={text => {
-                    setQuery(text);
-                    if (!text) setHasSearched(false);
-                  }}
-                  placeholderTextColor={primaryDeepColor}
-                  size="lg"
+                <TouchableOpacity onPress={onCancelClick}>
+                  <FontAwesomeIcon
+                    icon={Icons.Remove}
+                    size={28}
+                    color="white"
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setIsMapShown(true)}>
+                  <FontAwesomeIcon icon={Icons.Map} size={24} color="white" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Search input */}
+              <View style={{ position: 'relative' }}>
+                <Input
+                  size="xl"
                   style={{
-                    color: primaryDeepColor,
-                    borderBlockColor: primaryColor,
+                    borderRadius: 25,
+                    borderColor: primaryDeepColor,
+                    borderWidth: 3,
+                    backgroundColor: 'white',
                   }}
-                />
-                {query.length > 0 && (
-                  <InputSlot
-                    className="pr-3"
-                    style={{ backgroundColor: 'white' }}
-                    onPress={() => {
-                      setQuery('');
-                      setHasSearched(false);
+                >
+                  <InputField
+                    variant="rounded"
+                    placeholder={t('search-place')}
+                    value={query}
+                    onChangeText={text => {
+                      setQuery(text);
+                      if (!text) setHasSearched(false);
                     }}
-                  >
-                    <InputIcon as={XIcon} size="xl" color="black" />
-                  </InputSlot>
-                )}
-              </Input>
+                    placeholderTextColor={primaryDeepColor}
+                    size="lg"
+                    style={{
+                      color: primaryDeepColor,
+                      borderBlockColor: primaryColor,
+                    }}
+                  />
+                  {query.length > 0 && (
+                    <InputSlot
+                      className="pr-3"
+                      style={{ backgroundColor: 'white' }}
+                      onPress={() => {
+                        setQuery('');
+                        setHasSearched(false);
+                      }}
+                    >
+                      <InputIcon as={XIcon} size="xl" color="black" />
+                    </InputSlot>
+                  )}
+                </Input>
+              </View>
+
+              {/* Results */}
+              <View style={{ flex: 1, marginTop: 16 }}>{renderPlaces()}</View>
             </View>
 
-            {/* Results */}
-            <View style={{ flex: 1, marginTop: 16 }}>{renderPlaces()}</View>
-          </View>
+            {/* Banner Ad na spodok */}
+            {!premium && <InlineAd />}
+          </>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </Layout>

@@ -1,6 +1,6 @@
-import { InfinityScrollPost, Post } from '../../../../shared';
 import { GeoPointType, LocationType } from '../types/types';
 import { getFreshContent, getPostsByPlaceId } from '../services/post.service';
+import { InfinityScrollPost, Post } from '@/common/types/postTypes';
 
 export const handleFreshContent = async (
   radius: number,
@@ -8,6 +8,8 @@ export const handleFreshContent = async (
   placeId?: string | null,
   location?: LocationType
 ): Promise<{ posts: Post[]; lastVisible: string | null }> => {
+  console.log('location', location);
+
   const geoPoint = locationTypeToGeoPointType(
     location ?? { latitude: 0, longitude: 0 }
   );
