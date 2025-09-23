@@ -25,6 +25,8 @@ export type UserStackList = {
   SelectFakeLocation: undefined;
 
   Licenses: undefined;
+
+  Leaderboard: undefined;
 };
 
 export type FeedsScreenProps = NativeStackScreenProps<

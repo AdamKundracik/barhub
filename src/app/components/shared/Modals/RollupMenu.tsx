@@ -88,6 +88,11 @@ const RollupMenu = ({ visible, setVisible }: BottomSheetMenuProps) => {
       action: () => navigation.navigate('Info'),
     },
     {
+      title: t('leaderboard.title'),
+      icon: Icons.RankingStar,
+      action: () => navigation.navigate('Leaderboard'),
+    },
+    {
       title: t('help'),
       icon: Icons.Help,
       action: handleHelpMail,

@@ -158,6 +158,7 @@
   "invalid-month": "Ungültiger Monat",
   "invalid-year": "Ungültiges Jahr",
   "invalid-day": "Ungültiger Tag",
+  "stepCount": "Schritt {{current}} von {{total}}",
   "password-length": "Muss mindestens 6 Zeichen lang sein",
   "delete-photo-title": "Möchten Sie dieses Foto wirklich löschen?",
   "delete-photo-info": "Nach Bestätigung wird Ihr Foto dauerhaft gelöscht",
@@ -165,7 +166,7 @@
   "delete-account-info": "Nach Bestätigung wird Ihr Konto dauerhaft gelöscht",
   "password-too-short": "Passwort ist zu kurz",
   "notification-processing-error": "notification-processing-error",
-  "thats-it": "das war's",
+  "thats-it": "Das war's",
   "forgot-password": "Passwort vergessen",
   "reportPost": {
     "title": "Beitrag melden",
@@ -186,13 +187,13 @@
   "change-password": "Passwort ändern",
   "camera-cannot-open-fake-location": "Die Kamera kann während der Verwendung eines gefälschten Standorts nicht geöffnet werden",
   "deletePost": {
-    "title": "Vymazať príspevok",
-    "confirmTitle": "Potvrdenie vymazania",
-    "confirmMessage": "Naozaj chcete vymazať tento príspevok?",
-    "successTitle": "Príspevok vymazaný",
-    "successDescription": "Príspevok bol úspešne vymazaný.",
-    "errorTitle": "Chyba",
-    "errorDescription": "Nepodarilo sa vymazať príspevok. Skúste to znova."
+    "title": "Beitrag löschen",
+    "confirmTitle": "Löschbestätigung",
+    "confirmMessage": "Sind Sie sicher, dass Sie diesen Beitrag löschen möchten?",
+    "successTitle": "Beitrag gelöscht",
+    "successDescription": "Der Beitrag wurde erfolgreich gelöscht.",
+    "errorTitle": "Fehler",
+    "errorDescription": "Der Beitrag konnte nicht gelöscht werden. Bitte versuchen Sie es erneut."
   },
   "toastPhotoDeletedTitle": "Erfolgreich gelöscht.",
   "toastPhotoDeletedDesc": "Dein Foto wurde gelöscht.",
@@ -204,6 +205,12 @@
   "toastErrorDesc": "Versuche es später erneut.",
   "mailer-not-available": "Mail-Client nicht verfügbar",
   "help-request": "Hilfeanfrage",
-  "please-describe-your-issue": "Bitte beschreiben Sie Ihr Problem"
+  "please-describe-your-issue": "Bitte beschreiben Sie Ihr Problem",
+  "leaderboard": {
+    "title": "Bestenliste",
+    "topUsers": "Top-Benutzer",
+    "week": "Diese Woche",
+    "allTime": "Gesamt"
+  }
 
 }

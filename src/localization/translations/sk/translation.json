@@ -139,7 +139,7 @@
     "tracking": "Povolenie sledovania",
     "trackingDesc": "Pomáha nám poskytovať lepšie odporúčania",
     "grantAccess": "Udeliť prístup",
-    "stepCount": "Step {{current}} of {{total}}",
+    "stepCount": "Krok {{current}} z {{total}}",
     "allGranted": "Všetky povolenia udelené! ✨",
     "tapToGrant": "Kliknite pre udelenie povolenia",
     "open-settings": "Otvoriť nastavenia",
@@ -203,7 +203,12 @@
   "toastErrorDesc": "Skúste to neskôr.",
   "mailer-not-available": "Emailový klient nie je dostupný",
   "help-request": "Žiadosť o pomoc",
-  "please-describe-your-issue": "Prosím, popíšte svoj problém"
-
-
+  "please-describe-your-issue": "Prosím, popíšte svoj problém",
+  "leaderboard": {
+    "title": "Rebríček",
+    "topUsers": "Najlepší používatelia",
+    "week": "Týždeň",
+    "allTime": "Celkový"
+  }
 }
+

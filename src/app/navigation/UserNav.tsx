@@ -11,6 +11,7 @@ import PostSummary from '../screens/user/Post/PostSummary';
 import NotificationsList from '../screens/user/Notifications/NotificationsList';
 import { SelectFakeLocation } from '../screens/user/SelectFakeLocation';
 import Licenses from '@/src/app/screens/user/Info/Screens/LIcenses';
+import LeaderboardScreen from '@/src/app/screens/user/LeaderBoard';
 
 const UserStack = createNativeStackNavigator();
 
@@ -41,6 +42,11 @@ export function UserNav() {
       <UserStack.Screen
         name={'Subscription'}
         component={Subscription}
+        options={{ animation: 'fade_from_bottom' }}
+      />
+      <UserStack.Screen
+        name={'Leaderboard'}
+        component={LeaderboardScreen}
         options={{ animation: 'fade_from_bottom' }}
       />
       <UserStack.Screen

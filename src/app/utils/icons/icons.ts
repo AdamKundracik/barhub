@@ -41,6 +41,7 @@ import {
   faPersonWalking,
   faPlusSquare,
   faQuestionCircle,
+  faRankingStar,
   faRemove,
   faRotateBack,
   faSearch,
@@ -131,4 +132,5 @@ export const Icons = {
   Lock: faLock,
   Calendar: faCalendar,
   Envelope: faEnvelope,
+  RankingStar: faRankingStar,
 };

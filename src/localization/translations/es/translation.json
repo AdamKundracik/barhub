@@ -127,6 +127,7 @@
   "new-comment": "Nuevo Comentario",
   "request": "Solicitud",
   "response": "Respuesta",
+  "stepCount": "Paso {{current}} de {{total}}",
   "notification-processing-error": "notification-processing-error",
   "cancel": "Cancelar",
   "permissions": {
@@ -186,13 +187,13 @@
   "change-password": "Cambiar contraseña",
   "camera-cannot-open-fake-location": "No se puede abrir la cámara mientras se usa una ubicación falsa",
   "deletePost": {
-    "title": "Vymazať príspevok",
-    "confirmTitle": "Potvrdenie vymazania",
-    "confirmMessage": "Naozaj chcete vymazať tento príspevok?",
-    "successTitle": "Príspevok vymazaný",
-    "successDescription": "Príspevok bol úspešne vymazaný.",
-    "errorTitle": "Chyba",
-    "errorDescription": "Nepodarilo sa vymazať príspevok. Skúste to znova."
+    "title": "Eliminar publicación",
+    "confirmTitle": "Confirmación de eliminación",
+    "confirmMessage": "¿Está seguro de que desea eliminar esta publicación?",
+    "successTitle": "Publicación eliminada",
+    "successDescription": "La publicación se eliminó correctamente.",
+    "errorTitle": "Error",
+    "errorDescription": "No se pudo eliminar la publicación. Inténtelo de nuevo."
   },
   "toastPhotoDeletedTitle": "Eliminado con éxito.",
   "toastPhotoDeletedDesc": "Tu foto ha sido eliminada.",
@@ -204,5 +205,11 @@
   "toastErrorDesc": "Inténtalo de nuevo más tarde.",
   "mailer-not-available": "Cliente de correo no disponible",
   "help-request": "Solicitud de ayuda",
-  "please-describe-your-issue": "Por favor, describa su problema"
+  "please-describe-your-issue": "Por favor, describa su problema",
+  "leaderboard": {
+    "title": "Clasificación",
+    "topUsers": "Mejores usuarios",
+    "week": "Esta semana",
+    "allTime": "Histórico"
+  }
 }
