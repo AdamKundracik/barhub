@@ -11,8 +11,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
-import RollupMenu from '../RollupMenu';
-import FilterSlider from '../NewsFeed/Filters/FilterSlider';
+import RollupMenu from '@/src/app/components/shared/Modals/RollupMenu';
+import FilterSlider from '../../user/NewsFeed/Filters/FilterSlider';
 import { useNotifications } from '../../../utils/store/notificationsStore';
 import { useNotificationsHandler } from '@/src/app/components/user/NewsFeed/NotificationHandler';
 import BottomTabs from '@/src/app/components/shared/BottomTabs';
@@ -49,7 +49,7 @@ export const Layout = ({
               flexDirection: 'row',
               justifyContent: 'space-between',
               paddingHorizontal: 20,
-              paddingVertical: 5,
+              // paddingVertical: 5,
             }}
           >
             <View>

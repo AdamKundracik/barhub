@@ -26,7 +26,7 @@ import {
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { ScreenLayout } from '@/src/app/components/user/Shared/ScreenLayout';
+import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import {
   FormControl,
   FormControlError,

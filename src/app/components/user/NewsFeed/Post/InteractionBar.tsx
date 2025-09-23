@@ -55,7 +55,7 @@ export const InteractionBar = (props: InteractionBarProps) => {
           style={styles.iconContainer}
         >
           <FontAwesomeIcon
-            icon={Icons.Heart}
+            icon={props.isLiked ? Icons.HeartSolid : Icons.Heart}
             size={isTablet ? 30 : 24}
             color={props.isLiked ? 'red' : '#32d7b7'}
           />

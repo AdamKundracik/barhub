@@ -2,7 +2,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { useTranslation } from 'react-i18next';
 import { useCallback, useEffect, useState } from 'react';
-import { ScreenLayout } from '../../../components/user/Shared/ScreenLayout';
+import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import NotificationItemComponent from '../../../components/user/NewsFeed/Notifications/NotificationItemComponent';
 import { NotificationItem } from '../../../utils/types/notification-types';

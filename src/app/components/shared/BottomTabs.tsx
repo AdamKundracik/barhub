@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: primaryBgColor,
-    paddingVertical: 10,
+    paddingTop: 10,
   },
   tabButton: {
     flex: 1,

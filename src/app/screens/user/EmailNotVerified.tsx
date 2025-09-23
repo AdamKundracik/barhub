@@ -1,5 +1,5 @@
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Layout from '../../components/user/Shared/Layout';
+import Layout from '@/src/app/components/shared/Layouts/Layout';
 import { commonAppStyles, formStyles } from '../../utils/styles/styles';
 import { signOut } from 'firebase/auth';
 import { useTranslation } from 'react-i18next';

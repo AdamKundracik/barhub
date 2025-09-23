@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import Layout from '../../components/user/Shared/Layout';
+import Layout from '@/src/app/components/shared/Layouts/Layout';
 import FeedHeader from '../../components/user/NewsFeed/FeedHeader';
 import { usePlaceStore } from '../../utils/store/placesStore';
 import { useFiltersStore } from '../../utils/store/filtersStorage';

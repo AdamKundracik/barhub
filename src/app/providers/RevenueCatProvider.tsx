@@ -1,46 +1,42 @@
 import React, { createContext, ReactNode, useContext } from 'react';
 import { PurchasesPackage } from 'react-native-purchases';
-import { User } from '../../../shared';
-import { useRevenueCat } from '../utils/hooks/useRevenueCat';
+import { User } from '@/shared';
 import { useUserData } from '@/src/app/utils/hooks/useUserData';
+import { useRevenueCat } from '@/src/app/utils/hooks/useRevenueCat';
 
 interface RevenueCatContextType {
   purchasePackage: (pack: PurchasesPackage) => Promise<void>;
   restorePermissions: () => Promise<any>;
-  currentUser: Partial<User>;
   packages: PurchasesPackage[];
   isReady: boolean;
+  premium: boolean;
+  currentUser: Partial<User>;
 }
 
 const RevenueCatContext = createContext<RevenueCatContextType | null>(null);
 
-export const RevenueCatProvider: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => {
-  const { refetch } = useUserData();
+export const RevenueCatProvider = ({ children }: { children: ReactNode }) => {
+  const { data: currentUser } = useUserData();
 
-  const revenueCatHook = useRevenueCat(async (user: Partial<User>) => {
-    // Callback when user subscription status changes
-    await refetch?.();
-  });
-
-  if (!revenueCatHook.isReady) {
-    return <>{children}</>;
-  }
+  const revenueCatHook = useRevenueCat();
 
   return (
-    <RevenueCatContext.Provider value={revenueCatHook}>
+    <RevenueCatContext.Provider
+      value={{
+        ...revenueCatHook,
+        currentUser: currentUser ?? {},
+      }}
+    >
       {children}
     </RevenueCatContext.Provider>
   );
 };
 
 export const useRevenueCatProvider = () => {
-  const context = useContext(RevenueCatContext);
-  if (!context) {
+  const ctx = useContext(RevenueCatContext);
+  if (!ctx)
     throw new Error(
-      'useRevenueCatProvider must be used within a RevenueCatProvider'
+      'useRevenueCatProvider must be used inside RevenueCatProvider'
     );
-  }
-  return context;
+  return ctx;
 };

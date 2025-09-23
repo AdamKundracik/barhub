@@ -31,6 +31,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNewsFeedData } from '@/src/app/utils/hooks/NewsFeed/usePostData';
+import { useUserStore } from '@/src/app/utils/store/userStore';
 
 type Props = {
   opened: boolean;
@@ -64,15 +65,10 @@ const FilterSlider = (props: Props) => {
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 
-  const {
-    useFakeLocation,
-    setUseFakeLocation,
-    fakeLocationName,
-    location,
-    setLocation,
-    setFakeLocationName,
-    setInitialized,
-  } = useLocationStore();
+  const { useFakeLocation, setUseFakeLocation, fakeLocationName } =
+    useLocationStore();
+
+  const { premium } = useUserStore();
 
   const { isRefetching } = useNewsFeedData(); // inside FilterSlider
 
@@ -158,6 +154,15 @@ const FilterSlider = (props: Props) => {
     },
     []
   );
+
+  function handleFakeLocationToggle(value: boolean) {
+    if (premium) {
+      setUseFakeLocation(value);
+    } else {
+      setTempUseFakeLocation(useFakeLocation);
+      navigation.navigate('Subscription');
+    }
+  }
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
@@ -247,7 +252,7 @@ const FilterSlider = (props: Props) => {
             </Text>
             <Switch
               value={useFakeLocation}
-              onValueChange={setUseFakeLocation}
+              onValueChange={handleFakeLocationToggle}
               disabled={isRefetching}
             />
           </View>

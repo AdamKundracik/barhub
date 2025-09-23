@@ -15,9 +15,9 @@ import {
   View,
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../utils/icons/icons';
+import { Icons } from '../../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { UserStackList } from '../../utils/types/screen-types';
+import { UserStackList } from '../../../utils/types/screen-types';
 import { signOut } from 'firebase/auth';
 import { useTranslation } from 'react-i18next';
 import * as MailComposer from 'expo-mail-composer';

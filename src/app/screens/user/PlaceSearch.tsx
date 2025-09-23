@@ -17,7 +17,7 @@ import { generateId } from '../../utils/helper-functions/generate-hash';
 import { usePlaceStore } from '../../utils/store/placesStore';
 import { useQuery } from 'react-query';
 import { primaryColor, primaryDeepColor } from '../../utils/styles/colors';
-import Layout from '../../components/user/Shared/Layout';
+import Layout from '@/src/app/components/shared/Layouts/Layout';
 import MapSearch from '../../components/user/Search/MapSearch';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';

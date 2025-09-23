@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../utils/icons/icons';
+import { Icons } from '../../../utils/icons/icons';
 import { useTranslation } from 'react-i18next';
 import { BottomSheetBackdrop, BottomSheetModal } from '@gorhom/bottom-sheet';
 

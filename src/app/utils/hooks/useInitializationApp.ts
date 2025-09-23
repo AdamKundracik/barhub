@@ -63,6 +63,9 @@ export const useAppInitialization = () => {
           if (userData) {
             // Populate user store
             useUserStore.getState().setUserData(userData);
+            useUserStore
+              .getState()
+              .setSearchHistory(userData.searchHistory ?? []);
 
             // Populate location store
             useLocationStore.getState().setLocation(userData.location);
@@ -74,11 +77,6 @@ export const useAppInitialization = () => {
               .getState()
               .setFakeLocationName(userData.fakeLocationName);
             useLocationStore.getState().setInitialized(true);
-
-            // Initialize search history
-            const initialSearchHistory = userData.searchHistory ?? [];
-            console.log('initialSearchHistory', initialSearchHistory);
-            useUserStore.getState().setSearchHistory(initialSearchHistory);
           } else {
             console.warn('No userData returned from getCurrentUser');
           }
