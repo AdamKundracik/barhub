@@ -36,6 +36,7 @@ import {
   warningColor,
 } from '@/src/app/utils/styles/colors';
 import { useNotificationsHandler } from '@/src/app/components/user/NewsFeed/NotificationHandler';
+import { useUserStore } from '@/src/app/utils/store/userStore';
 
 type BottomSheetMenuProps = {
   visible: boolean;
@@ -46,15 +47,18 @@ const RollupMenu = ({ visible, setVisible }: BottomSheetMenuProps) => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { unsubscribeNotifications } = useNotificationsHandler();
+  const { unsubscribeNotifications, removePushToken } =
+    useNotificationsHandler();
+  const { currentPushToken } = useUserStore();
 
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 
   const handleSignOut = async () => {
     await unsubscribeNotifications();
-    await signOut(auth)
+    await await signOut(auth)
       .then(() => Alert.alert(t('signed-out'), t('you-have-been-signed-out')))
       .catch(console.error);
+    await removePushToken(currentPushToken ?? '');
   };
 
   // nová funkcia pre Help

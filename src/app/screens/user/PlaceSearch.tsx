@@ -25,6 +25,7 @@ import { fetchPlaceAutocomplete } from '../../utils/helper-functions/fetchPlaces
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
 import { XIcon } from 'lucide-react-native';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
+import { useUserStore } from '@/src/app/utils/store/userStore';
 
 export const PlaceSearch = () => {
   const [isMapShown, setIsMapShown] = useState(false);
@@ -37,6 +38,7 @@ export const PlaceSearch = () => {
   const [sessionToken] = useState(generateId());
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { setPlaceId, setPlaceName } = usePlaceStore();
+  const { addToSearchHistory, searchHistory } = useUserStore();
 
   /** Cancel search */
   function onCancelClick() {
@@ -66,17 +68,75 @@ export const PlaceSearch = () => {
   const { data: places } = usePlaceAutocomplete(debouncedQuery, sessionToken);
 
   /** Handle place selection */
-  const handlePlaceSelect = (place: any) => {
+  const handlePlaceSelect = async (place: any, fromHistory = false) => {
     Keyboard.dismiss();
-    setTimeout(() => {
-      navigation.navigate('Feed');
-      setPlaceId(place.placePrediction.placeId);
-      setPlaceName(place.placePrediction.structuredFormat.mainText.text);
-    }, 100);
+
+    let placeId: string;
+    let mainText: string;
+    let secondaryText: string;
+
+    if (fromHistory) {
+      placeId = place.placeId;
+      mainText = place.mainText;
+      secondaryText = place.secondaryText;
+    } else {
+      placeId = place.placePrediction.placeId;
+      mainText = place.placePrediction.structuredFormat.mainText.text;
+      secondaryText = place.placePrediction.structuredFormat.secondaryText.text;
+    }
+    setPlaceId(placeId);
+    setPlaceName(mainText);
+    if (!fromHistory) {
+      await addToSearchHistory({ placeId, mainText, secondaryText });
+    }
+    navigation.navigate('Feed');
   };
 
   /** Render results */
   const renderPlaces = () => {
+    if (query.length === 0) {
+      // Ak nie je query, ukáž históriu
+      if (searchHistory.length > 0) {
+        return (
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ paddingBottom: 20 }}
+          >
+            {searchHistory.map((place, index) => (
+              <Pressable
+                key={index}
+                style={{ padding: 16 }}
+                onPress={() => handlePlaceSelect(place, true)}
+              >
+                {({ pressed }) => (
+                  <View>
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 'bold',
+                        color: pressed ? primaryColor : 'white',
+                      }}
+                    >
+                      {place.mainText}
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: pressed ? primaryDeepColor : 'grey',
+                      }}
+                    >
+                      {place.secondaryText}
+                    </Text>
+                  </View>
+                )}
+              </Pressable>
+            ))}
+          </ScrollView>
+        );
+      }
+      return null;
+    }
+
     if (places && places?.suggestions?.length > 0) {
       return (
         <ScrollView

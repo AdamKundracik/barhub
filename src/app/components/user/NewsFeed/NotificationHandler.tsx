@@ -18,18 +18,8 @@ export function useNotificationsHandler() {
   const [expoPushToken, setExpoPushToken] = useState<string>('');
   const notificationListener = useRef<Notifications.Subscription | null>(null);
   const responseListener = useRef<Notifications.Subscription | null>(null);
-  const { setCurrentPushToken, currentPushToken } = useUserStore();
+  const { setCurrentPushToken } = useUserStore();
   const { refetch } = useNotificationsStore();
-
-  const unsubscribeNotifications = async () => {
-    notificationListener.current?.remove();
-    responseListener.current?.remove();
-    notificationListener.current = null;
-    responseListener.current = null;
-
-    await removePushToken(currentPushToken ?? expoPushToken);
-    setExpoPushToken('');
-  };
 
   const addPushToken = async (token: string) => {
     if (!token) return;
@@ -42,7 +32,16 @@ export function useNotificationsHandler() {
     await userClient.removePushToken(token);
   };
 
+  const unsubscribeNotifications = () => {
+    // Odstránime iba listenerov, push token zostáva
+    notificationListener.current?.remove();
+    responseListener.current?.remove();
+    notificationListener.current = null;
+    responseListener.current = null;
+  };
+
   useEffect(() => {
+    // Získanie expo push tokenu
     registerForPushNotificationsAsync()
       .then(token => {
         setExpoPushToken(token ?? '');
@@ -50,6 +49,7 @@ export function useNotificationsHandler() {
       })
       .catch(error => setExpoPushToken(`${error}`));
 
+    // Listener pre prijaté notifikácie
     notificationListener.current =
       Notifications.addNotificationReceivedListener(async notification => {
         const { notificationType, placeId, senderToken, id } =
@@ -58,15 +58,16 @@ export function useNotificationsHandler() {
         await saveNotification({
           label: notification.request.content.title ?? 'No title text',
           text: notification.request.content.body ?? 'no body text',
-          notificationType: notificationType,
-          placeId: placeId,
-          senderToken: senderToken,
-          id: id,
+          notificationType,
+          placeId,
+          senderToken,
+          id,
         });
 
         await refetch();
       });
 
+    // Listener pre odpoveď na notifikácie
     responseListener.current =
       Notifications.addNotificationResponseReceivedListener(async response => {
         const {
@@ -80,11 +81,10 @@ export function useNotificationsHandler() {
 
         switch (notificationType as NotificationType) {
           case NotificationType.LIKE:
-            navigation.navigate('NotificationsList');
-            break;
           case NotificationType.COMMENT:
             navigation.navigate('NotificationsList');
             break;
+
           case NotificationType.REQUEST:
             if (
               new Date().getTime() >
@@ -95,14 +95,17 @@ export function useNotificationsHandler() {
               await openCamera(placeId, senderToken, navigation, id);
             }
             break;
+
           case NotificationType.RESPONSE:
+            // prípadne spracovanie
+            break;
         }
       });
 
     return () => {
-      unsubscribeNotifications();
+      unsubscribeNotifications(); // iba cleanup listenerov
     };
   }, []);
 
-  return { expoPushToken, unsubscribeNotifications };
+  return { expoPushToken, unsubscribeNotifications, removePushToken };
 }

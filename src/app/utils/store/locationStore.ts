@@ -3,6 +3,7 @@ import { subscribeWithSelector } from 'zustand/middleware';
 import { LocationType } from '../types/types';
 import { setUser } from '../services/functions';
 import { useUserStore } from '@/src/app/utils/store/userStore';
+import { geohashForLocation } from 'geofire-common';
 
 interface LocationStore {
   location: LocationType | null;
@@ -19,7 +20,7 @@ interface LocationStore {
 
 // ✅ Jednoduchší store
 export const useLocationStore = create<LocationStore>()(
-  subscribeWithSelector((set, get) => ({
+  subscribeWithSelector(set => ({
     location: null,
     fakeLocation: null,
     useFakeLocation: false,
@@ -57,8 +58,13 @@ useLocationStore.subscribe(
   state => state.location,
   (newVal, prevVal) => {
     if (newVal !== prevVal && newVal) {
+      const hash = geohashForLocation([
+        newVal?.latitude ?? 0,
+        newVal?.longitude ?? 0,
+      ]);
       setUser({
         location: newVal,
+        geohash: hash,
       });
     }
   }
