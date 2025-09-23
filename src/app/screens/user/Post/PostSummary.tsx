@@ -73,7 +73,6 @@ export const PostSummary = ({ route }: any) => {
       setImage(routeParams.image);
       setPlace(routeParams.place);
       setSenderToken(routeParams.senderToken ?? null);
-      console.log('notificatioNId', routeParams.notificationId);
       setNotificationId(routeParams.notificationId ?? null);
       // initialize both selected and temp
       const initial = OccupancyEnum.FULL;
@@ -146,7 +145,6 @@ export const PostSummary = ({ route }: any) => {
           }
           if (notificationId) {
             await deleteNotification(notificationId);
-            console.log('NOTIF DELETED');
           }
           await setUser({ lastUploadedPost: new Date().toISOString() });
         }

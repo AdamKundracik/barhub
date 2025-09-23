@@ -18,6 +18,7 @@ export const saveNotification = async (
     'creationTime' | 'userId' | 'postId'
   >
 ): Promise<SaveNotificationResponse> => {
+  console.log(notification);
   const cloudFunction = httpsCallable(functions, 'saveNotificationSecondGen');
   const response = (await cloudFunction({
     ...notification,

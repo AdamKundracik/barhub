@@ -1,4 +1,14 @@
-import { Pressable, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
@@ -17,37 +27,34 @@ import { XIcon } from 'lucide-react-native';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
 
 export const PlaceSearch = () => {
-  const [isMapShown, setIsMapShown] = useState<boolean>(false);
+  const [isMapShown, setIsMapShown] = useState(false);
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState(query);
   const [hasSearched, setHasSearched] = useState(false);
+
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
   const [sessionToken] = useState(generateId());
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { setPlaceId, setPlaceName } = usePlaceStore();
 
+  /** Cancel search */
   function onCancelClick() {
     navigation.goBack();
   }
 
+  /** Fetch places autocomplete */
   const usePlaceAutocomplete = (query: string, sessionToken: string) => {
     const { location } = useLocationStore();
-
     return useQuery(
       ['places-autocomplete', query],
       () => fetchPlaceAutocomplete(query, location!, sessionToken),
-      {
-        enabled: query.length >= 2,
-      }
+      { enabled: query.length >= 2 }
     );
   };
 
   useEffect(() => {
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
-
+    if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
     debounceTimeoutRef.current = setTimeout(() => {
       if (query) {
         setDebouncedQuery(query);
@@ -58,121 +65,146 @@ export const PlaceSearch = () => {
 
   const { data: places } = usePlaceAutocomplete(debouncedQuery, sessionToken);
 
-  if (isMapShown)
+  /** Handle place selection */
+  const handlePlaceSelect = (place: any) => {
+    Keyboard.dismiss();
+    setTimeout(() => {
+      navigation.navigate('Feed');
+      setPlaceId(place.placePrediction.placeId);
+      setPlaceName(place.placePrediction.structuredFormat.mainText.text);
+    }, 100);
+  };
+
+  /** Render results */
+  const renderPlaces = () => {
+    if (places && places?.suggestions?.length > 0) {
+      return (
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: 20 }}
+        >
+          {places.suggestions.map((place, index) => (
+            <Pressable
+              key={index}
+              style={{ padding: 16 }}
+              onPress={() => handlePlaceSelect(place)}
+            >
+              {({ pressed }) => (
+                <View>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 'bold',
+                      color: pressed ? primaryColor : 'white',
+                    }}
+                  >
+                    {place.placePrediction.structuredFormat.mainText.text}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: pressed ? primaryDeepColor : 'grey',
+                    }}
+                  >
+                    {place.placePrediction.structuredFormat.secondaryText.text}
+                  </Text>
+                </View>
+              )}
+            </Pressable>
+          ))}
+        </ScrollView>
+      );
+    }
+
+    if (hasSearched) {
+      return (
+        <View style={{ padding: 16 }}>
+          <Text style={{ color: 'white' }}>{t('no-results')}</Text>
+        </View>
+      );
+    }
+
+    return null;
+  };
+
+  if (isMapShown) {
     return (
-      <Layout pageTitle={'Map search'}>
+      <Layout pageTitle="Map search" showTopBar={false}>
         <MapSearch setIsMapShown={setIsMapShown} />
       </Layout>
     );
+  }
 
   return (
-    <Layout pageTitle="Search places">
-      <View style={{ paddingHorizontal: 16 }}>
-        <View
-          style={{
-            paddingBottom: 20,
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-          }}
-        >
-          <TouchableOpacity onPress={onCancelClick}>
-            <FontAwesomeIcon icon={Icons.Remove} size={28} color={'white'} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setIsMapShown(true)}>
-            <FontAwesomeIcon icon={Icons.Map} size={24} color={'white'} />
-          </TouchableOpacity>
-        </View>
-
-        <View style={{ position: 'relative' }}>
-          <Input
-            size="xl"
-            style={{
-              borderRadius: 25,
-              borderColor: primaryDeepColor,
-              borderWidth: 3,
-              backgroundColor: 'white',
-            }}
-          >
-            <InputField
-              variant="rounded"
-              placeholder={t('search-place')}
-              onChangeText={text => {
-                setQuery(text);
-                if (!text) setHasSearched(false);
+    <Layout pageTitle="Search places" showTopBar={false}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <View style={{ flex: 1, paddingHorizontal: 16 }}>
+            {/* Top buttons */}
+            <View
+              style={{
+                paddingBottom: 20,
+                flexDirection: 'row',
+                justifyContent: 'space-between',
               }}
-              value={query}
-              placeholderTextColor={primaryDeepColor}
-              size="lg"
-              style={[
-                {
-                  color: primaryDeepColor,
-                  borderBlockColor: primaryColor,
-                },
-              ]}
-            ></InputField>
-            {query.length > 0 && (
-              <InputSlot
-                className="pr-3"
-                style={{ backgroundColor: 'white' }}
-                onPress={() => {
-                  setQuery('');
-                  setHasSearched(false);
-                }}
-              >
-                <InputIcon as={XIcon} size={'xl'} color={'black'} />
-              </InputSlot>
-            )}
-          </Input>
-        </View>
+            >
+              <TouchableOpacity onPress={onCancelClick}>
+                <FontAwesomeIcon icon={Icons.Remove} size={28} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setIsMapShown(true)}>
+                <FontAwesomeIcon icon={Icons.Map} size={24} color="white" />
+              </TouchableOpacity>
+            </View>
 
-        {places?.suggestions && places.suggestions.length > 0
-          ? places.suggestions.map((place, index) => (
-              <Pressable
-                key={index}
-                style={[
-                  {
-                    padding: 16,
-                  },
-                ]}
-                onPress={() => {
-                  navigation.navigate('Feed');
-                  setPlaceId(place.placePrediction.placeId);
-                  setPlaceName(
-                    place.placePrediction.structuredFormat.mainText.text
-                  );
+            {/* Search input */}
+            <View style={{ position: 'relative' }}>
+              <Input
+                size="xl"
+                style={{
+                  borderRadius: 25,
+                  borderColor: primaryDeepColor,
+                  borderWidth: 3,
+                  backgroundColor: 'white',
                 }}
               >
-                {({ pressed }) => (
-                  <View>
-                    <Text
-                      style={[
-                        { fontSize: 14, fontWeight: 'bold' },
-                        { color: pressed ? primaryColor : 'white' },
-                      ]}
-                    >
-                      {place.placePrediction.structuredFormat.mainText.text}
-                    </Text>
-                    <Text
-                      style={[
-                        { fontSize: 12 },
-                        { color: pressed ? primaryDeepColor : 'grey' },
-                      ]}
-                    >
-                      {
-                        place.placePrediction.structuredFormat.secondaryText
-                          .text
-                      }
-                    </Text>
-                  </View>
+                <InputField
+                  variant="rounded"
+                  placeholder={t('search-place')}
+                  value={query}
+                  onChangeText={text => {
+                    setQuery(text);
+                    if (!text) setHasSearched(false);
+                  }}
+                  placeholderTextColor={primaryDeepColor}
+                  size="lg"
+                  style={{
+                    color: primaryDeepColor,
+                    borderBlockColor: primaryColor,
+                  }}
+                />
+                {query.length > 0 && (
+                  <InputSlot
+                    className="pr-3"
+                    style={{ backgroundColor: 'white' }}
+                    onPress={() => {
+                      setQuery('');
+                      setHasSearched(false);
+                    }}
+                  >
+                    <InputIcon as={XIcon} size="xl" color="black" />
+                  </InputSlot>
                 )}
-              </Pressable>
-            ))
-          : hasSearched && (
-              <View style={{ padding: 16 }}>
-                <Text style={{ color: 'white' }}>{t('no-results')}</Text>
-              </View>
-            )}
-      </View>
+              </Input>
+            </View>
+
+            {/* Results */}
+            <View style={{ flex: 1, marginTop: 16 }}>{renderPlaces()}</View>
+          </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </Layout>
   );
 };
