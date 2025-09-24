@@ -29,8 +29,7 @@ import { useQueryClient } from 'react-query';
 import postService from '../../../utils/services/post.service';
 import { geohashForLocation } from 'geofire-common';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
-import { sendPushNotificationResponse } from '../../../utils/functions/notofications-handler';
-import { deleteNotification } from '../../../utils/services/notifications-service';
+import { sendResponseNotificationToRecipients } from '../../../utils/services/notifications-service';
 import { generateUID } from '../../../utils/helper-functions/generateUID';
 import { Post } from '@/common/types/postTypes';
 import { OccupancyEnum } from '@/src/app/utils/types/Feed/PostTypes';
@@ -66,20 +65,17 @@ export const PostSummary = ({ route }: any) => {
   const [place, setPlace] = useState<Place | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [senderToken, setSenderToken] = useState<string | null>(null);
-  const [notificationId, setNotificationId] = useState<string | null>(null);
 
   useEffect(() => {
     if (routeParams?.image && routeParams?.place) {
       setImage(routeParams.image);
       setPlace(routeParams.place);
       setSenderToken(routeParams.senderToken ?? null);
-      setNotificationId(routeParams.notificationId ?? null);
       // initialize both selected and temp
       const initial = OccupancyEnum.FULL;
       setSelectedOccupancy(initial);
       setTempOccupancy(initial);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routeParams]);
 
   const occupancyLabels: Record<OccupancyEnum, string> = {
@@ -136,15 +132,16 @@ export const PostSummary = ({ route }: any) => {
             photoUrl: url,
           };
 
-          await postService.savePost(newPost);
+          const addedPostResponse = await postService.savePost(newPost);
           await queryClient.invalidateQueries({ queryKey: ['posts'] });
           navigation.navigate('Feed');
 
           if (senderToken) {
-            await sendPushNotificationResponse(senderToken, place.id);
-          }
-          if (notificationId) {
-            await deleteNotification(notificationId);
+            await sendResponseNotificationToRecipients(
+              place.id,
+              senderToken,
+              addedPostResponse.id
+            );
           }
           await setUser({ lastUploadedPost: new Date().toISOString() });
         }

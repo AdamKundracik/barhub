@@ -10,11 +10,6 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../../../../utils/icons/icons';
-import { primaryColor, primaryGrey } from '../../../../../utils/styles/colors';
-import { User } from '../../../../../../../shared';
-import { auth } from '../../../../../../../firebaseConfig';
-import { getTimeAgoFromTimestampSeconds } from '../../../../../utils/helper-functions/timeAgo';
 import Svg, { Path } from 'react-native-svg';
 import useOptimistic from '../../../../../utils/helper-functions/useOptimistic';
 import { useTranslation } from 'react-i18next';
@@ -26,9 +21,13 @@ import BottomSheet, {
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
 import CommentsLoaderView from '../Loaders/CommentsLoaderView';
-import { PostComment } from '../../../../../../../common/types/commentTypes';
 import commentService from '../../../../../utils/services/comment.service';
-import { sendCommentNotification } from '../../../../../utils/functions/notofications-handler';
+import { PostComment } from '@/common/types/commentTypes';
+import { User } from '@/shared';
+import { auth } from '@/firebaseConfig';
+import { primaryColor, primaryGrey } from '@/src/app/utils/styles/colors';
+import { Icons } from '@/src/app/utils/icons/icons';
+import { getTimeAgoFromTimestampSeconds } from '@/src/app/utils/helper-functions/timeAgo';
 
 type Props = {
   expoPushToken: string;
@@ -109,13 +108,13 @@ const CommentsSlider = (props: Props) => {
     };
     try {
       await optimisticUpdate([...comments, optimisticComment]);
-      if (props.userId !== auth.currentUser?.uid)
-        await sendCommentNotification({
-          commentText: newComment,
-          postId: props.postId,
-          username: auth.currentUser.displayName,
-          expoPushToken: props.expoPushToken,
-        });
+      // if (props.userId !== auth.currentUser?.uid)
+      //   await sendCommentNotification({
+      //     commentText: newComment,
+      //     postId: props.postId,
+      //     username: auth.currentUser.displayName,
+      //     expoPushToken: props.expoPushToken,
+      //   });
       setNewComment('');
       setIsCommentPosting(false);
     } catch (error) {

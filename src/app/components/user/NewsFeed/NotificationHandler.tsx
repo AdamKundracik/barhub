@@ -3,14 +3,13 @@ import { Alert } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { registerForPushNotificationsAsync } from '../../../utils/functions/notofications-handler';
 import { openCamera } from '../../../utils/helper-functions/openCamera';
-import { saveNotification } from '../../../utils/services/notifications-service';
 import { NotificationType } from '../../../utils/types/notification-types';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import userClient from '@/src/app/utils/services/user.service';
-import { useNotificationsStore } from '@/src/app/utils/store/notificationsStore';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { UserStackList } from '@/src/app/utils/types/screen-types';
+import { useNotificationsQuery } from '@/src/app/utils/hooks/useNotifications';
 
 export function useNotificationsHandler() {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
@@ -19,7 +18,7 @@ export function useNotificationsHandler() {
   const notificationListener = useRef<Notifications.Subscription | null>(null);
   const responseListener = useRef<Notifications.Subscription | null>(null);
   const { setCurrentPushToken } = useUserStore();
-  const { refetch } = useNotificationsStore();
+  const { refetch } = useNotificationsQuery();
 
   const addPushToken = async (token: string) => {
     if (!token) return;
@@ -51,19 +50,7 @@ export function useNotificationsHandler() {
 
     // Listener pre prijaté notifikácie
     notificationListener.current =
-      Notifications.addNotificationReceivedListener(async notification => {
-        const { notificationType, placeId, senderToken, id } =
-          notification.request.content.data;
-
-        await saveNotification({
-          label: notification.request.content.title ?? 'No title text',
-          text: notification.request.content.body ?? 'no body text',
-          notificationType: notificationType,
-          placeId: placeId,
-          senderToken: senderToken,
-          id: id,
-        });
-
+      Notifications.addNotificationReceivedListener(async () => {
         await refetch();
       });
 

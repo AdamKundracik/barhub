@@ -18,7 +18,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
-import { signOut } from 'firebase/auth';
 import { useTranslation } from 'react-i18next';
 import * as MailComposer from 'expo-mail-composer';
 import {
@@ -30,13 +29,14 @@ import {
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { auth } from '@/firebaseConfig';
 import {
   bottomModalBgColor,
   warningColor,
 } from '@/src/app/utils/styles/colors';
 import { useNotificationsHandler } from '@/src/app/components/user/NewsFeed/NotificationHandler';
 import { useUserStore } from '@/src/app/utils/store/userStore';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/firebaseConfig';
 
 type BottomSheetMenuProps = {
   visible: boolean;
@@ -54,11 +54,12 @@ const RollupMenu = ({ visible, setVisible }: BottomSheetMenuProps) => {
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 
   const handleSignOut = async () => {
+    console.log('current', currentPushToken);
     await unsubscribeNotifications();
-    await await signOut(auth)
+    await removePushToken(currentPushToken ?? '');
+    await signOut(auth)
       .then(() => Alert.alert(t('signed-out'), t('you-have-been-signed-out')))
       .catch(console.error);
-    await removePushToken(currentPushToken ?? '');
   };
 
   // nová funkcia pre Help

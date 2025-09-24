@@ -13,9 +13,9 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import RollupMenu from '@/src/app/components/shared/Modals/RollupMenu';
 import FilterSlider from '../../user/NewsFeed/Filters/FilterSlider';
-import { useNotifications } from '../../../utils/store/notificationsStore';
 import { useNotificationsHandler } from '@/src/app/components/user/NewsFeed/NotificationHandler';
 import BottomTabs from '@/src/app/components/shared/BottomTabs';
+import { useNotificationsStore } from '@/src/app/utils/store/notificationsStore';
 
 type LayoutProps = {
   children: ReactNode | ReactNode[];
@@ -32,7 +32,7 @@ export const Layout = ({
   useNotificationsHandler();
 
   const navigation = useNavigation<NavigationProp<UserStackList>>();
-  const { data } = useNotifications();
+  const { data } = useNotificationsStore();
   const [menuOpen, setMenuOpen] = useState(false);
   const [filtersOpened, setFiltersOpened] = useState(false);
 

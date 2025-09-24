@@ -209,6 +209,10 @@
     "topUsers": "Najlepší používatelia",
     "week": "Týždeň",
     "allTime": "Celkový"
-  }
+  },
+  "liked-your-photo": "sa páčil tvoj príspevok",
+  "commented-your-photo": "okomentoval tvoj príspevok",
+  "sent-request": "ti poslal žiadosť",
+  "responded-to-request": "odpovedal na tvoju žiadosť"
 }
 

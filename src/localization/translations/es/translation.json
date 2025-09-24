@@ -211,5 +211,9 @@
     "topUsers": "Mejores usuarios",
     "week": "Esta semana",
     "allTime": "Histórico"
-  }
+  },
+  "liked-your-photo": "le gustó tu foto",
+  "commented-your-photo": "comentó en tu foto",
+  "sent-request": "te envió una solicitud",
+  "responded-to-request": "respondió a tu solicitud"
 }

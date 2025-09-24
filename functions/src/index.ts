@@ -1,6 +1,10 @@
 import PostService from './services/postService';
 import CommentService from './services/CommentService';
-import NotifiationService from './services/notifiationService';
+import NotifiationService, {
+  sendLikeNotification,
+  sendPushNotificationResponse,
+  sendRequestNotification,
+} from './services/notifiationService';
 import { ReportService } from './services/reportService';
 import admin from 'firebase-admin';
 import { GeoPointType } from './documentTypes/Post';
@@ -10,7 +14,8 @@ import { HttpsError, onCall } from 'firebase-functions/v2/https';
 import { Post } from '../../common/types/postTypes';
 import { onSchedule } from 'firebase-functions/scheduler';
 import * as logger from 'firebase-functions/logger';
-import { UserService } from './services/userService'; // service, ktorý sme pripravili
+import { UserService } from './services/userService';
+import { NotificationType } from '../../common/types/notificationTypes'; // service, ktorý sme pripravili
 
 export interface StatusResponse {
   success: boolean;
@@ -25,6 +30,181 @@ const commentService = new CommentService();
 const notificationService = new NotifiationService();
 const reportService = new ReportService();
 const userService = new UserService();
+
+export const toggleLikeSecondGen = onCall(async request => {
+  const { postId, senderUserName } = request.data as {
+    postId: string;
+    senderUserName: string;
+  };
+  const uid = request.auth?.uid;
+  if (!uid) {
+    logger.error('Unauthenticated request');
+    throw new HttpsError('unauthenticated', 'Must be logged in');
+  }
+
+  if (!postId) {
+    logger.error('Invalid arguments', { postId });
+    throw new HttpsError('invalid-argument', 'Missing postId or userId');
+  }
+
+  const likeDocRef = db
+    .collection('posts')
+    .doc(postId)
+    .collection('likes')
+    .doc(uid);
+  const likeDoc = await likeDocRef.get();
+
+  const postDoc = await db.collection('posts').doc(postId).get();
+  if (!postDoc.exists) {
+    logger.error('Post not found', { postId });
+    throw new HttpsError('not-found', 'Post not found');
+  }
+
+  const postAuthorId = postDoc.data()?.userId;
+  if (!postAuthorId) {
+    logger.error('Post missing authorId', { postId });
+    throw new HttpsError('internal', 'Post authorId missing');
+  }
+
+  if (likeDoc.exists) {
+    await likeDocRef.delete();
+    logger.info('Like removed', { postId });
+    return { liked: false };
+  } else {
+    await likeDocRef.set({ createdAt: new Date() });
+    logger.info('Like added', { postId });
+
+    if (uid !== postAuthorId) {
+      const userDoc = await db.collection('users').doc(postAuthorId).get();
+      const pushTokens = userDoc.data()?.pushToken as string[] | undefined;
+
+      if (pushTokens && pushTokens.length > 0) {
+        const recipients = pushTokens.map(token => ({
+          userId: postAuthorId,
+          pushToken: token,
+        }));
+
+        logger.debug('Recipients', recipients);
+
+        try {
+          const pushSent = await sendLikeNotification(recipients, {
+            username: senderUserName,
+            postId,
+          });
+          logger.info('Push notification sent', { recipients: pushSent });
+
+          if (pushSent) {
+            await notificationService.saveNotificationForUser(
+              postAuthorId,
+              {
+                senderId: uid,
+                notificationType: NotificationType.LIKE,
+              },
+              postId
+            );
+            logger.info('Notification saved to DB', { postId, sender: uid });
+          }
+        } catch (error) {
+          logger.error('Failed to send like notification', { error });
+        }
+      } else {
+        logger.warn('No push tokens for user', { postAuthorId });
+      }
+    }
+
+    return { liked: true };
+  }
+});
+
+// === REQUEST NOTIFICATION ===
+export const sendRequestNotificationSecondGen = onCall<
+  {
+    placeId: string;
+    placeName: string;
+    placeLocation: { latitude: number; longitude: number };
+    senderToken: string;
+    userId: string;
+    senderId: string;
+  },
+  { success: boolean; recipients: string[] }
+>(async req => {
+  const uid = req.auth?.uid;
+  if (!uid) throw new HttpsError('unauthenticated', 'Must be logged in');
+
+  const { placeId, placeName, placeLocation, senderToken, senderId } = req.data;
+  const recipients = await notificationService.getRecipientsInRadius(
+    uid,
+    placeLocation
+  );
+
+  const uniqueUserIds = await sendRequestNotification(
+    recipients,
+    placeId,
+    placeName,
+    senderToken
+  );
+
+  await Promise.all(
+    uniqueUserIds.map(userId =>
+      notificationService.saveNotificationForUser(userId, {
+        notificationType: NotificationType.REQUEST,
+        placeId: placeId,
+        senderToken: senderToken,
+        userId: userId,
+        senderId: uid,
+      })
+    )
+  );
+
+  return { success: true, recipients: uniqueUserIds };
+});
+
+// === RESPONSE NOTIFICATION ===
+export const sendResponseNotificationSecondGen = onCall<
+  { placeId: string; senderToken: string; postId: string; userId: string },
+  { success: boolean; recipients: string[] }
+>(async req => {
+  const uid = req.auth?.uid;
+  if (!uid) throw new HttpsError('unauthenticated', 'Must be logged in');
+
+  const { placeId, senderToken, postId } = req.data;
+
+  // Find the user whose pushToken array contains senderToken
+  const usersSnapshot = await admin
+    .firestore()
+    .collection('users')
+    .where('pushToken', 'array-contains', senderToken)
+    .get();
+
+  if (usersSnapshot.empty) {
+    throw new HttpsError('not-found', 'Recipient user not found');
+  }
+
+  const recipients = usersSnapshot.docs.map(doc => ({
+    userId: doc.id,
+    pushToken: senderToken,
+  }));
+
+  const uniqueUserIds = await sendPushNotificationResponse(
+    recipients,
+    placeId,
+    postId
+  );
+
+  await Promise.all(
+    uniqueUserIds.map(userId =>
+      notificationService.saveNotificationForUser(userId, {
+        userId: userId,
+        postId: postId,
+        notificationType: NotificationType.RESPONSE,
+        placeId: placeId,
+        senderId: uid,
+      })
+    )
+  );
+
+  return { success: true, recipients: uniqueUserIds };
+});
 
 export const addPushTokenSecondGen = onCall(async request => {
   if (!request.auth) {
@@ -156,30 +336,6 @@ export const deletePostSecondGen = onCall(async request => {
   return result;
 });
 
-export const toggleLikeSecondGen = onCall(async request => {
-  const { postId, userId } = request.data as {
-    postId: string;
-    userId: string;
-  };
-
-  if (!postId || !userId) {
-    throw new HttpsError('invalid-argument', 'Missing postId or userId');
-  }
-
-  const likeDocRef = db
-    .collection('posts')
-    .doc(postId)
-    .collection('likes')
-    .doc(userId);
-  const likeDoc = await likeDocRef.get();
-
-  if (likeDoc.exists) {
-    await likeDocRef.delete();
-  } else {
-    await likeDocRef.set({});
-  }
-});
-
 export const getFreshContentSecondGen = onCall(async request => {
   if (!request.auth) {
     throw new HttpsError(
@@ -237,41 +393,6 @@ export const getPostsByPlaceIdSecondGen = onCall(async request => {
     lastVisible
   );
   return result;
-});
-
-export const saveNotificationSecondGen = onCall(async request => {
-  if (!request.auth) {
-    throw new HttpsError(
-      'unauthenticated',
-      'User must be authenticated to save notifications'
-    );
-  }
-
-  const userId = request.auth.uid;
-  return await notificationService.saveNotification({
-    userId,
-    ...request.data,
-  });
-});
-
-export const sendNotificationHandler = onCall<
-  { latitude: number; longitude: number },
-  string[]
->(async request => {
-  if (!request.auth) {
-    throw new HttpsError(
-      'unauthenticated',
-      'User must be logged in to send notifications'
-    );
-  }
-
-  const uid = request.auth.uid;
-  const { latitude, longitude } = request.data;
-
-  return await notificationService.sendNotification(uid, {
-    latitude,
-    longitude,
-  });
 });
 
 export const getCurrentUserSecondGen = onCall<void, User>(async req => {

@@ -211,6 +211,10 @@
     "topUsers": "Top Users",
     "week": "This Week",
     "allTime": "All-Time"
-  }
+  },
+  "liked-your-photo": "liked your photo",
+  "commented-your-photo": "commented on your photo",
+  "sent-request": "sent you a request",
+  "responded-to-request": "responded to your request"
 
 }

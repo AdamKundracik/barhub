@@ -1,104 +1,49 @@
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { useTranslation } from 'react-i18next';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import NotificationItemComponent from '../../../components/user/NewsFeed/Notifications/NotificationItemComponent';
-import { NotificationItem } from '../../../utils/types/notification-types';
-import { UndoMessage } from '../../../components/user/NewsFeed/Notifications/UndoMessage';
 import NotificationLoaderView from '../../../components/user/NewsFeed/Post/Loaders/NotificationLoaderView';
-import { useNotificationsStore } from '../../../utils/store/notificationsStore';
 import InlineAd from '@/src/app/components/user/InlineAd';
 import { useUserStore } from '@/src/app/utils/store/userStore';
+import { NotificationItem } from '../../../utils/types/notification-types';
+import { useNotificationsStore } from '../../../utils/store/notificationsStore';
+import { useNotificationsQuery } from '@/src/app/utils/hooks/useNotifications';
 
 export const NotificationsList: React.FC = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
-  const { data, refetch, isRefetching, isLoading, markAllAsSeen } =
-    useNotificationsStore();
   const { premium } = useUserStore();
-
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const { data: storeData, markAllAsSeen } = useNotificationsStore();
   const [isScrollEnabled, setIsScrollEnabled] = useState(true);
-  const [lastDeletedItem, setLastDeletedItem] =
-    useState<NotificationItem | null>(null);
-  const [showUndo, setShowUndo] = useState(false);
-  const [isRefreshingManually, setIsRefreshingManually] = useState(false);
 
-  useEffect(() => {
-    if (data?.notifications) {
-      setNotifications(data.notifications);
-    }
-  }, [data]);
+  markAllAsSeen();
 
-  useEffect(() => {
-    markAllAsSeen();
+  // --- Use custom hook ---
+  const { isLoading, refetch, isFetching } = useNotificationsQuery();
+
+  const handleRefresh = useCallback(() => {
+    if (!isScrollEnabled) return;
     refetch();
-  }, []);
+  }, [isScrollEnabled, refetch]);
 
-  const handleRefresh = async () => {
-    if (!isScrollEnabled || isRefreshingManually) return;
-
-    setIsRefreshingManually(true);
-    try {
-      await refetch();
-    } finally {
-      setIsRefreshingManually(false);
-    }
-  };
-
-  const handleDelete = useCallback(
-    (id: string) => {
-      const deletedItem = notifications.find(n => n.id === id);
-      if (deletedItem) {
-        setLastDeletedItem(deletedItem);
-        setShowUndo(true);
-        setNotifications(current =>
-          current.filter(notification => notification.id !== id)
-        );
-      }
-    },
-    [notifications]
-  );
-
-  const handleUndo = useCallback(() => {
-    if (lastDeletedItem) {
-      setNotifications(current =>
-        [...current, lastDeletedItem].sort(
-          (a, b) => b.creationTime.seconds - a.creationTime.seconds
-        )
-      );
-      setLastDeletedItem(null);
-    }
-  }, [lastDeletedItem]);
-
-  const handleUndoHide = useCallback(() => {
-    setShowUndo(false);
-    setLastDeletedItem(null);
-  }, []);
-
-  const handleSwipeStart = useCallback(() => {
-    setIsScrollEnabled(false);
-  }, []);
-
-  const handleSwipeEnd = useCallback(() => {
-    setIsScrollEnabled(true);
-  }, []);
+  const handleSwipeStart = useCallback(() => setIsScrollEnabled(false), []);
+  const handleSwipeEnd = useCallback(() => setIsScrollEnabled(true), []);
 
   const renderItem = useCallback(
     ({ item }: { item: NotificationItem }) => (
       <NotificationItemComponent
         item={item}
-        onDelete={() => handleDelete(item.id)}
         onSwipeStart={handleSwipeStart}
         onSwipeEnd={handleSwipeEnd}
       />
     ),
-    [handleDelete, handleSwipeStart, handleSwipeEnd]
+    [handleSwipeStart, handleSwipeEnd]
   );
 
-  if (isLoading) {
+  if (isLoading || !storeData) {
     return (
       <ScreenLayout
         title={t('notifications')}
@@ -116,11 +61,11 @@ export const NotificationsList: React.FC = () => {
     >
       <View style={styles.container}>
         <FlatList
-          data={notifications}
+          data={storeData.notifications}
           scrollEnabled={isScrollEnabled}
           refreshControl={
             <RefreshControl
-              refreshing={isRefreshingManually}
+              refreshing={isFetching}
               onRefresh={handleRefresh}
               progressViewOffset={20}
               enabled={isScrollEnabled}
@@ -135,13 +80,10 @@ export const NotificationsList: React.FC = () => {
               <Text style={styles.emptyText}>{t('no-notifications')}</Text>
             </View>
           }
-          removeClippedSubviews={true}
+          removeClippedSubviews
           maxToRenderPerBatch={10}
           windowSize={5}
         />
-        {showUndo && (
-          <UndoMessage onUndo={handleUndo} onHide={handleUndoHide} />
-        )}
       </View>
 
       {!premium && (
@@ -154,22 +96,14 @@ export const NotificationsList: React.FC = () => {
 };
 
 export const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  listContainer: {
-    paddingBottom: 100,
-  },
+  container: { flex: 1 },
+  listContainer: { paddingBottom: 100 },
   emptyContainer: {
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
   },
-  emptyText: {
-    color: 'white',
-    fontSize: 24,
-    fontWeight: 700,
-  },
+  emptyText: { color: 'white', fontSize: 24, fontWeight: '700' },
 });
 
 export default NotificationsList;

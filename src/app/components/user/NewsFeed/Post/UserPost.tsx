@@ -14,8 +14,6 @@ import { useQueryClient } from 'react-query';
 import { useRef, useState } from 'react';
 import { toggleLike } from '@/src/app/utils/services/functions';
 import { auth } from '@/firebaseConfig';
-import { LikeNotificationRequest } from '@/src/app/utils/types/notification-types';
-import { sendLikeNotification } from '@/src/app/utils/functions/notofications-handler';
 import PlaceNameSeparator from '@/src/app/components/user/NewsFeed/Post/PlaceNameSeparator';
 import { trimPlaceName } from '@/src/app/utils/helper-functions/trimPlaceName';
 import BluredPostFrontView from '@/src/app/components/user/NewsFeed/Post/BluredPostFrontView';
@@ -117,18 +115,7 @@ export const UserPost = (props: PostInterface) => {
     debounceTimeout.current = setTimeout(async () => {
       try {
         if (liked !== previousLikeState) {
-          await toggleLike(postId, auth.currentUser?.uid!);
-
-          // Send notification for new likes (not unlikes)
-          if (!liked && post.userId !== auth.currentUser?.uid) {
-            const notifRequest: LikeNotificationRequest = {
-              postId: postId,
-              username: auth.currentUser?.displayName ?? '',
-              expoPushToken: post.user?.expoPushToken ?? '',
-            };
-            await sendLikeNotification(notifRequest);
-          }
-
+          await toggleLike(postId, auth.currentUser?.displayName!);
           setPreviousLikeState(prevState => !prevState);
           optimisticUpdate(liked ?? false);
         }

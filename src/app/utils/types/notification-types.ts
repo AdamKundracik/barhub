@@ -17,11 +17,13 @@ export interface NotificationItem {
   notificationType: NotificationType;
   senderToken?: string;
   placeId?: string;
+  senderName: string;
+  senderId?: string;
 }
 
 export interface NotificationItemProps {
   item: NotificationItem;
-  onDelete: () => void;
+  // onDelete: () => void;
   onSwipeStart: () => void;
   onSwipeEnd: () => void;
   isBeingSwiped?: boolean;

@@ -1,90 +1,83 @@
 import { httpsCallable } from 'firebase/functions';
-import {
-  GetNotificationsResult,
-  MarkNotificationReadResult,
-  SaveNotificationRequest,
-} from '../types/notification-types';
 import { functions } from '@/firebaseConfig';
-import { SaveNotificationResponse } from '@/common/types/notificationTypes';
+import {
+  GetUserNotificationsResponse,
+  MarkNotificationReadResult,
+} from '../types/notification-types';
 
-/**
- * Saves a new notification
- * @param notification - The notification data to save (without creationTime)
- * @returns Promise with the saved notification data
- */
-export const saveNotification = async (
-  notification: Omit<
-    SaveNotificationRequest,
-    'creationTime' | 'userId' | 'postId'
-  >
-): Promise<SaveNotificationResponse> => {
-  const cloudFunction = httpsCallable(functions, 'saveNotificationSecondGen');
-  const response = (await cloudFunction({
-    ...notification,
-  })) as unknown as SaveNotificationResponse;
-  return response;
+export type NotificationRecipients = {
+  userId: string;
+  pushToken: string;
 };
 
-/**
- * Fetches all notifications for the authenticated user
- * @returns Promise with array of user's notifications
- */
+// ----------------- SAVE / FETCH / DELETE -----------------
+
 export const getUserNotifications =
-  async (): Promise<GetNotificationsResult> => {
+  async (): Promise<GetUserNotificationsResponse> => {
     const cloudFunction = httpsCallable(
       functions,
       'getUserNotificationsSecondGen'
     );
-    const response =
-      (await cloudFunction()) as unknown as GetNotificationsResult;
-    return response;
+    const response = (await cloudFunction()).data;
+    return response as GetUserNotificationsResponse;
   };
 
-/**
- * Marks all notifications as seen for the authenticated user
- * @returns Promise with success status and count of updated notifications
- */
 export const markAllNotificationsAsSeen =
   async (): Promise<MarkNotificationReadResult> => {
     const cloudFunction = httpsCallable(
       functions,
-      'markAllNotificationsAsSeen'
+      'markAllNotificationsAsSeenSecondGen'
     );
-    const response =
-      (await cloudFunction()) as unknown as MarkNotificationReadResult;
-    return response;
+    const response = (await cloudFunction()).data;
+    return response as MarkNotificationReadResult;
   };
 
-/**
- * Deletes specific notification by ID
- * @param notificationId ID of the notification to delete
- * @returns Promise with success status and count of deleted notifications
- */
 export const deleteNotification = async (
   notificationId: string
 ): Promise<{ success: boolean }> => {
   const cloudFunction = httpsCallable(functions, 'deleteNotificationSecondGen');
-  const response = (await cloudFunction({
-    notificationId,
-  })) as unknown as { success: boolean };
-  return response;
+  const response = (await cloudFunction({ notificationId })).data;
+  return response as { success: boolean };
 };
 
-export const sendNotification = async (
-  latitude: number,
-  longitude: number
-): Promise<string[]> => {
-  if (latitude === undefined || longitude === undefined) return [];
+// ----------------- PUSH NOTIFICATIONS -----------------
 
+export const sendRequestNotificationToRecipients = async (
+  placeId: string,
+  placeName: string,
+  placeLocation: { latitude: number; longitude: number },
+  senderToken: string
+): Promise<boolean> => {
   const cloudFunction = httpsCallable<
-    { latitude: number; longitude: number },
-    string[]
-  >(functions, 'sendNotificationHandler');
+    {
+      placeId: string;
+      placeName: string;
+      placeLocation: { latitude: number; longitude: number };
+      senderToken: string;
+    },
+    { success: boolean; recipients: string[] }
+  >(functions, 'sendRequestNotificationSecondGen');
 
-  const { data: response } = await cloudFunction({
-    latitude,
-    longitude,
+  const { data } = await cloudFunction({
+    placeId,
+    placeName,
+    placeLocation,
+    senderToken,
   });
+  return data.success;
+};
 
-  return response ?? [];
+// FE service
+export const sendResponseNotificationToRecipients = async (
+  placeId: string,
+  senderToken: string,
+  postId: string
+): Promise<boolean> => {
+  const cloudFunction = httpsCallable<
+    { placeId: string; senderToken: string; postId: string },
+    { success: boolean; recipients: string[] }
+  >(functions, 'sendResponseNotificationSecondGen');
+
+  const { data } = await cloudFunction({ placeId, senderToken, postId });
+  return data.success;
 };
