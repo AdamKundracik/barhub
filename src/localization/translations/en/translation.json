@@ -215,6 +215,11 @@
   "liked-your-photo": "liked your photo",
   "commented-your-photo": "commented on your photo",
   "sent-request": "sent you a request",
-  "responded-to-request": "responded to your request"
-
+  "responded-to-request": "responded to your request",
+  "something-went-wrong": "Something went wrong",
+  "account-deleted-success": "Account deleted successfully",
+  "password-changed-success": "Password changed successfully",
+  "password-change-error": "Error changing password",
+  "purchase-success": "Purchase successful",
+  "enjoy-benefits-message": "Enjoy all benefits"
 }

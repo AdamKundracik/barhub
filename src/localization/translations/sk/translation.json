@@ -213,6 +213,12 @@
   "liked-your-photo": "sa páčil tvoj príspevok",
   "commented-your-photo": "okomentoval tvoj príspevok",
   "sent-request": "ti poslal žiadosť",
-  "responded-to-request": "odpovedal na tvoju žiadosť"
+  "responded-to-request": "odpovedal na tvoju žiadosť",
+  "something-went-wrong": "Niečo sa pokazilo",
+  "account-deleted-success": "Účet bol úspešne odstránený",
+  "password-changed-success": "Heslo bolo úspešne zmenené",
+  "password-change-error": "Chyba pri zmene hesla",
+  "purchase-success": "Nákup bol úspešný",
+  "enjoy-benefits-message": "Užite si všetky výhody"
 }
 

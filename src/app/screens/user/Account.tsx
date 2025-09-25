@@ -18,17 +18,25 @@ import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { Image } from 'expo-image';
 import { auth } from '@/firebaseConfig';
 import { useUserStore } from '@/src/app/utils/store/userStore';
+import { useCustomToast } from '@/src/app/components/shared/Toaster';
 
 export const Account = () => {
   const { userData, premium } = useUserStore();
-
   const { t } = useTranslation();
+
+  const { showSuccessToast, showErrorToast } = useCustomToast();
+
   const [isEditing, setIsEditing] = useState(false);
 
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 
   const handleDeleteUser = async () => {
-    await auth.currentUser!.delete();
+    try {
+      await auth.currentUser!.delete();
+      showSuccessToast(t('account-deleted-success'));
+    } catch (error) {
+      showErrorToast(t('something-went-wrong'));
+    }
   };
 
   const confirmDeleteAccount = () => {

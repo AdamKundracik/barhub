@@ -36,6 +36,7 @@ import { OccupancyEnum } from '@/src/app/utils/types/Feed/PostTypes';
 import { Center } from '@/components/ui/center';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { Picker } from '@react-native-picker/picker';
+import { useFiltersStore } from '@/src/app/utils/store/filtersStorage';
 
 type SummaryProps = {
   image: string;
@@ -52,6 +53,8 @@ export const PostSummary = ({ route }: any) => {
   const { t } = useTranslation();
   const routeParams = route.params as SummaryProps;
   const navigation = useNavigation<NavigationProp<UserStackList>>();
+
+  const { resetFilters } = useFiltersStore();
 
   const [selectedOccupancy, setSelectedOccupancy] = useState<OccupancyEnum>(
     OccupancyEnum.FULL
@@ -134,7 +137,6 @@ export const PostSummary = ({ route }: any) => {
 
           const addedPostResponse = await postService.savePost(newPost);
           await queryClient.invalidateQueries({ queryKey: ['posts'] });
-          navigation.navigate('Feed');
 
           if (senderToken) {
             await sendResponseNotificationToRecipients(
@@ -144,6 +146,8 @@ export const PostSummary = ({ route }: any) => {
             );
           }
           await setUser({ lastUploadedPost: new Date().toISOString() });
+          resetFilters();
+          navigation.navigate('Feed');
         }
       } catch (e) {
         console.error(e);

@@ -21,6 +21,7 @@ import { usePlaceStore } from '../../../utils/store/placesStore';
 import { fetchNearbyPlaces } from '../../../utils/helper-functions/fetchPlacesAPI';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { primaryColor } from '@/src/app/utils/styles/colors';
 
 const latitudeDelta = 0.0045;
 const longitudeDelta = 0.0045;
@@ -107,7 +108,11 @@ export const MapSearch = (props: LayoutProps) => {
               onPress={() => setSelectedPlace(place)}
               title={place.displayName.text}
             >
-              <FontAwesomeIcon icon={Icons.Pin} size={24} color="black" />
+              <FontAwesomeIcon
+                icon={Icons.Pin}
+                size={32}
+                color={selectedPlace?.id === place.id ? primaryColor : 'black'}
+              />
             </Marker>
           ))}
       </MapViewCluster>

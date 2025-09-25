@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   EmailAuthProvider,
   getAuth,
   GoogleAuthProvider,
+  linkWithCredential,
   reauthenticateWithCredential,
   updatePassword,
 } from 'firebase/auth';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -39,11 +39,12 @@ import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
 import { AlertCircleIcon, EyeIcon, EyeOffIcon } from '@/components/ui/icon';
 import { Center } from '@/components/ui/center';
 import { Heading } from '@/components/ui/heading';
-import { auth } from '@/firebaseConfig';
+import { useCustomToast } from '@/src/app/components/shared/Toaster';
 
 const PasswordChangeScreen = () => {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
+  const { showSuccessToast, showErrorToast } = useCustomToast();
 
   const [oldPassword, setOldPassword] = useState('');
   const [password, setPassword] = useState('');
@@ -51,64 +52,74 @@ const PasswordChangeScreen = () => {
   const [focusedInput, setFocusedInput] = useState<
     null | 'oldPassword' | 'password' | 'confirmPassword'
   >(null);
-
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [oldPasswordVisible, setOldPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loginMethod, setLoginMethod] = useState<'email' | 'google' | 'other'>(
+    'email'
+  );
 
   const passwordsMatch = password === confirmPassword && password !== '';
 
-  const hasPasswordLogin = auth.currentUser?.providerData
-    .map(data => data.providerId)
-    .includes('password');
+  const auth = getAuth();
+  const user = auth.currentUser;
 
-  const getUserLoginMethod = () => {
-    const user = getAuth().currentUser;
-    if (!user) return null;
+  useEffect(() => {
+    if (!user) return;
     const providers = user.providerData.map(p => p.providerId);
-    if (providers.includes('google.com')) return 'google';
-    if (providers.includes('password')) return 'email';
-    return 'other';
-  };
+    if (providers.includes('google.com')) setLoginMethod('google');
+    else if (providers.includes('password')) setLoginMethod('email');
+    else setLoginMethod('other');
+  }, [user]);
 
   const reauthenticateAndChangePassword = async (
     currentPassword: string,
     newPassword: string
   ) => {
-    setLoading(true);
-    const user = getAuth().currentUser;
     if (!user) return;
-
-    const loginMethod = getUserLoginMethod();
-
+    setLoading(true);
     try {
       if (loginMethod === 'email' && user.email) {
+        // Email/password user
         const credential = EmailAuthProvider.credential(
           user.email,
           currentPassword
         );
         await reauthenticateWithCredential(user, credential);
+        await updatePassword(user, newPassword);
       } else if (loginMethod === 'google') {
-        await GoogleSignin.hasPlayServices();
-        const userInfo = await GoogleSignin.signIn();
+        // Google user
+        const googleUser = await GoogleSignin.signIn();
         const googleCredential = GoogleAuthProvider.credential(
-          userInfo.idToken
+          googleUser.idToken
         );
         await reauthenticateWithCredential(user, googleCredential);
+
+        // Check if email/password credential already exists
+        const hasPassword = user.providerData.some(
+          p => p.providerId === 'password'
+        );
+        if (!hasPassword && user.email) {
+          const passwordCredential = EmailAuthProvider.credential(
+            user.email,
+            newPassword
+          );
+          await linkWithCredential(user, passwordCredential);
+        } else {
+          await updatePassword(user, newPassword);
+        }
       } else {
-        console.error('Unsupported login method for re-authentication.');
+        console.error('Unsupported login method for password change.');
+        setLoading(false);
         return;
       }
 
-      await updatePassword(user, newPassword);
-      Alert.alert('Success', t('password-changed-success'));
-      setOldPassword('');
-      setPassword('');
-      setConfirmPassword('');
+      showSuccessToast(t('password-changed-success'));
+      navigation.goBack();
     } catch (error) {
       console.error('Error updating password:', error);
-      Alert.alert('Error', t('password-change-error'));
+      showErrorToast(t('password-change-error'));
     } finally {
       setLoading(false);
     }
@@ -131,8 +142,20 @@ const PasswordChangeScreen = () => {
             </Heading>
           </Center>
 
+          {loginMethod === 'other' && (
+            <Text
+              style={{
+                color: 'white',
+                textAlign: 'center',
+                marginVertical: 16,
+              }}
+            >
+              {t('password-change-not-supported')}
+            </Text>
+          )}
+
           <View style={styles.formWrapper}>
-            {hasPasswordLogin && (
+            {loginMethod === 'email' && (
               <FormControl style={formStyles.formControl} size="lg">
                 <FormControlLabel>
                   <FormControlLabelText style={{ color: primaryColor }}>
@@ -199,11 +222,8 @@ const PasswordChangeScreen = () => {
                 </InputSlot>
               </Input>
               <FormControlError>
-                <FormControlErrorIcon
-                  as={AlertCircleIcon}
-                  className="text-red-500"
-                />
-                <FormControlErrorText className="text-red-500">
+                <FormControlErrorIcon as={AlertCircleIcon} />
+                <FormControlErrorText>
                   {t('password-too-short')}
                 </FormControlErrorText>
               </FormControlError>
@@ -248,23 +268,24 @@ const PasswordChangeScreen = () => {
                 </InputSlot>
               </Input>
               <FormControlError>
-                <FormControlErrorIcon
-                  as={AlertCircleIcon}
-                  className="text-red-500"
-                />
-                <FormControlErrorText className="text-red-500">
+                <FormControlErrorIcon as={AlertCircleIcon} />
+                <FormControlErrorText>
                   {t('noMatchingPasswords')}
                 </FormControlErrorText>
               </FormControlError>
             </FormControl>
 
-            {/* Submit button */}
             <TouchableOpacity
               style={styles.submitButton}
               onPress={() =>
                 reauthenticateAndChangePassword(oldPassword, password)
               }
-              disabled={loading || password.length < 6 || !passwordsMatch}
+              disabled={
+                loading ||
+                password.length < 6 ||
+                !passwordsMatch ||
+                loginMethod === 'other'
+              }
             >
               <Text style={styles.submitButtonText}>
                 {loading ? t('loading') : t('change-password')}

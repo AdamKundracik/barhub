@@ -37,6 +37,7 @@ import { useNotificationsHandler } from '@/src/app/components/user/NewsFeed/Noti
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/firebaseConfig';
+import { useCustomToast } from '@/src/app/components/shared/Toaster';
 
 type BottomSheetMenuProps = {
   visible: boolean;
@@ -50,16 +51,16 @@ const RollupMenu = ({ visible, setVisible }: BottomSheetMenuProps) => {
   const { unsubscribeNotifications, removePushToken } =
     useNotificationsHandler();
   const { currentPushToken } = useUserStore();
+  const { showSuccessToast } = useCustomToast();
 
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 
   const handleSignOut = async () => {
-    console.log('current', currentPushToken);
+    await signOut(auth)
+      .then(() => showSuccessToast(t('you-have-been-signed-out')))
+      .catch(console.error);
     await unsubscribeNotifications();
     await removePushToken(currentPushToken ?? '');
-    await signOut(auth)
-      .then(() => Alert.alert(t('signed-out'), t('you-have-been-signed-out')))
-      .catch(console.error);
   };
 
   // nová funkcia pre Help
