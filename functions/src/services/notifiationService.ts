@@ -2,7 +2,6 @@ import {
   GetUserNotificationsResponse,
   NotificationItem,
   NotificationType,
-  SaveNotificationResponse,
 } from '../../../common/types/notificationTypes';
 import { https } from 'firebase-functions';
 import { distanceBetween, geohashQueryBounds } from 'geofire-common';
@@ -23,25 +22,29 @@ class NotificationService {
 
   async saveNotificationForUser(
     userId: string,
-    payload: Omit<
-      NotificationItem,
-      'id' | 'read' | 'creationTime' | 'label' | 'text'
-    >,
-    postId?: string
-  ): Promise<SaveNotificationResponse> {
+    senderId: string,
+    notificationType: NotificationType,
+    options?: {
+      postId?: string;
+      placeId?: string;
+      senderToken?: string;
+    }
+  ): Promise<NotificationItem> {
+    const id = this.db.collection('notifications').doc().id;
+
     const notificationDoc: NotificationItem = {
-      ...payload,
-      id: this.db.collection('notifications').doc().id, // generovanie ID
+      id,
+      userId,
+      senderId,
+      notificationType,
+      postId: options?.postId || '',
+      placeId: options?.placeId || '',
+      senderToken: options?.senderToken || '',
       read: false,
-      postId: postId ?? null,
       creationTime: admin.firestore.Timestamp.now(),
-      userId: userId,
     };
 
-    await this.db
-      .collection('notifications')
-      .doc(notificationDoc.id)
-      .set(notificationDoc);
+    await this.db.collection('notifications').doc(id).set(notificationDoc);
 
     return notificationDoc;
   }

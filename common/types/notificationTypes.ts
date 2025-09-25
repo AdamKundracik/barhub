@@ -7,8 +7,9 @@ export type NotificationItem = {
   userId: string;
   senderId: string;
   notificationType: NotificationType;
-  senderToken?: string;
-  placeId?: string;
+  senderToken: string;
+  placeId: string;
+  senderName?: string;
   postId?: string;
 };
 

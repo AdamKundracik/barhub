@@ -1,7 +1,7 @@
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { useTranslation } from 'react-i18next';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import NotificationItemComponent from '../../../components/user/NewsFeed/Notifications/NotificationItemComponent';
@@ -19,15 +19,13 @@ export const NotificationsList: React.FC = () => {
   const { data: storeData, markAllAsSeen } = useNotificationsStore();
   const [isScrollEnabled, setIsScrollEnabled] = useState(true);
 
-  markAllAsSeen();
-
-  // --- Use custom hook ---
   const { isLoading, refetch, isFetching } = useNotificationsQuery();
 
-  const handleRefresh = useCallback(() => {
-    if (!isScrollEnabled) return;
-    refetch();
-  }, [isScrollEnabled, refetch]);
+  useEffect(() => {
+    if (storeData?.hasNewNotifications) {
+      markAllAsSeen();
+    }
+  }, [storeData?.hasNewNotifications, markAllAsSeen]);
 
   const handleSwipeStart = useCallback(() => setIsScrollEnabled(false), []);
   const handleSwipeEnd = useCallback(() => setIsScrollEnabled(true), []);
@@ -66,7 +64,7 @@ export const NotificationsList: React.FC = () => {
           refreshControl={
             <RefreshControl
               refreshing={isFetching}
-              onRefresh={handleRefresh}
+              onRefresh={refetch}
               progressViewOffset={20}
               enabled={isScrollEnabled}
             />

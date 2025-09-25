@@ -96,11 +96,11 @@ export const toggleLikeSecondGen = onCall(async request => {
           if (pushSent) {
             await notificationService.saveNotificationForUser(
               postAuthorId,
+              uid,
+              NotificationType.LIKE,
               {
-                senderId: uid,
-                notificationType: NotificationType.LIKE,
-              },
-              postId
+                postId: postId,
+              }
             );
             logger.info('Notification saved to DB', { postId, sender: uid });
           }
@@ -145,14 +145,17 @@ export const sendRequestNotificationSecondGen = onCall<
   );
 
   await Promise.all(
-    uniqueUserIds.map(userId =>
-      notificationService.saveNotificationForUser(userId, {
-        notificationType: NotificationType.REQUEST,
-        placeId: placeId,
-        senderToken: senderToken,
-        userId: userId,
-        senderId: uid,
-      })
+    uniqueUserIds.map(
+      async userId =>
+        await notificationService.saveNotificationForUser(
+          userId,
+          uid,
+          NotificationType.REQUEST,
+          {
+            placeId: placeId,
+            senderToken: senderToken,
+          }
+        )
     )
   );
 
@@ -192,14 +195,17 @@ export const sendResponseNotificationSecondGen = onCall<
   );
 
   await Promise.all(
-    uniqueUserIds.map(userId =>
-      notificationService.saveNotificationForUser(userId, {
-        userId: userId,
-        postId: postId,
-        notificationType: NotificationType.RESPONSE,
-        placeId: placeId,
-        senderId: uid,
-      })
+    uniqueUserIds.map(
+      async userId =>
+        await notificationService.saveNotificationForUser(
+          userId,
+          uid,
+          NotificationType.RESPONSE,
+          {
+            postId: postId,
+            placeId: placeId,
+          }
+        )
     )
   );
 
