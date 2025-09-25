@@ -1,4 +1,4 @@
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import AuthLayout from '../../components/auth/AuthLayout';
 import * as React from 'react';
 import { useState } from 'react';
@@ -31,6 +31,7 @@ import { AlertCircleIcon, EyeIcon, EyeOffIcon } from '@/components/ui/icon';
 import DatePicker from 'react-native-date-picker';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { Center } from '@/components/ui/center';
+import FastImage from 'react-native-fast-image';
 
 export const Register = () => {
   const { t } = useTranslation();
@@ -147,7 +148,10 @@ export const Register = () => {
       <View style={styles.container}>
         {image ? (
           <TouchableOpacity onPress={pickImage}>
-            <Image source={{ uri: image }} style={styles.profilePicture} />
+            <FastImage
+              source={{ uri: image, priority: FastImage.priority.normal }}
+              style={styles.profilePicture}
+            />
           </TouchableOpacity>
         ) : (
           <TouchableOpacity onPress={pickImage}>

@@ -17,7 +17,6 @@ import {
   primaryBgColor,
   primaryColor,
 } from '../../../utils/styles/colors';
-import { Image } from 'expo-image';
 import { Place } from '../../../utils/types/types';
 import { useTranslation } from 'react-i18next';
 import { formStyles } from '../../../utils/styles/styles';
@@ -37,6 +36,8 @@ import { Center } from '@/components/ui/center';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { Picker } from '@react-native-picker/picker';
 import { useFiltersStore } from '@/src/app/utils/store/filtersStorage';
+import leaderboardClient from '@/src/app/utils/services/leaderboard-service';
+import FastImage from 'react-native-fast-image';
 
 type SummaryProps = {
   image: string;
@@ -146,6 +147,7 @@ export const PostSummary = ({ route }: any) => {
             );
           }
           await setUser({ lastUploadedPost: new Date().toISOString() });
+          await leaderboardClient.addPhotoPoints();
           resetFilters();
           navigation.navigate('Feed');
         }
@@ -211,14 +213,13 @@ export const PostSummary = ({ route }: any) => {
             </View>
 
             <View style={{ height: width, marginTop: 15 }}>
-              <Image
+              <FastImage
                 style={isTablet ? tabletStyles.photo : styles.photo}
                 source={{
                   uri: image ?? '',
+                  priority: FastImage.priority.high,
                 }}
-                priority={'high'}
-                cachePolicy={'memory'}
-                contentFit="cover"
+                resizeMode={FastImage.resizeMode.cover}
               />
             </View>
 

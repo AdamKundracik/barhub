@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   FlatList,
-  Image,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -28,6 +27,7 @@ import { auth } from '@/firebaseConfig';
 import { primaryColor, primaryGrey } from '@/src/app/utils/styles/colors';
 import { Icons } from '@/src/app/utils/icons/icons';
 import { getTimeAgoFromTimestampSeconds } from '@/src/app/utils/helper-functions/timeAgo';
+import FastImage from 'react-native-fast-image';
 
 type Props = {
   expoPushToken: string;
@@ -251,13 +251,14 @@ const CommentsSlider = (props: Props) => {
                     >
                       {props.users?.find(user => user.uid === item?.userId)
                         ?.photoURL ? (
-                        <Image
+                        <FastImage
                           style={styles.profilePicture}
                           source={{
                             uri:
                               props.users?.find(
                                 user => user.uid === item?.userId
                               )?.photoURL ?? '',
+                            priority: FastImage.priority.normal,
                           }}
                         />
                       ) : (
@@ -359,9 +360,12 @@ const CommentsSlider = (props: Props) => {
             marginBottom: 10,
           }}
         >
-          <Image
+          <FastImage
             style={styles.image}
-            source={{ uri: auth.currentUser?.photoURL ?? '' }}
+            source={{
+              uri: auth.currentUser?.photoURL ?? '',
+              priority: FastImage.priority.normal,
+            }}
           />
 
           <BottomSheetTextInput

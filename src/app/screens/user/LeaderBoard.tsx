@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
   FlatList,
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -11,6 +10,7 @@ import { primaryColor } from '../../utils/styles/colors';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+import FastImage from 'react-native-fast-image';
 
 const weeklyLeaderboard = [
   {
@@ -163,11 +163,23 @@ const LeaderboardScreen = () => {
         renderItem={({ item, index }) => (
           <View style={styles.row}>
             {index < 3 ? (
-              <Image source={medalMap[index]} style={styles.medal} />
+              <FastImage
+                source={{
+                  uri: medalMap[index],
+                  priority: FastImage.priority.normal,
+                }}
+                style={styles.medal}
+              />
             ) : (
               <Text style={styles.rank}>{index + 1}.</Text>
             )}
-            <Image source={{ uri: item.profilePic }} style={styles.avatar} />
+            <FastImage
+              source={{
+                uri: item.profilePic,
+                priority: FastImage.priority.normal,
+              }}
+              style={styles.avatar}
+            />
             <Text style={styles.username}>{item.username}</Text>
             <Text style={styles.points}>{item.points} pts</Text>
           </View>

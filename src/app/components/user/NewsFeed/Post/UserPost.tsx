@@ -7,11 +7,10 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { Image } from 'expo-image';
 import { usePlaceStore } from '@/src/app/utils/store/placesStore';
 import { Post } from '@/shared';
 import { useQueryClient } from 'react-query';
-import { useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { toggleLike } from '@/src/app/utils/services/functions';
 import { auth } from '@/firebaseConfig';
 import PlaceNameSeparator from '@/src/app/components/user/NewsFeed/Post/PlaceNameSeparator';
@@ -21,6 +20,7 @@ import { UserLine } from '@/src/app/components/user/NewsFeed/Post/UserLine';
 import InteractionBar from '@/src/app/components/user/NewsFeed/Post/InteractionBar';
 import { postBgColor, primaryBgColor } from '@/src/app/utils/styles/colors';
 import { useUserStore } from '@/src/app/utils/store/userStore';
+import FastImage from 'react-native-fast-image';
 
 interface PostInterface {
   post: Post;
@@ -40,12 +40,11 @@ interface PostInterface {
 const { width: screenWidth } = Dimensions.get('window');
 const isTablet = Device.isTablet();
 
-// Constants for better maintainability
 const DEBOUNCE_DELAY = 700;
 const DOUBLE_TAP_MAX_DURATION = 250;
 const PREMIUM_UPLOAD_THRESHOLD_DAYS = 7;
 
-export const UserPost = (props: PostInterface) => {
+const UserPost = (props: PostInterface) => {
   const { post, setZoomedPost, isFiltering, onCommentPress } = props;
 
   const queryClient = useQueryClient();
@@ -53,35 +52,26 @@ export const UserPost = (props: PostInterface) => {
   const { premium } = useUserStore();
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  // Animation values
+  // Animation
   const focalX = useSharedValue(0);
   const focalY = useSharedValue(0);
   const xCurrent = useSharedValue(0);
   const yCurrent = useSharedValue(0);
   const scale = useSharedValue(1);
 
-  // State management
+  // State
   const [liked, setLiked] = useState(post.isLiked);
   const [likeCount, setLikeCount] = useState<number>(post.likesCount ?? 0);
   const [previousLikeState, setPreviousLikeState] = useState(!post.isLiked);
 
-  const [imageHeight, setImageHeight] = useState<number>(300); // fallback výška
+  const [imageAspectRatio, setImageAspectRatio] = useState(0.75); // fallback
 
-  const handleImageLoad = (event: any) => {
-    const { width, height } = event.source;
-    if (width && height) {
-      const ratio = height / width;
-      setImageHeight(screenWidth * ratio);
-    }
-  };
-
-  // Optimistic update for like functionality
+  // Optimistic like update
   const optimisticUpdate = (currentLiked: boolean) => {
     queryClient.setQueryData(
       placeId ? ['posts', placeId] : 'posts',
       (oldData: any) => {
         if (!oldData) return oldData;
-
         return {
           ...oldData,
           pages: oldData.pages.map((page: any) => ({
@@ -106,25 +96,21 @@ export const UserPost = (props: PostInterface) => {
   const handleLikeToggle = async (postId: string) => {
     const newLikedState = !liked;
     setLiked(newLikedState);
-    setLikeCount(prevCount => (newLikedState ? prevCount + 1 : prevCount - 1));
+    setLikeCount(prev => (newLikedState ? prev + 1 : prev - 1));
 
-    if (debounceTimeout.current) {
-      clearTimeout(debounceTimeout.current);
-    }
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
 
     debounceTimeout.current = setTimeout(async () => {
       try {
         if (liked !== previousLikeState) {
           await toggleLike(postId, auth.currentUser?.displayName!);
-          setPreviousLikeState(prevState => !prevState);
+          setPreviousLikeState(prev => !prev);
           optimisticUpdate(liked ?? false);
         }
       } catch (error) {
         console.error('Error updating like status:', error);
         setLiked(previousLikeState);
-        setLikeCount(prevCount =>
-          previousLikeState ? prevCount + 1 : prevCount - 1
-        );
+        setLikeCount(prev => (previousLikeState ? prev + 1 : prev - 1));
       }
     }, DEBOUNCE_DELAY);
   };
@@ -161,15 +147,13 @@ export const UserPost = (props: PostInterface) => {
     })
     .runOnJS(true);
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        { translateX: xCurrent.value },
-        { translateY: yCurrent.value },
-        { scale: scale.value },
-      ],
-    };
-  });
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: xCurrent.value },
+      { translateY: yCurrent.value },
+      { scale: scale.value },
+    ],
+  }));
 
   const shouldNotBlurPost =
     premium ||
@@ -203,22 +187,21 @@ export const UserPost = (props: PostInterface) => {
           postUserId={post.userId!}
         />
 
-        {/* Dynamic photo container */}
-        <View style={[styles.photoWrapper, { height: imageHeight }]}>
-          <GestureDetector gesture={doubleTap}>
-            <GestureDetector gesture={pinch}>
-              <Animated.View style={[styles.photoContainer, animatedStyle]}>
-                <Image
-                  style={[styles.photo, isTablet && tabletStyles.photo]}
-                  source={{ uri: post.photoUrl }}
-                  priority="high"
-                  contentFit="cover"
-                  onLoad={handleImageLoad}
-                />
-              </Animated.View>
-            </GestureDetector>
+        <GestureDetector gesture={doubleTap}>
+          <GestureDetector gesture={pinch}>
+            <Animated.View style={[styles.photoContainer, animatedStyle]}>
+              <FastImage
+                source={{ uri: post.photoUrl }}
+                style={[
+                  styles.photo,
+                  isTablet && tabletStyles.photo,
+                  { aspectRatio: imageAspectRatio }, // dynamická výška
+                ]}
+                resizeMode={FastImage.resizeMode.cover}
+              />
+            </Animated.View>
           </GestureDetector>
-        </View>
+        </GestureDetector>
 
         <InteractionBar
           likes={likeCount}
@@ -240,48 +223,38 @@ export const UserPost = (props: PostInterface) => {
 };
 
 const styles = StyleSheet.create({
-  placeName: {
-    backgroundColor: primaryBgColor,
-    alignItems: 'center',
-  },
+  placeName: { backgroundColor: primaryBgColor, alignItems: 'center' },
   contentContainer: {
     backgroundColor: postBgColor,
     borderRadius: 20,
     overflow: 'hidden',
   },
-  photoWrapper: {
-    width: screenWidth,
-    position: 'relative',
-  },
   photoContainer: {
-    height: '100%',
+    width: screenWidth,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  photo: {
-    width: screenWidth - 10,
-    height: '100%',
-    borderRadius: 20,
-  },
+  photo: { width: screenWidth, borderRadius: 20 },
 });
 
 const tabletStyles = StyleSheet.create({
-  placeName: {
-    padding: 20,
-  },
+  placeName: { padding: 20 },
   contentContainer: {
     backgroundColor: postBgColor,
     borderRadius: 20,
     overflow: 'hidden',
     width: screenWidth,
   },
-  photo: {
-    width: screenWidth - 10,
-    height: '100%',
-    borderRadius: 20,
-  },
+  photo: { width: screenWidth, borderRadius: 20 },
 });
 
-// READY FOR ANY IMAGE SIZE
-
-export default UserPost;
+export default React.memo(UserPost, (prev, next) => {
+  return (
+    prev.post.id === next.post.id &&
+    prev.isZoomed === next.isZoomed &&
+    prev.hasPremium === next.hasPremium &&
+    prev.isFiltering === next.isFiltering &&
+    prev.numberOfDaysSinceLastPostedPhoto ===
+      next.numberOfDaysSinceLastPostedPhoto
+  );
+});

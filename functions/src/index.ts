@@ -6,7 +6,7 @@ import NotifiationService, {
   sendRequestNotification,
 } from './services/notifiationService';
 import { ReportService } from './services/reportService';
-import admin from 'firebase-admin';
+import * as admin from 'firebase-admin';
 import { GeoPointType } from './documentTypes/Post';
 
 // ----------------- CALLABLE FUNCTIONS -----------------
@@ -15,7 +15,8 @@ import { Post } from '../../common/types/postTypes';
 import { onSchedule } from 'firebase-functions/scheduler';
 import * as logger from 'firebase-functions/logger';
 import { UserService } from './services/userService';
-import { NotificationType } from '../../common/types/notificationTypes'; // service, ktorý sme pripravili
+import { NotificationType } from '../../common/types/notificationTypes';
+import { LeaderboardService } from './services/leaderBoardService';
 
 export interface StatusResponse {
   success: boolean;
@@ -30,6 +31,19 @@ const commentService = new CommentService();
 const notificationService = new NotifiationService();
 const reportService = new ReportService();
 const userService = new UserService();
+const leaderboardService = new LeaderboardService();
+
+const POINTS_PER_LIKE = 2;
+const POINTS_PER_PHOTO = 10;
+const POINTS_PER_COMMENT = 1;
+
+export const addPhotoPoints = onCall(async request => {
+  const uid = request.auth?.uid;
+  logger.error('UID', uid);
+  if (!uid) throw new HttpsError('unauthenticated', 'Must be logged in');
+
+  return leaderboardService.addPhotoPoints(uid);
+});
 
 export const toggleLikeSecondGen = onCall(async request => {
   const { postId, senderUserName } = request.data as {
@@ -37,15 +51,8 @@ export const toggleLikeSecondGen = onCall(async request => {
     senderUserName: string;
   };
   const uid = request.auth?.uid;
-  if (!uid) {
-    logger.error('Unauthenticated request');
-    throw new HttpsError('unauthenticated', 'Must be logged in');
-  }
-
-  if (!postId) {
-    logger.error('Invalid arguments', { postId });
-    throw new HttpsError('invalid-argument', 'Missing postId or userId');
-  }
+  if (!uid) throw new HttpsError('unauthenticated', 'Must be logged in');
+  if (!postId) throw new HttpsError('invalid-argument', 'Missing postId');
 
   const likeDocRef = db
     .collection('posts')
@@ -55,26 +62,29 @@ export const toggleLikeSecondGen = onCall(async request => {
   const likeDoc = await likeDocRef.get();
 
   const postDoc = await db.collection('posts').doc(postId).get();
-  if (!postDoc.exists) {
-    logger.error('Post not found', { postId });
-    throw new HttpsError('not-found', 'Post not found');
-  }
+  if (!postDoc.exists) throw new HttpsError('not-found', 'Post not found');
 
   const postAuthorId = postDoc.data()?.userId;
-  if (!postAuthorId) {
-    logger.error('Post missing authorId', { postId });
-    throw new HttpsError('internal', 'Post authorId missing');
-  }
+  if (!postAuthorId) throw new HttpsError('internal', 'Post authorId missing');
 
   if (likeDoc.exists) {
+    // 🗑️ Unlike
     await likeDocRef.delete();
-    logger.info('Like removed', { postId });
-    return { liked: false };
-  } else {
-    await likeDocRef.set({ createdAt: new Date() });
-    logger.info('Like added', { postId });
 
     if (uid !== postAuthorId) {
+      // body odpočítame iba ak nie je vlastný post
+      await leaderboardService.removeLikePoints(postAuthorId);
+    }
+
+    return { liked: false };
+  } else {
+    // ❤️ Like
+    await likeDocRef.set({ createdAt: new Date() });
+
+    if (uid !== postAuthorId) {
+      // body pridáme iba ak nie je vlastný post
+      await leaderboardService.addLikePoints(postAuthorId);
+
       const userDoc = await db.collection('users').doc(postAuthorId).get();
       const pushTokens = userDoc.data()?.pushToken as string[] | undefined;
 
@@ -83,32 +93,22 @@ export const toggleLikeSecondGen = onCall(async request => {
           userId: postAuthorId,
           pushToken: token,
         }));
-
-        logger.debug('Recipients', recipients);
-
         try {
           const pushSent = await sendLikeNotification(recipients, {
             username: senderUserName,
             postId,
           });
-          logger.info('Push notification sent', { recipients: pushSent });
-
           if (pushSent) {
             await notificationService.saveNotificationForUser(
               postAuthorId,
               uid,
               NotificationType.LIKE,
-              {
-                postId: postId,
-              }
+              { postId }
             );
-            logger.info('Notification saved to DB', { postId, sender: uid });
           }
         } catch (error) {
           logger.error('Failed to send like notification', { error });
         }
-      } else {
-        logger.warn('No push tokens for user', { postAuthorId });
       }
     }
 

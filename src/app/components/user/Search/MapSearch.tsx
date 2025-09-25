@@ -2,7 +2,6 @@ import MapView, { Circle, Marker, Region } from 'react-native-maps';
 import MapViewCluster from 'react-native-map-clustering';
 import {
   ActivityIndicator,
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -22,6 +21,7 @@ import { fetchNearbyPlaces } from '../../../utils/helper-functions/fetchPlacesAP
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { primaryColor } from '@/src/app/utils/styles/colors';
+import FastImage from 'react-native-fast-image';
 
 const latitudeDelta = 0.0045;
 const longitudeDelta = 0.0045;
@@ -118,7 +118,7 @@ export const MapSearch = (props: LayoutProps) => {
       </MapViewCluster>
 
       <View style={styles.markerFixed}>
-        <Image
+        <FastImage
           style={styles.marker}
           source={require('../../../../../assets/pin.png')}
         />
