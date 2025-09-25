@@ -53,4 +53,73 @@ export class LeaderboardService {
     const doc = await this.leaderboardRef(userId).get();
     return doc.exists ? doc.data()?.points || 0 : 0;
   }
+
+  async getTopUsersWithCurrent(uid: string) {
+    // 1. Získať top 100 používateľov podľa bodov
+    const leaderboardSnapshot = await this.db
+      .collection('leaderboard')
+      .orderBy('points', 'desc')
+      .limit(100)
+      .get();
+
+    const topUsers = leaderboardSnapshot.docs.map(doc => ({
+      userId: doc.id,
+      points: doc.data().points || 0,
+    }));
+
+    const topUserIds = topUsers.map(u => u.userId);
+
+    // 2. Načítať info pre top 100 používateľov
+    const usersSnapshot = await this.db
+      .collection('users')
+      .where(admin.firestore.FieldPath.documentId(), 'in', topUserIds)
+      .get();
+
+    const usersMap: Record<string, { displayName: string; photoUrl: string }> =
+      {};
+    usersSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      usersMap[doc.id] = {
+        displayName: data.displayName || 'Unknown',
+        photoUrl: data.photoURL || '',
+      };
+    });
+
+    const topWithUserInfo = topUsers.map(u => ({
+      userId: u.userId,
+      points: u.points,
+      displayName: usersMap[u.userId]?.displayName || 'Unknown',
+      photoUrl: usersMap[u.userId]?.photoUrl || '',
+    }));
+
+    // 3. Získať current user priamo, mimo top 100 alebo z top 100
+    let currentUser = null;
+
+    if (topUserIds.includes(uid)) {
+      // User je v top 100 → vyberieme jeho info z topWithUserInfo
+      const topUser = topWithUserInfo.find(u => u.userId === uid)!;
+      currentUser = { ...topUser };
+    } else {
+      // User nie je v top 100 → načítame ho samostatne
+      const currentUserDoc = await this.db.collection('users').doc(uid).get();
+      const currentLeaderboardDoc = await this.db
+        .collection('leaderboard')
+        .doc(uid)
+        .get();
+
+      if (currentUserDoc.exists) {
+        const data = currentUserDoc.data();
+        currentUser = {
+          userId: uid,
+          displayName: data?.displayName || 'Unknown',
+          photoUrl: data?.photoURL || '',
+          points: currentLeaderboardDoc.exists
+            ? currentLeaderboardDoc.data()?.points || 0
+            : 0,
+        };
+      }
+    }
+
+    return { topUsers: topWithUserInfo, currentUser };
+  }
 }

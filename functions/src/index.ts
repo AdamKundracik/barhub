@@ -33,9 +33,11 @@ const reportService = new ReportService();
 const userService = new UserService();
 const leaderboardService = new LeaderboardService();
 
-const POINTS_PER_LIKE = 2;
-const POINTS_PER_PHOTO = 10;
-const POINTS_PER_COMMENT = 1;
+export const getLeaderboard = onCall(async request => {
+  const uid = request.auth?.uid;
+  if (!uid) throw new HttpsError('unauthenticated', 'Must be logged in');
+  return leaderboardService.getTopUsersWithCurrent(uid);
+});
 
 export const addPhotoPoints = onCall(async request => {
   const uid = request.auth?.uid;
