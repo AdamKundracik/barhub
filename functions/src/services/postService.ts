@@ -4,6 +4,11 @@ import { InfinityScrollPost, Post } from '../../../common/types/postTypes';
 import { GeoPointType, PostDocument } from '../documentTypes/Post';
 import * as geofire from 'geofire-common';
 import { HttpsError } from 'firebase-functions/https';
+import {
+  POINTS_PER_COMMENT,
+  POINTS_PER_LIKE,
+  POINTS_PER_PHOTO,
+} from './leaderBoardService';
 
 export type SavePostResponse = {
   post: Post;
@@ -312,10 +317,14 @@ class PostService {
    * Deletes a post by its ID, including its subcollections (likes, comments).
    *
    * @param postId - ID of the post to delete
+   * @param userId
    * @returns A success message when deleted
    * @throws HttpsError if the post does not exist or deletion fails
    */
-  async deletePost(postId: string): Promise<{ success: boolean }> {
+  async deletePost(
+    postId: string,
+    userId: string
+  ): Promise<{ success: boolean }> {
     if (!postId) {
       throw new HttpsError('invalid-argument', 'Missing postId');
     }
@@ -328,6 +337,10 @@ class PostService {
         throw new HttpsError('not-found', `Post with ID ${postId} not found`);
       }
 
+      if (!userId) {
+        throw new HttpsError('internal', 'Post has no authorId');
+      }
+
       // batch delete subcollections (likes, comments)
       const [likesSnap, commentsSnap] = await Promise.all([
         postRef.collection('likes').get(),
@@ -338,11 +351,31 @@ class PostService {
 
       likesSnap.forEach(doc => batch.delete(doc.ref));
       commentsSnap.forEach(doc => batch.delete(doc.ref));
-
-      // delete main post
       batch.delete(postRef);
 
       await batch.commit();
+
+      // --- UPDATE LEADERBOARD ---
+      const totalPointsRemoved =
+        likesSnap.size * POINTS_PER_LIKE +
+        commentsSnap.size * POINTS_PER_COMMENT +
+        POINTS_PER_PHOTO;
+
+      const leaderboardRef = this.db.collection('leaderboard').doc(userId);
+
+      await leaderboardRef.set(
+        {
+          points: admin.firestore.FieldValue.increment(-totalPointsRemoved),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      logger.info('Post deleted and points decremented', {
+        postId,
+        userId,
+        removed: totalPointsRemoved,
+      });
 
       return { success: true };
     } catch (error: any) {

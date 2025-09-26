@@ -137,7 +137,7 @@ export const sendRequestNotificationSecondGen = onCall<
   const uid = req.auth?.uid;
   if (!uid) throw new HttpsError('unauthenticated', 'Must be logged in');
 
-  const { placeId, placeName, placeLocation, senderToken, senderId } = req.data;
+  const { placeId, placeName, placeLocation, senderToken } = req.data;
   const recipients = await notificationService.getRecipientsInRadius(
     uid,
     placeLocation
@@ -344,7 +344,7 @@ export const deletePostSecondGen = onCall(async request => {
     throw new HttpsError('invalid-argument', 'Missing postId');
   }
 
-  const result = await postService.deletePost(postId);
+  const result = await postService.deletePost(postId, request.auth.uid);
   return result;
 });
 
