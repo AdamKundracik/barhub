@@ -314,10 +314,10 @@ class PostService {
   }
 
   /**
-   * Deletes a post by its ID, including its subcollections (likes, comments).
+   * Deletes a post by its ID, including its subcollections (likes, comments) and photo in bucket.
    *
    * @param postId - ID of the post to delete
-   * @param userId
+   * @param userId - ID of the post owner
    * @returns A success message when deleted
    * @throws HttpsError if the post does not exist or deletion fails
    */
@@ -341,19 +341,35 @@ class PostService {
         throw new HttpsError('internal', 'Post has no authorId');
       }
 
-      // batch delete subcollections (likes, comments)
+      const postData = postSnap.data();
+      const folderId = postData?.folderId;
+      const fileId = postData?.fileId;
+
+      // --- DELETE SUBCOLLECTIONS AND MAIN POST ---
       const [likesSnap, commentsSnap] = await Promise.all([
         postRef.collection('likes').get(),
         postRef.collection('comments').get(),
       ]);
 
       const batch = this.db.batch();
-
       likesSnap.forEach(doc => batch.delete(doc.ref));
       commentsSnap.forEach(doc => batch.delete(doc.ref));
       batch.delete(postRef);
-
       await batch.commit();
+
+      // --- DELETE PHOTO FROM BUCKET ---
+      if (folderId && fileId) {
+        const filePath = `${folderId}/${fileId}`;
+        try {
+          await admin.storage().bucket().file(filePath).delete();
+        } catch (error: any) {
+          // Ak fotka neexistuje alebo sa nepodarí zmazať, neblokuj funkciu
+          console.error(
+            `Failed to delete photo from bucket: ${filePath}`,
+            error
+          );
+        }
+      }
 
       // --- UPDATE LEADERBOARD ---
       const totalPointsRemoved =
@@ -362,7 +378,6 @@ class PostService {
         POINTS_PER_PHOTO;
 
       const leaderboardRef = this.db.collection('leaderboard').doc(userId);
-
       await leaderboardRef.set(
         {
           points: admin.firestore.FieldValue.increment(-totalPointsRemoved),
@@ -371,15 +386,9 @@ class PostService {
         { merge: true }
       );
 
-      logger.info('Post deleted and points decremented', {
-        postId,
-        userId,
-        removed: totalPointsRemoved,
-      });
-
       return { success: true };
     } catch (error: any) {
-      logger.error('Error deleting post:', error);
+      console.error('Error deleting post:', error);
       throw new HttpsError(
         'internal',
         `Error deleting post: ${error.message || 'Unknown error'}`
