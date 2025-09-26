@@ -1,30 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
   BannerAd,
   BannerAdSize,
   TestIds,
 } from 'react-native-google-mobile-ads';
+import { osName } from 'expo-device';
 
-// Define the props interface
-interface BannerAdComponentProps {
-  adUnitId?: string; // Optional Ad Unit ID or TestIds.BANNER
-}
+const productionID =
+  osName === 'Android'
+    ? process.env.EXPO_PUBLIC_ANDROID_ADMOB_BANNER_ID
+    : process.env.EXPO_PUBLIC_IOS_ADMOB_BANNER_ID;
 
-// Define the component
-const BannerAdComponent: React.FC<BannerAdComponentProps> = ({ adUnitId }) => {
-  const [adUnit, setAdUnit] = useState<string>(
-    adUnitId || TestIds.ADAPTIVE_BANNER
-  );
-
-  useEffect(() => {
-    setAdUnit(adUnitId || TestIds.ADAPTIVE_BANNER);
-  }, [adUnitId]);
-
+const BannerAdComponent = () => {
   return (
     <View style={styles.adContainer}>
       <BannerAd
-        unitId={adUnit}
+        unitId={__DEV__ ? TestIds.ADAPTIVE_BANNER : productionID}
         size={BannerAdSize.INLINE_ADAPTIVE_BANNER} // Big size: 320x100
         requestOptions={{
           requestNonPersonalizedAdsOnly: true, // Optional: Set based on your needs

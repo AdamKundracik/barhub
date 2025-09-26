@@ -8,9 +8,10 @@ import {
 import { osName } from 'expo-device';
 import { warningColor } from '../../utils/styles/colors';
 
-const iosAdmobBanner = 'ca-app-pub-2698936582690038/3468319444';
-const androidAdmobBanner = 'ca-app-pub-2698936582690038/7536391110';
-const productionID = osName === 'Android' ? androidAdmobBanner : iosAdmobBanner;
+const productionID =
+  osName === 'Android'
+    ? process.env.EXPO_PUBLIC_ANDROID_ADMOB_BANNER_ID
+    : process.env.EXPO_PUBLIC_IOS_ADMOB_BANNER_ID;
 
 const InlineAd: React.FC = () => {
   const [isAdLoaded, setIsAdLoaded] = useState(false);
