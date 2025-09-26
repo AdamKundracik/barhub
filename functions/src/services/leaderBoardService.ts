@@ -54,13 +54,23 @@ export class LeaderboardService {
     return doc.exists ? doc.data()?.points || 0 : 0;
   }
 
-  async getTopUsersWithCurrent(uid: string) {
-    // 1. Získať top 100 používateľov podľa bodov
-    const leaderboardSnapshot = await this.db
-      .collection('leaderboard')
-      .orderBy('points', 'desc')
-      .limit(100)
-      .get();
+  async getTopUsersWithCurrent(uid: string, period: 'week' | 'all' = 'all') {
+    const leaderboardRef = this.db.collection('leaderboard');
+
+    let query = leaderboardRef.orderBy('points', 'desc').limit(100);
+
+    if (period === 'week') {
+      const sevenDaysAgo = admin.firestore.Timestamp.fromDate(
+        new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+      );
+      query = leaderboardRef
+        .where('updatedAt', '>=', sevenDaysAgo)
+        .orderBy('points', 'desc')
+        .limit(100);
+    }
+
+    // 1. Získať top 100 používateľov
+    const leaderboardSnapshot = await query.get();
 
     const topUsers = leaderboardSnapshot.docs.map(doc => ({
       userId: doc.id,
@@ -93,19 +103,14 @@ export class LeaderboardService {
     }));
 
     // 3. Získať current user priamo, mimo top 100 alebo z top 100
-    let currentUser = null;
+    let currentUser: (typeof topWithUserInfo)[0] | null = null;
 
     if (topUserIds.includes(uid)) {
-      // User je v top 100 → vyberieme jeho info z topWithUserInfo
       const topUser = topWithUserInfo.find(u => u.userId === uid)!;
       currentUser = { ...topUser };
     } else {
-      // User nie je v top 100 → načítame ho samostatne
       const currentUserDoc = await this.db.collection('users').doc(uid).get();
-      const currentLeaderboardDoc = await this.db
-        .collection('leaderboard')
-        .doc(uid)
-        .get();
+      const currentLeaderboardDoc = await leaderboardRef.doc(uid).get();
 
       if (currentUserDoc.exists) {
         const data = currentUserDoc.data();

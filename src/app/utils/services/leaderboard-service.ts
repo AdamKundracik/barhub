@@ -37,14 +37,16 @@ class LeaderboardClient {
     }
   };
 
-  public getLeaderboard = async (): Promise<LeaderboardResponse> => {
+  public getLeaderboard = async (
+    period: 'week' | 'all' = 'all'
+  ): Promise<LeaderboardResponse> => {
     try {
-      const cloudFunction = httpsCallable<null, LeaderboardResponse>(
-        functions,
-        'getLeaderboard'
-      );
+      const cloudFunction = httpsCallable<
+        { period: string },
+        LeaderboardResponse
+      >(functions, 'getLeaderboard');
 
-      const response = await cloudFunction();
+      const response = await cloudFunction({ period });
       return response.data;
     } catch (error) {
       console.error('Error fetching leaderboard:', error);

@@ -221,5 +221,6 @@
   "password-changed-success": "Passwort erfolgreich geändert",
   "password-change-error": "Fehler beim Ändern des Passworts",
   "purchase-success": "Kauf erfolgreich",
-  "enjoy-benefits-message": "Genießen Sie alle Vorteile"
+  "enjoy-benefits-message": "Genießen Sie alle Vorteile",
+  "no-data": "Keine Daten"
 }

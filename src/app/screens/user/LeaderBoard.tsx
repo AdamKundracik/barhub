@@ -13,7 +13,7 @@ import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { LeaderboardUser } from '@/src/app/utils/services/leaderboard-service';
-import { useLeaderboard } from '@/src/app/utils/services/useLeaderboard';
+import { useLeaderboard } from '@/src/app/utils/hooks/useLeaderboard';
 
 const medalMap = [
   require('../../../../assets/gold-medal.png'),
@@ -46,38 +46,30 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
 
 const LeaderboardScreen = () => {
   const [selectedTab, setSelectedTab] = useState<'week' | 'all'>('week');
-  const { data, isLoading, error, refetch } = useLeaderboard();
+  const { data, isLoading, error, refetch } = useLeaderboard(selectedTab);
 
   const navigation = useNavigation();
   const { t } = useTranslation();
-
-  if (isLoading)
-    return (
-      <ScreenLayout clickFunction={navigation.goBack}>
-        <Text>Loading...</Text>
-      </ScreenLayout>
-    );
-  if (error)
-    return (
-      <ScreenLayout clickFunction={navigation.goBack}>
-        <Text>Error: {error.message}</Text>
-      </ScreenLayout>
-    );
 
   const topUsers: LeaderboardUser[] = data?.topUsers || [];
   const currentUser: LeaderboardUser | null = data?.currentUser || null;
   const isCurrentInTop = topUsers.some(u => u.userId === currentUser?.userId);
 
+  const handleTabChange = (tab: 'week' | 'all') => {
+    setSelectedTab(tab);
+    refetch();
+  };
+
   return (
     <ScreenLayout clickFunction={navigation.goBack}>
-      {/* Switch */}
+      {/* Period switch */}
       <View style={styles.switchContainer}>
         <TouchableOpacity
           style={[
             styles.switchButton,
             selectedTab === 'week' && styles.switchButtonActive,
           ]}
-          onPress={() => setSelectedTab('week')}
+          onPress={() => handleTabChange('week')}
         >
           <Text
             style={
@@ -94,7 +86,7 @@ const LeaderboardScreen = () => {
             styles.switchButton,
             selectedTab === 'all' && styles.switchButtonActive,
           ]}
-          onPress={() => setSelectedTab('all')}
+          onPress={() => handleTabChange('all')}
         >
           <Text
             style={
@@ -108,14 +100,22 @@ const LeaderboardScreen = () => {
         </TouchableOpacity>
       </View>
 
+      {/* Title */}
       <Text style={styles.title}>🏆 {t('leaderboard.topUsers')}</Text>
 
+      {/* FlatList */}
       <FlatList
+        contentContainerStyle={{ paddingBottom: 16 }}
         refreshControl={
           <RefreshControl refreshing={isLoading} onRefresh={refetch} />
         }
         data={topUsers}
         keyExtractor={item => item.userId}
+        ListEmptyComponent={
+          <View>
+            {!topUsers && <Text style={styles.emptyText}>{t('no-data')}</Text>}
+          </View>
+        }
         renderItem={({ item, index }) => (
           <LeaderboardRow
             user={item}
@@ -125,10 +125,17 @@ const LeaderboardScreen = () => {
         )}
       />
 
-      {/* Ak current user nie je v topUsers, zobraz ho pod FlatList */}
+      {/* Current user outside top */}
       {!isCurrentInTop && currentUser && (
         <View style={{ marginTop: 16 }}>
           <LeaderboardRow user={currentUser} rank={null} highlight />
+        </View>
+      )}
+
+      {/* Error handling */}
+      {error && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Error: {error.message}</Text>
         </View>
       )}
     </ScreenLayout>
@@ -154,7 +161,6 @@ const styles = StyleSheet.create({
   },
   currentUserHighlight: {
     backgroundColor: '#444',
-    borderRadius: 10,
   },
   switchButton: {
     paddingVertical: 6,
@@ -204,6 +210,25 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
     color: 'white',
+  },
+  loadingContainer: {
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: 'white',
+    marginVertical: 24,
+    fontSize: 16,
+  },
+  errorContainer: {
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  errorText: {
+    color: 'red',
+    fontWeight: 'bold',
   },
 });
 

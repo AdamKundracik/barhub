@@ -36,7 +36,11 @@ const leaderboardService = new LeaderboardService();
 export const getLeaderboard = onCall(async request => {
   const uid = request.auth?.uid;
   if (!uid) throw new HttpsError('unauthenticated', 'Must be logged in');
-  return leaderboardService.getTopUsersWithCurrent(uid);
+
+  // period môže prísť z request.data
+  const period: 'week' | 'all' = request.data?.period || 'all';
+
+  return leaderboardService.getTopUsersWithCurrent(uid, period);
 });
 
 export const addPhotoPoints = onCall(async request => {
