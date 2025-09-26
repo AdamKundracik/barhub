@@ -41,8 +41,8 @@ export const useLocation = () => {
     const setupBackgroundLocation = async () => {
       const onLocation = BackgroundGeolocation.onLocation(event => {
         const currentLocation: LocationType = {
-          latitude: event.coords.latitude,
-          longitude: event.coords.longitude,
+          latitude: event.coords?.latitude,
+          longitude: event.coords?.longitude,
         };
 
         const current = locationRef.current;
@@ -59,8 +59,8 @@ export const useLocation = () => {
 
       const onMotionChange = BackgroundGeolocation.onMotionChange(event => {
         const currentLocation: LocationType = {
-          latitude: event.location.coords.latitude,
-          longitude: event.location.coords.longitude,
+          latitude: event.location.coords?.latitude,
+          longitude: event.location.coords?.longitude,
         };
 
         const current = locationRef.current;

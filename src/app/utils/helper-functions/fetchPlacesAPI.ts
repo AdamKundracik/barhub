@@ -1,9 +1,9 @@
-import { googleAPIKey, radius } from './constants';
+import { radius } from './constants';
 import { getLocales } from 'expo-localization';
 import { AutocompleteResponse, LocationType } from '../types/types';
 
 export async function fetchPlaceDetails(placeId: string) {
-  const placeDetailUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${googleAPIKey}`;
+  const placeDetailUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${process.env.EXPO_PUBLIC_GOOGLE_API_KEY}`;
 
   try {
     const response = await fetch(placeDetailUrl);
@@ -43,7 +43,7 @@ export const fetchNearbyPlaces = async (location: LocationType) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Goog-Api-Key': googleAPIKey,
+        'X-Goog-Api-Key': process.env.EXPO_PUBLIC_GOOGLE_API_KEY,
         'X-Goog-FieldMask':
           'places.displayName,places.formattedAddress,places.id,places.types,places.location',
       },
@@ -85,7 +85,7 @@ export const fetchPlaceAutocomplete = async (
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Goog-Api-Key': googleAPIKey,
+        'X-Goog-Api-Key': process.env.EXPO_PUBLIC_GOOGLE_API_KEY,
       },
       body: JSON.stringify(requestBody),
     });

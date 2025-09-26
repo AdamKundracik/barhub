@@ -5,7 +5,6 @@ import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { formStyles } from '../../utils/styles/styles';
 import { primaryColor, primaryDeepColor } from '../../utils/styles/colors';
 import { useLocationStore } from '../../utils/store/locationStore';
-import { googleAPIKey } from '../../utils/helper-functions/constants';
 import { useTranslation } from 'react-i18next';
 import { FormControl } from '@/components/ui/form-control';
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
@@ -49,7 +48,7 @@ export const SelectFakeLocation = () => {
         const res = await fetch(
           `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
             debouncedQuery
-          )}&types=(cities)&key=${googleAPIKey}`
+          )}&types=(cities)&key=${process.env.EXPO_PUBLIC_GOOGLE_API_KEY}`
         );
         const json = await res.json();
         setPlaces(json.predictions || []);
@@ -68,7 +67,7 @@ export const SelectFakeLocation = () => {
     setLoading(true);
     try {
       const res = await fetch(
-        `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&key=${googleAPIKey}`
+        `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&key=${process.env.EXPO_PUBLIC_GOOGLE_API_KEY}`
       );
       const details = await res.json();
       const location = details.result.geometry.location;
