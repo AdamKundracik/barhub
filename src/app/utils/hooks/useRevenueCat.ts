@@ -9,6 +9,8 @@ import { useUserStore } from '../store/userStore';
 import { setUser } from '../services/functions';
 import { User } from '@/shared';
 import { auth } from '@/firebaseConfig';
+import { useCustomToast } from '@/src/app/components/shared/Toaster';
+import { useTranslation } from 'react-i18next';
 
 const APIKeys = {
   apple: 'appl_LBCUSpmuKrFDpsDAngQHiPdmGKN',
@@ -22,6 +24,8 @@ export const useRevenueCat = ({
 } = {}) => {
   const [packages, setPackages] = useState<PurchasesPackage[]>([]);
   const [isReady, setIsReady] = useState(false);
+  const { showSuccessToast, showErrorToast } = useCustomToast();
+  const { t } = useTranslation();
 
   const { premium, setPremium } = useUserStore();
 
@@ -76,8 +80,10 @@ export const useRevenueCat = ({
     try {
       const { customerInfo } = await Purchases.purchasePackage(pack);
       await updateCustomerInformation(customerInfo);
+      showSuccessToast(t('purchase-success'), t('enjoy-benefits-message'));
     } catch (e: any) {
       if (!e.userCancelled) console.error('Purchase error:', e);
+      showErrorToast(t('something-went-wrong'));
     }
   };
 

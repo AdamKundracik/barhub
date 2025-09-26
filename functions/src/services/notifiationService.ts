@@ -1,8 +1,7 @@
 import {
   GetUserNotificationsResponse,
   NotificationItem,
-  SaveNotificationRequest,
-  SaveNotificationResponse,
+  NotificationType,
 } from '../../../common/types/notificationTypes';
 import { https } from 'firebase-functions';
 import { distanceBetween, geohashQueryBounds } from 'geofire-common';
@@ -10,6 +9,9 @@ import { distanceBetween, geohashQueryBounds } from 'geofire-common';
 import * as admin from 'firebase-admin';
 import { HttpsError } from 'firebase-functions/https';
 import { UserDocument } from '../documentTypes/User';
+// NotificationSender.ts
+import fetch from 'node-fetch';
+import { generateUID } from '../../../src/app/utils/helper-functions/generateUID';
 
 class NotificationService {
   private db: FirebaseFirestore.Firestore;
@@ -18,36 +20,33 @@ class NotificationService {
     this.db = admin.firestore();
   }
 
-  async saveNotification(
-    data: SaveNotificationRequest
-  ): Promise<SaveNotificationResponse> {
-    try {
-      const notificationDoc = {
-        ...data,
-        read: false,
-        creationTime: admin.firestore.Timestamp.now(),
-        userId: data.userId,
-        placeId: data.placeId,
-        senderToken: data.senderToken,
-      };
-
-      const addedNotificationRef = await this.db
-        .collection('notifications')
-        .doc(notificationDoc.id)
-        .set(notificationDoc);
-
-      const addedNotificationSnapshot = await addedNotificationRef.get();
-      const addedNotification =
-        addedNotificationSnapshot.data() as NotificationItem;
-
-      return {
-        id: addedNotificationRef.id,
-        ...addedNotification,
-      };
-    } catch (error: any) {
-      console.error('Error adding notification: ', error);
-      throw new Error(`Failed to save notification: ${error.message}`);
+  async saveNotificationForUser(
+    userId: string,
+    senderId: string,
+    notificationType: NotificationType,
+    options?: {
+      postId?: string;
+      placeId?: string;
+      senderToken?: string;
     }
+  ): Promise<NotificationItem> {
+    const id = this.db.collection('notifications').doc().id;
+
+    const notificationDoc: NotificationItem = {
+      id,
+      userId,
+      senderId,
+      notificationType,
+      postId: options?.postId || '',
+      placeId: options?.placeId || '',
+      senderToken: options?.senderToken || '',
+      read: false,
+      creationTime: admin.firestore.Timestamp.now(),
+    };
+
+    await this.db.collection('notifications').doc(id).set(notificationDoc);
+
+    return notificationDoc;
   }
 
   async getUserNotifications(
@@ -68,12 +67,35 @@ class NotificationService {
         .orderBy('creationTime', 'desc')
         .get();
 
+      // Načítaj všetky notifikácie
       const notifications = notificationsSnapshot.docs.map(doc => ({
         ...(doc.data() as NotificationItem),
         id: doc.id,
       }));
 
-      const newNotificationsCount = notifications.filter(
+      // Pre každú notifikáciu dotiahni displayName
+      const enrichedNotifications: NotificationItem[] = [];
+      for (const notification of notifications) {
+        let senderName = 'Unknown';
+
+        if (notification.senderId) {
+          const senderDoc = await this.db
+            .collection('users')
+            .doc(notification.senderId)
+            .get();
+
+          if (senderDoc.exists) {
+            senderName = senderDoc.data()?.displayName || 'Unknown';
+          }
+        }
+
+        enrichedNotifications.push({
+          ...notification,
+          senderName,
+        });
+      }
+
+      const newNotificationsCount = enrichedNotifications.filter(
         notification =>
           !notification.read ||
           (lastCheckedTime &&
@@ -89,7 +111,7 @@ class NotificationService {
       }
 
       return {
-        notifications,
+        notifications: enrichedNotifications,
         hasNewNotifications,
         newNotificationsCount,
       };
@@ -97,7 +119,9 @@ class NotificationService {
       console.error('Error fetching notifications: ', error);
       throw new https.HttpsError(
         'internal',
-        `Error fetching notifications: ${error.message || 'An unknown error occurred'}`
+        `Error fetching notifications: ${
+          error.message || 'An unknown error occurred'
+        }`
       );
     }
   }
@@ -169,10 +193,10 @@ class NotificationService {
     }
   }
 
-  async sendNotification(
+  async getRecipientsInRadius(
     uid: string,
     placeLocation: { latitude: number; longitude: number }
-  ): Promise<string[]> {
+  ): Promise<{ userId: string; pushToken: string }[]> {
     if (
       placeLocation.latitude === undefined ||
       placeLocation.longitude === undefined
@@ -202,7 +226,6 @@ class NotificationService {
       for (const snap of snapshots) {
         snap.docs.forEach(doc => {
           const isUsingFakeLocation = doc.get('isUsingFakeLocation');
-
           if (isUsingFakeLocation) return;
 
           const location = doc.get('location');
@@ -214,7 +237,6 @@ class NotificationService {
               distanceBetween([lat, lng], locationArray) * 1000;
 
             if (
-              //TODO: Change radius to 30
               Math.floor(distanceInM) <= 8000 &&
               (doc.data() as UserDocument).id !== uid
             ) {
@@ -228,11 +250,21 @@ class NotificationService {
         return [];
       }
 
-      const tokens = matchingUsers
-        .map(user => user.pushToken)
-        .filter(token => token && token !== uid);
+      // Rozbaliť pushToken pole na jednotlivé tokeny
+      const recipients: { userId: string; pushToken: string }[] = [];
 
-      return tokens;
+      matchingUsers.forEach(user => {
+        if (Array.isArray(user.pushToken)) {
+          user.pushToken.forEach(token => {
+            recipients.push({ userId: user.id, pushToken: token });
+          });
+        } else if (user.pushToken) {
+          // fallback keby staré dáta mali string
+          recipients.push({ userId: user.id, pushToken: user.pushToken });
+        }
+      });
+
+      return recipients;
     } catch (error: any) {
       throw new HttpsError(
         'internal',
@@ -240,6 +272,120 @@ class NotificationService {
       );
     }
   }
+}
+
+export async function sendNotificationToRecipients(
+  recipients: { userId: string; pushToken: string }[],
+  message: {
+    title: string;
+    body: string;
+    data: Record<string, any>;
+  }
+): Promise<string[]> {
+  const uniqueUserIds = new Set<string>();
+
+  for (const recipient of recipients) {
+    uniqueUserIds.add(recipient.userId);
+
+    const expoMessage = {
+      to: recipient.pushToken,
+      sound: 'default',
+      title: message.title,
+      body: message.body,
+      data: {
+        ...message.data,
+        userId: recipient.userId,
+      },
+    };
+
+    await fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Accept-encoding': 'gzip, deflate',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(expoMessage),
+    });
+  }
+
+  return Array.from(uniqueUserIds);
+}
+
+export async function sendPushNotificationResponse(
+  recipients: { userId: string; pushToken: string }[],
+  placeId: string,
+  postId: string
+) {
+  return sendNotificationToRecipients(recipients, {
+    title: 'Someone posted photo from requested place!',
+    body: 'Check out how it looks inside!',
+    data: {
+      placeId,
+      postId,
+      notificationType: NotificationType.RESPONSE,
+      id: generateUID(),
+    },
+  });
+}
+
+export async function sendRequestNotification(
+  recipients: { userId: string; pushToken: string }[],
+  placeId: string,
+  placeName: string,
+  senderToken: string,
+  notificationTTL: number = 180 * 1000
+) {
+  return sendNotificationToRecipients(recipients, {
+    title: `${placeName} photo request!`,
+    body: 'Will you show him how it looks inside?',
+    data: {
+      placeId,
+      senderToken,
+      notificationTTL,
+      sentAt: new Date().toISOString(),
+      notificationType: NotificationType.REQUEST,
+      id: generateUID(),
+    },
+  });
+}
+
+export async function sendLikeNotification(
+  recipients: { userId: string; pushToken: string }[],
+  request: { username: string; postId: string }
+) {
+  return sendNotificationToRecipients(recipients, {
+    title: 'New like!',
+    body: `${request.username} liked your post!`,
+    data: {
+      notificationType: NotificationType.LIKE,
+      username: request.username,
+      postId: request.postId,
+      id: generateUID(),
+    },
+  });
+}
+
+export async function sendCommentNotification(
+  recipients: { userId: string; pushToken: string }[],
+  request: { username: string; postId: string; commentText: string }
+) {
+  const truncatedText =
+    request.commentText.length > 500
+      ? request.commentText.slice(0, 500) + '...'
+      : request.commentText;
+
+  return sendNotificationToRecipients(recipients, {
+    title: 'New comment!',
+    body: `${request.username} commented: ${truncatedText}`,
+    data: {
+      notificationType: NotificationType.COMMENT,
+      username: request.username,
+      postId: request.postId,
+      commentText: request.commentText,
+      id: generateUID(),
+    },
+  });
 }
 
 export default NotificationService;

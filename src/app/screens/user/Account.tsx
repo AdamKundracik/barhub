@@ -15,20 +15,28 @@ import { UserStackList } from '../../utils/types/screen-types';
 import { primaryBgColor, warningColor } from '../../utils/styles/colors';
 import EditProfile from '../../components/user/Account/EditProfile';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
-import { Image } from 'expo-image';
 import { auth } from '@/firebaseConfig';
 import { useUserStore } from '@/src/app/utils/store/userStore';
+import { useCustomToast } from '@/src/app/components/shared/Toaster';
+import FastImage from 'react-native-fast-image';
 
 export const Account = () => {
   const { userData, premium } = useUserStore();
-
   const { t } = useTranslation();
+
+  const { showSuccessToast, showErrorToast } = useCustomToast();
+
   const [isEditing, setIsEditing] = useState(false);
 
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 
   const handleDeleteUser = async () => {
-    await auth.currentUser!.delete();
+    try {
+      await auth.currentUser!.delete();
+      showSuccessToast(t('account-deleted-success'));
+    } catch (error) {
+      showErrorToast(t('something-went-wrong'));
+    }
   };
 
   const confirmDeleteAccount = () => {
@@ -78,10 +86,13 @@ export const Account = () => {
         </View>
         <View style={styles.profileSection}>
           <View>
-            <Image
+            <FastImage
               source={
                 auth.currentUser?.photoURL
-                  ? { uri: auth.currentUser.photoURL }
+                  ? {
+                      uri: auth.currentUser.photoURL,
+                      priority: FastImage.priority.normal,
+                    }
                   : require('../../../../assets/userIcon.png')
               }
               style={[
@@ -91,7 +102,7 @@ export const Account = () => {
                   borderColor: '#FFC107', // Gold for premium
                 },
               ]}
-              contentFit="cover"
+              resizeMode={FastImage.resizeMode.cover}
             />
           </View>
           <Text style={styles.username}>{auth.currentUser?.displayName}</Text>

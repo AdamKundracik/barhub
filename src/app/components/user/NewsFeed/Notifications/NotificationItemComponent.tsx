@@ -29,7 +29,7 @@ const SWIPE_THRESHOLD = -150;
 
 export const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   item,
-  onDelete,
+  // onDelete,
   onSwipeStart,
   onSwipeEnd,
 }) => {
@@ -41,37 +41,48 @@ export const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   const { t } = useTranslation();
   const locales = useLocales();
 
-  const getNotificationText = (notificationType: NotificationType) => {
+  const getNotificationText = (
+    notificationType: NotificationType,
+    senderName: string
+  ) => {
     switch (notificationType) {
       case NotificationType.LIKE:
         return {
           label: t('new-like'),
+          text: `${senderName} ${t('liked-your-photo')}`,
           icon: Icons.HeartSolid,
         };
       case NotificationType.COMMENT:
         return {
           label: t('new-comment'),
+          text: `${senderName} ${t('commented-your-photo')}`,
           icon: Icons.CommentSolid,
         };
       case NotificationType.REQUEST:
         return {
           label: t('request'),
+          text: `${senderName} ${t('sent-request')}`,
           icon: Icons.Bell,
         };
       case NotificationType.RESPONSE:
         return {
           label: t('response'),
+          text: `${senderName} ${t('responded-to-request')}`,
           icon: Icons.Bell,
         };
       default:
         return {
           label: '',
+          text: '',
           icon: Icons.Bell,
         };
     }
   };
 
-  const notificationInfo = getNotificationText(item.notificationType);
+  const notificationInfo = getNotificationText(
+    item.notificationType,
+    item.senderName || 'Someone'
+  );
 
   const deleteIconOpacity = translateX.interpolate({
     inputRange: [-150, 0],
@@ -104,7 +115,7 @@ export const NotificationItemComponent: React.FC<NotificationItemProps> = ({
           duration: 200,
           useNativeDriver: true,
         }).start(() => {
-          onDelete();
+          // onDelete();
           isDeleting.current = false;
           onSwipeEnd();
         });
@@ -202,7 +213,7 @@ export const NotificationItemComponent: React.FC<NotificationItemProps> = ({
             </View>
             <View style={styles.textContainer}>
               <Text style={styles.label}>{notificationInfo.label}</Text>
-              <Text style={styles.text}>{item.text}</Text>
+              <Text style={styles.text}>{notificationInfo.text}</Text>
               <Text style={styles.time}>{formatTime(item.creationTime)}</Text>
             </View>
           </View>

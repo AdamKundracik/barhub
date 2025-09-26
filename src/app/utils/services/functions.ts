@@ -2,7 +2,6 @@ import { httpsCallable } from 'firebase/functions';
 import {
   EmptyDataResponse,
   EmptyDataResult,
-  GetAllUsersResult,
   GetUserResult,
   SetDocumentFromCollectionRequest,
 } from '../types/functions-types';
@@ -45,23 +44,14 @@ export const getCurrentUser = async (): Promise<User | undefined> => {
   return response.data;
 };
 
-export const getAllExistingUsers = async (): Promise<GetAllUsersResult> => {
-  const cloudFunction = httpsCallable(
-    functions,
-    'getAllExistingUsersSecondGen'
-  );
-  const response = (await cloudFunction()) as unknown as GetAllUsersResult;
-  return response;
-};
-
 export const toggleLike = async (
   postId: string,
-  userId: string
+  senderUserName: string
 ): Promise<any> => {
   const cloudFunction = httpsCallable(functions, 'toggleLikeSecondGen');
   const response = await cloudFunction({
     postId,
-    userId,
+    senderUserName,
   });
   return response;
 };

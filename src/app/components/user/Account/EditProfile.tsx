@@ -26,7 +26,6 @@ import {
 import { setUser } from '../../../utils/services/functions';
 import { updateProfile } from 'firebase/auth';
 import SlidingView from '@/src/app/components/shared/Modals/SlidingView';
-import { Image } from 'expo-image';
 import {
   FormControl,
   FormControlLabel,
@@ -41,6 +40,7 @@ import { User } from '@/shared';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useQueryClient } from 'react-query';
 import { useUserData } from '@/src/app/utils/hooks/useUserData';
+import FastImage from 'react-native-fast-image';
 
 type EditProfileProps = {
   user: User | null;
@@ -216,17 +216,20 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View style={styles.profileSection}>
           <TouchableOpacity onPress={() => setOpenImageOptions(true)}>
-            <Image
+            <FastImage
               source={
                 auth.currentUser?.photoURL
-                  ? { uri: auth.currentUser.photoURL }
+                  ? {
+                      uri: auth.currentUser.photoURL,
+                      priority: FastImage.priority.normal,
+                    }
                   : require('../../../../../assets/userIcon.png')
               }
               style={[
                 styles.profilePicture,
                 user?.premium && { borderWidth: 1, borderColor: '#FFC107' },
               ]}
-              contentFit="cover"
+              resizeMode={FastImage.resizeMode.cover}
             />
             <View style={styles.editIconContainer}>
               <FontAwesomeIcon

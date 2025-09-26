@@ -4,6 +4,11 @@ import { InfinityScrollPost, Post } from '../../../common/types/postTypes';
 import { GeoPointType, PostDocument } from '../documentTypes/Post';
 import * as geofire from 'geofire-common';
 import { HttpsError } from 'firebase-functions/https';
+import {
+  POINTS_PER_COMMENT,
+  POINTS_PER_LIKE,
+  POINTS_PER_PHOTO,
+} from './leaderBoardService';
 
 export type SavePostResponse = {
   post: Post;
@@ -309,13 +314,17 @@ class PostService {
   }
 
   /**
-   * Deletes a post by its ID, including its subcollections (likes, comments).
+   * Deletes a post by its ID, including its subcollections (likes, comments) and photo in bucket.
    *
    * @param postId - ID of the post to delete
+   * @param userId - ID of the post owner
    * @returns A success message when deleted
    * @throws HttpsError if the post does not exist or deletion fails
    */
-  async deletePost(postId: string): Promise<{ success: boolean }> {
+  async deletePost(
+    postId: string,
+    userId: string
+  ): Promise<{ success: boolean }> {
     if (!postId) {
       throw new HttpsError('invalid-argument', 'Missing postId');
     }
@@ -328,25 +337,58 @@ class PostService {
         throw new HttpsError('not-found', `Post with ID ${postId} not found`);
       }
 
-      // batch delete subcollections (likes, comments)
+      if (!userId) {
+        throw new HttpsError('internal', 'Post has no authorId');
+      }
+
+      const postData = postSnap.data();
+      const folderId = postData?.folderId;
+      const fileId = postData?.fileId;
+
+      // --- DELETE SUBCOLLECTIONS AND MAIN POST ---
       const [likesSnap, commentsSnap] = await Promise.all([
         postRef.collection('likes').get(),
         postRef.collection('comments').get(),
       ]);
 
       const batch = this.db.batch();
-
       likesSnap.forEach(doc => batch.delete(doc.ref));
       commentsSnap.forEach(doc => batch.delete(doc.ref));
-
-      // delete main post
       batch.delete(postRef);
-
       await batch.commit();
+
+      // --- DELETE PHOTO FROM BUCKET ---
+      if (folderId && fileId) {
+        const filePath = `${folderId}/${fileId}`;
+        try {
+          await admin.storage().bucket().file(filePath).delete();
+        } catch (error: any) {
+          // Ak fotka neexistuje alebo sa nepodarí zmazať, neblokuj funkciu
+          console.error(
+            `Failed to delete photo from bucket: ${filePath}`,
+            error
+          );
+        }
+      }
+
+      // --- UPDATE LEADERBOARD ---
+      const totalPointsRemoved =
+        likesSnap.size * POINTS_PER_LIKE +
+        commentsSnap.size * POINTS_PER_COMMENT +
+        POINTS_PER_PHOTO;
+
+      const leaderboardRef = this.db.collection('leaderboard').doc(userId);
+      await leaderboardRef.set(
+        {
+          points: admin.firestore.FieldValue.increment(-totalPointsRemoved),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
 
       return { success: true };
     } catch (error: any) {
-      logger.error('Error deleting post:', error);
+      console.error('Error deleting post:', error);
       throw new HttpsError(
         'internal',
         `Error deleting post: ${error.message || 'Unknown error'}`

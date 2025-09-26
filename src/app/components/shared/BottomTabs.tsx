@@ -1,7 +1,6 @@
 import React from 'react';
 import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Image } from 'expo-image';
 import Svg, { Path } from 'react-native-svg';
 import {
   NavigationProp,
@@ -19,6 +18,7 @@ import {
   iconInactiveColor,
   primaryBgColor,
 } from '@/src/app/utils/styles/colors';
+import FastImage from 'react-native-fast-image';
 
 type BottomTabsProps = {
   onToggleMenu: () => void;
@@ -73,10 +73,10 @@ const BottomTabs = ({ onToggleMenu }: BottomTabsProps) => {
           onPress={() => handleTabPress(TabsTypes.account)}
         >
           {userData?.photoURL ? (
-            <Image
+            <FastImage
               source={{ uri: userData.photoURL ?? '' }}
               style={styles.profileIcon}
-              priority={'high'}
+              resizeMode={FastImage.resizeMode.cover}
             />
           ) : (
             <Svg width="50" height="50" viewBox="0 0 50 50" fill="none">

@@ -17,7 +17,6 @@ import {
   primaryBgColor,
   primaryColor,
 } from '../../../utils/styles/colors';
-import { Image } from 'expo-image';
 import { Place } from '../../../utils/types/types';
 import { useTranslation } from 'react-i18next';
 import { formStyles } from '../../../utils/styles/styles';
@@ -29,14 +28,16 @@ import { useQueryClient } from 'react-query';
 import postService from '../../../utils/services/post.service';
 import { geohashForLocation } from 'geofire-common';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
-import { sendPushNotificationResponse } from '../../../utils/functions/notofications-handler';
-import { deleteNotification } from '../../../utils/services/notifications-service';
+import { sendResponseNotificationToRecipients } from '../../../utils/services/notifications-service';
 import { generateUID } from '../../../utils/helper-functions/generateUID';
 import { Post } from '@/common/types/postTypes';
 import { OccupancyEnum } from '@/src/app/utils/types/Feed/PostTypes';
 import { Center } from '@/components/ui/center';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { Picker } from '@react-native-picker/picker';
+import { useFiltersStore } from '@/src/app/utils/store/filtersStorage';
+import leaderboardClient from '@/src/app/utils/services/leaderboard-service';
+import FastImage from 'react-native-fast-image';
 
 type SummaryProps = {
   image: string;
@@ -54,6 +55,8 @@ export const PostSummary = ({ route }: any) => {
   const routeParams = route.params as SummaryProps;
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 
+  const { resetFilters } = useFiltersStore();
+
   const [selectedOccupancy, setSelectedOccupancy] = useState<OccupancyEnum>(
     OccupancyEnum.FULL
   );
@@ -66,20 +69,17 @@ export const PostSummary = ({ route }: any) => {
   const [place, setPlace] = useState<Place | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [senderToken, setSenderToken] = useState<string | null>(null);
-  const [notificationId, setNotificationId] = useState<string | null>(null);
 
   useEffect(() => {
     if (routeParams?.image && routeParams?.place) {
       setImage(routeParams.image);
       setPlace(routeParams.place);
       setSenderToken(routeParams.senderToken ?? null);
-      setNotificationId(routeParams.notificationId ?? null);
       // initialize both selected and temp
       const initial = OccupancyEnum.FULL;
       setSelectedOccupancy(initial);
       setTempOccupancy(initial);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routeParams]);
 
   const occupancyLabels: Record<OccupancyEnum, string> = {
@@ -136,17 +136,20 @@ export const PostSummary = ({ route }: any) => {
             photoUrl: url,
           };
 
-          await postService.savePost(newPost);
+          const addedPostResponse = await postService.savePost(newPost);
           await queryClient.invalidateQueries({ queryKey: ['posts'] });
-          navigation.navigate('Feed');
 
           if (senderToken) {
-            await sendPushNotificationResponse(senderToken, place.id);
-          }
-          if (notificationId) {
-            await deleteNotification(notificationId);
+            await sendResponseNotificationToRecipients(
+              place.id,
+              senderToken,
+              addedPostResponse.id
+            );
           }
           await setUser({ lastUploadedPost: new Date().toISOString() });
+          await leaderboardClient.addPhotoPoints();
+          resetFilters();
+          navigation.navigate('Feed');
         }
       } catch (e) {
         console.error(e);
@@ -210,14 +213,13 @@ export const PostSummary = ({ route }: any) => {
             </View>
 
             <View style={{ height: width, marginTop: 15 }}>
-              <Image
+              <FastImage
                 style={isTablet ? tabletStyles.photo : styles.photo}
                 source={{
                   uri: image ?? '',
+                  priority: FastImage.priority.high,
                 }}
-                priority={'high'}
-                cachePolicy={'memory'}
-                contentFit="cover"
+                resizeMode={FastImage.resizeMode.cover}
               />
             </View>
 

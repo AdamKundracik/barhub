@@ -2,15 +2,15 @@ import * as admin from 'firebase-admin';
 
 export type NotificationItem = {
   id: string;
-  postId: string;
-  label: string;
-  text: string;
   read: boolean;
   creationTime: admin.firestore.Timestamp;
   userId: string;
+  senderId: string;
   notificationType: NotificationType;
-  senderToken?: string;
-  placeId?: string;
+  senderToken: string;
+  placeId: string;
+  senderName?: string;
+  postId?: string;
 };
 
 export enum NotificationType {

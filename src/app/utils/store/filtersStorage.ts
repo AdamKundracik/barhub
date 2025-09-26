@@ -19,8 +19,17 @@ interface FiltersState {
 }
 
 const DEFAULT_FILTERS = {
-  distance: 1,
-  selectedPlaces: ['bar'] as PlaceType[],
+  distance: 3,
+  selectedPlaces: [
+    'bar',
+    'bakery',
+    'bowling_alley',
+    'cafe',
+    'casino',
+    'night_club',
+    'restaurant',
+    'tourist_attraction',
+  ] as PlaceType[],
   selectedOccupancy: [
     'FULL',
     'ALMOST_FULL',
@@ -43,7 +52,6 @@ export const useFiltersStore = create<FiltersState>()(
         }),
       resetFilters: () =>
         set({
-          distance: DEFAULT_FILTERS.distance,
           selectedPlaces: DEFAULT_FILTERS.selectedPlaces,
           selectedOccupancy: DEFAULT_FILTERS.selectedOccupancy,
         }),
