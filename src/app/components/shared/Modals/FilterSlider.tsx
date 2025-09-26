@@ -34,15 +34,6 @@ import { useNewsFeedData } from '@/src/app/utils/hooks/NewsFeed/usePostData';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { useModalsStore } from '@/src/app/utils/store/useModalsStore';
 
-type Props = {
-  onClose: () => void;
-  onSave?: (filters: {
-    distance: number;
-    placeTypes: string[];
-    occupancyTypes: string[];
-  }) => void;
-};
-
 export const PLACE_TYPES: PlaceType[] = [
   'bar',
   'cafe',
@@ -59,7 +50,7 @@ export const OCCUPANCY_TYPES: OccupancyTypes[] = [
   'EMPTY',
 ];
 
-const FilterSlider = (props: Props) => {
+const FilterSlider = () => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
@@ -79,7 +70,11 @@ const FilterSlider = (props: Props) => {
     updateFilters,
   } = useFiltersStore();
 
-  const { isFilterOpen } = useModalsStore();
+  const { isFilterOpen, closeFilter } = useModalsStore();
+
+  const handleClose = useCallback(() => {
+    closeFilter();
+  }, [closeFilter]);
 
   const [tempDistance, setTempDistance] = useState(storeDistance);
   const [tempSelectedPlaces, setTempSelectedPlaces] = useState<PlaceType[]>(
@@ -103,6 +98,15 @@ const FilterSlider = (props: Props) => {
     setTempUseFakeLocation(useFakeLocation);
     setFakeLocationNameVal(fakeLocationName);
   }, [isFilterOpen, useFakeLocation, fakeLocationName]);
+
+  // otvorenie a zatvorenie podľa store
+  useEffect(() => {
+    if (isFilterOpen) {
+      bottomSheetRef.current?.expand();
+    } else {
+      bottomSheetRef.current?.close();
+    }
+  }, [isFilterOpen]);
 
   useEffect(() => {
     if (isFilterOpen) {
@@ -132,21 +136,13 @@ const FilterSlider = (props: Props) => {
       placeTypes: finalPlaces,
       occupancy: finalOccupancy,
     });
-
-    props.onSave?.({
-      distance: tempDistance,
-      placeTypes: finalPlaces,
-      occupancyTypes: finalOccupancy,
-    });
     bottomSheetRef?.current?.close();
-    props.onClose();
   }, [
     tempDistance,
     tempSelectedPlaces,
     updateFilters,
     tempSelectedOccupancy,
-    props.onSave,
-    props.onClose,
+    isFilterOpen,
   ]);
 
   const handleSelectionChange = useCallback(
@@ -183,7 +179,7 @@ const FilterSlider = (props: Props) => {
       <BottomSheetFooter
         {...props}
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
-        bottomInset={insets.bottom + 10}
+        bottomInset={insets.bottom}
       >
         <View style={styles.footerContainer}>
           <Button
@@ -200,10 +196,10 @@ const FilterSlider = (props: Props) => {
   return (
     <BottomSheet
       backgroundStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
-      onClose={props.onClose}
+      onClose={handleClose}
       ref={bottomSheetRef}
       snapPoints={['90%', '70%']}
-      index={isFilterOpen ? 1 : -1}
+      index={-1}
       backdropComponent={renderBackdrop}
       footerComponent={renderFooter}
       handleHeight={60}

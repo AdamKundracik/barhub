@@ -12,14 +12,12 @@ import { useNewsFeedData } from '../../utils/hooks/NewsFeed/usePostData';
 import { useComments } from '../../utils/hooks/NewsFeed/useComments';
 import { FeedContent } from './NewsFeed/FeedContent';
 import FilterSlider from '@/src/app/components/shared/Modals/FilterSlider';
-import { useModalsStore } from '@/src/app/utils/store/useModalsStore';
 
 export const NewsFeed = () => {
   const { t } = useTranslation();
 
   const { placeId, placeName } = usePlaceStore();
   const { distance } = useFiltersStore();
-  const { closeFilter } = useModalsStore();
 
   // Data hooks
   const {
@@ -69,7 +67,7 @@ export const NewsFeed = () => {
         expoPushToken={commentsState.expoPushToken}
         onClose={closeComments}
       />*/}
-      <FilterSlider onClose={() => closeFilter()} />
+      <FilterSlider />
     </Layout>
   );
 };
