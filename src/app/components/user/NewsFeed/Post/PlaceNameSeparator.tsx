@@ -1,6 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { iconInactiveColor } from '../../../../utils/styles/colors';
-import { usePlaceStore } from '../../../../utils/store/placesStore';
+import { separatorColor } from '@/src/app/utils/styles/colors';
+import { usePlaceStore } from '@/src/app/utils/store/placesStore';
 
 type Props = {
   placeNameLocal: string;
@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
   line: {
     flex: 1,
     height: 1,
-    backgroundColor: iconInactiveColor,
+    backgroundColor: separatorColor,
   },
   textWrapper: {
     marginHorizontal: 15,
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 24,
-    color: iconInactiveColor,
+    color: separatorColor,
     textAlign: 'center',
     flexShrink: 1,
   },

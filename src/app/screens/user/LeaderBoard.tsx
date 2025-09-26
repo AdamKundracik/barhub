@@ -10,7 +10,6 @@ import {
 import FastImage from 'react-native-fast-image';
 import { primaryColor } from '../../utils/styles/colors';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
-import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { LeaderboardUser } from '@/src/app/utils/services/leaderboard-service';
 import { useLeaderboard } from '@/src/app/utils/hooks/useLeaderboard';
@@ -48,7 +47,6 @@ const LeaderboardScreen = () => {
   const [selectedTab, setSelectedTab] = useState<'week' | 'all'>('week');
   const { data, isLoading, error, refetch } = useLeaderboard(selectedTab);
 
-  const navigation = useNavigation();
   const { t } = useTranslation();
 
   const topUsers: LeaderboardUser[] = data?.topUsers || [];
@@ -61,7 +59,7 @@ const LeaderboardScreen = () => {
   };
 
   return (
-    <ScreenLayout clickFunction={navigation.goBack}>
+    <ScreenLayout>
       {/* Period switch */}
       <View style={styles.switchContainer}>
         <TouchableOpacity

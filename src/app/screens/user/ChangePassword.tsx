@@ -40,6 +40,7 @@ import { AlertCircleIcon, EyeIcon, EyeOffIcon } from '@/components/ui/icon';
 import { Center } from '@/components/ui/center';
 import { Heading } from '@/components/ui/heading';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
+import LoadingIndicator from '@/src/app/components/user/NewsFeed/LoadingIndicator';
 
 const PasswordChangeScreen = () => {
   const { t } = useTranslation();
@@ -126,7 +127,7 @@ const PasswordChangeScreen = () => {
   };
 
   return (
-    <ScreenLayout clickFunction={() => navigation.goBack()}>
+    <ScreenLayout onBackPress={() => navigation.goBack()} showBackButton>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -287,9 +288,13 @@ const PasswordChangeScreen = () => {
                 loginMethod === 'other'
               }
             >
-              <Text style={styles.submitButtonText}>
-                {loading ? t('loading') : t('change-password')}
-              </Text>
+              {loading ? (
+                <LoadingIndicator />
+              ) : (
+                <Text style={styles.submitButtonText}>
+                  {t('change-password')}
+                </Text>
+              )}
             </TouchableOpacity>
           </View>
         </ScrollView>

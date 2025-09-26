@@ -11,42 +11,49 @@ import { Text } from '@/components/ui/text';
 type ScreenLayoutProps = {
   children: ReactNode;
   title?: string;
-  clickFunction?: () => void;
   showTitle?: boolean;
+  showBackButton?: boolean;
+  onBackPress?: () => void;
 };
 
 export const ScreenLayout = ({
   children,
   title,
-  clickFunction,
-  showTitle = true,
+  showTitle = false,
+  showBackButton = false,
+  onBackPress,
 }: ScreenLayoutProps) => {
   return (
     <SafeAreaView
       style={[styles.safeArea, { backgroundColor: primaryBgColor }]}
     >
-      <Box style={styles.mainContainer}>
-        <Box style={styles.header}>
-          <Box style={styles.headerLeft}>
-            {clickFunction && (
-              <Pressable onPress={clickFunction} style={styles.backButton}>
+      <Box style={styles.container}>
+        {(showTitle || showBackButton) && (
+          <Box style={styles.header}>
+            {/* Back button */}
+            {showBackButton && onBackPress ? (
+              <Pressable onPress={onBackPress} style={styles.backButton}>
                 <FontAwesomeIcon icon={Icons.Left} size={24} color="white" />
               </Pressable>
+            ) : (
+              <Box style={styles.backButtonPlaceholder} />
             )}
+
+            {/* Title */}
+            {showTitle && title && (
+              <Center style={styles.titleContainer}>
+                <Text numberOfLines={1} style={styles.titleText}>
+                  {title}
+                </Text>
+              </Center>
+            )}
+
+            {/* Right placeholder (for symmetry) */}
+            <Box style={styles.rightPlaceholder} />
           </Box>
+        )}
 
-          {showTitle && title && (
-            <Center style={styles.headerCenter}>
-              <Text numberOfLines={1} style={styles.headerTitle}>
-                {title}
-              </Text>
-            </Center>
-          )}
-
-          <Box style={styles.headerRight} />
-        </Box>
-
-        <Box style={{ flex: 1 }}>{children}</Box>
+        <Box style={styles.content}>{children}</Box>
       </Box>
     </SafeAreaView>
   );
@@ -54,17 +61,17 @@ export const ScreenLayout = ({
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  mainContainer: { flex: 1, paddingHorizontal: 16 },
+  container: { flex: 1, paddingHorizontal: 16 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
-    marginBottom: 10,
     height: 56,
+    marginBottom: 10,
   },
-  headerLeft: { flex: 1, alignItems: 'flex-start' },
-  headerCenter: { flex: 2, alignItems: 'center' },
-  headerRight: { flex: 1 },
   backButton: { padding: 8 },
-  headerTitle: { color: 'white', fontSize: 18, fontWeight: '600' },
+  backButtonPlaceholder: { width: 40 }, // placeholder to keep title centered
+  titleContainer: { flex: 1, alignItems: 'center' },
+  titleText: { color: 'white', fontSize: 18, fontWeight: '600' },
+  rightPlaceholder: { width: 40 }, // for symmetry with back button
+  content: { flex: 1 },
 });

@@ -1,7 +1,6 @@
 import { SafeAreaView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode } from 'react';
 import {
-  iconInactiveColor,
   primaryBgColor,
   primaryColor,
   primaryGrey,
@@ -11,11 +10,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
-import RollupMenu from '@/src/app/components/shared/Modals/RollupMenu';
-import FilterSlider from '../../user/NewsFeed/Filters/FilterSlider';
 import { useNotificationsHandler } from '@/src/app/components/user/NewsFeed/NotificationHandler';
-import BottomTabs from '@/src/app/components/shared/BottomTabs';
 import { useNotificationsStore } from '@/src/app/utils/store/notificationsStore';
+import { useModalsStore } from '@/src/app/utils/store/useModalsStore';
 
 type LayoutProps = {
   children: ReactNode | ReactNode[];
@@ -24,20 +21,12 @@ type LayoutProps = {
   showTopBar?: boolean;
 };
 
-export const Layout = ({
-  children,
-  showBottomTabs = true,
-  showTopBar = true,
-}: LayoutProps) => {
+export const Layout = ({ children, showTopBar = true }: LayoutProps) => {
   useNotificationsHandler();
 
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { data } = useNotificationsStore();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [filtersOpened, setFiltersOpened] = useState(false);
-
-  const handleToggleMenu = () => setMenuOpen(prev => !prev);
-  const handleCloseMenu = () => setMenuOpen(false);
+  const { openFilter } = useModalsStore();
 
   return (
     <SafeAreaView style={styles.wrapper}>
@@ -67,11 +56,7 @@ export const Layout = ({
             <TouchableOpacity
               onPress={() => navigation.navigate('NotificationsList')}
             >
-              <FontAwesomeIcon
-                icon={Icons.Bell}
-                color={iconInactiveColor}
-                size={22}
-              />
+              <FontAwesomeIcon icon={Icons.Bell} color={'white'} size={22} />
               {data?.hasNewNotifications == true && (
                 <View
                   style={{
@@ -88,12 +73,8 @@ export const Layout = ({
                 ></View>
               )}
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setFiltersOpened(true)}>
-              <FontAwesomeIcon
-                icon={Icons.Sliders}
-                color={iconInactiveColor}
-                size={22}
-              />
+            <TouchableOpacity onPress={() => openFilter()}>
+              <FontAwesomeIcon icon={Icons.Sliders} color={'white'} size={22} />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => navigation.navigate('Subscription')}
@@ -104,17 +85,6 @@ export const Layout = ({
         </View>
       )}
       <View style={{ flex: 1 }}>{children}</View>
-
-      {showBottomTabs && <BottomTabs onToggleMenu={handleToggleMenu} />}
-
-      {menuOpen && (
-        <RollupMenu visible={menuOpen} setVisible={handleCloseMenu} />
-      )}
-
-      <FilterSlider
-        opened={filtersOpened}
-        onClose={() => setFiltersOpened(false)}
-      />
     </SafeAreaView>
   );
 };

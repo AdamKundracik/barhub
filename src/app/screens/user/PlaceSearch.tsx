@@ -27,6 +27,8 @@ import { XIcon } from 'lucide-react-native';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import InlineAd from '@/src/app/components/user/InlineAd';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export const PlaceSearch = () => {
   const [isMapShown, setIsMapShown] = useState(false);
@@ -37,14 +39,12 @@ export const PlaceSearch = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
   const [sessionToken] = useState(generateId());
+  const tabBarHeight = useBottomTabBarHeight();
+  const insets = useSafeAreaInsets();
+
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { setPlaceId, setPlaceName } = usePlaceStore();
   const { addToSearchHistory, searchHistory, premium } = useUserStore();
-
-  /** Cancel search */
-  function onCancelClick() {
-    navigation.goBack();
-  }
 
   /** Fetch places autocomplete */
   const usePlaceAutocomplete = (query: string, sessionToken: string) => {
@@ -98,10 +98,7 @@ export const PlaceSearch = () => {
     if (query.length === 0) {
       if (searchHistory.length > 0) {
         return (
-          <ScrollView
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ paddingBottom: 20 }}
-          >
+          <>
             {searchHistory.map((place, index) => (
               <Pressable
                 key={index}
@@ -131,7 +128,7 @@ export const PlaceSearch = () => {
                 )}
               </Pressable>
             ))}
-          </ScrollView>
+          </>
         );
       }
       return null;
@@ -139,10 +136,7 @@ export const PlaceSearch = () => {
 
     if (places && places?.suggestions?.length > 0) {
       return (
-        <ScrollView
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingBottom: 20 }}
-        >
+        <>
           {places.suggestions.map((place, index) => (
             <Pressable
               key={index}
@@ -172,7 +166,7 @@ export const PlaceSearch = () => {
               )}
             </Pressable>
           ))}
-        </ScrollView>
+        </>
       );
     }
 
@@ -193,7 +187,7 @@ export const PlaceSearch = () => {
 
   return (
     <Layout pageTitle="Search places" showTopBar={false}>
-      <View style={{ flex: 1, paddingHorizontal: 16 }}>
+      <View style={{ flex: 1 }}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -202,23 +196,19 @@ export const PlaceSearch = () => {
             onPress={Keyboard.dismiss}
             accessible={false}
           >
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, paddingHorizontal: 16 }}>
               {/* Top buttons */}
               <View
                 style={{
                   paddingBottom: 20,
                   flexDirection: 'row',
-                  justifyContent: 'space-between',
+                  justifyContent: 'flex-end',
                 }}
               >
-                <TouchableOpacity onPress={onCancelClick}>
-                  <FontAwesomeIcon
-                    icon={Icons.Remove}
-                    size={28}
-                    color="white"
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => setIsMapShown(true)}>
+                <TouchableOpacity
+                  style={{ marginLeft: 16 }}
+                  onPress={() => setIsMapShown(true)}
+                >
                   <FontAwesomeIcon icon={Icons.Map} size={24} color="white" />
                 </TouchableOpacity>
               </View>
@@ -246,7 +236,6 @@ export const PlaceSearch = () => {
                     size="lg"
                     style={{
                       color: primaryDeepColor,
-                      borderBlockColor: primaryColor,
                     }}
                   />
                   {query.length > 0 && (
@@ -265,14 +254,30 @@ export const PlaceSearch = () => {
               </View>
 
               {/* Results */}
-              <View style={{ flex: 1, marginTop: 16 }}>{renderPlaces()}</View>
+              <ScrollView
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={{
+                  paddingTop: 16,
+                  paddingBottom:
+                    tabBarHeight + insets.bottom + (!premium ? 80 : 0), // extra miesto pre reklamu
+                }}
+              >
+                {renderPlaces()}
+              </ScrollView>
             </View>
           </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
 
-        {/* Banner Ad nad klávesnicou */}
+        {/* Banner Ad fixne nad tabmi */}
         {!premium && (
-          <View style={{ paddingVertical: 8 }}>
+          <View
+            style={{
+              position: 'absolute',
+              bottom: tabBarHeight - insets.bottom + 8,
+              left: 16,
+              right: 16,
+            }}
+          >
             <InlineAd />
           </View>
         )}

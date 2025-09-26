@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   Alert,
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -19,22 +20,21 @@ import { auth } from '@/firebaseConfig';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import FastImage from 'react-native-fast-image';
+import * as MailComposer from 'expo-mail-composer';
 
 export const Account = () => {
   const { userData, premium } = useUserStore();
   const { t } = useTranslation();
-
   const { showSuccessToast, showErrorToast } = useCustomToast();
+  const navigation = useNavigation<NavigationProp<UserStackList>>();
 
   const [isEditing, setIsEditing] = useState(false);
-
-  const navigation = useNavigation<NavigationProp<UserStackList>>();
 
   const handleDeleteUser = async () => {
     try {
       await auth.currentUser!.delete();
       showSuccessToast(t('account-deleted-success'));
-    } catch (error) {
+    } catch {
       showErrorToast(t('something-went-wrong'));
     }
   };
@@ -44,25 +44,33 @@ export const Account = () => {
       t('delete-account-title'),
       t('delete-account-info'),
       [
-        {
-          text: t('cancel'),
-          style: 'cancel',
-        },
-        {
-          text: t('submit'),
-          style: 'destructive',
-          onPress: handleDeleteUser,
-        },
+        { text: t('cancel'), style: 'cancel' },
+        { text: t('submit'), style: 'destructive', onPress: handleDeleteUser },
       ],
       { cancelable: true }
     );
+  };
+
+  const handleHelpMail = async () => {
+    const isAvailable = await MailComposer.isAvailableAsync();
+    if (!isAvailable) {
+      Alert.alert(t('error'), t('mailer-not-available'));
+      return;
+    }
+
+    await MailComposer.composeAsync({
+      recipients: ['support@example.com'], // zmeniť na tvoj support e-mail
+      subject: t('help-request'),
+      body: t('please-describe-your-issue'),
+    });
   };
 
   if (isEditing) {
     return (
       <ScreenLayout
         title={t('edit-profile')}
-        clickFunction={() => setIsEditing(false)}
+        showBackButton
+        onBackPress={() => setIsEditing(false)}
       >
         <EditProfile
           user={userData ?? null}
@@ -74,37 +82,43 @@ export const Account = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <FontAwesomeIcon icon={Icons.Remove} size={28} color={'white'} />
-          </TouchableOpacity>
+      <View style={styles.headerRow}>
+        <TouchableOpacity
+          onPress={() => auth.signOut()}
+          style={styles.topButton}
+        >
+          <FontAwesomeIcon icon={Icons.LogOut} size={20} color="white" />
+        </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => setIsEditing(true)}>
-            <FontAwesomeIcon icon={Icons.Pencil} size={20} color={'white'} />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          onPress={() => setIsEditing(true)}
+          style={styles.topButton}
+        >
+          <FontAwesomeIcon icon={Icons.Pencil} size={20} color="white" />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 30 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Profile Section */}
         <View style={styles.profileSection}>
-          <View>
-            <FastImage
-              source={
-                auth.currentUser?.photoURL
-                  ? {
-                      uri: auth.currentUser.photoURL,
-                      priority: FastImage.priority.normal,
-                    }
-                  : require('../../../../assets/userIcon.png')
-              }
-              style={[
-                styles.profilePicture,
-                { borderWidth: 3, borderColor: '#00E1C9' }, // Green border for all, as in the design
-                premium && {
-                  borderColor: '#FFC107', // Gold for premium
-                },
-              ]}
-              resizeMode={FastImage.resizeMode.cover}
-            />
-          </View>
+          <FastImage
+            source={
+              auth.currentUser?.photoURL
+                ? {
+                    uri: auth.currentUser.photoURL,
+                    priority: FastImage.priority.normal,
+                  }
+                : require('../../../../assets/userIcon.png')
+            }
+            style={[
+              styles.profilePicture,
+              { borderColor: premium ? '#FFC107' : '#00E1C9' },
+            ]}
+            resizeMode={FastImage.resizeMode.cover}
+          />
           <Text style={styles.username}>{auth.currentUser?.displayName}</Text>
           <Text style={styles.accountStatusText}>
             {t('account-state')}:{' '}
@@ -114,12 +128,9 @@ export const Account = () => {
           </Text>
         </View>
 
-        {/* Moje údaje Section */}
+        {/* Account Info Section */}
         <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            {/* Toto je flex container */}
-            <Text style={styles.cardTitle}>{t('about-me')}</Text>
-          </View>
+          <Text style={styles.cardTitle}>{t('about-me')}</Text>
           <View style={styles.infoRow}>
             <FontAwesomeIcon
               icon={Icons.Envelope}
@@ -143,18 +154,17 @@ export const Account = () => {
               <Text style={styles.infoLabel}>{t('date-of-birth')}</Text>
               <Text style={styles.infoValue}>
                 {userData?.dateOfBirth
-                  ? new Date(userData?.dateOfBirth!).toLocaleDateString()
+                  ? new Date(userData.dateOfBirth).toLocaleDateString()
                   : t('date-of-birth-not-set')}
               </Text>
             </View>
           </View>
         </View>
 
-        {/* Nastavenia účtu Section */}
+        {/* Account Actions Section */}
         <View style={styles.card}>
-          {/* Change Password Button */}
           <TouchableOpacity
-            style={[styles.fullButton, styles.changePasswordButton]}
+            style={[styles.fullButton, styles.whiteButton]}
             onPress={() => navigation.navigate('PasswordChangeScreen')}
           >
             <FontAwesomeIcon
@@ -163,14 +173,13 @@ export const Account = () => {
               color={primaryBgColor}
               style={styles.buttonIcon}
             />
-            <Text style={styles.changePasswordButtonText}>
+            <Text style={styles.whiteButtonText}>
               {t('change-password-title')}
             </Text>
           </TouchableOpacity>
 
-          {/* Delete Account Button */}
           <TouchableOpacity
-            style={[styles.fullButton, styles.deleteAccountButton]}
+            style={[styles.fullButton, styles.deleteButton]}
             onPress={confirmDeleteAccount}
           >
             <FontAwesomeIcon
@@ -179,13 +188,39 @@ export const Account = () => {
               color={'white'}
               style={styles.buttonIconRight}
             />
-            {/* Using Lock for delete as well, adjust if there's a specific delete icon */}
-            <Text style={styles.deleteAccountButtonText}>
-              {t('delete-account')}
-            </Text>
+            <Text style={styles.deleteButtonText}>{t('delete-account')}</Text>
           </TouchableOpacity>
         </View>
-      </View>
+
+        {/* Help / Info Section */}
+        <View style={styles.card}>
+          <TouchableOpacity
+            style={[styles.fullButton, styles.whiteButton]}
+            onPress={handleHelpMail}
+          >
+            <FontAwesomeIcon
+              icon={Icons.Help}
+              size={18}
+              color={primaryBgColor}
+              style={styles.buttonIcon}
+            />
+            <Text style={styles.whiteButtonText}>{t('help')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.fullButton, styles.whiteButton]}
+            onPress={() => navigation.navigate('Info')}
+          >
+            <FontAwesomeIcon
+              icon={Icons.Info}
+              size={18}
+              color={primaryBgColor}
+              style={styles.buttonIcon}
+            />
+            <Text style={styles.whiteButtonText}>{t('info')}</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -194,8 +229,7 @@ const commonColors = {
   white: '#fff',
   primaryTeal: '#00E1C9',
   premium: '#FFC107',
-  darkGrayCard: 'rgba(58,58,58,0.8)', // Darker gray for cards
-  lightGrayText: '#A9A9A9', // Lighter gray for labels
+  darkGrayCard: 'rgba(58,58,58,0.8)',
 };
 
 const commonTypography = {
@@ -204,38 +238,28 @@ const commonTypography = {
   largeSize: 20,
 };
 
-export const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: primaryBgColor,
-  },
-  container: {
-    flex: 1, // Ensure container takes full height
-    paddingHorizontal: 16,
-    paddingTop: 20, // Add some padding from the top
-  },
+const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: primaryBgColor },
 
-  header: {
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+    paddingHorizontal: 16,
     paddingVertical: 10,
   },
+  topButton: { flexDirection: 'row', alignItems: 'center' },
+  topButtonText: { color: 'white', marginLeft: 5, fontWeight: 'bold' },
 
-  profileSection: {
-    alignItems: 'center',
-    marginBottom: 30, // Increased margin for spacing
-  },
+  profileSection: { alignItems: 'center', marginBottom: 30 },
   profilePicture: {
-    width: 120, // Slightly smaller avatar for better spacing
+    width: 120,
     height: 120,
     borderRadius: 60,
     marginBottom: 10,
-    // Border color is handled inline based on premium status
+    borderWidth: 3,
   },
   username: {
-    color: commonColors.white, // Changed to white for better contrast
+    color: commonColors.white,
     fontSize: commonTypography.largeSize,
     fontWeight: 'bold',
     marginBottom: 5,
@@ -244,44 +268,26 @@ export const styles = StyleSheet.create({
     color: commonColors.white,
     fontSize: commonTypography.baseSize,
   },
-  premiumText: {
-    color: commonColors.premium,
-    fontWeight: 'bold',
-  },
-  basicText: {
-    color: commonColors.white, // Basic text color remains white
-    fontWeight: 'bold',
-  },
+  premiumText: { color: commonColors.premium, fontWeight: 'bold' },
+  basicText: { color: commonColors.white, fontWeight: 'bold' },
 
   card: {
-    backgroundColor: commonColors.darkGrayCard, // Darker background for cards
+    backgroundColor: commonColors.darkGrayCard,
     borderRadius: 15,
     padding: 20,
     marginBottom: 20,
     gap: 10,
   },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
   cardTitle: {
     color: commonColors.white,
     fontSize: commonTypography.largeSize,
     fontWeight: 'bold',
+    marginBottom: 10,
   },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  infoIcon: {
-    marginRight: 10,
-    color: commonColors.primaryTeal, // Icons in info section are teal
-  },
+  infoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
+  infoIcon: { marginRight: 10, color: commonColors.primaryTeal },
   infoLabel: {
-    color: commonColors.primaryTeal, // Lighter gray for labels
+    color: commonColors.primaryTeal,
     fontSize: commonTypography.smallSize,
   },
   infoValue: {
@@ -297,29 +303,22 @@ export const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 10,
   },
-  changePasswordButton: {
-    backgroundColor: commonColors.white,
-  },
-  changePasswordButtonText: {
-    color: primaryBgColor, // Text color for white button
+  whiteButton: { backgroundColor: commonColors.white, marginBottom: 10 },
+  whiteButtonText: {
+    color: primaryBgColor,
     fontSize: commonTypography.baseSize,
     fontWeight: 'bold',
-    marginLeft: 10, // Space for icon
+    marginLeft: 10,
   },
-  deleteAccountButton: {
-    backgroundColor: warningColor,
-  },
-  deleteAccountButtonText: {
+  deleteButton: { backgroundColor: warningColor, marginBottom: 10 },
+  deleteButtonText: {
     color: commonColors.white,
     fontSize: commonTypography.baseSize,
     fontWeight: 'bold',
-    marginLeft: 10, // Space for icon
-  },
-  buttonIcon: {
-    marginRight: 5,
-  },
-  buttonIconRight: {
     marginLeft: 10,
   },
+  buttonIcon: { marginRight: 5 },
+  buttonIconRight: { marginLeft: 10 },
 });
+
 export default Account;

@@ -90,7 +90,11 @@ export const PhotoResolver = ({ route }: any) => {
   }
 
   return (
-    <ScreenLayout title={t('select-place')} clickFunction={navigation.goBack}>
+    <ScreenLayout
+      title={t('select-place')}
+      onBackPress={navigation.goBack}
+      showBackButton
+    >
       <FlatList data={places} renderItem={renderItem} />
     </ScreenLayout>
   );

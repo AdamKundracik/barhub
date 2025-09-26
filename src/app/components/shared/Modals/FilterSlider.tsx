@@ -32,9 +32,9 @@ import { Icons } from '@/src/app/utils/icons/icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNewsFeedData } from '@/src/app/utils/hooks/NewsFeed/usePostData';
 import { useUserStore } from '@/src/app/utils/store/userStore';
+import { useModalsStore } from '@/src/app/utils/store/useModalsStore';
 
 type Props = {
-  opened: boolean;
   onClose: () => void;
   onSave?: (filters: {
     distance: number;
@@ -79,6 +79,8 @@ const FilterSlider = (props: Props) => {
     updateFilters,
   } = useFiltersStore();
 
+  const { isFilterOpen } = useModalsStore();
+
   const [tempDistance, setTempDistance] = useState(storeDistance);
   const [tempSelectedPlaces, setTempSelectedPlaces] = useState<PlaceType[]>(
     storeSelectedPlaces.length > 0 ? storeSelectedPlaces : PLACE_TYPES
@@ -100,10 +102,10 @@ const FilterSlider = (props: Props) => {
   useEffect(() => {
     setTempUseFakeLocation(useFakeLocation);
     setFakeLocationNameVal(fakeLocationName);
-  }, [props.opened, useFakeLocation, fakeLocationName]);
+  }, [isFilterOpen, useFakeLocation, fakeLocationName]);
 
   useEffect(() => {
-    if (props.opened) {
+    if (isFilterOpen) {
       setTempDistance(storeDistance);
       setTempSelectedPlaces(
         storeSelectedPlaces.length > 0 ? storeSelectedPlaces : PLACE_TYPES
@@ -114,7 +116,7 @@ const FilterSlider = (props: Props) => {
           : OCCUPANCY_TYPES
       );
     }
-  }, [props.opened]);
+  }, [isFilterOpen]);
 
   const handleSaveChanges = useCallback(() => {
     const finalPlaces =
@@ -181,7 +183,7 @@ const FilterSlider = (props: Props) => {
       <BottomSheetFooter
         {...props}
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
-        bottomInset={insets.bottom}
+        bottomInset={insets.bottom + 10}
       >
         <View style={styles.footerContainer}>
           <Button
@@ -201,7 +203,7 @@ const FilterSlider = (props: Props) => {
       onClose={props.onClose}
       ref={bottomSheetRef}
       snapPoints={['90%', '70%']}
-      index={props.opened ? 1 : -1}
+      index={isFilterOpen ? 1 : -1}
       backdropComponent={renderBackdrop}
       footerComponent={renderFooter}
       handleHeight={60}

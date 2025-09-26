@@ -163,7 +163,7 @@ export const PostSummary = ({ route }: any) => {
   };
 
   return (
-    <ScreenLayout clickFunction={navigation.goBack}>
+    <ScreenLayout onBackPress={navigation.goBack} showBackButton>
       <TouchableWithoutFeedback>
         <View style={{ justifyContent: 'center', alignItems: 'center' }}>
           <Text
