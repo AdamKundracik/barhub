@@ -21,12 +21,18 @@ import { useUserStore } from '@/src/app/utils/store/userStore';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import FastImage from 'react-native-fast-image';
 import * as MailComposer from 'expo-mail-composer';
+import { BlurView } from 'expo-blur';
+import { signOut } from 'firebase/auth';
+import { useNotificationsHandler } from '@/src/app/components/user/NewsFeed/NotificationHandler';
 
 export const Account = () => {
   const { userData, premium } = useUserStore();
   const { t } = useTranslation();
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
+  const { unsubscribeNotifications, removePushToken } =
+    useNotificationsHandler();
+  const { currentPushToken } = useUserStore();
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -51,6 +57,18 @@ export const Account = () => {
     );
   };
 
+  const confirmSignOut = () => {
+    Alert.alert(
+      t('signed-out'),
+      t('sign-out-info'),
+      [
+        { text: t('cancel'), style: 'cancel' },
+        { text: t('submit'), style: 'destructive', onPress: handleSignOut },
+      ],
+      { cancelable: true }
+    );
+  };
+
   const handleHelpMail = async () => {
     const isAvailable = await MailComposer.isAvailableAsync();
     if (!isAvailable) {
@@ -63,6 +81,14 @@ export const Account = () => {
       subject: t('help-request'),
       body: t('please-describe-your-issue'),
     });
+  };
+
+  const handleSignOut = async () => {
+    await signOut(auth)
+      .then(() => showSuccessToast(t('you-have-been-signed-out')))
+      .catch(console.error);
+    unsubscribeNotifications();
+    await removePushToken(currentPushToken ?? '');
   };
 
   if (isEditing) {
@@ -83,10 +109,7 @@ export const Account = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.headerRow}>
-        <TouchableOpacity
-          onPress={() => auth.signOut()}
-          style={styles.topButton}
-        >
+        <TouchableOpacity onPress={confirmSignOut} style={styles.topButton}>
           <FontAwesomeIcon icon={Icons.LogOut} size={20} color="white" />
         </TouchableOpacity>
 
@@ -129,7 +152,7 @@ export const Account = () => {
         </View>
 
         {/* Account Info Section */}
-        <View style={styles.card}>
+        <BlurView intensity={30} tint="light" style={styles.card}>
           <Text style={styles.cardTitle}>{t('about-me')}</Text>
           <View style={styles.infoRow}>
             <FontAwesomeIcon
@@ -159,10 +182,38 @@ export const Account = () => {
               </Text>
             </View>
           </View>
-        </View>
+          <View style={styles.container}>
+            <TouchableOpacity style={styles.button} onPress={handleHelpMail}>
+              <View style={styles.left}>
+                <FontAwesomeIcon icon={Icons.Help} size={18} color={'white'} />
+                <Text style={styles.label}>{t('help')}</Text>
+              </View>
+              <FontAwesomeIcon
+                icon={Icons.ChevronRight}
+                size={18}
+                color={'white'}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => navigation.navigate('Info')}
+            >
+              <View style={styles.left}>
+                <FontAwesomeIcon icon={Icons.Info} size={18} color={'white'} />
+                <Text style={styles.label}>{t('info')}</Text>
+              </View>
+              <FontAwesomeIcon
+                icon={Icons.ChevronRight}
+                size={18}
+                color={'white'}
+              />
+            </TouchableOpacity>
+          </View>
+        </BlurView>
 
         {/* Account Actions Section */}
-        <View style={styles.card}>
+        <BlurView intensity={30} tint="light" style={styles.card}>
           <TouchableOpacity
             style={[styles.fullButton, styles.whiteButton]}
             onPress={() => navigation.navigate('PasswordChangeScreen')}
@@ -190,36 +241,7 @@ export const Account = () => {
             />
             <Text style={styles.deleteButtonText}>{t('delete-account')}</Text>
           </TouchableOpacity>
-        </View>
-
-        {/* Help / Info Section */}
-        <View style={styles.card}>
-          <TouchableOpacity
-            style={[styles.fullButton, styles.whiteButton]}
-            onPress={handleHelpMail}
-          >
-            <FontAwesomeIcon
-              icon={Icons.Help}
-              size={18}
-              color={primaryBgColor}
-              style={styles.buttonIcon}
-            />
-            <Text style={styles.whiteButtonText}>{t('help')}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.fullButton, styles.whiteButton]}
-            onPress={() => navigation.navigate('Info')}
-          >
-            <FontAwesomeIcon
-              icon={Icons.Info}
-              size={18}
-              color={primaryBgColor}
-              style={styles.buttonIcon}
-            />
-            <Text style={styles.whiteButtonText}>{t('info')}</Text>
-          </TouchableOpacity>
-        </View>
+        </BlurView>
       </ScrollView>
     </SafeAreaView>
   );
@@ -244,8 +266,31 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
     paddingVertical: 10,
+  },
+
+  container: {
+    flexDirection: 'column',
+    gap: 12, // spacing between rows
+  },
+  button: {
+    flexDirection: 'row',
+    justifyContent: 'space-between', // left + right
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 10,
+  },
+  left: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10, // space between icon and label
+  },
+  label: {
+    color: 'white',
+    fontSize: 16,
   },
   topButton: { flexDirection: 'row', alignItems: 'center' },
   topButtonText: { color: 'white', marginLeft: 5, fontWeight: 'bold' },
@@ -272,11 +317,12 @@ const styles = StyleSheet.create({
   basicText: { color: commonColors.white, fontWeight: 'bold' },
 
   card: {
-    backgroundColor: commonColors.darkGrayCard,
+    // backgroundColor: commonColors.darkGrayCard,
     borderRadius: 15,
     padding: 20,
     marginBottom: 20,
     gap: 10,
+    overflow: 'hidden',
   },
   cardTitle: {
     color: commonColors.white,
@@ -320,5 +366,3 @@ const styles = StyleSheet.create({
   buttonIcon: { marginRight: 5 },
   buttonIconRight: { marginLeft: 10 },
 });
-
-export default Account;

@@ -12,12 +12,8 @@ export const useNewsFeedEffects = ({
   refetch,
 }: UseNewsFeedEffectsProps) => {
   useEffect(() => {
-    if (placeId) {
+    if (placeId || distance !== undefined) {
       refetch();
     }
-  }, [placeId, refetch]);
-
-  useEffect(() => {
-    refetch();
-  }, [distance, refetch]);
+  }, [placeId, distance, refetch]);
 };

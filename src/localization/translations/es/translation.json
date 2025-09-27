@@ -26,6 +26,7 @@
   "weak-password": "La contraseña no es lo suficientemente fuerte. Debe tener al menos 6 caracteres. Agrega caracteres adicionales, incluidos caracteres especiales y números.",
   "signed-out": "Cerrar sesión",
   "you-have-been-signed-out": "Se ha cerrado sesión",
+  "sign-out-info": "Será desconectado",
   "user-name": "Nombre de usuario",
   "date-of-birth": "Fecha de nacimiento",
   "submit": "Enviar",

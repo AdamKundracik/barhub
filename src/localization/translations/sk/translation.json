@@ -26,6 +26,7 @@
   "weak-password": "Heslo nie je dostatočne silné. Musí mať aspoň 6 znakov. Pridajte ďalšie znaky vrátane špeciálnych znakov a číslic.",
   "signed-out": "Odhlásenie",
   "you-have-been-signed-out": "Boli ste odhlásený",
+  "sign-out-info": "Budete odhlásený",
   "user-name": "Používateľské meno",
   "date-of-birth": "Dátum narodenia",
   "submit": "Potvrdiť",

@@ -2,9 +2,9 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import {
-  iconInactiveColor,
   primaryColor,
   primaryTextColor,
+  separatorColor,
 } from '../../../utils/styles/colors';
 import RequestPhotoButton from './RequestPhotoButton';
 import { usePlaceStore } from '../../../utils/store/placesStore';
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   infoText2: {
     textAlign: 'center',
     fontSize: 16,
-    color: iconInactiveColor,
+    color: separatorColor,
     marginBottom: 16,
   },
   button: {

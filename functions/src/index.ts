@@ -323,7 +323,9 @@ export const savePostSecondGen = onCall<{ post: any }, SavePostResponse>(
 
     const { post } = req.data;
     try {
-      return await postService.savePost(uid, post);
+      const result = await postService.savePost(uid, post);
+      await leaderboardService.addPhotoPoints(uid);
+      return result;
     } catch (error) {
       logger.error('Failed to save post:', error);
       throw new Error('Failed to save post');

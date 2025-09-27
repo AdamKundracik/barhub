@@ -32,7 +32,7 @@ import { Icons } from '@/src/app/utils/icons/icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNewsFeedData } from '@/src/app/utils/hooks/NewsFeed/usePostData';
 import { useUserStore } from '@/src/app/utils/store/userStore';
-import { useModalsStore } from '@/src/app/utils/store/useModalsStore';
+import { modalsStore } from '@/src/app/utils/store/modalsStore';
 
 export const PLACE_TYPES: PlaceType[] = [
   'bar',
@@ -70,7 +70,7 @@ const FilterSlider = () => {
     updateFilters,
   } = useFiltersStore();
 
-  const { isFilterOpen, closeFilter } = useModalsStore();
+  const { isFilterOpen, closeFilter } = modalsStore();
 
   const handleClose = useCallback(() => {
     closeFilter();
@@ -179,7 +179,7 @@ const FilterSlider = () => {
       <BottomSheetFooter
         {...props}
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
-        bottomInset={insets.bottom}
+        bottomInset={insets.bottom + 20}
       >
         <View style={styles.footerContainer}>
           <Button
@@ -198,7 +198,7 @@ const FilterSlider = () => {
       backgroundStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
       onClose={handleClose}
       ref={bottomSheetRef}
-      snapPoints={['90%', '70%']}
+      snapPoints={['60%', '80%']}
       index={-1}
       backdropComponent={renderBackdrop}
       footerComponent={renderFooter}
@@ -215,7 +215,6 @@ const FilterSlider = () => {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        contentInset={{ bottom: 100 }}
       >
         <View>
           <Text style={styles.title}>{t('filters')}</Text>
@@ -293,7 +292,7 @@ const FilterSlider = () => {
 const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 15,
-    paddingBottom: 50,
+    paddingBottom: 150,
   },
   section: {
     marginVertical: 10,

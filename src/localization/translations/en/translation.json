@@ -26,6 +26,7 @@
   "weak-password": "Password is not strong enough. Has to be atleast 6 characters long. Add additional characters including special characters and numbers.",
   "signed-out": "Sign Out",
   "you-have-been-signed-out": "You have been signed out",
+  "sign-out-info": "You will be signed out",
   "user-name": "Username",
   "date-of-birth": "Date of birth",
   "submit": "Submit",

@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { commonAppStyles } from '../../../utils/styles/styles';
 import { useTranslation } from 'react-i18next';
-import { iconInactiveColor, primaryColor } from '../../../utils/styles/colors';
+import { primaryColor, separatorColor } from '../../../utils/styles/colors';
 import { useRequestStore } from '../../../utils/store/requestStore';
 import { usePlaceStore } from '../../../utils/store/placesStore';
 import { Center } from '@/components/ui/center';
@@ -48,7 +48,7 @@ const RequestPhotoButton = ({ requestPhoto }: RequestPhotoButtonProps) => {
               style={{
                 fontSize: 16,
                 fontWeight: 'bold',
-                color: iconInactiveColor,
+                color: separatorColor,
               }}
             >
               {t('request-photo')}
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     height: 40,
   },
   buttonDisabled: {
-    borderColor: iconInactiveColor,
+    borderColor: separatorColor,
     borderWidth: 1,
     height: 40,
   },

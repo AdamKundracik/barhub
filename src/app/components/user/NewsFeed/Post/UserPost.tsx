@@ -24,7 +24,6 @@ import FastImage from 'react-native-fast-image';
 
 interface PostInterface {
   post: Post;
-  numberOfDaysSinceLastPostedPhoto: number;
   setZoomedPost: (link: string | null) => void;
   isZoomed: boolean;
   hasPremium: boolean;
@@ -42,14 +41,13 @@ const isTablet = Device.isTablet();
 
 const DEBOUNCE_DELAY = 700;
 const DOUBLE_TAP_MAX_DURATION = 250;
-const PREMIUM_UPLOAD_THRESHOLD_DAYS = 7;
 
 const UserPost = (props: PostInterface) => {
   const { post, setZoomedPost, isFiltering, onCommentPress } = props;
 
   const queryClient = useQueryClient();
   const { placeId } = usePlaceStore();
-  const { premium } = useUserStore();
+  const { premium, canSeeContent } = useUserStore();
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // Animation
@@ -155,9 +153,7 @@ const UserPost = (props: PostInterface) => {
     ],
   }));
 
-  const shouldNotBlurPost =
-    premium ||
-    props.numberOfDaysSinceLastPostedPhoto <= PREMIUM_UPLOAD_THRESHOLD_DAYS;
+  const shouldNotBlurPost = premium || canSeeContent;
 
   return (
     <>
@@ -253,8 +249,6 @@ export default React.memo(UserPost, (prev, next) => {
     prev.post.id === next.post.id &&
     prev.isZoomed === next.isZoomed &&
     prev.hasPremium === next.hasPremium &&
-    prev.isFiltering === next.isFiltering &&
-    prev.numberOfDaysSinceLastPostedPhoto ===
-      next.numberOfDaysSinceLastPostedPhoto
+    prev.isFiltering === next.isFiltering
   );
 });

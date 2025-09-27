@@ -33,11 +33,7 @@ export function UserNav() {
         name="SelectFakeLocation"
         component={SelectFakeLocation}
       />
-      <RootStack.Screen
-        name={'Info'}
-        component={Info}
-        options={{ animation: 'fade_from_bottom' }}
-      />
+      <RootStack.Screen name={'Info'} component={Info} />
       <RootStack.Screen
         name="PasswordChangeScreen"
         component={PasswordChangeScreen}

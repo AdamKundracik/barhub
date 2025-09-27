@@ -66,6 +66,7 @@ export const useAppInitialization = () => {
             useUserStore
               .getState()
               .setSearchHistory(userData.searchHistory ?? []);
+            useUserStore.getState().setCanSeeContent(userData.lastUploadedPost);
 
             // Populate location store
             useLocationStore.getState().setLocation(userData.location);

@@ -233,7 +233,6 @@ export const PlaceSearch = () => {
                       if (!text) setHasSearched(false);
                     }}
                     placeholderTextColor={primaryDeepColor}
-                    size="lg"
                     style={{
                       color: primaryDeepColor,
                     }}
@@ -247,7 +246,7 @@ export const PlaceSearch = () => {
                         setHasSearched(false);
                       }}
                     >
-                      <InputIcon as={XIcon} size="xl" color="black" />
+                      <InputIcon as={XIcon} size="lg" color="black" />
                     </InputSlot>
                   )}
                 </Input>

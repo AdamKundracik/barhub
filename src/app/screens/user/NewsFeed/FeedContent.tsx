@@ -5,6 +5,7 @@ import PostLoaderView from '../../../components/user/NewsFeed/Post/Loaders/PostL
 import EmptyState from '../../../components/user/NewsFeed/EmptyState';
 import InlineAd from '@/src/app/components/user/InlineAd';
 import { useUserStore } from '@/src/app/utils/store/userStore';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 interface FeedContentProps {
   isLoading: boolean;
@@ -16,7 +17,6 @@ interface FeedContentProps {
   zoomedPost: string | null;
   setZoomedPost: (postId: string | null) => void;
   userData: any;
-  daysSinceLastUpload: number;
   requestPhoto: () => Promise<void>;
   onCommentPress: (postId: string, token: string, userId: string) => void;
   isFiltering: boolean;
@@ -33,7 +33,6 @@ export const FeedContent: React.FC<FeedContentProps> = ({
   zoomedPost,
   setZoomedPost,
   userData,
-  daysSinceLastUpload,
   requestPhoto,
   onCommentPress,
   isFiltering,
@@ -41,6 +40,7 @@ export const FeedContent: React.FC<FeedContentProps> = ({
   fetchMorePosts,
 }) => {
   const { premium } = useUserStore();
+  const tabBarHeight = useBottomTabBarHeight();
 
   if (isLoading) {
     return <PostLoaderView />;
@@ -54,7 +54,6 @@ export const FeedContent: React.FC<FeedContentProps> = ({
         zoomedPost={zoomedPost}
         setZoomedPost={setZoomedPost}
         userData={userData}
-        numberOfDaysSinceLastPostedPhoto={daysSinceLastUpload}
         requestPhoto={requestPhoto}
         onCommentPress={onCommentPress}
         isFiltering={isFiltering}
@@ -76,7 +75,7 @@ export const FeedContent: React.FC<FeedContentProps> = ({
       >
         <EmptyState requestPhoto={requestPhoto} />
         {!premium && (
-          <View style={{ paddingVertical: 8 }}>
+          <View style={[styles.inlineAdContainer, { bottom: tabBarHeight }]}>
             <InlineAd />
           </View>
         )}
@@ -89,6 +88,11 @@ const styles = StyleSheet.create({
   scrollViewContent: {
     flexGrow: 1,
     justifyContent: 'center',
+    alignItems: 'center',
+  },
+  inlineAdContainer: {
+    position: 'absolute',
+    width: '100%',
     alignItems: 'center',
   },
 });

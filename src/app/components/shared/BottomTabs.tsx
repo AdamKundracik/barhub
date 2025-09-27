@@ -18,18 +18,25 @@ import { UserStackList } from '@/src/app/utils/types/screen-types';
 import NewsFeed from '@/src/app/screens/user/NewsFeed';
 import PlaceSearch from '@/src/app/screens/user/PlaceSearch';
 import LeaderboardScreen from '@/src/app/screens/user/LeaderBoard';
-import Account from '@/src/app/screens/user/Account';
+import { Account } from '@/src/app/screens/user/Account';
 import { BlurView } from 'expo-blur';
 import { useTranslation } from 'react-i18next';
+import { useUserStore } from '@/src/app/utils/store/userStore';
 
 const Tab = createBottomTabNavigator();
 
 function BottomTabs() {
+  const { userData } = useUserStore();
   const { useFakeLocation } = useLocationStore();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
 
   const handleOpenCamera = async () => {
+    // console.log(userData?.lastUploadedPost);
+    // if (canUploadPhoto(userData?.lastUploadedPost!)) {
+    //   Alert.alert('Počkajte 5 minút pred ďalším uploadom');
+    //   return;
+    // }
     if (useFakeLocation) {
       Alert.alert('Cannot open camera with fake location');
     } else {
@@ -53,9 +60,10 @@ function BottomTabs() {
       }}
     >
       <Tab.Screen
-        name={t('explore')}
+        name="Feed"
         component={NewsFeed}
         options={{
+          tabBarLabel: t('explore'),
           tabBarIcon: ({ color }) => (
             <FontAwesomeIcon icon={Icons.House} size={26} color={color} />
           ),
@@ -63,9 +71,10 @@ function BottomTabs() {
       />
 
       <Tab.Screen
-        name={t('search')}
+        name="PlaceSearch"
         component={PlaceSearch}
         options={{
+          tabBarLabel: t('search'),
           tabBarIcon: ({ color }) => (
             <FontAwesomeIcon icon={Icons.Search} size={26} color={color} />
           ),
@@ -95,9 +104,10 @@ function BottomTabs() {
       />
 
       <Tab.Screen
-        name={t('leaderboard.title')}
+        name="LeaderboardScreen"
         component={LeaderboardScreen}
         options={{
+          tabBarLabel: t('leaderboard.title'),
           tabBarIcon: ({ color }) => (
             <FontAwesomeIcon icon={Icons.RankingStar} size={26} color={color} />
           ),
@@ -105,9 +115,10 @@ function BottomTabs() {
       />
 
       <Tab.Screen
-        name={t('account')}
+        name="Account"
         component={Account}
         options={{
+          tabBarLabel: t('account'),
           tabBarIcon: ({ color }) => (
             <FontAwesomeIcon icon={Icons.User} size={26} color={color} />
           ),

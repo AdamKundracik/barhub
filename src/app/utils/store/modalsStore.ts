@@ -23,7 +23,7 @@ interface ModalsState {
   toggleLogoutConfirm: () => void;
 }
 
-export const useModalsStore = create<ModalsState>(set => ({
+export const modalsStore = create<ModalsState>(set => ({
   isFilterOpen: false,
   isHelpOpen: false,
   isInfoOpen: false,

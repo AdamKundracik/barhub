@@ -2,21 +2,21 @@ import { useMemo } from 'react';
 import { usePhotoRequest } from './usePhotoRequest';
 import { useComments } from './useComments';
 import { usePostZoom } from './usePostZoom';
-import { useUserUploadData } from './useUserUploadData';
 import { useNewsFeedEffects } from './useNewsFeedEffects';
 import { usePlaceStore } from '../../store/placesStore';
 import { useFiltersStore } from '../../store/filtersStorage';
 import { useNewsFeedData } from './usePostData';
+import { useUserStore } from '@/src/app/utils/store/userStore';
 
 export const useNewsFeed = () => {
   const { placeId } = usePlaceStore();
   const { distance } = useFiltersStore();
+  const { userData } = useUserStore();
 
   const feedData = useNewsFeedData();
   const photoRequest = usePhotoRequest();
   const comments = useComments();
   const postZoom = usePostZoom();
-  const userUpload = useUserUploadData();
 
   useNewsFeedEffects({
     placeId,
@@ -37,8 +37,7 @@ export const useNewsFeed = () => {
       hasNextPage: feedData.hasNextPage,
       zoomedPost: postZoom.zoomedPost,
       setZoomedPost: postZoom.setZoomedPost,
-      userData: userUpload.userData,
-      daysSinceLastUpload: userUpload.daysSinceLastUpload,
+      userData: userData,
       requestPhoto: photoRequest.requestPhoto,
       onCommentPress: comments.openComments,
       isFiltering: !!placeId,
@@ -48,7 +47,6 @@ export const useNewsFeed = () => {
     [
       feedData,
       postZoom,
-      userUpload,
       photoRequest.requestPhoto,
       comments.openComments,
       placeId,

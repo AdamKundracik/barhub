@@ -12,7 +12,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { useNotificationsHandler } from '@/src/app/components/user/NewsFeed/NotificationHandler';
 import { useNotificationsStore } from '@/src/app/utils/store/notificationsStore';
-import { useModalsStore } from '@/src/app/utils/store/useModalsStore';
+import { modalsStore } from '@/src/app/utils/store/modalsStore';
 
 type LayoutProps = {
   children: ReactNode | ReactNode[];
@@ -26,7 +26,7 @@ export const Layout = ({ children, showTopBar = true }: LayoutProps) => {
 
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { data } = useNotificationsStore();
-  const { openFilter } = useModalsStore();
+  const { toggleFilter } = modalsStore();
 
   return (
     <SafeAreaView style={styles.wrapper}>
@@ -73,7 +73,7 @@ export const Layout = ({ children, showTopBar = true }: LayoutProps) => {
                 ></View>
               )}
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => openFilter()}>
+            <TouchableOpacity onPress={toggleFilter}>
               <FontAwesomeIcon icon={Icons.Sliders} color={'white'} size={22} />
             </TouchableOpacity>
             <TouchableOpacity

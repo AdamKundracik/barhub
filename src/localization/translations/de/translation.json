@@ -26,6 +26,7 @@
   "weak-password": "Passwort ist nicht stark genug. Es muss mindestens 6 Zeichen lang sein. Fügen Sie zusätzliche Zeichen, einschließlich Sonderzeichen und Zahlen, hinzu.",
   "signed-out": "Abmelden",
   "you-have-been-signed-out": "Sie wurden abgemeldet",
+  "sign-out-info": "Sie werden abgemeldet",
   "user-name": "Benutzername",
   "date-of-birth": "Geburtsdatum",
   "submit": "Absenden",

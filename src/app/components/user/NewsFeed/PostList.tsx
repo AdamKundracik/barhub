@@ -26,7 +26,6 @@ interface PostsListProps {
   zoomedPost: string | null;
   setZoomedPost: (postId: string | null) => void;
   userData: User | null | undefined;
-  numberOfDaysSinceLastPostedPhoto: number;
   requestPhoto: () => void;
   fetchMorePosts: () => Promise<void>;
   onRefresh: () => Promise<void>;
@@ -46,7 +45,6 @@ const PostsList = ({
   zoomedPost,
   setZoomedPost,
   userData,
-  numberOfDaysSinceLastPostedPhoto,
   requestPhoto,
   fetchMorePosts,
   onRefresh,
@@ -120,7 +118,6 @@ const PostsList = ({
           }}
         >
           <UserPost
-            numberOfDaysSinceLastPostedPhoto={numberOfDaysSinceLastPostedPhoto}
             requestPhoto={requestPhoto}
             onCommentPress={(postId, expoPushToken, userId) =>
               onCommentPress(postId, expoPushToken, userId)
@@ -148,7 +145,6 @@ const PostsList = ({
     [
       zoomedPost,
       premium,
-      numberOfDaysSinceLastPostedPhoto,
       requestPhoto,
       onCommentPress,
       isFiltering,
