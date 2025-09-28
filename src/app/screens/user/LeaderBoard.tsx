@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  FlatList,
   RefreshControl,
   StyleSheet,
   Text,
@@ -13,6 +12,7 @@ import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { useTranslation } from 'react-i18next';
 import { LeaderboardUser } from '@/src/app/utils/services/leaderboard-service';
 import { useLeaderboard } from '@/src/app/utils/hooks/useLeaderboard';
+import { FlashList } from '@shopify/flash-list';
 
 const medalMap = [
   require('../../../../assets/gold-medal.png'),
@@ -102,7 +102,7 @@ const LeaderboardScreen = () => {
       <Text style={styles.title}>🏆 {t('leaderboard.topUsers')}</Text>
 
       {/* FlatList */}
-      <FlatList
+      <FlashList
         contentContainerStyle={{ paddingBottom: 16 }}
         refreshControl={
           <RefreshControl refreshing={isLoading} onRefresh={refetch} />

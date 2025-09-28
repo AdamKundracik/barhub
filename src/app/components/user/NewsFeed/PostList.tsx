@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 import UserPost from './Post/UserPost';
 import LoadingIndicator from './LoadingIndicator';
 import PostOldInfo from './Post/PostOldInfo';
@@ -11,6 +11,7 @@ import NativeAdComponent from '@/src/app/components/user/NativeAd';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { usePostsStore } from '@/src/app/utils/store/postStore';
 import { Post, User } from '@/shared';
+import { FlashList, FlashListRef } from '@shopify/flash-list';
 
 interface PostsListProps {
   posts: Post[];
@@ -48,7 +49,7 @@ const PostsList = ({
   const { t } = useTranslation();
   const { placeId } = usePlaceStore();
   const { premium } = useUserStore();
-  const flatListRef = useRef<FlatList>(null);
+  const flatListRef = useRef<FlashListRef<any>>(null);
   // const [showScrollTopButton, setShowScrollTopButton] = useState(false);
   // const scrollButtonAnimation = useRef(new Animated.Value(0)).current;
   const { setListRef } = usePostsStore();
@@ -153,16 +154,12 @@ const PostsList = ({
 
   return (
     <View style={styles.container}>
-      <FlatList
+      <FlashList
         ref={flatListRef}
         data={posts}
         renderItem={renderItem}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.scrollView}
-        initialNumToRender={5}
-        maxToRenderPerBatch={5}
-        windowSize={4}
-        removeClippedSubviews={true}
         ListFooterComponent={
           <ListFooter
             isFetchingNextPage={isFetchingNextPage}

@@ -1,10 +1,11 @@
 import React from 'react';
-import { FlatList, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 // import generovaného JSON
 import licenses from './../../../../../../licenses.json';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { useNavigation } from '@react-navigation/native';
+import { FlashList } from '@shopify/flash-list';
 
 export default function Licenses() {
   const navigation = useNavigation();
@@ -17,9 +18,13 @@ export default function Licenses() {
   }));
 
   return (
-    <ScreenLayout title={'Licenses'} clickFunction={() => navigation.goBack()}>
+    <ScreenLayout
+      title={'Licenses'}
+      showBackButton
+      onBackPress={() => navigation.goBack()}
+    >
       <View style={{ flex: 1, paddingHorizontal: 16 }}>
-        <FlatList
+        <FlashList
           data={data}
           keyExtractor={item => item.name}
           renderItem={({ item }) => (

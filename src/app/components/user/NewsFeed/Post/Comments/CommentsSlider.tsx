@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  FlatList,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -28,6 +27,7 @@ import { primaryColor, primaryGrey } from '@/src/app/utils/styles/colors';
 import { Icons } from '@/src/app/utils/icons/icons';
 import { getTimeAgoFromTimestampSeconds } from '@/src/app/utils/helper-functions/timeAgo';
 import FastImage from 'react-native-fast-image';
+import { FlashList } from '@shopify/flash-list';
 
 type Props = {
   expoPushToken: string;
@@ -233,7 +233,7 @@ const CommentsSlider = (props: Props) => {
         ) : (
           <BottomSheetView style={{ flex: 1 }}>
             {allComments.length ? (
-              <FlatList
+              <FlashList
                 data={
                   [
                     ...(allComments || []),

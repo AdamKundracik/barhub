@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Layout from '@/src/app/components/shared/Layouts/Layout';
 import { Place } from '../../../utils/types/types';
 import { primaryColor, primaryDeepColor } from '../../../utils/styles/colors';
@@ -16,6 +10,7 @@ import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { fetchNearbyPlaces } from '../../../utils/helper-functions/fetchPlacesAPI';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
 import { radius } from '@/src/app/utils/constants/constants';
+import { FlashList } from '@shopify/flash-list';
 
 export const PhotoResolver = ({ route }: any) => {
   const { location } = useLocationStore();
@@ -96,7 +91,8 @@ export const PhotoResolver = ({ route }: any) => {
       onBackPress={navigation.goBack}
       showBackButton
     >
-      <FlatList data={places} renderItem={renderItem} />
+      <FlashList data={places} renderItem={renderItem} />
+      <FlashList data={places} renderItem={renderItem} />
     </ScreenLayout>
   );
 };
