@@ -1,3 +1,4 @@
+import React, { useCallback, useRef, useState } from 'react';
 import MapView, { Circle, Marker, Region } from 'react-native-maps';
 import MapViewCluster from 'react-native-map-clustering';
 import {
@@ -8,7 +9,6 @@ import {
   View,
 } from 'react-native';
 import { Place } from '../../../utils/types/types';
-import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
@@ -20,87 +20,125 @@ import { usePlaceStore } from '../../../utils/store/placesStore';
 import { fetchNearbyPlaces } from '../../../utils/helper-functions/fetchPlacesAPI';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { primaryColor } from '@/src/app/utils/styles/colors';
+import {
+  postBgColor,
+  primaryBgColor,
+  primaryColor,
+  primaryDeepColor,
+  separatorColor,
+} from '@/src/app/utils/styles/colors';
 import FastImage from 'react-native-fast-image';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { BlurView } from 'expo-blur';
 
-const latitudeDelta = 0.0035;
-const longitudeDelta = 0.0035;
+const LATITUDE_DELTA = 0.0035;
+const LONGITUDE_DELTA = 0.0035;
+const DEBOUNCE_DELAY = 100;
 
 type LayoutProps = {
   setIsMapShown: (isSearching: boolean) => void;
 };
 
-export const MapSearch = (props: LayoutProps) => {
+export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { location } = useLocationStore();
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
+  const { setPlaceId, setPlaceName } = usePlaceStore();
 
   const mapRef = useRef<MapView>(null);
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [loading, setLoading] = useState(false);
-  const [places, setPlaces] = useState<Place[]>();
+  const [places, setPlaces] = useState<Place[]>([]);
   const [region, setRegion] = useState<Region>({
-    latitudeDelta,
-    longitudeDelta,
+    latitudeDelta: LATITUDE_DELTA,
+    longitudeDelta: LONGITUDE_DELTA,
     latitude: location?.latitude ?? 0,
     longitude: location?.longitude ?? 0,
   });
 
-  const { setPlaceId, setPlaceName } = usePlaceStore();
-  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+  const closeMap = useCallback(() => {
+    setIsMapShown(false);
+  }, [setIsMapShown]);
 
-  function pickPlace() {
+  const pickPlace = useCallback(() => {
     if (!selectedPlace) return;
+
     const placePrediction = mapPlaceToPlacePrediction(selectedPlace);
     setPlaceId(placePrediction.placeId);
     setPlaceName(placePrediction.structuredFormat.mainText.text);
-    props.setIsMapShown(false);
+    closeMap();
     navigation.navigate('Feed');
-  }
+  }, [selectedPlace, setPlaceId, setPlaceName, closeMap, navigation]);
 
-  const handleSearchSurrounding = async () => {
+  const handleSearchSurrounding = useCallback(async () => {
+    if (loading) return;
+
     setLoading(true);
-    const data = await fetchNearbyPlaces(region, mapSearchRadius);
-    setLoading(false);
-    setPlaces(data.places);
-  };
-
-  const onRegionChangeComplete = (newRegion: Region) => {
-    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
-
-    // Debounce pre plynule posúvanie regionu
-    debounceTimeout.current = setTimeout(() => {
-      setRegion(newRegion); // region = stred mapy
+    try {
+      const data = await fetchNearbyPlaces(region, mapSearchRadius);
+      setPlaces(data.places || []);
       setSelectedPlace(null);
-    }, 100);
-  };
+    } catch (error) {
+      console.error('Error fetching places:', error);
+      setPlaces([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [loading, region]);
+
+  const onRegionChangeComplete = useCallback((newRegion: Region) => {
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+
+    debounceTimeout.current = setTimeout(() => {
+      setRegion(newRegion);
+      setSelectedPlace(null);
+    }, DEBOUNCE_DELAY);
+  }, []);
+
+  const centerMapOnUserLocation = useCallback(() => {
+    if (!location || !mapRef.current) return;
+
+    mapRef.current.animateToRegion(
+      {
+        latitude: location.latitude,
+        longitude: location.longitude,
+        latitudeDelta: LATITUDE_DELTA,
+        longitudeDelta: LONGITUDE_DELTA,
+      },
+      500
+    );
+  }, [location]);
 
   return (
-    <>
+    <View style={styles.container}>
       <MapViewCluster
         style={styles.map}
         region={region}
         ref={mapRef}
         onRegionChangeComplete={onRegionChangeComplete}
-        showsMyLocationButton
-        showsCompass
-        clusterColor="#10D9B9"
-        clusterTextColor="#000"
+        showsMyLocationButton={false}
+        showsCompass={false}
+        clusterColor={primaryColor}
+        clusterTextColor={primaryBgColor}
       >
-        {/* Circle vždy pre stred mapy */}
+        {/* Search radius circle */}
         <Circle
           center={region}
           radius={mapSearchRadius}
-          strokeColor="rgb(1,82,133)"
-          fillColor="rgba(117,141,166,0.2)"
+          strokeColor={primaryColor}
+          fillColor={`${primaryColor}20`}
           strokeWidth={2}
         />
 
+        {/* Place markers */}
         {!loading &&
-          places?.map(place => (
+          places.map(place => (
             <Marker
               key={`${place.location.latitude}-${place.location.longitude}-${place.id}`}
               coordinate={{
@@ -108,118 +146,298 @@ export const MapSearch = (props: LayoutProps) => {
                 longitude: place.location.longitude,
               }}
               onPress={() => setSelectedPlace(place)}
-              title={place.displayName.text}
             >
-              <FontAwesomeIcon
-                icon={Icons.Pin}
-                size={32}
-                color={selectedPlace?.id === place.id ? primaryColor : 'black'}
-              />
+              <View style={styles.markerContainer}>
+                <FontAwesomeIcon
+                  icon={Icons.Pin}
+                  size={28}
+                  color={selectedPlace?.id === place.id ? primaryColor : '#fff'}
+                />
+              </View>
             </Marker>
           ))}
       </MapViewCluster>
 
-      <View style={styles.markerFixed}>
+      {/* Center marker */}
+      <View style={styles.centerMarker}>
         <FastImage
-          style={styles.marker}
+          style={styles.centerMarkerImage}
           source={require('../../../../../assets/pin.png')}
         />
+        <View style={styles.centerMarkerShadow} />
       </View>
 
-      {/* Close button */}
-      <TouchableOpacity
-        onPress={() => props.setIsMapShown(false)}
-        style={[styles.closeButton, { top: 20 + insets.top }]}
+      {/* Enhanced header with place info when selected */}
+      <BlurView
+        intensity={80}
+        tint="dark"
+        style={[styles.header, { top: insets.top }]}
       >
-        <FontAwesomeIcon icon={Icons.Remove} size={28} color="black" />
-      </TouchableOpacity>
+        <TouchableOpacity onPress={closeMap} style={styles.headerButton}>
+          <FontAwesomeIcon icon={Icons.X} size={20} color="#fff" />
+        </TouchableOpacity>
 
-      {/* Bottom buttons */}
+        <View style={styles.headerContent}>
+          {selectedPlace ? (
+            <View style={styles.placeInfo}>
+              <Text style={styles.placeName} numberOfLines={1}>
+                {selectedPlace.displayName.text}
+              </Text>
+              {selectedPlace.formattedAddress && (
+                <Text style={styles.placeAddress} numberOfLines={1}>
+                  {selectedPlace.formattedAddress}
+                </Text>
+              )}
+            </View>
+          ) : (
+            <Text style={styles.headerTitle}>{t('select-location')}</Text>
+          )}
+        </View>
+
+        <TouchableOpacity
+          onPress={centerMapOnUserLocation}
+          style={styles.headerButton}
+        >
+          <FontAwesomeIcon
+            icon={Icons.Location}
+            size={20}
+            color={primaryColor}
+          />
+        </TouchableOpacity>
+      </BlurView>
+
+      {/* Bottom action buttons with better styling */}
       <View
         style={[
-          styles.buttonsContainer,
+          styles.bottomActions,
           { bottom: 30 + insets.bottom + tabBarHeight },
         ]}
       >
         <TouchableOpacity
-          style={styles.searchButton}
+          style={[
+            styles.actionButton,
+            styles.searchButton,
+            loading && styles.buttonDisabled,
+          ]}
           onPress={handleSearchSurrounding}
+          disabled={loading}
         >
-          <Text style={styles.buttonText}>{t('search-surrounding')}</Text>
+          <View style={styles.buttonContent}>
+            {loading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <FontAwesomeIcon icon={Icons.Search} size={18} color="#fff" />
+            )}
+            <Text style={styles.searchButtonText}>
+              {loading ? t('loading') : t('search-surrounding')}
+            </Text>
+          </View>
         </TouchableOpacity>
 
-        {selectedPlace && (
-          <TouchableOpacity style={styles.selectButton} onPress={pickPlace}>
-            <Text style={styles.buttonText}>{t('select-location')}</Text>
+        {selectedPlace && !loading && (
+          <TouchableOpacity
+            style={[styles.actionButton, styles.selectButton]}
+            onPress={pickPlace}
+          >
+            <View style={styles.buttonContent}>
+              <FontAwesomeIcon
+                icon={Icons.Check}
+                size={18}
+                color={primaryBgColor}
+              />
+              <Text style={styles.selectButtonText}>
+                {t('select-location')}
+              </Text>
+            </View>
           </TouchableOpacity>
         )}
       </View>
 
+      {/* Full screen loading overlay */}
       {loading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#fff" />
+          <BlurView
+            intensity={50}
+            tint="dark"
+            style={StyleSheet.absoluteFillObject}
+          />
+          <View style={styles.loadingContent}>
+            <ActivityIndicator size="large" color={primaryColor} />
+            <Text style={styles.loadingText}>{t('searching-places')}</Text>
+          </View>
         </View>
       )}
-    </>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   map: {
     ...StyleSheet.absoluteFillObject,
   },
-  markerFixed: {
-    left: '50%',
-    marginLeft: -18,
-    marginTop: -30,
+
+  // Center marker
+  centerMarker: {
     position: 'absolute',
     top: '50%',
-    zIndex: 100,
-  },
-  marker: {
-    height: 48,
-    width: 48,
-  },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'center',
+    left: '50%',
+    marginLeft: -20,
+    marginTop: -35,
+    zIndex: 10,
     alignItems: 'center',
   },
-  closeButton: {
-    position: 'absolute',
-    top: 20,
-    left: 20,
-    backgroundColor: 'white',
-    borderRadius: 50,
-    padding: 4,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
+  centerMarkerImage: {
+    width: 40,
+    height: 40,
   },
-  buttonsContainer: {
+  centerMarkerShadow: {
     position: 'absolute',
-    alignSelf: 'center',
-    flexDirection: 'column',
+    bottom: -5,
+    width: 20,
+    height: 8,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: 10,
+    transform: [{ scaleX: 1.5 }],
+  },
+
+  // Place markers
+  markerContainer: {
+    backgroundColor: primaryBgColor,
+    borderRadius: 20,
+    padding: 6,
+    borderWidth: 2,
+    borderColor: primaryColor,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+
+  // Enhanced header with place info
+  header: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    paddingTop: 15,
+    paddingBottom: 15,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    overflow: 'hidden',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  headerButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerContent: {
+    flex: 1,
+    marginHorizontal: 15,
+    alignItems: 'center',
+  },
+  headerTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  placeInfo: {
+    alignItems: 'center',
+    width: '100%',
+  },
+  placeName: {
+    color: primaryColor,
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  placeAddress: {
+    color: separatorColor,
+    fontSize: 12,
+    textAlign: 'center',
+  },
+
+  // Bottom actions with consistent styling
+  bottomActions: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
     gap: 12,
   },
-  searchButton: {
-    backgroundColor: '#007bff',
-    padding: 12,
+  actionButton: {
     borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  buttonContent: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    gap: 10,
+  },
+  searchButton: {
+    backgroundColor: postBgColor,
+    borderColor: primaryDeepColor,
   },
   selectButton: {
-    backgroundColor: 'black',
-    padding: 15,
-    borderRadius: 30,
-    alignItems: 'center',
+    backgroundColor: primaryColor,
+    borderColor: primaryColor,
   },
-  buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  searchButtonText: {
+    color: '#fff',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  selectButtonText: {
+    color: primaryBgColor,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+
+  // Loading
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  loadingContent: {
+    alignItems: 'center',
+    gap: 15,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    paddingVertical: 30,
+    paddingHorizontal: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  loadingText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });
 

@@ -122,6 +122,7 @@ export const PhotoResolver = ({ route }: any) => {
   return (
     <ScreenLayout
       title={t('select-place')}
+      showTitle
       onBackPress={navigation.goBack}
       showBackButton
     >

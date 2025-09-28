@@ -57,11 +57,10 @@ export const PostSummary = ({ route }: any) => {
   const { resetFilters } = useFiltersStore();
   const { setLastUploadedPost } = useUserStore();
 
-  const [selectedOccupancy, setSelectedOccupancy] = useState<OccupancyEnum>(
-    OccupancyEnum.FULL
-  );
-  const [tempOccupancy, setTempOccupancy] = useState<OccupancyEnum>(
-    OccupancyEnum.FULL
+  const [selectedOccupancy, setSelectedOccupancy] =
+    useState<OccupancyEnum | null>(null);
+  const [tempOccupancy, setTempOccupancy] = useState<OccupancyEnum | null>(
+    null
   );
   const [showPicker, setShowPicker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -72,9 +71,8 @@ export const PostSummary = ({ route }: any) => {
 
   useEffect(() => {
     if (routeParams?.place) {
-      const initial = OccupancyEnum.FULL;
-      setSelectedOccupancy(initial);
-      setTempOccupancy(initial);
+      setSelectedOccupancy(null);
+      setTempOccupancy(null);
     }
   }, [routeParams]);
 
@@ -108,7 +106,7 @@ export const PostSummary = ({ route }: any) => {
   }, [tempOccupancy]);
 
   const handleSavePost = useCallback(async () => {
-    if (!image || !place || isSaving) return;
+    if (!image || !place || isSaving || !selectedOccupancy) return;
 
     setIsSaving(true);
 
@@ -158,7 +156,10 @@ export const PostSummary = ({ route }: any) => {
       resetFilters();
       await refetch();
 
-      showSuccessToast(t('success'), t('post-success-info'));
+      showSuccessToast(
+        t('uploadPost.successTitle'),
+        t('uploadPost.successDescription')
+      );
       navigation.navigate('Feed');
     } catch (error) {
       console.error('Error saving post:', error);
@@ -189,8 +190,15 @@ export const PostSummary = ({ route }: any) => {
         {/* Header */}
         <Text style={styles.title}>{t('new-post')}</Text>
 
-        {/* Photo with 3:4 aspect ratio */}
-        <View style={styles.photoContainer}>
+        {/* Photo with 3:4 aspect ratio and conditional border */}
+        <View
+          style={[
+            styles.photoContainer,
+            selectedOccupancy && {
+              borderColor: occupancyColors[selectedOccupancy],
+            },
+          ]}
+        >
           <FastImage
             style={styles.photo}
             source={{
@@ -209,9 +217,9 @@ export const PostSummary = ({ route }: any) => {
               <Text style={styles.locationIcon}>📍</Text>
               <Text style={styles.locationTitle}>{t('location')}</Text>
             </View>
-            <View style={styles.locationContent}>
+            <View>
               <Text style={styles.placeName} numberOfLines={2}>
-                {place.displayName.text}
+                {place.displayName?.text}
               </Text>
               <Text style={styles.placeAddress} numberOfLines={3}>
                 {place.formattedAddress}
@@ -229,24 +237,37 @@ export const PostSummary = ({ route }: any) => {
               <Text style={styles.occupancyTitle}>{t('occupancy')}</Text>
             </View>
 
-            <TouchableOpacity
-              onPress={openPicker}
-              style={[
-                styles.occupancyButton,
-                { borderColor: occupancyColors[selectedOccupancy] },
-              ]}
-            >
-              <View
+            <View>
+              <TouchableOpacity
+                onPress={openPicker}
                 style={[
-                  styles.occupancyDot,
-                  { backgroundColor: occupancyColors[selectedOccupancy] },
+                  styles.occupancyButton,
+                  selectedOccupancy && {
+                    borderColor: occupancyColors[selectedOccupancy],
+                  },
                 ]}
-              />
-              <Text style={styles.occupancyText}>
-                {occupancyLabels[selectedOccupancy]}
-              </Text>
-              <Text style={styles.dropdownArrow}>▼</Text>
-            </TouchableOpacity>
+              >
+                {selectedOccupancy && (
+                  <View
+                    style={[
+                      styles.occupancyDot,
+                      { backgroundColor: occupancyColors[selectedOccupancy] },
+                    ]}
+                  />
+                )}
+                <Text
+                  style={[
+                    styles.occupancyText,
+                    !selectedOccupancy && styles.occupancyPlaceholderText,
+                  ]}
+                >
+                  {selectedOccupancy
+                    ? occupancyLabels[selectedOccupancy]
+                    : t('select-occupancy')}
+                </Text>
+                <Text style={styles.dropdownArrow}>▼</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -256,9 +277,12 @@ export const PostSummary = ({ route }: any) => {
             variant="solid"
             size="lg"
             action="primary"
-            style={styles.saveButton}
+            style={[
+              styles.saveButton,
+              !selectedOccupancy && styles.saveButtonDisabled,
+            ]}
             onPress={handleSavePost}
-            isDisabled={isSaving}
+            isDisabled={isSaving || !selectedOccupancy}
           >
             {isSaving ? (
               <ButtonSpinner />
@@ -292,9 +316,20 @@ export const PostSummary = ({ route }: any) => {
             <Text style={styles.modalTitle}>{t('select-occupancy')}</Text>
             <TouchableOpacity
               onPress={confirmPickerSelection}
-              style={styles.modalHeaderButton}
+              style={[
+                styles.modalHeaderButton,
+                !tempOccupancy && styles.modalDoneButtonDisabled,
+              ]}
+              disabled={!tempOccupancy}
             >
-              <Text style={styles.modalDoneText}>{t('done')}</Text>
+              <Text
+                style={[
+                  styles.modalDoneText,
+                  !tempOccupancy && styles.modalDoneTextDisabled,
+                ]}
+              >
+                {t('done')}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -363,6 +398,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 25,
     backgroundColor: '#333',
+    borderWidth: 3,
+    borderColor: 'transparent', // Default transparent border
     elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -399,14 +436,12 @@ const styles = StyleSheet.create({
   locationIcon: {
     fontSize: 20,
     marginRight: 10,
+    width: 30,
   },
   locationTitle: {
     color: primaryColor,
     fontSize: 18,
     fontWeight: '600',
-  },
-  locationContent: {
-    paddingLeft: 30,
   },
   placeName: {
     color: 'white',
@@ -428,7 +463,7 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
 
-  // Occupancy section
+  // Occupancy section - properly aligned
   occupancySection: {
     marginBottom: 5,
   },
@@ -440,6 +475,7 @@ const styles = StyleSheet.create({
   occupancyIcon: {
     fontSize: 20,
     marginRight: 10,
+    width: 30,
   },
   occupancyTitle: {
     color: primaryColor,
@@ -452,9 +488,9 @@ const styles = StyleSheet.create({
     backgroundColor: primaryBgColor,
     borderRadius: 12,
     borderWidth: 2,
+    borderColor: '#333', // Default border color when nothing selected
     paddingHorizontal: 18,
     paddingVertical: 15,
-    marginLeft: 30,
   },
   occupancyDot: {
     width: 14,
@@ -467,6 +503,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     flex: 1,
     fontWeight: '500',
+  },
+  occupancyPlaceholderText: {
+    color: separatorColor,
+    fontWeight: '400',
   },
   dropdownArrow: {
     color: separatorColor,
@@ -487,6 +527,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#666',
+    shadowColor: '#666',
   },
   saveButtonText: {
     fontSize: 18,
@@ -533,6 +577,12 @@ const styles = StyleSheet.create({
     color: primaryColor,
     fontSize: 17,
     fontWeight: '600',
+  },
+  modalDoneTextDisabled: {
+    color: '#666',
+  },
+  modalDoneButtonDisabled: {
+    opacity: 0.5,
   },
 
   // Options - Much wider and better spacing

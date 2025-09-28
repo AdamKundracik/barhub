@@ -1,147 +1,132 @@
-import React, { useRef } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   Alert,
   Animated,
   Dimensions,
-  PanResponder,
+  Pressable,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useLocales } from 'expo-localization';
+import { BlurView } from 'expo-blur';
+
 import { NotificationItemProps } from '@/src/app/utils/types/notification-types';
 import { UserStackList } from '@/src/app/utils/types/screen-types';
-import {
-  NotificationItem,
-  NotificationType,
-} from '@/common/types/notificationTypes';
+import { NotificationType } from '@/common/types/notificationTypes';
 import { Icons } from '@/src/app/utils/icons/icons';
 import { openCamera } from '@/src/app/utils/helper-functions/openCamera';
-import { primaryColor } from '@/src/app/utils/styles/colors';
+import {
+  postBgColor,
+  primaryColor,
+  separatorColor,
+  successColor,
+  warningColor,
+} from '@/src/app/utils/styles/colors';
+import {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const SWIPE_THRESHOLD = -150;
+const SWIPE_THRESHOLD = -120;
+const DELETE_THRESHOLD = -180;
 
-export const NotificationItemComponent: React.FC<NotificationItemProps> = ({
+const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   item,
-  // onDelete,
   onSwipeStart,
   onSwipeEnd,
 }) => {
-  const translateX = useRef(new Animated.Value(0)).current;
-  const isDeleting = useRef(false);
-  const gestureStartX = useRef(0);
+  const translateX = useSharedValue(0);
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(1);
 
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
   const locales = useLocales();
 
-  const getNotificationText = (
-    notificationType: NotificationType,
-    senderName: string
-  ) => {
-    switch (notificationType) {
-      case NotificationType.LIKE:
-        return {
-          label: t('new-like'),
-          text: `${senderName} ${t('liked-your-photo')}`,
-          icon: Icons.HeartSolid,
-        };
-      case NotificationType.COMMENT:
-        return {
-          label: t('new-comment'),
-          text: `${senderName} ${t('commented-your-photo')}`,
-          icon: Icons.CommentSolid,
-        };
-      case NotificationType.REQUEST:
-        return {
-          label: t('request'),
-          text: `${senderName} ${t('sent-request')}`,
-          icon: Icons.Bell,
-        };
-      case NotificationType.RESPONSE:
-        return {
-          label: t('response'),
-          text: `${senderName} ${t('responded-to-request')}`,
-          icon: Icons.Bell,
-        };
-      default:
-        return {
-          label: '',
-          text: '',
-          icon: Icons.Bell,
-        };
+  // Get notification configuration
+  const notificationConfig = useMemo(() => {
+    const configs = {
+      [NotificationType.LIKE]: {
+        label: t('new-like'),
+        text: `${item.senderName} ${t('liked-your-photo')}`,
+        icon: Icons.HeartSolid,
+        color: '#FF6B85',
+        bgGradient: ['rgba(255, 107, 133, 0.1)', 'rgba(255, 107, 133, 0.05)'],
+        actionable: false,
+      },
+      [NotificationType.COMMENT]: {
+        label: t('new-comment'),
+        text: `${item.senderName} ${t('commented-your-photo')}`,
+        icon: Icons.CommentSolid,
+        color: '#4A90E2',
+        bgGradient: ['rgba(74, 144, 226, 0.1)', 'rgba(74, 144, 226, 0.05)'],
+        actionable: false,
+      },
+      [NotificationType.REQUEST]: {
+        label: t('request'),
+        text: `${item.senderName} ${t('sent-request')}`,
+        icon: Icons.Bell,
+        color: primaryColor,
+        bgGradient: [`rgba(16, 217, 185, 0.15)`, `rgba(16, 217, 185, 0.08)`],
+        actionable: true,
+      },
+      [NotificationType.RESPONSE]: {
+        label: t('response'),
+        text: `${item.senderName} ${t('responded-to-request')}`,
+        icon: Icons.Bell,
+        color: successColor,
+        bgGradient: [`rgba(76, 175, 80, 0.1)`, `rgba(76, 175, 80, 0.05)`],
+        actionable: false,
+      },
+    };
+
+    return configs[item.notificationType] || configs[NotificationType.REQUEST];
+  }, [item.notificationType, item.senderName, t]);
+
+  // Format timestamp
+  const formattedTime = useMemo(() => {
+    if (!item.creationTime || typeof item.creationTime !== 'object') {
+      return '';
     }
-  };
 
-  const notificationInfo = getNotificationText(
-    item.notificationType,
-    item.senderName || 'Someone'
-  );
+    let timestamp: number;
+    if ('_seconds' in item.creationTime) {
+      timestamp = (item.creationTime._seconds as number) * 1000;
+    } else if ('seconds' in item.creationTime) {
+      timestamp = item.creationTime.seconds * 1000;
+    } else {
+      return '';
+    }
 
-  const deleteIconOpacity = translateX.interpolate({
-    inputRange: [-150, 0],
-    outputRange: [1, 0],
-    extrapolate: 'clamp',
-  });
+    const now = Date.now();
+    const diff = now - timestamp;
 
-  const panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: (_, { x0 }) => {
-      gestureStartX.current = x0;
-      return true;
-    },
-    onMoveShouldSetPanResponder: (_, { dx, dy }) => {
-      const isHorizontalSwipe = Math.abs(dx) > Math.abs(dy);
-      const startedFromEdge = gestureStartX.current > SCREEN_WIDTH - 100;
-      return isHorizontalSwipe && !startedFromEdge;
-    },
-    onPanResponderGrant: () => {
-      onSwipeStart();
-    },
-    onPanResponderMove: (_, { dx }) => {
-      const newX = Math.min(0, dx);
-      translateX.setValue(newX);
-    },
-    onPanResponderRelease: (_, { dx }) => {
-      if (dx < SWIPE_THRESHOLD && !isDeleting.current) {
-        isDeleting.current = true;
-        Animated.timing(translateX, {
-          toValue: -SCREEN_WIDTH,
-          duration: 200,
-          useNativeDriver: true,
-        }).start(() => {
-          // onDelete();
-          isDeleting.current = false;
-          onSwipeEnd();
-        });
-      } else {
-        Animated.spring(translateX, {
-          toValue: 0,
-          useNativeDriver: true,
-          friction: 6,
-        }).start(() => {
-          onSwipeEnd();
-        });
-      }
-    },
-    onPanResponderTerminate: () => {
-      onSwipeEnd();
-      Animated.spring(translateX, {
-        toValue: 0,
-        useNativeDriver: true,
-        friction: 6,
-      }).start();
-    },
-  });
+    // Less than 1 minute
+    if (diff < 60000) {
+      return t('just-now');
+    }
 
-  const formatTime = (timestamp: any) => {
-    return new Date(timestamp._seconds * 1000).toLocaleDateString(
-      locales[0]?.languageCode ?? 'en-US',
+    // Less than 1 hour
+    if (diff < 3600000) {
+      const minutes = Math.floor(diff / 60000);
+      return `${minutes} ${minutes === 1 ? t('minute') : t('minutes')} ${t('ago')}`;
+    }
+
+    // Less than 1 day
+    if (diff < 86400000) {
+      const hours = Math.floor(diff / 3600000);
+      return `${hours} ${hours === 1 ? t('hour') : t('hours')} ${t('ago')}`;
+    }
+
+    // Format full date
+    return new Date(timestamp).toLocaleDateString(
+      locales[0]?.languageCode ?? 'sk-SK',
       {
         hour: '2-digit',
         minute: '2-digit',
@@ -150,126 +135,327 @@ export const NotificationItemComponent: React.FC<NotificationItemProps> = ({
         year: 'numeric',
       }
     );
-  };
+  }, [item.creationTime, locales, t]);
 
-  async function handleNotification(notification: NotificationItem) {
+  // Check if notification is expired (for requests)
+  const isExpired = useMemo(() => {
+    if (item.notificationType !== NotificationType.REQUEST) return false;
+
+    if (!item.creationTime || typeof item.creationTime !== 'object')
+      return true;
+
+    let timestamp: number;
+    if ('_seconds' in item.creationTime) {
+      timestamp = (item.creationTime._seconds as number) * 1000;
+    } else if ('seconds' in item.creationTime) {
+      timestamp = item.creationTime.seconds * 1000;
+    } else {
+      return true;
+    }
+
+    const expirationTime = 180 * 1000; // 3 minutes
+    return Date.now() > timestamp + expirationTime;
+  }, [item.creationTime, item.notificationType]);
+
+  // Animation styles
+  const animatedContainerStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }, { scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
+  const deleteIconStyle = useAnimatedStyle(() => ({
+    opacity: translateX.value < SWIPE_THRESHOLD ? 1 : 0,
+    transform: [{ scale: translateX.value < SWIPE_THRESHOLD ? 1 : 0.5 }],
+  }));
+
+  // Handle notification tap
+  const handleNotificationPress = useCallback(async () => {
+    if (!notificationConfig.actionable) return;
+
+    // Add press animation
+    scale.value = withSpring(0.98, {}, () => {
+      scale.value = withSpring(1);
+    });
+
     try {
-      const { placeId, notificationType, senderToken, creationTime, id } =
-        notification;
-
-      if (!creationTime || typeof creationTime !== 'object') {
-        throw new Error('Creation time is missing or not an object');
-      }
-
-      if ('_seconds' in creationTime && '_nanoseconds' in creationTime) {
-        const timestamp = (creationTime._seconds as number) * 1000;
-        const expirationTime = 180 * 1000; // 3 minutes
-
-        if (notificationType === NotificationType.REQUEST) {
-          if (Date.now() > timestamp + expirationTime) {
-            Alert.alert(t('request-expired'), t('missed-request-info'));
-          } else {
-            await openCamera(placeId, senderToken, navigation, id);
-          }
+      if (item.notificationType === NotificationType.REQUEST) {
+        if (isExpired) {
+          Alert.alert(t('request-expired'), t('missed-request-info'));
+          return;
         }
-      } else {
-        throw new Error('Invalid timestamp format');
+
+        await openCamera(item.placeId, item.senderToken, navigation, item.id);
       }
     } catch (error) {
       console.error('Error handling notification:', error);
       Alert.alert(t('error'), t('notification-processing-error'));
     }
-  }
+  }, [item, isExpired, notificationConfig.actionable, navigation, scale, t]);
 
   return (
-    <TouchableOpacity
-      style={styles.itemContainer}
-      onPress={() => handleNotification(item)}
-    >
-      <Animated.View
-        style={[styles.deleteIconContainer, { opacity: deleteIconOpacity }]}
-      >
-        <FontAwesomeIcon icon={Icons.Remove} size={24} color="red" />
-      </Animated.View>
-      {/*Deletion Animation temporarly disabled - <Animated.View
-        style={[styles.notificationItem, { transform: [{ translateX }] }]}
-        {...panResponder.panHandlers}
-      >*/}
-      <View style={[styles.notificationItem]}>
-        <View style={styles.notificationContent}>
-          <View style={styles.contentRow}>
-            <View style={styles.iconContainer}>
-              <FontAwesomeIcon
-                icon={
-                  item.notificationType === NotificationType.LIKE
-                    ? Icons.HeartSolid
-                    : item.notificationType === NotificationType.COMMENT
-                      ? Icons.CommentSolid
-                      : Icons.Bell
-                }
-                size={20}
-                color={primaryColor}
-              />
-            </View>
-            <View style={styles.textContainer}>
-              <Text style={styles.label}>{notificationInfo.label}</Text>
-              <Text style={styles.text}>{notificationInfo.text}</Text>
-              <Text style={styles.time}>{formatTime(item.creationTime)}</Text>
-            </View>
-          </View>
+    <View style={styles.container}>
+      {/* Background Actions */}
+      <Animated.View style={[styles.actionsContainer, deleteIconStyle]}>
+        <View style={styles.actionButton}>
+          <FontAwesomeIcon icon={Icons.Remove} size={20} color="white" />
         </View>
-      </View>
-    </TouchableOpacity>
+      </Animated.View>
+
+      {/* Main Notification Item */}
+      <Animated.View style={[styles.itemContainer, animatedContainerStyle]}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.pressableContainer,
+            pressed && styles.pressablePressed,
+          ]}
+          onPress={handleNotificationPress}
+          disabled={!notificationConfig.actionable}
+        >
+          <BlurView intensity={10} tint="dark" style={styles.blurContainer}>
+            <View style={styles.contentContainer}>
+              {/* Left Side - Icon */}
+              <View style={styles.leftSection}>
+                <View
+                  style={[
+                    styles.iconContainer,
+                    {
+                      backgroundColor: notificationConfig.color + '20',
+                      borderColor: notificationConfig.color + '40',
+                    },
+                  ]}
+                >
+                  <FontAwesomeIcon
+                    icon={notificationConfig.icon}
+                    size={18}
+                    color={notificationConfig.color}
+                  />
+                </View>
+
+                {/* Unread Indicator */}
+                {!item.read && <View style={styles.unreadDot} />}
+              </View>
+
+              {/* Center - Content */}
+              <View style={styles.centerSection}>
+                <View style={styles.headerRow}>
+                  <Text style={styles.labelText} numberOfLines={1}>
+                    {notificationConfig.label}
+                  </Text>
+
+                  {isExpired && (
+                    <View style={styles.expiredBadge}>
+                      <Text style={styles.expiredText}>{t('expired')}</Text>
+                    </View>
+                  )}
+
+                  {notificationConfig.actionable && !isExpired && (
+                    <View style={styles.actionBadge}>
+                      <Text style={styles.actionText}>
+                        {t('tap-to-respond')}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                <Text style={styles.messageText} numberOfLines={2}>
+                  {notificationConfig.text}
+                </Text>
+
+                <View style={styles.footerRow}>
+                  <Text style={styles.timeText}>{formattedTime}</Text>
+                </View>
+              </View>
+
+              {/* Right Side - Action Indicator */}
+              {notificationConfig.actionable && !isExpired && (
+                <View style={styles.rightSection}>
+                  <FontAwesomeIcon
+                    icon={Icons.ChevronRight}
+                    size={12}
+                    color={separatorColor}
+                  />
+                </View>
+              )}
+            </View>
+          </BlurView>
+        </Pressable>
+      </Animated.View>
+    </View>
   );
 };
 
-export default NotificationItemComponent;
-
 const styles = StyleSheet.create({
-  itemContainer: {
+  container: {
     position: 'relative',
+    marginHorizontal: 16,
+    marginVertical: 6,
   },
-  deleteIconContainer: {
+
+  // Background actions
+  actionsContainer: {
     position: 'absolute',
-    right: 20,
-    top: '50%',
-    transform: [{ translateY: -12 }],
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
     zIndex: 1,
   },
-  notificationItem: {
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
-    borderBottomWidth: 1,
+
+  actionButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: warningColor,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: warningColor,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+
+  // Main item
+  itemContainer: {
+    backgroundColor: postBgColor,
+    borderRadius: 16,
     overflow: 'hidden',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     zIndex: 2,
   },
-  notificationContent: {
+
+  pressableContainer: {
+    minHeight: 80,
+  },
+
+  pressablePressed: {
+    opacity: 0.7,
+  },
+
+  blurContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+
+  contentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 16,
   },
-  label: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: 'white',
-    textTransform: 'uppercase',
-    marginBottom: 4,
+
+  // Left section
+  leftSection: {
+    position: 'relative',
+    marginRight: 16,
+    alignItems: 'center',
   },
-  text: {
-    fontSize: 14,
-    color: 'white',
-    marginBottom: 4,
-  },
-  time: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.7)',
-  },
-  contentRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
+
   iconContainer: {
-    marginRight: 12,
-    alignSelf: 'center',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
   },
-  textContainer: {
+
+  unreadDot: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: primaryColor,
+    borderWidth: 2,
+    borderColor: postBgColor,
+  },
+
+  // Center section
+  centerSection: {
     flex: 1,
   },
+
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+
+  labelText: {
+    color: primaryColor,
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    flex: 1,
+  },
+
+  expiredBadge: {
+    backgroundColor: 'rgba(254, 120, 120, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(254, 120, 120, 0.3)',
+  },
+
+  expiredText: {
+    color: warningColor,
+    fontSize: 10,
+    fontWeight: '600',
+  },
+
+  actionBadge: {
+    backgroundColor: 'rgba(16, 217, 185, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 217, 185, 0.3)',
+  },
+
+  actionText: {
+    color: primaryColor,
+    fontSize: 10,
+    fontWeight: '600',
+  },
+
+  messageText: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: '400',
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+
+  footerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
+  timeText: {
+    color: separatorColor,
+    fontSize: 12,
+    fontWeight: '500',
+  },
+
+  locationIndicator: {
+    marginLeft: 8,
+  },
+
+  // Right section
+  rightSection: {
+    marginLeft: 12,
+    opacity: 0.6,
+  },
 });
+
+export default NotificationItemComponent;

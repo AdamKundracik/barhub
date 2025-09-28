@@ -236,10 +236,8 @@ class NotificationService {
             const distanceInM =
               distanceBetween([lat, lng], locationArray) * 1000;
 
-            if (
-              Math.floor(distanceInM) <= 8000 &&
-              (doc.data() as UserDocument).id !== uid
-            ) {
+            //TODO: Change distance
+            if (Math.floor(distanceInM) <= 8000 && doc.id !== uid) {
               matchingUsers.push({
                 ...(doc.data() as UserDocument),
                 id: doc.id,
