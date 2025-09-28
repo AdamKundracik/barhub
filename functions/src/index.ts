@@ -22,6 +22,17 @@ export interface StatusResponse {
   success: boolean;
 }
 
+type CanUploadPhotoResponse =
+  | { canUpload: true }
+  | { canUpload: false; remainingSeconds: number };
+
+const functionOptions = {
+  region: ['europe-west1'],
+  memory: '256MiB',
+  timeoutSeconds: 60,
+  concurrency: 10,
+};
+
 admin.initializeApp();
 const db = admin.firestore();
 const functions = require('firebase-functions');
@@ -33,7 +44,16 @@ const reportService = new ReportService();
 const userService = new UserService();
 const leaderboardService = new LeaderboardService();
 
-export const getLeaderboard = onCall(async request => {
+export const canUploadPhoto = onCall(functionOptions, async request => {
+  const uid = request.auth?.uid;
+  if (!uid) {
+    throw new Error('Unauthenticated: must be logged in');
+  }
+
+  return userService.canUploadPhoto(uid);
+});
+
+export const getLeaderboard = onCall(functionOptions, async request => {
   const uid = request.auth?.uid;
   if (!uid) throw new HttpsError('unauthenticated', 'Must be logged in');
 
@@ -43,7 +63,7 @@ export const getLeaderboard = onCall(async request => {
   return leaderboardService.getTopUsersWithCurrent(uid, period);
 });
 
-export const addPhotoPoints = onCall(async request => {
+export const addPhotoPoints = onCall(functionOptions, async request => {
   const uid = request.auth?.uid;
   logger.error('UID', uid);
   if (!uid) throw new HttpsError('unauthenticated', 'Must be logged in');
@@ -51,7 +71,7 @@ export const addPhotoPoints = onCall(async request => {
   return leaderboardService.addPhotoPoints(uid);
 });
 
-export const toggleLikeSecondGen = onCall(async request => {
+export const toggleLikeSecondGen = onCall(functionOptions, async request => {
   const { postId, senderUserName } = request.data as {
     postId: string;
     senderUserName: string;
@@ -133,7 +153,7 @@ export const sendRequestNotificationSecondGen = onCall<
     senderId: string;
   },
   { success: boolean; recipients: string[] }
->(async req => {
+>(functionOptions, async req => {
   const uid = req.auth?.uid;
   if (!uid) throw new HttpsError('unauthenticated', 'Must be logged in');
 
@@ -172,7 +192,7 @@ export const sendRequestNotificationSecondGen = onCall<
 export const sendResponseNotificationSecondGen = onCall<
   { placeId: string; senderToken: string; postId: string; userId: string },
   { success: boolean; recipients: string[] }
->(async req => {
+>(functionOptions, async req => {
   const uid = req.auth?.uid;
   if (!uid) throw new HttpsError('unauthenticated', 'Must be logged in');
 
@@ -218,7 +238,7 @@ export const sendResponseNotificationSecondGen = onCall<
   return { success: true, recipients: uniqueUserIds };
 });
 
-export const addPushTokenSecondGen = onCall(async request => {
+export const addPushTokenSecondGen = onCall(functionOptions, async request => {
   if (!request.auth) {
     throw new HttpsError(
       'unauthenticated',
@@ -238,24 +258,27 @@ export const addPushTokenSecondGen = onCall(async request => {
 });
 
 // --- Remove Push Token ---
-export const removePushTokenSecondGen = onCall(async request => {
-  if (!request.auth) {
-    throw new HttpsError(
-      'unauthenticated',
-      'User must be authenticated to remove push token'
-    );
+export const removePushTokenSecondGen = onCall(
+  functionOptions,
+  async request => {
+    if (!request.auth) {
+      throw new HttpsError(
+        'unauthenticated',
+        'User must be authenticated to remove push token'
+      );
+    }
+
+    const userId = request.auth.uid;
+    const token: string = request.data?.token;
+
+    if (!token) {
+      throw new HttpsError('invalid-argument', 'Push token must be provided');
+    }
+
+    await userService.removePushToken({ userId, token });
+    return { success: true };
   }
-
-  const userId = request.auth.uid;
-  const token: string = request.data?.token;
-
-  if (!token) {
-    throw new HttpsError('invalid-argument', 'Push token must be provided');
-  }
-
-  await userService.removePushToken({ userId, token });
-  return { success: true };
-});
+);
 
 // exports.createUser = functions.auth.user().onCreate(user => {
 //   return admin
@@ -284,18 +307,22 @@ type ReportPostData = {
   reason: string;
 };
 
-export const reportPostSecondGen = onCall<ReportPostData, any>(async req => {
-  const { postId, userId, reason } = req.data;
+export const reportPostSecondGen = onCall<ReportPostData, any>(
+  functionOptions,
+  async req => {
+    const { postId, userId, reason } = req.data;
 
-  try {
-    return await reportService.reportPost(userId, postId, reason);
-  } catch (error: any) {
-    logger.error('Error reporting post:', error);
-    throw new Error(error.message || 'Error reporting post');
+    try {
+      return await reportService.reportPost(userId, postId, reason);
+    } catch (error: any) {
+      logger.error('Error reporting post:', error);
+      throw new Error(error.message || 'Error reporting post');
+    }
   }
-});
+);
 
 export const setUserSecondGen = onCall<{ user: User }, StatusResponse>(
+  functionOptions,
   async req => {
     const uid = req.auth?.uid;
     if (!uid) {
@@ -315,6 +342,7 @@ export const setUserSecondGen = onCall<{ user: User }, StatusResponse>(
 );
 
 export const savePostSecondGen = onCall<{ post: any }, SavePostResponse>(
+  functionOptions,
   async req => {
     const uid = req.auth?.uid;
     if (!uid) {
@@ -333,7 +361,7 @@ export const savePostSecondGen = onCall<{ post: any }, SavePostResponse>(
   }
 );
 
-export const deletePostSecondGen = onCall(async request => {
+export const deletePostSecondGen = onCall(functionOptions, async request => {
   if (!request.auth) {
     throw new HttpsError(
       'unauthenticated',
@@ -350,127 +378,145 @@ export const deletePostSecondGen = onCall(async request => {
   return result;
 });
 
-export const getFreshContentSecondGen = onCall(async request => {
-  if (!request.auth) {
-    throw new HttpsError(
-      'unauthenticated',
-      'User must be authenticated to fetch posts.'
-    );
-  }
-
-  const uid = request.auth.uid;
-  const {
-    geoPoint,
-    radius,
-    pageSize = 3,
-    lastVisible = null,
-  } = request.data as {
-    geoPoint: GeoPointType;
-    radius: number;
-    pageSize?: number;
-    lastVisible?: string | null;
-  };
-
-  const result = await postService.getFreshContent(
-    geoPoint,
-    radius,
-    uid,
-    pageSize,
-    lastVisible
-  );
-  return result;
-});
-
-export const getPostsByPlaceIdSecondGen = onCall(async request => {
-  if (!request.auth) {
-    throw new HttpsError(
-      'unauthenticated',
-      'User must be authenticated to fetch posts.'
-    );
-  }
-
-  const uid = request.auth.uid;
-  const {
-    placeId,
-    pageSize = 3,
-    lastVisible = null,
-  } = request.data as {
-    placeId: string;
-    pageSize?: number;
-    lastVisible?: string | null;
-  };
-
-  const result = await postService.getPostsByPlaceId(
-    uid,
-    placeId,
-    pageSize,
-    lastVisible
-  );
-  return result;
-});
-
-export const getCurrentUserSecondGen = onCall<void, User>(async req => {
-  const uid = req.auth?.uid;
-  if (!uid) {
-    throw new Error('Unauthenticated: must be logged in');
-  }
-
-  try {
-    const userDoc = await db.collection('users').doc(uid).get();
-
-    if (!userDoc.exists) {
-      logger.error(`User ${uid} not found`);
-      throw new Error('User not found');
+export const getFreshContentSecondGen = onCall(
+  functionOptions,
+  async request => {
+    if (!request.auth) {
+      throw new HttpsError(
+        'unauthenticated',
+        'User must be authenticated to fetch posts.'
+      );
     }
 
-    return { id: userDoc.id, ...userDoc.data() } as User;
-  } catch (error) {
-    logger.error('Error getting user data:', error);
-    throw new Error('Failed to get user data');
-  }
-});
+    const uid = request.auth.uid;
+    const {
+      geoPoint,
+      radius,
+      pageSize = 3,
+      lastVisible = null,
+    } = request.data as {
+      geoPoint: GeoPointType;
+      radius: number;
+      pageSize?: number;
+      lastVisible?: string | null;
+    };
 
-export const getUserNotificationsSecondGen = onCall(async request => {
-  if (!request.auth) {
-    throw new HttpsError(
-      'unauthenticated',
-      'User must be authenticated to get notifications'
+    const result = await postService.getFreshContent(
+      geoPoint,
+      radius,
+      uid,
+      pageSize,
+      lastVisible
     );
+    return result;
   }
+);
 
-  const userId = request.auth.uid;
-  return await notificationService.getUserNotifications(userId);
-});
+export const getPostsByPlaceIdSecondGen = onCall(
+  functionOptions,
+  async request => {
+    if (!request.auth) {
+      throw new HttpsError(
+        'unauthenticated',
+        'User must be authenticated to fetch posts.'
+      );
+    }
 
-export const markAllNotificationsAsSeenSecondGen = onCall(async request => {
-  if (!request.auth) {
-    throw new HttpsError(
-      'unauthenticated',
-      'User must be authenticated to mark notifications'
+    const uid = request.auth.uid;
+    const {
+      placeId,
+      pageSize = 3,
+      lastVisible = null,
+    } = request.data as {
+      placeId: string;
+      pageSize?: number;
+      lastVisible?: string | null;
+    };
+
+    const result = await postService.getPostsByPlaceId(
+      uid,
+      placeId,
+      pageSize,
+      lastVisible
     );
+    return result;
   }
+);
 
-  const userId = request.auth.uid;
-  return await notificationService.markAllNotificationsAsSeen(userId);
-});
+export const getCurrentUserSecondGen = onCall<void, User>(
+  functionOptions,
+  async req => {
+    const uid = req.auth?.uid;
+    if (!uid) {
+      throw new Error('Unauthenticated: must be logged in');
+    }
 
-export const deleteNotificationSecondGen = onCall(async request => {
-  if (!request.auth) {
-    throw new HttpsError(
-      'unauthenticated',
-      'User must be authenticated to delete notifications'
-    );
+    try {
+      const userDoc = await db.collection('users').doc(uid).get();
+
+      if (!userDoc.exists) {
+        logger.error(`User ${uid} not found`);
+        throw new Error('User not found');
+      }
+
+      return { id: userDoc.id, ...userDoc.data() } as User;
+    } catch (error) {
+      logger.error('Error getting user data:', error);
+      throw new Error('Failed to get user data');
+    }
   }
+);
 
-  const { notificationId } = request.data as { notificationId: string };
-  if (!notificationId) {
-    throw new HttpsError('invalid-argument', 'Notification ID is required');
+export const getUserNotificationsSecondGen = onCall(
+  functionOptions,
+  async request => {
+    if (!request.auth) {
+      throw new HttpsError(
+        'unauthenticated',
+        'User must be authenticated to get notifications'
+      );
+    }
+
+    const userId = request.auth.uid;
+    return await notificationService.getUserNotifications(userId);
   }
+);
 
-  return await notificationService.deleteNotification(notificationId);
-});
+export const markAllNotificationsAsSeenSecondGen = onCall(
+  functionOptions,
+  async request => {
+    if (!request.auth) {
+      throw new HttpsError(
+        'unauthenticated',
+        'User must be authenticated to mark notifications'
+      );
+    }
 
-export const addCommentSecondGen = onCall(async request => {
+    const userId = request.auth.uid;
+    return await notificationService.markAllNotificationsAsSeen(userId);
+  }
+);
+
+export const deleteNotificationSecondGen = onCall(
+  functionOptions,
+  async request => {
+    if (!request.auth) {
+      throw new HttpsError(
+        'unauthenticated',
+        'User must be authenticated to delete notifications'
+      );
+    }
+
+    const { notificationId } = request.data as { notificationId: string };
+    if (!notificationId) {
+      throw new HttpsError('invalid-argument', 'Notification ID is required');
+    }
+
+    return await notificationService.deleteNotification(notificationId);
+  }
+);
+
+export const addCommentSecondGen = onCall(functionOptions, async request => {
   const { postId, userId, commentText } = request.data as {
     postId: string;
     userId: string;
@@ -480,12 +526,15 @@ export const addCommentSecondGen = onCall(async request => {
   return await commentService.addComment(postId, userId, commentText);
 });
 
-export const getPostCommentsSecondGen = onCall(async request => {
-  const { postId } = request.data as { postId: string };
-  return await commentService.getPostComments(postId);
-});
+export const getPostCommentsSecondGen = onCall(
+  functionOptions,
+  async request => {
+    const { postId } = request.data as { postId: string };
+    return await commentService.getPostComments(postId);
+  }
+);
 
-export const getPostByIdSecondGen = onCall(async request => {
+export const getPostByIdSecondGen = onCall(functionOptions, async request => {
   const { postId } = request.data as { postId: string };
   if (!postId) throw new HttpsError('invalid-argument', 'Post ID is required');
 
@@ -528,7 +577,7 @@ export const getPostByIdSecondGen = onCall(async request => {
 // ----------------- SCHEDULE FUNCTIONS -----------------
 
 export const deleteOldPostsAndImagesSecondGen = onSchedule(
-  'every 60 minutes',
+  { region: 'europe-west1', schedule: 'every 60 minutes' },
   async () => {
     const threeDaysInSeconds = 3 * 24 * 60 * 60;
     const threeDaysAgo =
@@ -572,7 +621,7 @@ export const deleteOldPostsAndImagesSecondGen = onSchedule(
 );
 
 export const deleteRecentExpiredRequestsSecondGen = onSchedule(
-  'every 15 minutes',
+  { region: 'europe-west1', schedule: 'every 15 minutes' },
   async () => {
     const threeMinutesAgo = admin.firestore.Timestamp.now().seconds - 3 * 60;
     const timestamp = new admin.firestore.Timestamp(threeMinutesAgo, 0);
@@ -604,7 +653,7 @@ export const deleteRecentExpiredRequestsSecondGen = onSchedule(
 );
 
 export const deleteAllExpiredRequestsSecondGen = onSchedule(
-  'every 6 hours',
+  { region: 'europe-west1', schedule: 'every 60 minutes' },
   async () => {
     const threeDaysAgo =
       admin.firestore.Timestamp.now().seconds - 3 * 24 * 60 * 60;

@@ -21,22 +21,25 @@ import LeaderboardScreen from '@/src/app/screens/user/LeaderBoard';
 import { Account } from '@/src/app/screens/user/Account';
 import { BlurView } from 'expo-blur';
 import { useTranslation } from 'react-i18next';
-import { useUserStore } from '@/src/app/utils/store/userStore';
+import { usePostsStore } from '@/src/app/utils/store/postStore';
+import { useNewsFeedData } from '@/src/app/utils/hooks/NewsFeed/usePostData';
+import userService from '@/src/app/utils/services/user.service';
 
 const Tab = createBottomTabNavigator();
 
 function BottomTabs() {
-  const { userData } = useUserStore();
   const { useFakeLocation } = useLocationStore();
+  const { scrollOnTop } = usePostsStore();
+  const { refetch } = useNewsFeedData();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
 
   const handleOpenCamera = async () => {
-    // console.log(userData?.lastUploadedPost);
-    // if (canUploadPhoto(userData?.lastUploadedPost!)) {
-    //   Alert.alert('Počkajte 5 minút pred ďalším uploadom');
-    //   return;
-    // }
+    const canUpload = await userService.canUploadPhoto();
+    if (!canUpload.canUpload) {
+      Alert.alert('Počkajte 5 minút pred ďalším uploadom');
+      return;
+    }
     if (useFakeLocation) {
       Alert.alert('Cannot open camera with fake location');
     } else {
@@ -68,6 +71,18 @@ function BottomTabs() {
             <FontAwesomeIcon icon={Icons.House} size={26} color={color} />
           ),
         }}
+        listeners={({ navigation }) => ({
+          tabPress: async () => {
+            const state = navigation.getState();
+            const focused = state.routes[state.index].name;
+
+            if (focused === 'Feed') {
+              // 👇 keď si už na Feede a klikneš znova
+              scrollOnTop();
+              await refetch(); // môžeš kľudne awaitovať
+            }
+          },
+        })}
       />
 
       <Tab.Screen

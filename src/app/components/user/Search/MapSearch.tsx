@@ -22,6 +22,7 @@ import { useLocationStore } from '@/src/app/utils/store/locationStore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { primaryColor } from '@/src/app/utils/styles/colors';
 import FastImage from 'react-native-fast-image';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 const latitudeDelta = 0.0045;
 const longitudeDelta = 0.0045;
@@ -35,6 +36,7 @@ export const MapSearch = (props: LayoutProps) => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { location } = useLocationStore();
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
 
   const mapRef = useRef<MapView>(null);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
@@ -133,7 +135,12 @@ export const MapSearch = (props: LayoutProps) => {
       </TouchableOpacity>
 
       {/* Bottom buttons */}
-      <View style={[styles.buttonsContainer, { bottom: 30 + insets.bottom }]}>
+      <View
+        style={[
+          styles.buttonsContainer,
+          { bottom: 30 + insets.bottom + tabBarHeight },
+        ]}
+      >
         <TouchableOpacity
           style={styles.searchButton}
           onPress={handleSearchSurrounding}
