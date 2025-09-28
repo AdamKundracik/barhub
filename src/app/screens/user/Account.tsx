@@ -84,11 +84,13 @@ export const Account = () => {
   };
 
   const handleSignOut = async () => {
-    await signOut(auth)
-      .then(() => showSuccessToast(t('you-have-been-signed-out')))
-      .catch(console.error);
     unsubscribeNotifications();
     await removePushToken(currentPushToken ?? '');
+    await signOut(auth)
+      .then(async () => {
+        showSuccessToast(t('you-have-been-signed-out'));
+      })
+      .catch(console.error);
   };
 
   if (isEditing) {
