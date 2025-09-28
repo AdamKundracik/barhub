@@ -1,15 +1,14 @@
-export function getDaysSince(date: string): number {
-  const givenDate = new Date(date);
+import { toDate } from '@/src/app/utils/helper-functions/toDate';
+import { FirebaseTimestamp } from '@/src/app/utils/types/types';
 
-  if (isNaN(givenDate.getTime())) {
-    throw new Error('Invalid date format');
-  }
+export function getDaysSince(date: FirebaseTimestamp): number {
+  if (!date) return 0;
 
-  const currentDate = new Date();
+  const givenDate = toDate(date);
+  if (isNaN(givenDate.getTime())) return 0;
 
-  const timeDifference = currentDate.getTime() - givenDate.getTime();
-
-  const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-
-  return daysDifference;
+  const now = new Date();
+  const diffMs = now.getTime() - givenDate.getTime();
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  return days; // celé dni
 }

@@ -6,11 +6,12 @@ import { usePlaceStore } from '../../utils/store/placesStore';
 import { useFiltersStore } from '../../utils/store/filtersStorage';
 import { usePhotoRequest } from '../../utils/hooks/NewsFeed/usePhotoRequest';
 import { usePostZoom } from '../../utils/hooks/NewsFeed/usePostZoom';
-import { useUserUploadData } from '../../utils/hooks/NewsFeed/useUserUploadData';
 import { useNewsFeedEffects } from '../../utils/hooks/NewsFeed/useNewsFeedEffects';
 import { useNewsFeedData } from '../../utils/hooks/NewsFeed/usePostData';
 import { useComments } from '../../utils/hooks/NewsFeed/useComments';
 import { FeedContent } from './NewsFeed/FeedContent';
+import FilterSlider from '@/src/app/components/shared/Modals/FilterSlider';
+import { useUserStore } from '@/src/app/utils/store/userStore';
 
 export const NewsFeed = () => {
   const { t } = useTranslation();
@@ -28,13 +29,11 @@ export const NewsFeed = () => {
     refetch,
     fetchMorePosts,
   } = useNewsFeedData();
-
   const { requestPhoto } = usePhotoRequest();
   const { commentsState, openComments, closeComments } = useComments();
   const { zoomedPost, setZoomedPost } = usePostZoom();
-  const { daysSinceLastUpload, userData } = useUserUploadData();
+  const { userData } = useUserStore();
   useNewsFeedEffects({ placeId, distance, refetch });
-
   const handleRefresh = async () => {
     await refetch();
   };
@@ -51,7 +50,6 @@ export const NewsFeed = () => {
         zoomedPost={zoomedPost}
         setZoomedPost={setZoomedPost}
         userData={userData}
-        daysSinceLastUpload={daysSinceLastUpload}
         requestPhoto={requestPhoto}
         onCommentPress={openComments}
         isFiltering={!!placeId}
@@ -67,6 +65,7 @@ export const NewsFeed = () => {
         expoPushToken={commentsState.expoPushToken}
         onClose={closeComments}
       />*/}
+      <FilterSlider />
     </Layout>
   );
 };

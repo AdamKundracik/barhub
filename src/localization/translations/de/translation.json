@@ -26,6 +26,7 @@
   "weak-password": "Passwort ist nicht stark genug. Es muss mindestens 6 Zeichen lang sein. Fügen Sie zusätzliche Zeichen, einschließlich Sonderzeichen und Zahlen, hinzu.",
   "signed-out": "Abmelden",
   "you-have-been-signed-out": "Sie wurden abgemeldet",
+  "sign-out-info": "Sie werden abgemeldet",
   "user-name": "Benutzername",
   "date-of-birth": "Geburtsdatum",
   "submit": "Absenden",
@@ -150,6 +151,11 @@
     "granted": "Gewährt",
     "check-for-permissions": "Berechtigungen überprüfen"
   },
+  "uploadPost": {
+    "successTitle": "Beitrag gespeichert",
+    "successDescription": "Der Beitrag wurde erfolgreich gespeichert! Vielen Dank für Ihren Beitrag"
+  },
+
   "gdpr": "Datenschutzrichtlinie",
   "third-party-libraries": "Drittanbieter-Bibliotheken",
   "use-different-location": "Anderen Standort verwenden",
@@ -222,5 +228,11 @@
   "password-change-error": "Fehler beim Ändern des Passworts",
   "purchase-success": "Kauf erfolgreich",
   "enjoy-benefits-message": "Genießen Sie alle Vorteile",
-  "no-data": "Keine Daten"
+  "no-data": "Keine Daten",
+  "explore": "Entdecken",
+  "search": "Suchen",
+  "camera": {
+    "fakeLocationBlocked": "Kamera kann bei falschem Standort nicht geöffnet werden",
+    "waitBeforeNextUpload": "Bitte warten Sie noch %s, bevor Sie erneut hochladen"
+  }
 }

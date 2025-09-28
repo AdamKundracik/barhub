@@ -22,6 +22,19 @@ class UserClient {
     const { data: response } = await cloudFunction({ token });
     return response;
   };
+
+  public canUploadPhoto = async (): Promise<{
+    canUpload: boolean;
+    remainingSeconds?: number;
+  }> => {
+    const cloudFunction = httpsCallable<
+      void,
+      { canUpload: boolean; remainingSeconds?: number }
+    >(functions, 'canUploadPhoto');
+    const { data } = await cloudFunction();
+    console.log(data);
+    return data;
+  };
 }
 
 const userClient = new UserClient();

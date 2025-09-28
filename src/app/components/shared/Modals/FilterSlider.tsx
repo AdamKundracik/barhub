@@ -32,16 +32,7 @@ import { Icons } from '@/src/app/utils/icons/icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNewsFeedData } from '@/src/app/utils/hooks/NewsFeed/usePostData';
 import { useUserStore } from '@/src/app/utils/store/userStore';
-
-type Props = {
-  opened: boolean;
-  onClose: () => void;
-  onSave?: (filters: {
-    distance: number;
-    placeTypes: string[];
-    occupancyTypes: string[];
-  }) => void;
-};
+import { modalsStore } from '@/src/app/utils/store/modalsStore';
 
 export const PLACE_TYPES: PlaceType[] = [
   'bar',
@@ -59,7 +50,7 @@ export const OCCUPANCY_TYPES: OccupancyTypes[] = [
   'EMPTY',
 ];
 
-const FilterSlider = (props: Props) => {
+const FilterSlider = () => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
@@ -78,6 +69,12 @@ const FilterSlider = (props: Props) => {
     selectedOccupancy: storeSelectedOccupancy,
     updateFilters,
   } = useFiltersStore();
+
+  const { isFilterOpen, closeFilter } = modalsStore();
+
+  const handleClose = useCallback(() => {
+    closeFilter();
+  }, [closeFilter]);
 
   const [tempDistance, setTempDistance] = useState(storeDistance);
   const [tempSelectedPlaces, setTempSelectedPlaces] = useState<PlaceType[]>(
@@ -100,51 +97,44 @@ const FilterSlider = (props: Props) => {
   useEffect(() => {
     setTempUseFakeLocation(useFakeLocation);
     setFakeLocationNameVal(fakeLocationName);
-  }, [props.opened, useFakeLocation, fakeLocationName]);
+  }, [isFilterOpen, useFakeLocation, fakeLocationName]);
+
+  // otvorenie a zatvorenie podľa store
+  useEffect(() => {
+    if (isFilterOpen) {
+      bottomSheetRef.current?.expand();
+    } else {
+      bottomSheetRef.current?.close();
+    }
+  }, [isFilterOpen]);
 
   useEffect(() => {
-    if (props.opened) {
+    if (isFilterOpen) {
       setTempDistance(storeDistance);
-      setTempSelectedPlaces(
-        storeSelectedPlaces.length > 0 ? storeSelectedPlaces : PLACE_TYPES
-      );
-      setTempSelectedOccupancy(
-        storeSelectedOccupancy.length > 0
-          ? storeSelectedOccupancy
-          : OCCUPANCY_TYPES
-      );
+      setTempSelectedPlaces(storeSelectedPlaces);
+      setTempSelectedOccupancy(storeSelectedOccupancy);
     }
-  }, [props.opened]);
+  }, [isFilterOpen]);
 
   const handleSaveChanges = useCallback(() => {
     const finalPlaces =
-      tempSelectedPlaces.length === 0 ? [...PLACE_TYPES] : tempSelectedPlaces;
+      tempSelectedPlaces.length === 0 ? [] : tempSelectedPlaces;
 
     const finalOccupancy =
-      tempSelectedOccupancy.length === 0
-        ? [...OCCUPANCY_TYPES]
-        : tempSelectedOccupancy;
+      tempSelectedOccupancy.length === 0 ? [] : tempSelectedOccupancy;
 
     updateFilters({
       distance: tempDistance,
       placeTypes: finalPlaces,
       occupancy: finalOccupancy,
     });
-
-    props.onSave?.({
-      distance: tempDistance,
-      placeTypes: finalPlaces,
-      occupancyTypes: finalOccupancy,
-    });
     bottomSheetRef?.current?.close();
-    props.onClose();
   }, [
     tempDistance,
     tempSelectedPlaces,
     updateFilters,
     tempSelectedOccupancy,
-    props.onSave,
-    props.onClose,
+    isFilterOpen,
   ]);
 
   const handleSelectionChange = useCallback(
@@ -181,7 +171,7 @@ const FilterSlider = (props: Props) => {
       <BottomSheetFooter
         {...props}
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
-        bottomInset={insets.bottom}
+        bottomInset={insets.bottom + 20}
       >
         <View style={styles.footerContainer}>
           <Button
@@ -198,10 +188,10 @@ const FilterSlider = (props: Props) => {
   return (
     <BottomSheet
       backgroundStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
-      onClose={props.onClose}
+      onClose={handleClose}
       ref={bottomSheetRef}
-      snapPoints={['90%', '70%']}
-      index={props.opened ? 1 : -1}
+      snapPoints={['60%', '80%']}
+      index={-1}
       backdropComponent={renderBackdrop}
       footerComponent={renderFooter}
       handleHeight={60}
@@ -217,7 +207,6 @@ const FilterSlider = (props: Props) => {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        contentInset={{ bottom: 100 }}
       >
         <View>
           <Text style={styles.title}>{t('filters')}</Text>
@@ -295,7 +284,7 @@ const FilterSlider = (props: Props) => {
 const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 15,
-    paddingBottom: 50,
+    paddingBottom: 150,
   },
   section: {
     marginVertical: 10,

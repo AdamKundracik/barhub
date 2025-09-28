@@ -12,10 +12,10 @@ import {
 } from 'react-native';
 import Device from 'react-native-device-info';
 import {
-  iconInactiveColor,
   postBgColor,
   primaryBgColor,
   primaryColor,
+  separatorColor,
 } from '../../../utils/styles/colors';
 import { Place } from '../../../utils/types/types';
 import { useTranslation } from 'react-i18next';
@@ -23,7 +23,6 @@ import { formStyles } from '../../../utils/styles/styles';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { uploadImageAsync } from '../../../utils/helper-functions/imageUploadFunctions';
-import { setUser } from '../../../utils/services/functions';
 import { useQueryClient } from 'react-query';
 import postService from '../../../utils/services/post.service';
 import { geohashForLocation } from 'geofire-common';
@@ -36,8 +35,10 @@ import { Center } from '@/components/ui/center';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { Picker } from '@react-native-picker/picker';
 import { useFiltersStore } from '@/src/app/utils/store/filtersStorage';
-import leaderboardClient from '@/src/app/utils/services/leaderboard-service';
 import FastImage from 'react-native-fast-image';
+import { useUserData } from '@/src/app/utils/hooks/useUserData';
+import { useCustomToast } from '@/src/app/components/shared/Toaster';
+import { useUserStore } from '@/src/app/utils/store/userStore';
 
 type SummaryProps = {
   image: string;
@@ -54,8 +55,11 @@ export const PostSummary = ({ route }: any) => {
   const { t } = useTranslation();
   const routeParams = route.params as SummaryProps;
   const navigation = useNavigation<NavigationProp<UserStackList>>();
+  const { refetch } = useUserData();
+  const { showSuccessToast, showErrorToast } = useCustomToast();
 
   const { resetFilters } = useFiltersStore();
+  const { setLastUploadedPost } = useUserStore();
 
   const [selectedOccupancy, setSelectedOccupancy] = useState<OccupancyEnum>(
     OccupancyEnum.FULL
@@ -146,13 +150,15 @@ export const PostSummary = ({ route }: any) => {
               addedPostResponse.id
             );
           }
-          await setUser({ lastUploadedPost: new Date().toISOString() });
-          await leaderboardClient.addPhotoPoints();
+          setLastUploadedPost(new Date());
           resetFilters();
+          await refetch();
+          showSuccessToast(t('success'), t('post-success-info'));
           navigation.navigate('Feed');
         }
       } catch (e) {
         console.error(e);
+        showErrorToast('someting-went-wrong');
         Alert.alert('Failed to save post');
       } finally {
         setIsSaving(false);
@@ -163,7 +169,7 @@ export const PostSummary = ({ route }: any) => {
   };
 
   return (
-    <ScreenLayout clickFunction={navigation.goBack}>
+    <ScreenLayout onBackPress={navigation.goBack} showBackButton>
       <TouchableWithoutFeedback>
         <View style={{ justifyContent: 'center', alignItems: 'center' }}>
           <Text
@@ -299,7 +305,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   label: {
-    color: iconInactiveColor,
+    color: separatorColor,
     width: '30%',
   },
   dynamicText: {

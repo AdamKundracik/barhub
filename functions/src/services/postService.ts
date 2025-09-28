@@ -51,10 +51,15 @@ class PostService {
         creationTime: timestamp,
       };
 
+      // Pridanie postu do kolekcie
       const addedPostReference = await this.db.collection('posts').add(postDoc);
-
       const addedPostSnapshot = await addedPostReference.get();
       const addedPostDocument = addedPostSnapshot.data() as PostDocument;
+
+      // Aktualizácia lastUploadedPost v user dokumente
+      await this.db.collection('users').doc(userId).update({
+        lastUploadedPost: timestamp, // aktualny timestamp
+      });
 
       return { post: { ...addedPostDocument, id: addedPostReference.id } };
     } catch (error) {

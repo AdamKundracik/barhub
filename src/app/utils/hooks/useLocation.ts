@@ -46,7 +46,7 @@ export const useLocation = () => {
         };
 
         const current = locationRef.current;
-        if (!event.coords.speed || event.coords.speed <= 4) {
+        if (!event.coords?.speed || event.coords?.speed <= 4) {
           if (
             !current ||
             current.latitude !== currentLocation.latitude ||

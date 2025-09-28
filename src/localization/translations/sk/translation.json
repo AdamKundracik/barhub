@@ -26,6 +26,7 @@
   "weak-password": "Heslo nie je dostatočne silné. Musí mať aspoň 6 znakov. Pridajte ďalšie znaky vrátane špeciálnych znakov a číslic.",
   "signed-out": "Odhlásenie",
   "you-have-been-signed-out": "Boli ste odhlásený",
+  "sign-out-info": "Budete odhlásený",
   "user-name": "Používateľské meno",
   "date-of-birth": "Dátum narodenia",
   "submit": "Potvrdiť",
@@ -193,6 +194,10 @@
     "errorTitle": "Chyba",
     "errorDescription": "Nepodarilo sa vymazať príspevok. Skúste to znova."
   },
+  "uploadPost": {
+    "successTitle": "Príspevok uložený",
+    "successDescription": "Príspevok bol úspešne uložený! Ďakujeme za prispievanie"
+  },
   "toastPhotoDeletedTitle": "Úspešne zmazané.",
   "toastPhotoDeletedDesc": "Vaša fotografia bola zmazaná.",
   "toastPhotoUpdatedTitle": "Úspešne uložené.",
@@ -220,6 +225,12 @@
   "password-change-error": "Chyba pri zmene hesla",
   "purchase-success": "Nákup bol úspešný",
   "enjoy-benefits-message": "Užite si všetky výhody",
-  "no-data": "Žiadne dáta"
+  "no-data": "Žiadne dáta",
+  "explore": "Objavuj",
+  "search": "Hľadaj",
+  "camera": {
+    "fakeLocationBlocked": "Nie je možné otvoriť kameru pri falošnej lokalizácii",
+    "waitBeforeNextUpload": "Počkajte ešte %s pred ďalším uploadom"
+  }
 }
 

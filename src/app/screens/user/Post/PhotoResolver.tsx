@@ -15,6 +15,7 @@ import { UserStackList } from '../../../utils/types/screen-types';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { fetchNearbyPlaces } from '../../../utils/helper-functions/fetchPlacesAPI';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
+import { radius } from '@/src/app/utils/constants/constants';
 
 export const PhotoResolver = ({ route }: any) => {
   const { location } = useLocationStore();
@@ -35,7 +36,7 @@ export const PhotoResolver = ({ route }: any) => {
   useEffect(() => {
     async function getPlaces() {
       if (location) {
-        const data = await fetchNearbyPlaces(location);
+        const data = await fetchNearbyPlaces(location, radius);
         setLoading(false);
         setPlaces(data.places);
       } else {
@@ -90,7 +91,11 @@ export const PhotoResolver = ({ route }: any) => {
   }
 
   return (
-    <ScreenLayout title={t('select-place')} clickFunction={navigation.goBack}>
+    <ScreenLayout
+      title={t('select-place')}
+      onBackPress={navigation.goBack}
+      showBackButton
+    >
       <FlatList data={places} renderItem={renderItem} />
     </ScreenLayout>
   );

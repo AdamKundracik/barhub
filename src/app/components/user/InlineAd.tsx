@@ -55,11 +55,8 @@ const styles = StyleSheet.create({
   adContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
-    marginTop: 20,
   },
   errorContainer: {
-    padding: 15,
     backgroundColor: warningColor,
     borderRadius: 8,
   },

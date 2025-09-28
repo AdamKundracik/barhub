@@ -1,9 +1,9 @@
 // Import the functions you need from the SDKs you need
 import {initializeApp} from 'firebase/app';
-import {getReactNativePersistence, GoogleAuthProvider, initializeAuth, connectAuthEmulator} from 'firebase/auth';
-import {getStorage, connectStorageEmulator} from 'firebase/storage';
-import {getFirestore, connectFirestoreEmulator} from 'firebase/firestore';
-import {getFunctions, connectFunctionsEmulator} from 'firebase/functions';
+import {getReactNativePersistence, GoogleAuthProvider, initializeAuth} from 'firebase/auth';
+import {getStorage} from 'firebase/storage';
+import {getFirestore} from 'firebase/firestore';
+import {getFunctions} from 'firebase/functions';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -31,7 +31,7 @@ export const provider = new GoogleAuthProvider();
 
 const db = getFirestore(app);
 const storage = getStorage(app);
-const functions = getFunctions(app);
+const functions = getFunctions(app, 'europe-west1'); // tu sa nastavuje region
 
 // Connect to the emulators if in development mode
 // Note: Comment this out when developing locally without emulator set up

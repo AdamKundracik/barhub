@@ -3,6 +3,8 @@ import { subscribeWithSelector } from 'zustand/middleware';
 import { SearchHistoryItem, User } from '@/shared';
 import { auth } from '@/firebaseConfig';
 import { setUser } from '@/src/app/utils/services/functions';
+import { getDaysSince } from '@/src/app/utils/helper-functions/getDaysSince';
+import { FirebaseTimestamp } from '@/src/app/utils/types/types';
 
 interface UserStore {
   authUser: typeof auth.currentUser | null;
@@ -24,6 +26,12 @@ interface UserStore {
   searchHistory: SearchHistoryItem[];
   addToSearchHistory: (item: SearchHistoryItem) => Promise<void>;
   setSearchHistory: (history: SearchHistoryItem[]) => void;
+
+  canSeeContent: boolean;
+  setCanSeeContent: (date: FirebaseTimestamp) => void;
+
+  lastUploadedPost: Date | FirebaseTimestamp | null;
+  setLastUploadedPost: (lastUploadedPost: Date | FirebaseTimestamp) => void;
 }
 
 export const useUserStore = create<UserStore>()(
@@ -35,8 +43,16 @@ export const useUserStore = create<UserStore>()(
     isUserDataLoading: false,
     currentPushToken: null,
     premium: false,
+    lastUploadedPost: null,
 
     searchHistory: [],
+
+    canSeeContent: false,
+
+    setCanSeeContent: date => {
+      const days = getDaysSince(date);
+      set({ canSeeContent: days < 7 });
+    },
 
     setSearchHistory: (history: SearchHistoryItem[]) =>
       set({ searchHistory: history }),
@@ -70,5 +86,6 @@ export const useUserStore = create<UserStore>()(
     },
 
     setUserDataLoading: loading => set({ isUserDataLoading: loading }),
+    setLastUploadedPost: date => set({ lastUploadedPost: date }),
   }))
 );

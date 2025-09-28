@@ -1,7 +1,7 @@
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import {
-  iconInactiveColor,
   primaryBgColor,
+  separatorColor,
   warningColor,
 } from '../../../../utils/styles/colors';
 import Svg, { Path } from 'react-native-svg';
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   infoText: {
-    color: iconInactiveColor,
+    color: separatorColor,
   },
 });
 

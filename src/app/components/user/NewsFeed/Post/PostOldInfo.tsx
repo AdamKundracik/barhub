@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
-  iconInactiveColor,
   primaryLightGrey,
+  separatorColor,
   warningColor,
 } from '../../../../utils/styles/colors';
 import Svg, { Path } from 'react-native-svg';
@@ -68,7 +68,7 @@ const PostOldInfo = (props: Props) => {
                 style={{
                   fontSize: 16,
                   fontWeight: 'bold',
-                  color: iconInactiveColor,
+                  color: separatorColor,
                 }}
               >
                 {t('request-photo')}
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     borderRadius: 30,
-    borderColor: iconInactiveColor,
+    borderColor: separatorColor,
     borderWidth: 1,
     height: 40,
   },

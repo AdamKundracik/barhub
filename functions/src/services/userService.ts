@@ -6,6 +6,8 @@ interface PushTokenData {
   token: string;
 }
 
+const MIN_UPLOAD_INTERVAL = 5 * 60 * 1000; // 5 minút v ms
+
 export class UserService {
   private db: FirebaseFirestore.Firestore;
 
@@ -112,5 +114,40 @@ export class UserService {
         `Failed to fetch push tokens: ${error.message}`
       );
     }
+  }
+
+  /**
+   * Check if user can upload a new photo based on lastUploadedPost
+   */
+  async canUploadPhoto(userId: string) {
+    if (!userId) {
+      throw new HttpsError('invalid-argument', 'User ID is required');
+    }
+
+    const userDoc = await this.db.collection('users').doc(userId).get();
+    if (!userDoc.exists) {
+      throw new HttpsError('not-found', 'User not found');
+    }
+
+    const lastUploaded: admin.firestore.Timestamp | undefined =
+      userDoc.data()?.lastUploadedPost;
+
+    if (!lastUploaded) {
+      // User never uploaded → can upload
+      return { canUpload: true };
+    }
+
+    const now = Date.now();
+    const lastUploadTime = lastUploaded.toMillis();
+    const diff = now - lastUploadTime;
+
+    if (diff < MIN_UPLOAD_INTERVAL) {
+      return {
+        canUpload: false,
+        remainingSeconds: Math.ceil((MIN_UPLOAD_INTERVAL - diff) / 1000),
+      };
+    }
+
+    return { canUpload: true };
   }
 }

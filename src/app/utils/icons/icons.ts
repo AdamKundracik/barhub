@@ -28,6 +28,7 @@ import {
   faGear,
   faHeart as faHeartSolid,
   faHeartBroken,
+  faHouse,
   faImage,
   faInfoCircle,
   faLocationArrow,
@@ -133,4 +134,5 @@ export const Icons = {
   Calendar: faCalendar,
   Envelope: faEnvelope,
   RankingStar: faRankingStar,
+  House: faHouse,
 };

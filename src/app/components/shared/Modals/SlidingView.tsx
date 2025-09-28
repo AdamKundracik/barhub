@@ -11,6 +11,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
 import { useTranslation } from 'react-i18next';
 import { BottomSheetBackdrop, BottomSheetModal } from '@gorhom/bottom-sheet';
+import { bottomModalBgColor } from '@/src/app/utils/styles/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -58,7 +59,7 @@ export const SlidingView = ({
       snapPoints={['40%']}
       backdropComponent={renderBackdrop}
       onDismiss={onClose}
-      backgroundStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
+      backgroundStyle={{ backgroundColor: bottomModalBgColor }}
       handleHeight={50}
       enablePanDownToClose
       handleIndicatorStyle={styles.handleIndicator}

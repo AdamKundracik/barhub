@@ -26,6 +26,7 @@
   "weak-password": "La contraseña no es lo suficientemente fuerte. Debe tener al menos 6 caracteres. Agrega caracteres adicionales, incluidos caracteres especiales y números.",
   "signed-out": "Cerrar sesión",
   "you-have-been-signed-out": "Se ha cerrado sesión",
+  "sign-out-info": "Será desconectado",
   "user-name": "Nombre de usuario",
   "date-of-birth": "Fecha de nacimiento",
   "submit": "Enviar",
@@ -181,6 +182,10 @@
     "confirmTitle": "Confirmar reporte",
     "confirmMessage": "¿Realmente quieres reportar esto como {{reason}}?"
   },
+  "uploadPost": {
+    "successTitle": "Publicación guardada",
+    "successDescription": "¡La publicación se ha guardado con éxito! Gracias por contribuir"
+  },
   "or": "o",
   "delete-post": "Eliminar publicación",
   "about-me": "Sobre mí",
@@ -222,5 +227,11 @@
   "password-change-error": "Error al cambiar la contraseña",
   "purchase-success": "Compra realizada con éxito",
   "enjoy-benefits-message": "Disfruta de todos los beneficios",
-  "no-data": "Sin datos"
+  "no-data": "Sin datos",
+  "explore": "Explorar",
+  "search": "Buscar",
+  "camera": {
+    "fakeLocationBlocked": "No se puede abrir la cámara con ubicación falsa",
+    "waitBeforeNextUpload": "Espere %s antes de subir otra foto"
+  }
 }

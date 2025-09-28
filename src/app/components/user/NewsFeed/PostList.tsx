@@ -1,32 +1,22 @@
-import React, { useCallback, useRef, useState } from 'react';
-import {
-  Animated,
-  FlatList,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import { Post, User } from '../../../../../shared';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import UserPost from './Post/UserPost';
 import LoadingIndicator from './LoadingIndicator';
 import PostOldInfo from './Post/PostOldInfo';
 import { usePlaceStore } from '../../../utils/store/placesStore';
 import { primaryColor } from '../../../utils/styles/colors';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../../utils/icons/icons';
 import { FirebaseTimestamp } from '../../../utils/types/types';
 import { useTranslation } from 'react-i18next';
 import NativeAdComponent from '@/src/app/components/user/NativeAd';
 import { useUserStore } from '@/src/app/utils/store/userStore';
+import { usePostsStore } from '@/src/app/utils/store/postStore';
+import { Post, User } from '@/shared';
 
 interface PostsListProps {
   posts: Post[];
   zoomedPost: string | null;
   setZoomedPost: (postId: string | null) => void;
   userData: User | null | undefined;
-  numberOfDaysSinceLastPostedPhoto: number;
   requestPhoto: () => void;
   fetchMorePosts: () => Promise<void>;
   onRefresh: () => Promise<void>;
@@ -46,7 +36,6 @@ const PostsList = ({
   zoomedPost,
   setZoomedPost,
   userData,
-  numberOfDaysSinceLastPostedPhoto,
   requestPhoto,
   fetchMorePosts,
   onRefresh,
@@ -60,21 +49,28 @@ const PostsList = ({
   const { placeId } = usePlaceStore();
   const { premium } = useUserStore();
   const flatListRef = useRef<FlatList>(null);
-  const [showScrollTopButton, setShowScrollTopButton] = useState(false);
-  const scrollButtonAnimation = useRef(new Animated.Value(0)).current;
+  // const [showScrollTopButton, setShowScrollTopButton] = useState(false);
+  // const scrollButtonAnimation = useRef(new Animated.Value(0)).current;
+  const { setListRef } = usePostsStore();
 
-  const handleScroll = (event: any) => {
-    const scrollPosition = event.nativeEvent.contentOffset.y;
-    const shouldShow = scrollPosition > 300;
-
-    if (shouldShow !== showScrollTopButton) {
-      setShowScrollTopButton(shouldShow);
-      Animated.spring(scrollButtonAnimation, {
-        toValue: shouldShow ? 1 : 0,
-        useNativeDriver: true,
-      }).start();
+  useEffect(() => {
+    if (flatListRef) {
+      setListRef(flatListRef);
     }
-  };
+  }, [flatListRef]);
+
+  // const handleScroll = (event: any) => {
+  //   const scrollPosition = event.nativeEvent.contentOffset.y;
+  //   const shouldShow = scrollPosition > 300;
+  //
+  //   if (shouldShow !== showScrollTopButton) {
+  //     setShowScrollTopButton(shouldShow);
+  //     Animated.spring(scrollButtonAnimation, {
+  //       toValue: shouldShow ? 1 : 0,
+  //       useNativeDriver: true,
+  //     }).start();
+  //   }
+  // };
 
   const isOlderThanMinutes = (
     timestamp: FirebaseTimestamp,
@@ -88,9 +84,9 @@ const PostsList = ({
     return now - timestampMs > minutesInMs;
   };
 
-  const scrollToTop = () => {
-    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
-  };
+  // const scrollToTop = () => {
+  //   flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+  // };
 
   const ListFooter = ({
     isFetchingNextPage,
@@ -120,7 +116,6 @@ const PostsList = ({
           }}
         >
           <UserPost
-            numberOfDaysSinceLastPostedPhoto={numberOfDaysSinceLastPostedPhoto}
             requestPhoto={requestPhoto}
             onCommentPress={(postId, expoPushToken, userId) =>
               onCommentPress(postId, expoPushToken, userId)
@@ -148,7 +143,6 @@ const PostsList = ({
     [
       zoomedPost,
       premium,
-      numberOfDaysSinceLastPostedPhoto,
       requestPhoto,
       onCommentPress,
       isFiltering,
@@ -165,9 +159,9 @@ const PostsList = ({
         renderItem={renderItem}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.scrollView}
-        initialNumToRender={10}
-        maxToRenderPerBatch={10}
-        windowSize={5}
+        initialNumToRender={5}
+        maxToRenderPerBatch={5}
+        windowSize={4}
         removeClippedSubviews={true}
         ListFooterComponent={
           <ListFooter
@@ -180,7 +174,6 @@ const PostsList = ({
         }
         onEndReached={hasMorePosts ? fetchMorePosts : null}
         onEndReachedThreshold={0.5}
-        onScroll={handleScroll}
         ListHeaderComponent={
           <>
             {placeId && isOlderThanMinutes(posts[0].creationTime, 30) && (
@@ -189,30 +182,30 @@ const PostsList = ({
           </>
         }
       />
-
-      <Animated.View
-        style={[
-          styles.scrollTopButton,
-          {
-            transform: [
-              {
-                scale: scrollButtonAnimation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, 1],
-                }),
-              },
-            ],
-            opacity: scrollButtonAnimation,
-          },
-        ]}
-      >
-        <TouchableOpacity
-          onPress={scrollToTop}
-          style={styles.scrollTopButtonTouchable}
-        >
-          <FontAwesomeIcon icon={Icons.Up} size={20} color="black" />
-        </TouchableOpacity>
-      </Animated.View>
+      {/*SCROLL TO TOP BUTTON*/}
+      {/*<Animated.View*/}
+      {/*  style={[*/}
+      {/*    styles.scrollTopButton,*/}
+      {/*    {*/}
+      {/*      transform: [*/}
+      {/*        {*/}
+      {/*          scale: scrollButtonAnimation.interpolate({*/}
+      {/*            inputRange: [0, 1],*/}
+      {/*            outputRange: [0, 1],*/}
+      {/*          }),*/}
+      {/*        },*/}
+      {/*      ],*/}
+      {/*      opacity: scrollButtonAnimation,*/}
+      {/*    },*/}
+      {/*  ]}*/}
+      {/*>*/}
+      {/*  <TouchableOpacity*/}
+      {/*    onPress={scrollToTop}*/}
+      {/*    style={styles.scrollTopButtonTouchable}*/}
+      {/*  >*/}
+      {/*    <FontAwesomeIcon icon={Icons.Up} size={20} color="black" />*/}
+      {/*  </TouchableOpacity>*/}
+      {/*</Animated.View>*/}
     </View>
   );
 };
