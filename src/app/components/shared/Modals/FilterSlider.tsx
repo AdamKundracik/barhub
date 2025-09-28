@@ -111,25 +111,17 @@ const FilterSlider = () => {
   useEffect(() => {
     if (isFilterOpen) {
       setTempDistance(storeDistance);
-      setTempSelectedPlaces(
-        storeSelectedPlaces.length > 0 ? storeSelectedPlaces : PLACE_TYPES
-      );
-      setTempSelectedOccupancy(
-        storeSelectedOccupancy.length > 0
-          ? storeSelectedOccupancy
-          : OCCUPANCY_TYPES
-      );
+      setTempSelectedPlaces(storeSelectedPlaces);
+      setTempSelectedOccupancy(storeSelectedOccupancy);
     }
   }, [isFilterOpen]);
 
   const handleSaveChanges = useCallback(() => {
     const finalPlaces =
-      tempSelectedPlaces.length === 0 ? [...PLACE_TYPES] : tempSelectedPlaces;
+      tempSelectedPlaces.length === 0 ? [] : tempSelectedPlaces;
 
     const finalOccupancy =
-      tempSelectedOccupancy.length === 0
-        ? [...OCCUPANCY_TYPES]
-        : tempSelectedOccupancy;
+      tempSelectedOccupancy.length === 0 ? [] : tempSelectedOccupancy;
 
     updateFilters({
       distance: tempDistance,

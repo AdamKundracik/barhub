@@ -1,16 +1,9 @@
-import { toDate } from '@/src/app/utils/helper-functions/toDate';
-
-export const canUploadPhoto = (
-  lastUploadedPost?: Date | { seconds: number; nanoseconds?: number }
-): boolean => {
+export const canUploadPhoto = (lastUploadedPost: Date | null): boolean => {
   if (!lastUploadedPost) return true;
 
-  const lastDate = toDate(lastUploadedPost);
-  if (isNaN(lastDate.getTime())) return true;
+  const now = Date.now();
+  const diffMs = now - new Date(lastUploadedPost).getTime();
+  const fiveMinutes = 5 * 60 * 1000;
 
-  const now = new Date();
-  const diffMs = now.getTime() - lastDate.getTime();
-  const FIVE_MINUTES_MS = 5 * 60 * 1000;
-
-  return diffMs >= FIVE_MINUTES_MS;
+  return diffMs >= fiveMinutes;
 };

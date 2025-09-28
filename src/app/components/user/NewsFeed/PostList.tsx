@@ -84,9 +84,9 @@ const PostsList = ({
     return now - timestampMs > minutesInMs;
   };
 
-  const scrollToTop = () => {
-    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
-  };
+  // const scrollToTop = () => {
+  //   flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+  // };
 
   const ListFooter = ({
     isFetchingNextPage,
@@ -159,9 +159,9 @@ const PostsList = ({
         renderItem={renderItem}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.scrollView}
-        initialNumToRender={10}
-        maxToRenderPerBatch={10}
-        windowSize={5}
+        initialNumToRender={5}
+        maxToRenderPerBatch={5}
+        windowSize={4}
         removeClippedSubviews={true}
         ListFooterComponent={
           <ListFooter

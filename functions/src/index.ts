@@ -261,6 +261,7 @@ export const addPushTokenSecondGen = onCall(functionOptions, async request => {
 export const removePushTokenSecondGen = onCall(
   functionOptions,
   async request => {
+    logger.info(request.auth.uid);
     if (!request.auth) {
       throw new HttpsError(
         'unauthenticated',

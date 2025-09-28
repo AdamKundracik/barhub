@@ -38,12 +38,15 @@ export const useNewsFeedData = () => {
     if (!postsData?.pages) return [];
 
     const allPosts = postsData.pages.flatMap(page => page.posts);
+    const uniquePosts = Array.from(
+      new Map(allPosts.map(post => [post.id, post])).values()
+    );
 
     if (selectedPlaces.length === 0 && selectedOccupancy.length === 0) {
-      return allPosts;
+      return uniquePosts;
     }
 
-    return allPosts.filter(post => {
+    return uniquePosts.filter(post => {
       const matchesPlaceType =
         selectedPlaces.length === 0 ||
         post.placeTypes?.some(type =>

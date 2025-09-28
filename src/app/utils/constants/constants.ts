@@ -7,6 +7,7 @@ export const MISSING_REQUIRED_REQUEST_PARAMS = {
 };
 
 export const radius = 200;
+export const mapSearchRadius = 100;
 
 //max_distance - means maximum distance from user posting photo to nearest selected place
 export const max_distance = 25;

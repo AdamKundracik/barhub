@@ -14,7 +14,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
-import { radius } from '../../../utils/helper-functions/constants';
+import { mapSearchRadius } from '../../../utils/constants/constants';
 import { mapPlaceToPlacePrediction } from '../../../utils/helper-functions/mapPlaceToPlacePrediction';
 import { usePlaceStore } from '../../../utils/store/placesStore';
 import { fetchNearbyPlaces } from '../../../utils/helper-functions/fetchPlacesAPI';
@@ -24,8 +24,8 @@ import { primaryColor } from '@/src/app/utils/styles/colors';
 import FastImage from 'react-native-fast-image';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
-const latitudeDelta = 0.0045;
-const longitudeDelta = 0.0045;
+const latitudeDelta = 0.0035;
+const longitudeDelta = 0.0035;
 
 type LayoutProps = {
   setIsMapShown: (isSearching: boolean) => void;
@@ -63,7 +63,7 @@ export const MapSearch = (props: LayoutProps) => {
 
   const handleSearchSurrounding = async () => {
     setLoading(true);
-    const data = await fetchNearbyPlaces(region);
+    const data = await fetchNearbyPlaces(region, mapSearchRadius);
     setLoading(false);
     setPlaces(data.places);
   };
@@ -93,7 +93,7 @@ export const MapSearch = (props: LayoutProps) => {
         {/* Circle vždy pre stred mapy */}
         <Circle
           center={region}
-          radius={radius}
+          radius={mapSearchRadius}
           strokeColor="rgb(1,82,133)"
           fillColor="rgba(117,141,166,0.2)"
           strokeWidth={2}

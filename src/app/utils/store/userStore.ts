@@ -29,6 +29,9 @@ interface UserStore {
 
   canSeeContent: boolean;
   setCanSeeContent: (date: FirebaseTimestamp) => void;
+
+  lastUploadedPost: Date | FirebaseTimestamp | null;
+  setLastUploadedPost: (lastUploadedPost: Date | FirebaseTimestamp) => void;
 }
 
 export const useUserStore = create<UserStore>()(
@@ -40,6 +43,7 @@ export const useUserStore = create<UserStore>()(
     isUserDataLoading: false,
     currentPushToken: null,
     premium: false,
+    lastUploadedPost: null,
 
     searchHistory: [],
 
@@ -82,5 +86,6 @@ export const useUserStore = create<UserStore>()(
     },
 
     setUserDataLoading: loading => set({ isUserDataLoading: loading }),
+    setLastUploadedPost: date => set({ lastUploadedPost: date }),
   }))
 );

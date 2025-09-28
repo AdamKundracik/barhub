@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
   Image,
@@ -44,7 +44,7 @@ type Props = {
   postUserId: string;
 };
 
-export const UserLine = ({
+const UserLineComponent = ({
   postId,
   user,
   date,
@@ -59,58 +59,58 @@ export const UserLine = ({
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const auth = getAuth();
 
-  // Report post
-  const handleReport = async (reason: ReportReason) => {
-    try {
-      await reportClient.reportPost(postId, user?.id || '', reason);
-      showSuccessToast(
-        t('reportPost.confirmTitle'),
-        t('reportPost.confirmMessage', { reason: t(`reportPost.${reason}`) })
+  // --- MEMOIZED VALUES ---
+  const normalizedDate = useMemo(
+    () => new Date(normalizeTimestamp(date).toMillis()).toLocaleString(),
+    [date]
+  );
+
+  const isOwnPost = useMemo(
+    () => auth.currentUser?.uid === postUserId,
+    [auth.currentUser?.uid, postUserId]
+  );
+
+  // --- CALLBACKS ---
+  const handleReport = useCallback(
+    async (reason: ReportReason) => {
+      try {
+        await reportClient.reportPost(postId, user?.id || '', reason);
+        showSuccessToast(
+          t('reportPost.confirmTitle'),
+          t('reportPost.confirmMessage', { reason: t(`reportPost.${reason}`) })
+        );
+      } catch (error: any) {
+        console.error('Failed to report post:', error);
+        showErrorToast('Failed to report post', error.message);
+      } finally {
+        setIsReportModalOpen(false);
+      }
+    },
+    [postId, user?.id, showSuccessToast, showErrorToast, t]
+  );
+
+  const confirmDelete = useCallback(
+    (onConfirm: () => void) => {
+      Alert.alert(
+        t('deletePost.confirmTitle'),
+        t('deletePost.confirmMessage'),
+        [
+          { text: t('cancel'), style: 'cancel' },
+          { text: t('submit'), style: 'destructive', onPress: onConfirm },
+        ],
+        { cancelable: true }
       );
-    } catch (error: any) {
-      console.error('Failed to report post:', error);
-      showErrorToast('Failed to report post', error.message);
-    } finally {
-      setIsReportModalOpen(false);
-    }
-  };
+    },
+    [t]
+  );
 
-  const confirmDelete = (onConfirm: () => void) => {
-    Alert.alert(
-      t('deletePost.confirmTitle'),
-      t('deletePost.confirmMessage'),
-      [
-        { text: t('cancel'), style: 'cancel' },
-        {
-          text: t('submit'),
-          style: 'destructive',
-          onPress: onConfirm,
-        },
-      ],
-      { cancelable: true }
-    );
-  };
+  const deletePost = useCallback(
+    async (postId: string, placeId: string | null) => {
+      try {
+        const result = await postService.deletePost(postId);
+        if (!result.success) throw new Error('Failed to delete post');
 
-  const deletePost = async (postId: string, placeId?: string) => {
-    try {
-      const result = await postService.deletePost(postId);
-      if (!result.success) throw new Error('Failed to delete post');
-
-      queryClient.setQueryData(['posts'], (oldData: any) => {
-        if (!oldData) return oldData;
-        const newPages = oldData.pages.map((page: any) => ({
-          ...page,
-          posts: page.posts.filter((p: Post) => p.id !== postId),
-        }));
-        return {
-          ...oldData,
-          pages: newPages,
-          pageParams: [...oldData.pageParams],
-        };
-      });
-
-      if (placeId) {
-        queryClient.setQueryData(['posts', placeId], (oldData: any) => {
+        queryClient.setQueryData(['posts'], (oldData: any) => {
           if (!oldData) return oldData;
           const newPages = oldData.pages.map((page: any) => ({
             ...page,
@@ -122,22 +122,40 @@ export const UserLine = ({
             pageParams: [...oldData.pageParams],
           };
         });
+
+        if (placeId) {
+          queryClient.setQueryData(['posts', placeId], (oldData: any) => {
+            if (!oldData) return oldData;
+            const newPages = oldData.pages.map((page: any) => ({
+              ...page,
+              posts: page.posts.filter((p: Post) => p.id !== postId),
+            }));
+            return {
+              ...oldData,
+              pages: newPages,
+              pageParams: [...oldData.pageParams],
+            };
+          });
+        }
+
+        showSuccessToast(
+          t('deletePost.successTitle'),
+          t('deletePost.successDescription')
+        );
+      } catch (error: any) {
+        console.error('Failed to delete post:', error);
+        showErrorToast('Failed to delete post', error.message);
+      } finally {
+        setIsOptionsModalOpen(false);
       }
+    },
+    [queryClient, placeId, showSuccessToast, showErrorToast, t]
+  );
 
-      showSuccessToast(
-        t('deletePost.successTitle'),
-        t('deletePost.successDescription')
-      );
-    } catch (error: any) {
-      console.error('Failed to delete post:', error);
-      showErrorToast('Failed to delete post', error.message);
-    } finally {
-      setIsOptionsModalOpen(false);
-    }
-  };
-
-  const handleDelete = () =>
-    confirmDelete(() => deletePost(postId, placeId ?? ''));
+  const handleDelete = useCallback(
+    () => confirmDelete(() => deletePost(postId, placeId)),
+    [confirmDelete, deletePost, postId, placeId]
+  );
 
   return (
     <>
@@ -162,14 +180,11 @@ export const UserLine = ({
 
           <View style={styles.textContainer}>
             <Text style={styles.name}>{user?.displayName}</Text>
-            <Text style={styles.dateTimeText}>
-              {new Date(normalizeTimestamp(date).toMillis()).toLocaleString()}
-            </Text>
+            <Text style={styles.dateTimeText}>{normalizedDate}</Text>
             <Text style={styles.address}>{address}</Text>
           </View>
         </View>
 
-        {/* --- OPTIONS BUTTON --- */}
         <TouchableOpacity onPress={() => setIsOptionsModalOpen(true)}>
           <FontAwesomeIcon
             icon={Icons.EllipsisVertical}
@@ -179,9 +194,8 @@ export const UserLine = ({
         </TouchableOpacity>
       </View>
 
-      {/* --- OPTIONS MODAL --- */}
       <PostOptionsModal
-        showDelete={auth.currentUser?.uid === postUserId}
+        showDelete={isOwnPost}
         visible={isOptionsModalOpen}
         onClose={() => setIsOptionsModalOpen(false)}
         onDelete={handleDelete}
@@ -191,7 +205,6 @@ export const UserLine = ({
         }}
       />
 
-      {/* --- REPORT MODAL --- */}
       <PostReportModal
         visible={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
@@ -200,6 +213,17 @@ export const UserLine = ({
     </>
   );
 };
+
+export const UserLine = React.memo(UserLineComponent, (prev, next) => {
+  return (
+    prev.postId === next.postId &&
+    prev.user?.id === next.user?.id &&
+    prev.date._seconds === next.date._seconds &&
+    prev.date._nanoseconds === next.date._nanoseconds &&
+    prev.address === next.address &&
+    prev.postUserId === next.postUserId
+  );
+});
 
 const styles = StyleSheet.create({
   container: {

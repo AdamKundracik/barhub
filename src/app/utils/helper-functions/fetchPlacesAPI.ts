@@ -1,4 +1,3 @@
-import { radius } from './constants';
 import { getLocales } from 'expo-localization';
 import { AutocompleteResponse, LocationType } from '../types/types';
 
@@ -19,7 +18,10 @@ export async function fetchPlaceDetails(placeId: string) {
   }
 }
 
-export const fetchNearbyPlaces = async (location: LocationType) => {
+export const fetchNearbyPlaces = async (
+  location: LocationType,
+  radius: number
+) => {
   const locales = getLocales();
 
   const url = 'https://places.googleapis.com/v1/places:searchNearby';

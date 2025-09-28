@@ -37,6 +37,8 @@ import { Picker } from '@react-native-picker/picker';
 import { useFiltersStore } from '@/src/app/utils/store/filtersStorage';
 import FastImage from 'react-native-fast-image';
 import { useUserData } from '@/src/app/utils/hooks/useUserData';
+import { useCustomToast } from '@/src/app/components/shared/Toaster';
+import { useUserStore } from '@/src/app/utils/store/userStore';
 
 type SummaryProps = {
   image: string;
@@ -54,8 +56,10 @@ export const PostSummary = ({ route }: any) => {
   const routeParams = route.params as SummaryProps;
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { refetch } = useUserData();
+  const { showSuccessToast, showErrorToast } = useCustomToast();
 
   const { resetFilters } = useFiltersStore();
+  const { setLastUploadedPost } = useUserStore();
 
   const [selectedOccupancy, setSelectedOccupancy] = useState<OccupancyEnum>(
     OccupancyEnum.FULL
@@ -146,12 +150,15 @@ export const PostSummary = ({ route }: any) => {
               addedPostResponse.id
             );
           }
+          setLastUploadedPost(new Date());
           resetFilters();
           await refetch();
+          showSuccessToast(t('success'), t('post-success-info'));
           navigation.navigate('Feed');
         }
       } catch (e) {
         console.error(e);
+        showErrorToast('someting-went-wrong');
         Alert.alert('Failed to save post');
       } finally {
         setIsSaving(false);

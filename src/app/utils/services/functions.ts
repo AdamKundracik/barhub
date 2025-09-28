@@ -5,7 +5,7 @@ import {
   GetUserResult,
   SetDocumentFromCollectionRequest,
 } from '../types/functions-types';
-import { MISSING_REQUIRED_REQUEST_PARAMS } from '../helper-functions/constants';
+import { MISSING_REQUIRED_REQUEST_PARAMS } from '../constants/constants';
 import { Post, User } from '@/shared';
 import { functions } from '@/firebaseConfig';
 import { StatusResponse } from '@/functions/src';

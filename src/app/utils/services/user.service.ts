@@ -25,13 +25,14 @@ class UserClient {
 
   public canUploadPhoto = async (): Promise<{
     canUpload: boolean;
-    waitSeconds?: number;
+    remainingSeconds?: number;
   }> => {
     const cloudFunction = httpsCallable<
       void,
-      { canUpload: boolean; waitSeconds?: number }
+      { canUpload: boolean; remainingSeconds?: number }
     >(functions, 'canUploadPhoto');
     const { data } = await cloudFunction();
+    console.log(data);
     return data;
   };
 }

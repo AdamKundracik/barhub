@@ -13,7 +13,6 @@ import { useEffect, useRef, useState } from 'react';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
 import { useTranslation } from 'react-i18next';
-import { generateId } from '../../utils/helper-functions/generate-hash';
 import { usePlaceStore } from '../../utils/store/placesStore';
 import { useQuery } from 'react-query';
 import { primaryColor, primaryDeepColor } from '../../utils/styles/colors';
@@ -29,6 +28,7 @@ import { useUserStore } from '@/src/app/utils/store/userStore';
 import InlineAd from '@/src/app/components/user/InlineAd';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { generateUID } from '@/src/app/utils/helper-functions/generateUID';
 
 export const PlaceSearch = () => {
   const [isMapShown, setIsMapShown] = useState(false);
@@ -38,7 +38,7 @@ export const PlaceSearch = () => {
 
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
-  const [sessionToken] = useState(generateId());
+  const [sessionToken] = useState(generateUID());
   const tabBarHeight = useBottomTabBarHeight();
   const insets = useSafeAreaInsets();
 
