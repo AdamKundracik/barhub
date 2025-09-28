@@ -39,7 +39,7 @@ const BottomTabs = () => {
   const handleOpenCamera = async () => {
     // 1️⃣ Block if using fake location
     if (useFakeLocation) {
-      Alert.alert('Cannot open camera with fake location');
+      Alert.alert(t('camera.fakeLocationBlocked'));
       return;
     }
 
@@ -51,7 +51,7 @@ const BottomTabs = () => {
       const fiveMinutes = 5 * 60 * 1000;
 
       if (diffMs < fiveMinutes) {
-        const waitSeconds = fiveMinutes - diffMs;
+        const waitMs = fiveMinutes - diffMs;
         const formatWait = (ms: number) => {
           const totalSeconds = Math.ceil(ms / 1000);
           const minutes = Math.floor(totalSeconds / 60);
@@ -59,7 +59,7 @@ const BottomTabs = () => {
           return `${minutes}:${seconds.toString().padStart(2, '0')}`;
         };
         Alert.alert(
-          `Počkajte ešte ${formatWait(waitSeconds)} pred ďalším uploadom`
+          t('camera.waitBeforeNextUpload', { time: formatWait(waitMs) })
         );
         return;
       }

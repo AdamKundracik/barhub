@@ -194,6 +194,10 @@
     "errorTitle": "Chyba",
     "errorDescription": "Nepodarilo sa vymazať príspevok. Skúste to znova."
   },
+  "uploadPost": {
+    "successTitle": "Príspevok uložený",
+    "successDescription": "Príspevok bol úspešne uložený! Ďakujeme za prispievanie"
+  },
   "toastPhotoDeletedTitle": "Úspešne zmazané.",
   "toastPhotoDeletedDesc": "Vaša fotografia bola zmazaná.",
   "toastPhotoUpdatedTitle": "Úspešne uložené.",
@@ -223,6 +227,10 @@
   "enjoy-benefits-message": "Užite si všetky výhody",
   "no-data": "Žiadne dáta",
   "explore": "Objavuj",
-  "search": "Hladaj"
+  "search": "Hľadaj",
+  "camera": {
+    "fakeLocationBlocked": "Nie je možné otvoriť kameru pri falošnej lokalizácii",
+    "waitBeforeNextUpload": "Počkajte ešte %s pred ďalším uploadom"
+  }
 }
 

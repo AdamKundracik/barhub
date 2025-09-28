@@ -182,6 +182,10 @@
     "confirmTitle": "Confirm Report",
     "confirmMessage": "Do you really want to report this as {{reason}}?"
   },
+  "uploadPost": {
+    "successTitle": "Post saved",
+    "successDescription": "The post was successfully saved! Thank you for contributing"
+  },
   "or": "or",
   "delete-post": "Delete post",
   "about-me": "About me",
@@ -223,5 +227,11 @@
   "password-change-error": "Error changing password",
   "purchase-success": "Purchase successful",
   "enjoy-benefits-message": "Enjoy all benefits",
-  "no-data": "No data"
+  "no-data": "No data",
+  "explore": "Explore",
+  "search": "Search",
+  "camera": {
+    "fakeLocationBlocked": "Cannot open camera with fake location",
+    "waitBeforeNextUpload": "Please wait %s before uploading again"
+  }
 }

@@ -8,7 +8,7 @@ import NotificationsList from '../screens/user/Notifications/NotificationsList';
 import SelectFakeLocation from '../screens/user/SelectFakeLocation';
 import Licenses from '@/src/app/screens/user/Info/Screens/LIcenses';
 import BottomTabs from '@/src/app/components/shared/BottomTabs';
-import PasswordChangeScreen from '@/src/app/screens/user/ChangePassword';
+import { PasswordChangeScreen } from '@/src/app/screens/user/ChangePassword';
 
 const RootStack = createNativeStackNavigator();
 

@@ -42,7 +42,7 @@ import { Heading } from '@/components/ui/heading';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import LoadingIndicator from '@/src/app/components/user/NewsFeed/LoadingIndicator';
 
-const PasswordChangeScreen = () => {
+export const PasswordChangeScreen = () => {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { showSuccessToast, showErrorToast } = useCustomToast();
@@ -337,5 +337,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
-export default PasswordChangeScreen;
