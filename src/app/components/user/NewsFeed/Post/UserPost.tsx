@@ -1,3 +1,4 @@
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import Device from 'react-native-device-info';
 import Animated, {
@@ -7,23 +8,32 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { usePlaceStore } from '@/src/app/utils/store/placesStore';
-import { Post } from '@/shared';
-import { useQueryClient } from 'react-query';
-import React, { useRef, useState } from 'react';
-import { toggleLike } from '@/src/app/utils/services/functions';
-import { auth } from '@/firebaseConfig';
-import PlaceNameSeparator from '@/src/app/components/user/NewsFeed/Post/PlaceNameSeparator';
-import { trimPlaceName } from '@/src/app/utils/helper-functions/trimPlaceName';
-import BluredPostFrontView from '@/src/app/components/user/NewsFeed/Post/BluredPostFrontView';
-import { UserLine } from '@/src/app/components/user/NewsFeed/Post/UserLine';
-import InteractionBar from '@/src/app/components/user/NewsFeed/Post/InteractionBar';
-import { postBgColor, primaryBgColor } from '@/src/app/utils/styles/colors';
-import { useUserStore } from '@/src/app/utils/store/userStore';
 import FastImage from 'react-native-fast-image';
 
-interface PostInterface {
-  post: Post;
+import { usePlaceStore } from '@/src/app/utils/store/placesStore';
+import { useUserStore } from '@/src/app/utils/store/userStore';
+import { Post } from '@/shared';
+import { useQueryClient } from 'react-query';
+import { toggleLike } from '@/src/app/utils/services/functions';
+import { auth } from '@/firebaseConfig';
+import { trimPlaceName } from '@/src/app/utils/helper-functions/trimPlaceName';
+
+import PlaceNameSeparator from './PlaceNameSeparator';
+import BluredPostFrontView from './BluredPostFrontView';
+import { UserLine } from './UserLine';
+import InteractionBar from './InteractionBar';
+import { postBgColor, primaryBgColor } from '@/src/app/utils/styles/colors';
+
+// Constants
+const { width: screenWidth } = Dimensions.get('window');
+const isTablet = Device.isTablet();
+const DEBOUNCE_DELAY = 700;
+const DOUBLE_TAP_MAX_DURATION = 250;
+const IMAGE_ASPECT_RATIO = 0.75;
+
+// Types
+interface UserPostProps {
+  post: Post | null | undefined;
   setZoomedPost: (link: string | null) => void;
   isZoomed: boolean;
   hasPremium: boolean;
@@ -36,113 +46,92 @@ interface PostInterface {
   requestPhoto: () => void;
 }
 
-const { width: screenWidth } = Dimensions.get('window');
-const isTablet = Device.isTablet();
-
-const DEBOUNCE_DELAY = 700;
-const DOUBLE_TAP_MAX_DURATION = 250;
-
-const UserPost = (props: PostInterface) => {
-  const { post, setZoomedPost, isFiltering, onCommentPress } = props;
+// Custom hooks
+const usePostLike = (
+  initialLiked: boolean,
+  initialCount: number,
+  postId: string
+) => {
+  const [liked, setLiked] = useState(initialLiked);
+  const [likeCount, setLikeCount] = useState(initialCount);
+  const [previousLikeState, setPreviousLikeState] = useState(!initialLiked);
 
   const queryClient = useQueryClient();
   const { placeId } = usePlaceStore();
-  const { premium, canSeeContent } = useUserStore();
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  // Animation
-  const focalX = useSharedValue(0);
-  const focalY = useSharedValue(0);
-  const xCurrent = useSharedValue(0);
-  const yCurrent = useSharedValue(0);
-  const scale = useSharedValue(1);
+  const optimisticUpdate = useCallback(
+    (currentLiked: boolean) => {
+      if (!postId) return;
 
-  // State
-  const [liked, setLiked] = useState(post.isLiked);
-  const [likeCount, setLikeCount] = useState<number>(post.likesCount ?? 0);
-  const [previousLikeState, setPreviousLikeState] = useState(!post.isLiked);
-  const imageAspectRatio = 0.75;
+      const queryKey = placeId ? ['posts', placeId] : 'posts';
 
-  // Optimistic like update
-  const optimisticUpdate = (currentLiked: boolean) => {
-    queryClient.setQueryData(
-      placeId ? ['posts', placeId] : 'posts',
-      (oldData: any) => {
+      queryClient.setQueryData(queryKey, (oldData: any) => {
         if (!oldData) return oldData;
+
         return {
           ...oldData,
           pages: oldData.pages.map((page: any) => ({
             ...page,
             posts: page.posts.map((p: Post) =>
-              p.id === post.id
+              p.id === postId
                 ? {
                     ...p,
                     isLiked: !currentLiked,
                     likesCount: currentLiked
-                      ? (p.likesCount ?? 0) - 1
+                      ? Math.max((p.likesCount ?? 0) - 1, 0)
                       : (p.likesCount ?? 0) + 1,
                   }
                 : p
             ),
           })),
         };
-      }
-    );
-  };
+      });
+    },
+    [postId, placeId, queryClient]
+  );
 
-  const handleLikeToggle = async (postId: string) => {
+  const handleLikeToggle = useCallback(async () => {
+    if (!postId) return;
+
     const newLikedState = !liked;
     setLiked(newLikedState);
-    setLikeCount(prev => (newLikedState ? prev + 1 : prev - 1));
+    setLikeCount(prev => (newLikedState ? prev + 1 : Math.max(prev - 1, 0)));
 
-    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
 
     debounceTimeout.current = setTimeout(async () => {
       try {
-        if (liked !== previousLikeState) {
-          await toggleLike(postId, auth.currentUser?.displayName!);
+        if (liked !== previousLikeState && auth.currentUser?.displayName) {
+          await toggleLike(postId, auth.currentUser.displayName);
           setPreviousLikeState(prev => !prev);
           optimisticUpdate(liked ?? false);
         }
       } catch (error) {
         console.error('Error updating like status:', error);
+        // Revert optimistic update on error
         setLiked(previousLikeState);
-        setLikeCount(prev => (previousLikeState ? prev + 1 : prev - 1));
+        setLikeCount(prev =>
+          previousLikeState ? prev + 1 : Math.max(prev - 1, 0)
+        );
       }
     }, DEBOUNCE_DELAY);
-  };
+  }, [liked, previousLikeState, postId, optimisticUpdate]);
 
-  const doubleTap = Gesture.Tap()
-    .maxDuration(DOUBLE_TAP_MAX_DURATION)
-    .numberOfTaps(2)
-    .onStart(() => {
-      runOnJS(handleLikeToggle)(post.id);
-    });
+  return { liked, likeCount, handleLikeToggle };
+};
 
-  const pinch = Gesture.Pinch()
-    .onStart(g => {
-      if (g.numberOfPointers === 2) {
-        focalX.value = g.focalX;
-        focalY.value = g.focalY;
-      }
-      setZoomedPost(post.photoUrl);
-    })
-    .onUpdate(g => {
-      if (g.scale >= 1) {
-        scale.value = g.scale;
-        const dx = g.focalX - focalX.value;
-        const dy = g.focalY - focalY.value;
-        xCurrent.value = dx * -(1 - g.scale);
-        yCurrent.value = dy * -(1 - g.scale);
-      }
-    })
-    .onEnd(() => {
-      scale.value = withTiming(1);
-      xCurrent.value = withTiming(0);
-      yCurrent.value = withTiming(0);
-      setZoomedPost(null);
-    })
-    .runOnJS(true);
+const useImageGestures = (
+  photoUrl: string | undefined,
+  setZoomedPost: (url: string | null) => void
+) => {
+  const focalX = useSharedValue(0);
+  const focalY = useSharedValue(0);
+  const xCurrent = useSharedValue(0);
+  const yCurrent = useSharedValue(0);
+  const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -152,15 +141,120 @@ const UserPost = (props: PostInterface) => {
     ],
   }));
 
-  const shouldNotBlurPost = premium || canSeeContent;
+  const resetAnimation = useCallback(() => {
+    scale.value = withTiming(1);
+    xCurrent.value = withTiming(0);
+    yCurrent.value = withTiming(0);
+  }, []);
+
+  const pinchGesture = useMemo(() => {
+    if (!photoUrl) return null;
+
+    return Gesture.Pinch()
+      .onStart(g => {
+        if (g.numberOfPointers === 2) {
+          focalX.value = g.focalX;
+          focalY.value = g.focalY;
+        }
+        setZoomedPost(photoUrl);
+      })
+      .onUpdate(g => {
+        if (g.scale >= 1) {
+          scale.value = g.scale;
+          const dx = g.focalX - focalX.value;
+          const dy = g.focalY - focalY.value;
+          xCurrent.value = dx * -(1 - g.scale);
+          yCurrent.value = dy * -(1 - g.scale);
+        }
+      })
+      .onEnd(() => {
+        resetAnimation();
+        setZoomedPost(null);
+      })
+      .runOnJS(true);
+  }, [photoUrl, setZoomedPost, resetAnimation]);
+
+  return { animatedStyle, pinchGesture };
+};
+
+// Main component
+const UserPost: React.FC<UserPostProps> = ({
+  post,
+  setZoomedPost,
+  isFiltering,
+  onCommentPress,
+}) => {
+  const { premium, canSeeContent } = useUserStore();
+
+  // Early return if no post
+  if (!post) {
+    return null;
+  }
+
+  // Safe destructuring with defaults
+  const {
+    id = '',
+    isLiked = false,
+    likesCount = 0,
+    photoUrl = '',
+    placeName = '',
+    folderId = '',
+    placeAddress = '',
+    creationTime,
+    user,
+    userId = '',
+    commentsCount = 0,
+    occupancy = '',
+  } = post;
+
+  // Custom hooks with safe values
+  const { liked, likeCount, handleLikeToggle } = usePostLike(
+    isLiked,
+    likesCount,
+    id
+  );
+
+  const { animatedStyle, pinchGesture } = useImageGestures(
+    photoUrl,
+    setZoomedPost
+  );
+
+  // Gesture handlers
+  const doubleTapGesture = useMemo(
+    () =>
+      Gesture.Tap()
+        .maxDuration(DOUBLE_TAP_MAX_DURATION)
+        .numberOfTaps(2)
+        .onStart(() => {
+          runOnJS(handleLikeToggle)();
+        }),
+    [handleLikeToggle]
+  );
+
+  const handleCommentPress = useCallback(() => {
+    onCommentPress(id, user?.expoPushToken ?? '', userId);
+  }, [id, user?.expoPushToken, userId, onCommentPress]);
+
+  // Computed values
+  const shouldShowBlur = useMemo(
+    () => !premium && !canSeeContent,
+    [premium, canSeeContent]
+  );
+
+  const trimmedPlaceName = useMemo(() => trimPlaceName(placeName), [placeName]);
+
+  // Don't render if essential data is missing
+  if (!id || !photoUrl) {
+    return null;
+  }
 
   return (
     <>
       {!isFiltering && (
         <View style={[styles.placeName, isTablet && tabletStyles.placeName]}>
           <PlaceNameSeparator
-            placeNameLocal={trimPlaceName(post.placeName)}
-            placeIdLocal={post.folderId}
+            placeNameLocal={trimmedPlaceName}
+            placeIdLocal={folderId}
           />
         </View>
       )}
@@ -171,57 +265,72 @@ const UserPost = (props: PostInterface) => {
           isTablet && tabletStyles.contentContainer,
         ]}
       >
-        {!shouldNotBlurPost && <BluredPostFrontView />}
+        {shouldShowBlur && <BluredPostFrontView />}
 
         <UserLine
-          user={post.user}
-          date={post.creationTime}
-          address={post.placeAddress}
-          profileImage={post.user?.photoUrl ?? ''}
-          postId={post.id}
-          postUserId={post.userId!}
+          user={user}
+          date={creationTime}
+          address={placeAddress}
+          profileImage={user?.photoUrl ?? ''}
+          postId={id}
+          postUserId={userId}
         />
 
-        <GestureDetector gesture={doubleTap}>
-          <GestureDetector gesture={pinch}>
+        <GestureDetector gesture={doubleTapGesture}>
+          {pinchGesture ? (
+            <GestureDetector gesture={pinchGesture}>
+              <Animated.View style={[styles.photoContainer, animatedStyle]}>
+                <FastImage
+                  source={{
+                    uri: photoUrl,
+                    priority: FastImage.priority.high,
+                  }}
+                  style={[
+                    styles.photo,
+                    isTablet && tabletStyles.photo,
+                    { aspectRatio: IMAGE_ASPECT_RATIO },
+                  ]}
+                  resizeMode={FastImage.resizeMode.cover}
+                />
+              </Animated.View>
+            </GestureDetector>
+          ) : (
             <Animated.View style={[styles.photoContainer, animatedStyle]}>
               <FastImage
                 source={{
-                  uri: post.photoUrl,
+                  uri: photoUrl,
                   priority: FastImage.priority.high,
                 }}
                 style={[
                   styles.photo,
                   isTablet && tabletStyles.photo,
-                  { aspectRatio: imageAspectRatio }, // dynamická výška
+                  { aspectRatio: IMAGE_ASPECT_RATIO },
                 ]}
                 resizeMode={FastImage.resizeMode.cover}
               />
             </Animated.View>
-          </GestureDetector>
+          )}
         </GestureDetector>
 
         <InteractionBar
           likes={likeCount}
-          comments={post.commentsCount}
-          onLikeToggle={() => handleLikeToggle(post.id)}
-          onCommentToggle={() =>
-            onCommentPress(
-              post.id,
-              post.user?.expoPushToken ?? '',
-              post.userId ?? ''
-            )
-          }
+          comments={commentsCount}
+          onLikeToggle={handleLikeToggle}
+          onCommentToggle={handleCommentPress}
           isLiked={liked}
-          occupancy={post.occupancy}
+          occupancy={occupancy}
         />
       </View>
     </>
   );
 };
 
+// Styles
 const styles = StyleSheet.create({
-  placeName: { backgroundColor: primaryBgColor, alignItems: 'center' },
+  placeName: {
+    backgroundColor: primaryBgColor,
+    alignItems: 'center',
+  },
   contentContainer: {
     backgroundColor: postBgColor,
     borderRadius: 20,
@@ -232,25 +341,40 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  photo: { width: screenWidth, borderRadius: 20 },
+  photo: {
+    width: screenWidth,
+    borderRadius: 20,
+  },
 });
 
 const tabletStyles = StyleSheet.create({
-  placeName: { padding: 20 },
+  placeName: {
+    padding: 20,
+  },
   contentContainer: {
     backgroundColor: postBgColor,
     borderRadius: 20,
     overflow: 'hidden',
     width: screenWidth,
   },
-  photo: { width: screenWidth, borderRadius: 20 },
+  photo: {
+    width: screenWidth,
+    borderRadius: 20,
+  },
 });
 
-export default React.memo(UserPost, (prev, next) => {
+// Memoized export with safe comparison
+export default React.memo(UserPost, (prevProps, nextProps) => {
+  // Null checks first
+  if (!prevProps.post && !nextProps.post) return true;
+  if (!prevProps.post || !nextProps.post) return false;
+
   return (
-    prev.post.id === next.post.id &&
-    prev.isZoomed === next.isZoomed &&
-    prev.hasPremium === next.hasPremium &&
-    prev.isFiltering === next.isFiltering
+    prevProps.post.id === nextProps.post.id &&
+    prevProps.post.isLiked === nextProps.post.isLiked &&
+    prevProps.post.likesCount === nextProps.post.likesCount &&
+    prevProps.isZoomed === nextProps.isZoomed &&
+    prevProps.hasPremium === nextProps.hasPremium &&
+    prevProps.isFiltering === nextProps.isFiltering
   );
 });

@@ -29,19 +29,24 @@ import { usePlaceStore } from '@/src/app/utils/store/placesStore';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { getAuth } from 'firebase/auth';
 
-const normalizeTimestamp = (timestamp: FirebaseTimestamp): Timestamp => {
-  const seconds = timestamp?._seconds || 0;
-  const nanoseconds = timestamp?._nanoseconds || 0;
+const normalizeTimestamp = (
+  timestamp: FirebaseTimestamp | undefined
+): Timestamp => {
+  if (!timestamp) {
+    return new Timestamp(0, 0);
+  }
+  const seconds = timestamp._seconds || 0;
+  const nanoseconds = timestamp._nanoseconds || 0;
   return new Timestamp(seconds, nanoseconds);
 };
 
 type Props = {
-  date: FirebaseTimestamp;
-  address: string;
-  profileImage: string | null;
-  user: UserInfo | undefined;
-  postId: string;
-  postUserId: string;
+  date: FirebaseTimestamp | undefined;
+  address: string | undefined;
+  profileImage: string | null | undefined;
+  user: UserInfo | undefined | null;
+  postId: string | undefined;
+  postUserId: string | undefined;
 };
 
 const UserLineComponent = ({
@@ -60,21 +65,36 @@ const UserLineComponent = ({
   const auth = getAuth();
 
   // --- MEMOIZED VALUES ---
-  const normalizedDate = useMemo(
-    () => new Date(normalizeTimestamp(date).toMillis()).toLocaleString(),
-    [date]
-  );
+  const normalizedDate = useMemo(() => {
+    if (!date) return '';
+    try {
+      return new Date(normalizeTimestamp(date).toMillis()).toLocaleString();
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return '';
+    }
+  }, [date]);
 
   const isOwnPost = useMemo(
     () => auth.currentUser?.uid === postUserId,
     [auth.currentUser?.uid, postUserId]
   );
 
+  const safePostId = postId || '';
+  const safeUserId = user?.id || '';
+  const safeUserName = user?.displayName || 'Unknown User';
+  const safeAddress = address || '';
+
   // --- CALLBACKS ---
   const handleReport = useCallback(
     async (reason: ReportReason) => {
+      if (!safePostId || !safeUserId) {
+        showErrorToast('Error', 'Missing post or user information');
+        return;
+      }
+
       try {
-        await reportClient.reportPost(postId, user?.id || '', reason);
+        await reportClient.reportPost(safeUserId, safePostId, reason);
         showSuccessToast(
           t('reportPost.confirmTitle'),
           t('reportPost.confirmMessage', { reason: t(`reportPost.${reason}`) })
@@ -86,7 +106,7 @@ const UserLineComponent = ({
         setIsReportModalOpen(false);
       }
     },
-    [postId, user?.id, showSuccessToast, showErrorToast, t]
+    [safePostId, safeUserId, showSuccessToast, showErrorToast, t]
   );
 
   const confirmDelete = useCallback(
@@ -106,6 +126,8 @@ const UserLineComponent = ({
 
   const deletePost = useCallback(
     async (postId: string, placeId: string | null) => {
+      if (!postId) return;
+
       try {
         const result = await postService.deletePost(postId);
         if (!result.success) throw new Error('Failed to delete post');
@@ -153,9 +175,14 @@ const UserLineComponent = ({
   );
 
   const handleDelete = useCallback(
-    () => confirmDelete(() => deletePost(postId, placeId)),
-    [confirmDelete, deletePost, postId, placeId]
+    () => confirmDelete(() => deletePost(safePostId, placeId)),
+    [confirmDelete, deletePost, safePostId, placeId]
   );
+
+  // Don't render if essential data is missing
+  if (!safePostId) {
+    return null;
+  }
 
   return (
     <>
@@ -179,9 +206,9 @@ const UserLineComponent = ({
           )}
 
           <View style={styles.textContainer}>
-            <Text style={styles.name}>{user?.displayName}</Text>
+            <Text style={styles.name}>{safeUserName}</Text>
             <Text style={styles.dateTimeText}>{normalizedDate}</Text>
-            <Text style={styles.address}>{address}</Text>
+            <Text style={styles.address}>{safeAddress}</Text>
           </View>
         </View>
 
@@ -218,8 +245,8 @@ export const UserLine = React.memo(UserLineComponent, (prev, next) => {
   return (
     prev.postId === next.postId &&
     prev.user?.id === next.user?.id &&
-    prev.date._seconds === next.date._seconds &&
-    prev.date._nanoseconds === next.date._nanoseconds &&
+    prev.date?._seconds === next.date?._seconds &&
+    prev.date?._nanoseconds === next.date?._nanoseconds &&
     prev.address === next.address &&
     prev.postUserId === next.postUserId
   );
