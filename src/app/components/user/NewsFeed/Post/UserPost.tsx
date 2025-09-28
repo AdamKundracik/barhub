@@ -61,8 +61,7 @@ const UserPost = (props: PostInterface) => {
   const [liked, setLiked] = useState(post.isLiked);
   const [likeCount, setLikeCount] = useState<number>(post.likesCount ?? 0);
   const [previousLikeState, setPreviousLikeState] = useState(!post.isLiked);
-
-  const [imageAspectRatio, setImageAspectRatio] = useState(0.75); // fallback
+  const imageAspectRatio = 0.75;
 
   // Optimistic like update
   const optimisticUpdate = (currentLiked: boolean) => {
@@ -187,7 +186,10 @@ const UserPost = (props: PostInterface) => {
           <GestureDetector gesture={pinch}>
             <Animated.View style={[styles.photoContainer, animatedStyle]}>
               <FastImage
-                source={{ uri: post.photoUrl }}
+                source={{
+                  uri: post.photoUrl,
+                  priority: FastImage.priority.high,
+                }}
                 style={[
                   styles.photo,
                   isTablet && tabletStyles.photo,

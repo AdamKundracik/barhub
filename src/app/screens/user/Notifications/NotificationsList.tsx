@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 
@@ -12,6 +12,7 @@ import { useNotificationsStore } from '../../../utils/store/notificationsStore';
 import { useNotificationsQuery } from '@/src/app/utils/hooks/useNotifications';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { NotificationItem } from '../../../utils/types/notification-types';
+import { FlashList } from '@shopify/flash-list';
 
 const NotificationsList: React.FC = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
@@ -19,7 +20,7 @@ const NotificationsList: React.FC = () => {
   const { premium } = useUserStore();
   const { data: storeData, markAllAsSeen } = useNotificationsStore();
 
-  const { data, isLoading, refetch, isFetching } = useNotificationsQuery();
+  const { isLoading, refetch, isFetching } = useNotificationsQuery();
   const [isScrollEnabled, setIsScrollEnabled] = useState(true);
 
   // Mark notifications as seen when they arrive
@@ -66,7 +67,7 @@ const NotificationsList: React.FC = () => {
       showBackButton
       onBackPress={() => navigation.goBack()}
     >
-      <FlatList
+      <FlashList
         data={storeData.notifications}
         scrollEnabled={isScrollEnabled}
         keyExtractor={item => item.id}
@@ -87,8 +88,6 @@ const NotificationsList: React.FC = () => {
           </View>
         }
         removeClippedSubviews
-        maxToRenderPerBatch={10}
-        windowSize={5}
       />
 
       {!premium && <InlineAdWrapper />}
