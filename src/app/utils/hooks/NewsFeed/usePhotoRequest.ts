@@ -5,12 +5,14 @@ import { sendRequestNotificationToRecipients } from '@/src/app/utils/services/no
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { LocationType } from '@/src/app/utils/types/types';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
+import { useTranslation } from 'react-i18next';
 
 export const usePhotoRequest = () => {
   const [isRequestingPhoto, setIsRequestingPhoto] = useState(false);
   const { placeId, placeName, setPlaceDetail } = usePlaceStore();
   const { currentPushToken } = useUserStore();
   const { showSuccessToast } = useCustomToast();
+  const { t } = useTranslation();
 
   const requestPhoto = async () => {
     if (!placeId || !placeName || isRequestingPhoto) return;
@@ -34,7 +36,10 @@ export const usePhotoRequest = () => {
         );
 
         if (success) {
-          showSuccessToast('Success');
+          showSuccessToast(
+            t('sendRequest.successTitle'),
+            t('sendRequest.successDescription')
+          );
         }
       }
     } catch (error) {

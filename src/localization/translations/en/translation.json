@@ -186,6 +186,10 @@
     "successTitle": "Post saved",
     "successDescription": "The post was successfully saved! Thank you for contributing"
   },
+  "sendRequest": {
+    "successTitle": "Request sent",
+    "successDescription": "Your request has been successfully sent to nearby users."
+  },
   "or": "or",
   "delete-post": "Delete post",
   "about-me": "About me",
@@ -233,5 +237,7 @@
   "camera": {
     "fakeLocationBlocked": "Cannot open camera with fake location",
     "waitBeforeNextUpload": "Please wait %s before uploading again"
-  }
+  },
+  "no-available-places": "No available places in your surrounding"
+
 }

@@ -155,7 +155,10 @@
     "successTitle": "Beitrag gespeichert",
     "successDescription": "Der Beitrag wurde erfolgreich gespeichert! Vielen Dank für Ihren Beitrag"
   },
-
+  "sendRequest": {
+    "successTitle": "Anfrage gesendet",
+    "successDescription": "Ihre Anfrage wurde erfolgreich an nahegelegene Benutzer gesendet."
+  },
   "gdpr": "Datenschutzrichtlinie",
   "third-party-libraries": "Drittanbieter-Bibliotheken",
   "use-different-location": "Anderen Standort verwenden",
@@ -234,5 +237,7 @@
   "camera": {
     "fakeLocationBlocked": "Kamera kann bei falschem Standort nicht geöffnet werden",
     "waitBeforeNextUpload": "Bitte warten Sie noch %s, bevor Sie erneut hochladen"
-  }
+  },
+  "no-available-places": "Keine verfügbaren Orte in deiner Umgebung"
+
 }

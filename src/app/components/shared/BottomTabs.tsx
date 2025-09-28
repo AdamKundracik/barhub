@@ -9,7 +9,7 @@ import {
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
-import { primaryBgColor, primaryGrey } from '@/src/app/utils/styles/colors';
+import { primaryBgColor, separatorColor } from '@/src/app/utils/styles/colors';
 import { openCamera } from '@/src/app/utils/helper-functions/openCamera';
 import { auth } from '@/firebaseConfig';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
@@ -75,13 +75,13 @@ const BottomTabs = () => {
         headerShown: false,
         tabBarShowLabel: true,
         tabBarBackground: () => (
-          <BlurView intensity={80} tint="light" style={styles.blurBackground} />
+          <BlurView intensity={80} tint="dark" style={styles.blurBackground} />
         ),
         tabBarStyle: styles.tabBar,
         tabBarLabelStyle: styles.tabBarLabel,
         tabBarItemStyle: { paddingVertical: 0 },
         tabBarActiveTintColor: 'white',
-        tabBarInactiveTintColor: primaryGrey,
+        tabBarInactiveTintColor: separatorColor,
       }}
     >
       <Tab.Screen

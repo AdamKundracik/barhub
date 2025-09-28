@@ -7,9 +7,9 @@ export const createQueryClientWithPersistence = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: Infinity,
-        cacheTime: 15 * 60 * 1000, // 15 minutes
-        refetchInterval: 15 * 60 * 1000,
+        staleTime: 10 * 60 * 1000,
+        cacheTime: 10 * 60 * 1000, // 15 minutes
+        refetchInterval: 10 * 60 * 1000,
         refetchOnWindowFocus: false,
         refetchOnReconnect: false,
       },

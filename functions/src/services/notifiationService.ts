@@ -3,7 +3,7 @@ import {
   NotificationItem,
   NotificationType,
 } from '../../../common/types/notificationTypes';
-import { https } from 'firebase-functions';
+import { https, logger } from 'firebase-functions';
 import { distanceBetween, geohashQueryBounds } from 'geofire-common';
 
 import * as admin from 'firebase-admin';
@@ -240,7 +240,10 @@ class NotificationService {
               Math.floor(distanceInM) <= 8000 &&
               (doc.data() as UserDocument).id !== uid
             ) {
-              matchingUsers.push(doc.data() as UserDocument);
+              matchingUsers.push({
+                ...(doc.data() as UserDocument),
+                id: doc.id,
+              });
             }
           }
         });
@@ -284,6 +287,8 @@ export async function sendNotificationToRecipients(
 ): Promise<string[]> {
   const uniqueUserIds = new Set<string>();
 
+  console.log(recipients);
+
   for (const recipient of recipients) {
     uniqueUserIds.add(recipient.userId);
 
@@ -309,6 +314,7 @@ export async function sendNotificationToRecipients(
     });
   }
 
+  logger.info('UNIQUEIDS', uniqueUserIds);
   return Array.from(uniqueUserIds);
 }
 
