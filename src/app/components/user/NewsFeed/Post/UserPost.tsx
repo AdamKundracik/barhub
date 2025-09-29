@@ -2,13 +2,16 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import Device from 'react-native-device-info';
 import Animated, {
+  FadeIn,
   runOnJS,
+  SlideInUp,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import FastImage from 'react-native-fast-image';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { usePlaceStore } from '@/src/app/utils/store/placesStore';
 import { useUserStore } from '@/src/app/utils/store/userStore';
@@ -30,6 +33,8 @@ const isTablet = Device.isTablet();
 const DEBOUNCE_DELAY = 700;
 const DOUBLE_TAP_MAX_DURATION = 250;
 const IMAGE_ASPECT_RATIO = 0.75;
+const CARD_MARGIN = 16;
+const CARD_BORDER_RADIUS = 24;
 
 // Types
 interface UserPostProps {
@@ -111,7 +116,6 @@ const usePostLike = (
         }
       } catch (error) {
         console.error('Error updating like status:', error);
-        // Revert optimistic update on error
         setLiked(previousLikeState);
         setLikeCount(prev =>
           previousLikeState ? prev + 1 : Math.max(prev - 1, 0)
@@ -142,9 +146,9 @@ const useImageGestures = (
   }));
 
   const resetAnimation = useCallback(() => {
-    scale.value = withTiming(1);
-    xCurrent.value = withTiming(0);
-    yCurrent.value = withTiming(0);
+    scale.value = withTiming(1, { duration: 300 });
+    xCurrent.value = withTiming(0, { duration: 300 });
+    yCurrent.value = withTiming(0, { duration: 300 });
   }, []);
 
   const pinchGesture = useMemo(() => {
@@ -249,22 +253,36 @@ const UserPost: React.FC<UserPostProps> = ({
   }
 
   return (
-    <>
+    <Animated.View
+      entering={FadeIn.delay(100).duration(600)}
+      style={styles.postContainer}
+    >
+      {/* Modern Place Name Header */}
       {!isFiltering && (
-        <View style={[styles.placeName, isTablet && tabletStyles.placeName]}>
+        <Animated.View
+          entering={SlideInUp.delay(50).duration(500)}
+          style={[styles.placeName, isTablet && tabletStyles.placeName]}
+        >
           <PlaceNameSeparator
             placeNameLocal={trimmedPlaceName}
             placeIdLocal={folderId}
           />
-        </View>
+        </Animated.View>
       )}
 
+      {/* Enhanced Post Card */}
       <View
         style={[
           styles.contentContainer,
           isTablet && tabletStyles.contentContainer,
         ]}
       >
+        {/* Subtle gradient overlay */}
+        <LinearGradient
+          colors={['rgba(16, 217, 185, 0.02)', 'rgba(16, 217, 185, 0.0)']}
+          style={styles.gradientOverlay}
+        />
+
         {shouldShowBlur && <BluredPostFrontView />}
 
         <UserLine
@@ -276,9 +294,34 @@ const UserPost: React.FC<UserPostProps> = ({
           postUserId={userId}
         />
 
-        <GestureDetector gesture={doubleTapGesture}>
-          {pinchGesture ? (
-            <GestureDetector gesture={pinchGesture}>
+        {/* Enhanced Image Container */}
+        <View style={styles.imageWrapper}>
+          <GestureDetector gesture={doubleTapGesture}>
+            {pinchGesture ? (
+              <GestureDetector gesture={pinchGesture}>
+                <Animated.View style={[styles.photoContainer, animatedStyle]}>
+                  <FastImage
+                    source={{
+                      uri: photoUrl,
+                      priority: FastImage.priority.high,
+                    }}
+                    style={[
+                      styles.photo,
+                      isTablet && tabletStyles.photo,
+                      { aspectRatio: IMAGE_ASPECT_RATIO },
+                    ]}
+                    resizeMode={FastImage.resizeMode.cover}
+                  />
+
+                  {/* Image overlay gradient for better text readability */}
+                  <LinearGradient
+                    colors={['transparent', 'rgba(0, 0, 0, 0.1)']}
+                    style={styles.imageGradient}
+                    pointerEvents="none"
+                  />
+                </Animated.View>
+              </GestureDetector>
+            ) : (
               <Animated.View style={[styles.photoContainer, animatedStyle]}>
                 <FastImage
                   source={{
@@ -292,25 +335,16 @@ const UserPost: React.FC<UserPostProps> = ({
                   ]}
                   resizeMode={FastImage.resizeMode.cover}
                 />
+
+                <LinearGradient
+                  colors={['transparent', 'rgba(0, 0, 0, 0.1)']}
+                  style={styles.imageGradient}
+                  pointerEvents="none"
+                />
               </Animated.View>
-            </GestureDetector>
-          ) : (
-            <Animated.View style={[styles.photoContainer, animatedStyle]}>
-              <FastImage
-                source={{
-                  uri: photoUrl,
-                  priority: FastImage.priority.high,
-                }}
-                style={[
-                  styles.photo,
-                  isTablet && tabletStyles.photo,
-                  { aspectRatio: IMAGE_ASPECT_RATIO },
-                ]}
-                resizeMode={FastImage.resizeMode.cover}
-              />
-            </Animated.View>
-          )}
-        </GestureDetector>
+            )}
+          </GestureDetector>
+        </View>
 
         <InteractionBar
           likes={likeCount}
@@ -321,45 +355,70 @@ const UserPost: React.FC<UserPostProps> = ({
           occupancy={occupancy}
         />
       </View>
-    </>
+    </Animated.View>
   );
 };
 
-// Styles
+// Enhanced Styles
 const styles = StyleSheet.create({
+  postContainer: {},
   placeName: {
     backgroundColor: primaryBgColor,
     alignItems: 'center',
+    paddingVertical: 12,
   },
   contentContainer: {
     backgroundColor: postBgColor,
-    borderRadius: 20,
+    borderRadius: CARD_BORDER_RADIUS,
+    // marginHorizontal: CARD_MARGIN,
+    overflow: 'hidden',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  gradientOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 0,
+  },
+  imageWrapper: {
+    position: 'relative',
     overflow: 'hidden',
   },
   photoContainer: {
-    width: screenWidth,
+    width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
   },
   photo: {
-    width: screenWidth,
-    borderRadius: 20,
+    width: '100%',
+  },
+  imageGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
   },
 });
 
 const tabletStyles = StyleSheet.create({
   placeName: {
-    padding: 20,
+    paddingVertical: 16,
   },
   contentContainer: {
-    backgroundColor: postBgColor,
-    borderRadius: 20,
-    overflow: 'hidden',
-    width: screenWidth,
+    marginHorizontal: CARD_MARGIN * 2,
+    borderRadius: CARD_BORDER_RADIUS + 4,
   },
   photo: {
-    width: screenWidth,
-    borderRadius: 20,
+    width: '100%',
   },
 });
 
