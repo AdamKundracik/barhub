@@ -213,6 +213,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flexGrow: 1,
+    paddingBottom: 80,
   },
   scrollTopButton: {
     position: 'absolute',

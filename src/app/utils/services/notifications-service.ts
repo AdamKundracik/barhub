@@ -64,6 +64,7 @@ export const sendRequestNotificationToRecipients = async (
     placeLocation,
     senderToken,
   });
+  console.log(data);
   return data.success;
 };
 

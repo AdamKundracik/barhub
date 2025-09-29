@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Alert,
+  Pressable,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -13,7 +14,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
-import { primaryBgColor, warningColor } from '../../utils/styles/colors';
+import {
+  primaryBgColor,
+  primaryColor,
+  separatorColor,
+  warningColor,
+} from '../../utils/styles/colors';
 import EditProfile from '../../components/user/Account/EditProfile';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { auth } from '@/firebaseConfig';
@@ -24,6 +30,126 @@ import * as MailComposer from 'expo-mail-composer';
 import { BlurView } from 'expo-blur';
 import { signOut } from 'firebase/auth';
 import { useNotificationsHandler } from '@/src/app/components/user/NewsFeed/NotificationHandler';
+import { LinearGradient } from 'expo-linear-gradient';
+
+interface ActionButtonProps {
+  icon: any;
+  title: string;
+  description?: string;
+  onPress: () => void;
+  variant?: 'default' | 'warning' | 'premium';
+  showChevron?: boolean;
+}
+
+interface InfoItemProps {
+  icon: any;
+  label: string;
+  value: string;
+  iconColor?: string;
+}
+
+const ActionButton: React.FC<ActionButtonProps> = ({
+  icon,
+  title,
+  description,
+  onPress,
+  variant = 'default',
+  showChevron = true,
+}) => {
+  const getVariantColors = () => {
+    switch (variant) {
+      case 'warning':
+        return {
+          background: 'rgba(254, 120, 120, 0.1)',
+          border: 'rgba(254, 120, 120, 0.3)',
+          iconColor: warningColor,
+          textColor: warningColor,
+        };
+      case 'premium':
+        return {
+          background: 'rgba(255, 193, 7, 0.1)',
+          border: 'rgba(255, 193, 7, 0.3)',
+          iconColor: '#FFC107',
+          textColor: '#FFC107',
+        };
+      default:
+        return {
+          background: 'rgba(16, 217, 185, 0.08)',
+          border: 'rgba(16, 217, 185, 0.2)',
+          iconColor: primaryColor,
+          textColor: 'white',
+        };
+    }
+  };
+
+  const colors = getVariantColors();
+
+  return (
+    <Pressable
+      style={({ pressed }) => [
+        styles.actionButton,
+        {
+          backgroundColor: colors.background,
+          borderColor: colors.border,
+          transform: [{ scale: pressed ? 0.98 : 1 }],
+          opacity: pressed ? 0.8 : 1,
+        },
+      ]}
+      onPress={onPress}
+    >
+      <View style={styles.actionButtonContent}>
+        <View style={styles.actionButtonLeft}>
+          <View
+            style={[
+              styles.actionButtonIconContainer,
+              { backgroundColor: colors.background },
+            ]}
+          >
+            <FontAwesomeIcon icon={icon} size={20} color={colors.iconColor} />
+          </View>
+          <View style={styles.actionButtonText}>
+            <Text
+              style={[styles.actionButtonTitle, { color: colors.textColor }]}
+            >
+              {title}
+            </Text>
+            {description && (
+              <Text style={styles.actionButtonDescription}>{description}</Text>
+            )}
+          </View>
+        </View>
+        {showChevron && (
+          <View style={styles.actionButtonRight}>
+            <FontAwesomeIcon
+              icon={Icons.ChevronRight}
+              size={16}
+              color={separatorColor}
+            />
+          </View>
+        )}
+      </View>
+    </Pressable>
+  );
+};
+
+const InfoItem: React.FC<InfoItemProps> = ({
+  icon,
+  label,
+  value,
+  iconColor = primaryColor,
+}) => (
+  <View style={styles.infoItem}>
+    <View style={styles.infoItemIcon}>
+      <FontAwesomeIcon icon={icon} size={18} color={iconColor} />
+    </View>
+    <View style={styles.infoItemContent}>
+      <Text style={styles.infoItemLabel}>{label}</Text>
+      <Text style={styles.infoItemValue} numberOfLines={2}>
+        {value}
+      </Text>
+    </View>
+  </View>
+);
 
 export const Account = () => {
   const { userData, premium } = useUserStore();
@@ -35,6 +161,21 @@ export const Account = () => {
   const { currentPushToken } = useUserStore();
 
   const [isEditing, setIsEditing] = useState(false);
+
+  const userDisplayName = useMemo(
+    () => auth.currentUser?.displayName || t('anonymous-user'),
+    [auth.currentUser?.displayName, t]
+  );
+
+  const userEmail = useMemo(
+    () => auth.currentUser?.email || t('no-email'),
+    [auth.currentUser?.email, t]
+  );
+
+  const formattedBirthDate = useMemo(() => {
+    if (!userData?.dateOfBirth) return t('date-of-birth-not-set');
+    return new Date(userData.dateOfBirth).toLocaleDateString();
+  }, [userData?.dateOfBirth, t]);
 
   const handleDeleteUser = async () => {
     try {
@@ -77,7 +218,7 @@ export const Account = () => {
     }
 
     await MailComposer.composeAsync({
-      recipients: ['support@example.com'], // zmeniť na tvoj support e-mail
+      recipients: ['support@example.com'],
       subject: t('help-request'),
       body: t('please-describe-your-issue'),
     });
@@ -110,261 +251,404 @@ export const Account = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.headerRow}>
-        <TouchableOpacity onPress={confirmSignOut} style={styles.topButton}>
-          <FontAwesomeIcon icon={Icons.LogOut} size={20} color="white" />
-        </TouchableOpacity>
+      {/* Modern Header */}
+      <View style={styles.header}>
+        <View style={styles.headerContent}>
+          <TouchableOpacity
+            onPress={confirmSignOut}
+            style={[styles.headerButton, styles.signOutButton]}
+            activeOpacity={0.7}
+          >
+            <FontAwesomeIcon
+              icon={Icons.LogOut}
+              size={20}
+              color={warningColor}
+            />
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={() => setIsEditing(true)}
-          style={styles.topButton}
-        >
-          <FontAwesomeIcon icon={Icons.Pencil} size={20} color="white" />
-        </TouchableOpacity>
+          <Text style={styles.headerTitle}>{t('account')}</Text>
+
+          <TouchableOpacity
+            onPress={() => setIsEditing(true)}
+            style={[styles.headerButton, styles.editButton]}
+            activeOpacity={0.7}
+          >
+            <FontAwesomeIcon
+              icon={Icons.Pencil}
+              size={20}
+              color={primaryColor}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 30 }}
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Profile Section */}
+        {/* Enhanced Profile Section */}
         <View style={styles.profileSection}>
-          <FastImage
-            source={
-              auth.currentUser?.photoURL
-                ? {
-                    uri: auth.currentUser.photoURL,
-                    priority: FastImage.priority.normal,
-                  }
-                : require('../../../../assets/userIcon.png')
-            }
-            style={[
-              styles.profilePicture,
-              { borderColor: premium ? '#FFC107' : '#00E1C9' },
-            ]}
-            resizeMode={FastImage.resizeMode.cover}
-          />
-          <Text style={styles.username}>{auth.currentUser?.displayName}</Text>
-          <Text style={styles.accountStatusText}>
-            {t('account-state')}:{' '}
-            <Text style={premium ? styles.premiumText : styles.basicText}>
+          <View style={styles.profileImageContainer}>
+            {premium && (
+              <LinearGradient
+                colors={['#FFD700', '#FFA500', '#FF6347']}
+                style={styles.premiumRing}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              />
+            )}
+            <FastImage
+              source={
+                auth.currentUser?.photoURL
+                  ? {
+                      uri: auth.currentUser.photoURL,
+                      priority: FastImage.priority.high,
+                    }
+                  : require('../../../../assets/userIcon.png')
+              }
+              style={styles.profileImage}
+              resizeMode={FastImage.resizeMode.cover}
+            />
+            {premium && (
+              <View style={styles.premiumBadge}>
+                <FontAwesomeIcon icon={Icons.Crown} size={14} color="#FFD700" />
+              </View>
+            )}
+          </View>
+
+          <Text style={styles.displayName}>{userDisplayName}</Text>
+
+          <View style={styles.statusBadge}>
+            <View
+              style={[
+                styles.statusDot,
+                { backgroundColor: premium ? '#FFD700' : primaryColor },
+              ]}
+            />
+            <Text
+              style={[
+                styles.statusText,
+                { color: premium ? '#FFD700' : primaryColor },
+              ]}
+            >
               {premium ? 'Premium' : 'Basic'}
             </Text>
-          </Text>
+          </View>
         </View>
 
-        {/* Account Info Section */}
-        <BlurView intensity={30} tint="light" style={styles.card}>
-          <Text style={styles.cardTitle}>{t('about-me')}</Text>
-          <View style={styles.infoRow}>
-            <FontAwesomeIcon
+        {/* Personal Information Card */}
+        <BlurView intensity={20} tint="dark" style={styles.card}>
+          <View style={styles.cardHeader}>
+            <FontAwesomeIcon icon={Icons.User} size={20} color={primaryColor} />
+            <Text style={styles.cardTitle}>{t('about-me')}</Text>
+          </View>
+
+          <View style={styles.cardContent}>
+            <InfoItem
               icon={Icons.Envelope}
-              size={16}
-              color={'white'}
-              style={styles.infoIcon}
+              label={t('email')}
+              value={userEmail}
             />
-            <View>
-              <Text style={styles.infoLabel}>{t('email')}</Text>
-              <Text style={styles.infoValue}>{auth.currentUser?.email}</Text>
-            </View>
-          </View>
-          <View style={styles.infoRow}>
-            <FontAwesomeIcon
+
+            <InfoItem
               icon={Icons.Calendar}
-              size={16}
-              color={'white'}
-              style={styles.infoIcon}
+              label={t('date-of-birth')}
+              value={formattedBirthDate}
             />
-            <View>
-              <Text style={styles.infoLabel}>{t('date-of-birth')}</Text>
-              <Text style={styles.infoValue}>
-                {userData?.dateOfBirth
-                  ? new Date(userData.dateOfBirth).toLocaleDateString()
-                  : t('date-of-birth-not-set')}
-              </Text>
+          </View>
+        </BlurView>
+
+        {/* Actions Card */}
+        <BlurView intensity={20} tint="dark" style={styles.card}>
+          <View style={styles.cardHeader}>
+            <FontAwesomeIcon icon={Icons.Gear} size={20} color={primaryColor} />
+            <Text style={styles.cardTitle}>{t('settings')}</Text>
+          </View>
+
+          <View style={styles.cardContent}>
+            <View style={{ gap: 16 }}>
+              <ActionButton
+                icon={Icons.Lock}
+                title={t('change-password-title')}
+                description={t('update-password')}
+                onPress={() => navigation.navigate('PasswordChangeScreen')}
+              />
+
+              <ActionButton
+                icon={Icons.Help}
+                title={t('help')}
+                description={t('contact-support')}
+                onPress={handleHelpMail}
+              />
+
+              <ActionButton
+                icon={Icons.Info}
+                title={t('info')}
+                description={t('app-information')}
+                onPress={() => navigation.navigate('Info')}
+              />
             </View>
           </View>
-          <View style={styles.container}>
-            <TouchableOpacity style={styles.button} onPress={handleHelpMail}>
-              <View style={styles.left}>
-                <FontAwesomeIcon icon={Icons.Help} size={18} color={'white'} />
-                <Text style={styles.label}>{t('help')}</Text>
-              </View>
-              <FontAwesomeIcon
-                icon={Icons.ChevronRight}
-                size={18}
-                color={'white'}
-              />
-            </TouchableOpacity>
+        </BlurView>
 
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => navigation.navigate('Info')}
-            >
-              <View style={styles.left}>
-                <FontAwesomeIcon icon={Icons.Info} size={18} color={'white'} />
-                <Text style={styles.label}>{t('info')}</Text>
-              </View>
-              <FontAwesomeIcon
-                icon={Icons.ChevronRight}
-                size={18}
-                color={'white'}
-              />
-            </TouchableOpacity>
+        {/* Danger Zone Card */}
+        <BlurView intensity={20} tint="dark" style={styles.card}>
+          <View style={styles.cardContent}>
+            <ActionButton
+              icon={Icons.TrashCan}
+              title={t('delete-account')}
+              description={t('permanently-delete-account')}
+              onPress={confirmDeleteAccount}
+              variant="warning"
+              showChevron={false}
+            />
           </View>
         </BlurView>
 
-        {/* Account Actions Section */}
-        <BlurView intensity={30} tint="light" style={styles.card}>
-          <TouchableOpacity
-            style={[styles.fullButton, styles.whiteButton]}
-            onPress={() => navigation.navigate('PasswordChangeScreen')}
-          >
-            <FontAwesomeIcon
-              icon={Icons.Lock}
-              size={18}
-              color={primaryBgColor}
-              style={styles.buttonIcon}
-            />
-            <Text style={styles.whiteButtonText}>
-              {t('change-password-title')}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.fullButton, styles.deleteButton]}
-            onPress={confirmDeleteAccount}
-          >
-            <FontAwesomeIcon
-              icon={Icons.TrashCan}
-              size={18}
-              color={'white'}
-              style={styles.buttonIconRight}
-            />
-            <Text style={styles.deleteButtonText}>{t('delete-account')}</Text>
-          </TouchableOpacity>
-        </BlurView>
+        {/* Bottom Spacing */}
+        <View style={styles.bottomSpacing} />
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-const commonColors = {
-  white: '#fff',
-  primaryTeal: '#00E1C9',
-  premium: '#FFC107',
-  darkGrayCard: 'rgba(58,58,58,0.8)',
-};
-
-const commonTypography = {
-  baseSize: 16,
-  smallSize: 14,
-  largeSize: 20,
-};
-
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: primaryBgColor },
+  safeArea: {
+    flex: 1,
+    backgroundColor: primaryBgColor,
+  },
 
-  headerRow: {
+  // Header
+  header: {
+    paddingTop: 10,
+    paddingBottom: 15,
+  },
+  headerContent: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingVertical: 10,
+    paddingHorizontal: 20,
   },
-
-  container: {
-    flexDirection: 'column',
-    gap: 12, // spacing between rows
-  },
-  button: {
-    flexDirection: 'row',
-    justifyContent: 'space-between', // left + right
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 10,
-  },
-  left: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10, // space between icon and label
-  },
-  label: {
+  headerTitle: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 24,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
-  topButton: { flexDirection: 'row', alignItems: 'center' },
-  topButtonText: { color: 'white', marginLeft: 5, fontWeight: 'bold' },
-
-  profileSection: { alignItems: 'center', marginBottom: 30 },
-  profilePicture: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    marginBottom: 10,
-    borderWidth: 3,
+  headerButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
-  username: {
-    color: commonColors.white,
-    fontSize: commonTypography.largeSize,
-    fontWeight: 'bold',
-    marginBottom: 5,
+  signOutButton: {
+    backgroundColor: 'rgba(254, 120, 120, 0.1)',
   },
-  accountStatusText: {
-    color: commonColors.white,
-    fontSize: commonTypography.baseSize,
-  },
-  premiumText: { color: commonColors.premium, fontWeight: 'bold' },
-  basicText: { color: commonColors.white, fontWeight: 'bold' },
-
-  card: {
-    // backgroundColor: commonColors.darkGrayCard,
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 20,
-    gap: 10,
-    overflow: 'hidden',
-  },
-  cardTitle: {
-    color: commonColors.white,
-    fontSize: commonTypography.largeSize,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  infoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
-  infoIcon: { marginRight: 10, color: commonColors.primaryTeal },
-  infoLabel: {
-    color: commonColors.primaryTeal,
-    fontSize: commonTypography.smallSize,
-  },
-  infoValue: {
-    color: commonColors.white,
-    fontSize: commonTypography.baseSize,
-    fontWeight: 'bold',
+  editButton: {
+    backgroundColor: 'rgba(16, 217, 185, 0.1)',
   },
 
-  fullButton: {
+  // Scroll View
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 100, // Extra space for bottom tabs
+  },
+
+  // Enhanced Profile Section
+  profileSection: {
+    alignItems: 'center',
+    marginBottom: 24,
+    paddingVertical: 16,
+  },
+  profileImageContainer: {
+    position: 'relative',
+    marginBottom: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  premiumRing: {
+    position: 'absolute',
+    top: -6,
+    left: -6,
+    right: -6,
+    bottom: -6,
+    borderRadius: 75,
+    zIndex: 1,
+  },
+  profileImage: {
+    width: 130,
+    height: 130,
+    borderRadius: 65,
+    borderWidth: 4,
+    borderColor: primaryBgColor,
+    zIndex: 2,
+  },
+  premiumBadge: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: primaryBgColor,
+    borderWidth: 2,
+    borderColor: '#FFD700',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 3,
+  },
+  displayName: {
+    color: 'white',
+    fontSize: 28,
+    fontWeight: '700',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 15,
-    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
-  whiteButton: { backgroundColor: commonColors.white, marginBottom: 10 },
-  whiteButtonText: {
-    color: primaryBgColor,
-    fontSize: commonTypography.baseSize,
-    fontWeight: 'bold',
-    marginLeft: 10,
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 8,
   },
-  deleteButton: { backgroundColor: warningColor, marginBottom: 10 },
-  deleteButtonText: {
-    color: commonColors.white,
-    fontSize: commonTypography.baseSize,
-    fontWeight: 'bold',
-    marginLeft: 10,
+  statusText: {
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
-  buttonIcon: { marginRight: 5 },
-  buttonIconRight: { marginLeft: 10 },
+
+  // Cards
+  card: {
+    borderRadius: 24,
+    marginBottom: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 12,
+  },
+  cardTitle: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: '700',
+    marginLeft: 12,
+    letterSpacing: 0.3,
+  },
+  cardContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
+
+  // Info Items
+  infoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingVertical: 4,
+  },
+  infoItemIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(16, 217, 185, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  infoItemContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  infoItemLabel: {
+    color: separatorColor,
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 3,
+    letterSpacing: 0.2,
+  },
+  infoItemValue: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    lineHeight: 20,
+  },
+
+  // Action Buttons - Fixed spacing
+  actionButton: {
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    borderRadius: 16,
+    marginBottom: 10,
+    borderWidth: 1,
+    minHeight: 60,
+  },
+  actionButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  actionButtonLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  actionButtonRight: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 24,
+    height: 24,
+  },
+  actionButtonIconContainer: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  actionButtonText: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  actionButtonTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    marginBottom: 2,
+    letterSpacing: 0.2,
+  },
+  actionButtonDescription: {
+    color: separatorColor,
+    fontSize: 14,
+    fontWeight: '400',
+    lineHeight: 16,
+  },
+
+  // Bottom Spacing
+  bottomSpacing: {
+    height: 10,
+  },
 });

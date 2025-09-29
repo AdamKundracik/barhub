@@ -19,6 +19,7 @@ export interface NotificationItem {
   placeId?: string;
   senderName: string;
   senderId?: string;
+  read: boolean;
 }
 
 export interface NotificationItemProps {

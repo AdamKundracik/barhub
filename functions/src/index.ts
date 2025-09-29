@@ -149,7 +149,6 @@ export const sendRequestNotificationSecondGen = onCall<
     placeName: string;
     placeLocation: { latitude: number; longitude: number };
     senderToken: string;
-    userId: string;
     senderId: string;
   },
   { success: boolean; recipients: string[] }

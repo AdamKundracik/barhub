@@ -104,6 +104,8 @@
   "location": "Poloha",
   "name": "Názov",
   "occupancy": "Obsadenosť",
+  "select-occupancy": "Vyberte obsadenosť",
+  "done": "Hotovo",
   "new-post": "Nový príspevok",
   "no-results": "Žiadne výsledky",
   "distance": "Vzdialenosť",
@@ -198,6 +200,10 @@
     "successTitle": "Príspevok uložený",
     "successDescription": "Príspevok bol úspešne uložený! Ďakujeme za prispievanie"
   },
+  "sendRequest": {
+    "successTitle": "Žiadosť odoslaná",
+    "successDescription": "Vaša žiadosť bola úspešne odoslaná používateľom v okolí."
+  },
   "toastPhotoDeletedTitle": "Úspešne zmazané.",
   "toastPhotoDeletedDesc": "Vaša fotografia bola zmazaná.",
   "toastPhotoUpdatedTitle": "Úspešne uložené.",
@@ -230,7 +236,24 @@
   "search": "Hľadaj",
   "camera": {
     "fakeLocationBlocked": "Nie je možné otvoriť kameru pri falošnej lokalizácii",
-    "waitBeforeNextUpload": "Počkajte ešte %s pred ďalším uploadom"
-  }
+    "waitBeforeNextUpload": "Počkajte ešte {{time}}s pred ďalším uploadom"
+  },
+  "no-available-places": "Žiadne dostupné miesta vo vašom okolí",
+  "anonymous-user": "Anonymný používateľ",
+  "no-email": "Žiadny e-mail",
+  "settings": "Nastavenia",
+  "update-password": "Aktualizujte svoje heslo",
+  "contact-support": "Kontaktovať podporu",
+  "app-information": "Informácie o aplikácii",
+  "permanently-delete-account": "Natrvalo odstrániť účet",
+  "tap-to-change-photo": "Ťuknite pre zmenu fotografie",
+  "enter-username": "Zadajte používateľské meno",
+  "username-required": "Používateľské meno je povinné",
+  "select-birth-date": "Vyberte dátum narodenia",
+  "confirm": "Potvrdiť",
+  "tap-to-respond": "Ťuknite pre odpoveď",
+  "mark-all-read": "Označiť ako prečítané",
+  "all-marked-read": "Označené ako prečítané"
+
 }
 

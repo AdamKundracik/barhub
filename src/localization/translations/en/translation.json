@@ -105,6 +105,8 @@
   "location": "Location",
   "name": "Name",
   "occupancy": "Occupancy",
+  "select-occupancy": "Select occupancy",
+  "done": "Done",
   "new-post": "New Post",
   "no-results": "No results",
   "distance": "Distance",
@@ -186,6 +188,10 @@
     "successTitle": "Post saved",
     "successDescription": "The post was successfully saved! Thank you for contributing"
   },
+  "sendRequest": {
+    "successTitle": "Request sent",
+    "successDescription": "Your request has been successfully sent to nearby users."
+  },
   "or": "or",
   "delete-post": "Delete post",
   "about-me": "About me",
@@ -232,6 +238,22 @@
   "search": "Search",
   "camera": {
     "fakeLocationBlocked": "Cannot open camera with fake location",
-    "waitBeforeNextUpload": "Please wait %s before uploading again"
-  }
+    "waitBeforeNextUpload": "Please wait {{time}}s before uploading again"
+  },
+  "no-available-places": "No available places in your surrounding",
+  "anonymous-user": "Anonymous user",
+  "no-email": "No email",
+  "settings": "Settings",
+  "update-password": "Update your password",
+  "contact-support": "Contact support",
+  "app-information": "Application information",
+  "permanently-delete-account": "Permanently delete account",
+  "tap-to-change-photo": "Tap to change photo",
+  "enter-username": "Enter username",
+  "username-required": "Username is required",
+  "select-birth-date": "Select birth date",
+  "confirm": "Confirm",
+  "tap-to-respond": "Tap to respond",
+  "mark-all-read": "Mark as read",
+  "all-marked-read": "All marked as read"
 }

@@ -105,6 +105,8 @@
   "location": "Ubicación",
   "name": "Nombre",
   "occupancy": "Ocupación",
+  "select-occupancy": "Seleccione ocupación",
+  "done": "Hecho",
   "new-post": "Nueva Publicación",
   "no-results": "No hay resultados",
   "distance": "Distancia",
@@ -186,6 +188,10 @@
     "successTitle": "Publicación guardada",
     "successDescription": "¡La publicación se ha guardado con éxito! Gracias por contribuir"
   },
+  "sendRequest": {
+    "successTitle": "Solicitud enviada",
+    "successDescription": "Su solicitud ha sido enviada con éxito a los usuarios cercanos."
+  },
   "or": "o",
   "delete-post": "Eliminar publicación",
   "about-me": "Sobre mí",
@@ -232,6 +238,22 @@
   "search": "Buscar",
   "camera": {
     "fakeLocationBlocked": "No se puede abrir la cámara con ubicación falsa",
-    "waitBeforeNextUpload": "Espere %s antes de subir otra foto"
-  }
+    "waitBeforeNextUpload": "Espere {{time}}s antes de subir otra foto"
+  },
+  "no-available-places": "No hay lugares disponibles en tus alrededores",
+  "anonymous-user": "Usuario anónimo",
+  "no-email": "Sin correo electrónico",
+  "settings": "Configuración",
+  "update-password": "Actualice su contraseña",
+  "contact-support": "Contactar soporte",
+  "app-information": "Información de la aplicación",
+  "permanently-delete-account": "Eliminar cuenta permanentemente",
+  "tap-to-change-photo": "Toca para cambiar la foto",
+  "enter-username": "Ingrese el nombre de usuario",
+  "username-required": "El nombre de usuario es obligatorio",
+  "select-birth-date": "Seleccione la fecha de nacimiento",
+  "confirm": "Confirmar",
+  "tap-to-respond": "Toca para responder",
+  "mark-all-read": "Marcar como leído",
+  "all-marked-read": "Todo marcado como leído"
 }

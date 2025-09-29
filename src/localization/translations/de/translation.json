@@ -105,6 +105,8 @@
   "location": "Standort",
   "name": "Name",
   "occupancy": "Belegung",
+  "select-occupancy": "Belegung auswählen",
+  "done": "Fertig",
   "new-post": "Neuer Beitrag",
   "no-results": "Keine Ergebnisse",
   "distance": "Entfernung",
@@ -155,7 +157,10 @@
     "successTitle": "Beitrag gespeichert",
     "successDescription": "Der Beitrag wurde erfolgreich gespeichert! Vielen Dank für Ihren Beitrag"
   },
-
+  "sendRequest": {
+    "successTitle": "Anfrage gesendet",
+    "successDescription": "Ihre Anfrage wurde erfolgreich an nahegelegene Benutzer gesendet."
+  },
   "gdpr": "Datenschutzrichtlinie",
   "third-party-libraries": "Drittanbieter-Bibliotheken",
   "use-different-location": "Anderen Standort verwenden",
@@ -233,6 +238,22 @@
   "search": "Suchen",
   "camera": {
     "fakeLocationBlocked": "Kamera kann bei falschem Standort nicht geöffnet werden",
-    "waitBeforeNextUpload": "Bitte warten Sie noch %s, bevor Sie erneut hochladen"
-  }
+    "waitBeforeNextUpload": "Bitte warten Sie noch {{time}}s, bevor Sie erneut hochladen"
+  },
+  "no-available-places": "Keine verfügbaren Orte in deiner Umgebung",
+  "anonymous-user": "Anonymer Benutzer",
+  "no-email": "Keine E-Mail",
+  "settings": "Einstellungen",
+  "update-password": "Aktualisieren Sie Ihr Passwort",
+  "contact-support": "Support kontaktieren",
+  "app-information": "App-Informationen",
+  "permanently-delete-account": "Konto dauerhaft löschen",
+  "tap-to-change-photo": "Tippen, um das Foto zu ändern",
+  "enter-username": "Benutzernamen eingeben",
+  "username-required": "Benutzername ist erforderlich",
+  "select-birth-date": "Geburtsdatum auswählen",
+  "confirm": "Bestätigen",
+  "tap-to-respond": "Tippen, um zu antworten",
+  "mark-all-read": "Označiť ako prečítané",
+  "all-marked-read": "Alles als gelesen markiert"
 }
