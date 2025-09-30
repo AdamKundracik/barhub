@@ -41,6 +41,48 @@ const EmptyState = (props: EmptyStateProps) => {
     ]).start();
   }, [fadeAnim, slideAnim]);
 
+  if (!placeId) {
+    return (
+      <>
+        <Animated.View 
+          style={[
+            styles.contentContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          <View style={styles.iconContainer}>
+            <LinearGradient
+              colors={[primaryColor + '20', primaryColor + '10']}
+              style={styles.iconBackground}
+            >
+              <FontAwesomeIcon 
+                icon={faCamera} 
+                size={48} 
+                color={primaryColor} 
+              />
+            </LinearGradient>
+          </View>
+          
+          <View style={styles.textContainer}>
+            <Text style={styles.mainTitle}>{t('no-feed-photos')}</Text>
+            <Text style={styles.subtitle}>
+              {t('explore-places-subtitle')}
+            </Text>
+          </View>
+
+          <View style={styles.decorativeElements}>
+            <View style={[styles.dot, { backgroundColor: primaryColor + '40' }]} />
+            <View style={[styles.dot, { backgroundColor: primaryColor + '60' }]} />
+            <View style={[styles.dot, { backgroundColor: primaryColor }]} />
+          </View>
+        </Animated.View>
+      </>
+    );
+  }
+
   return (
     <>
       <Animated.View 
@@ -68,7 +110,7 @@ const EmptyState = (props: EmptyStateProps) => {
         <View style={styles.textContainer}>
           <Text style={styles.mainTitle}>{t('photos-info')}</Text>
           <Text style={styles.subtitle}>
-            Be the first to share a moment from this place!
+            {t('first-to-share-subtitle')}
           </Text>
         </View>
 

@@ -92,7 +92,7 @@
   "select-location": "Standort des Ortes auswählen",
   "photos-info": "Keine Bilder für diesen Ort",
   "request-photo": "Foto anfordern",
-  "request-photo-info": "Durch Klicken auf diese Schaltfläche fordern Sie jeden Benutzer, der sich am angeforderten Ort befindet, auf, ein Foto des Ortes aufzunehmen",
+  "request-photo-info": "Fordern Sie ein neues Foto von diesem Ort an.",
   "grantPermission": "Berechtigung erteilen",
   "pick-from-gallery": "Bild aus Galerie auswählen",
   "take-new-picture": "Neues Bild aufnehmen",
@@ -124,7 +124,7 @@
   "add-comment": "Kommentar hinzufügen..",
   "send": "Senden",
   "sending": "Wird gesendet...",
-  "older-photo-info": "Das Foto von diesem Ort ist älter als 30 Minuten.",
+  "older-photo-info": "Foto ist älter als 30 Min.",
   "take-photo": "Foto machen",
   "no-acitivity": "Längere Inaktivität des Kontos.",
   "no-acitivity-info": "Um Fotos anzuzeigen, müssen Sie ein aktuelles Foto von einem Ort beisteuern.",
@@ -312,5 +312,10 @@
   "all-marked-read": "Alles als gelesen markiert",
   "welcome-back": "Willkommen zurück",
   "sign-in-to-continue": "Melden Sie sich an, um fortzufahren",
-  "password-min-length": "Das Passwort muss mindestens 8 Zeichen lang sein"
+  "password-min-length": "Das Passwort muss mindestens 8 Zeichen lang sein",
+  "explore-places-subtitle": "Entdecke Orte und finde erstaunliche Momente, die von der Community geteilt werden.",
+  "first-to-share-subtitle": "Sei der Erste, der einen Moment von diesem Ort teilt!",
+  "total": "Gesamt",
+  "unread": "Ungelesen",
+  "use-travel-mode": "Reisemodus verwenden"
 }

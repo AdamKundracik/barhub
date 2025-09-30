@@ -38,7 +38,7 @@
   "select-location": "Vyberte polohu miesta",
   "photos-info": "Žiadna fotka z tohto miesta sa nenašla",
   "request-photo": "Požiadať fotku",
-  "request-photo-info": "Kliknutím na toto tlačidlo požiadate ktoréhokoľvek používateľa, ktorý sa nachádza na požadovanom mieste, aby toto miesto odfotil.",
+  "request-photo-info": "Požiadajte o novú fotku z tohto miesta.",
   "grantPermission": "Získať prístup",
   "pick-from-gallery": "Vybrať z galérie",
   "take-new-picture": "Odfotiť novú fotlku",
@@ -123,7 +123,7 @@
   "add-comment": "Pridať komentár ...",
   "send": "Poslať",
   "sending": "Odosiela sa...",
-  "older-photo-info": "Fotografia z tohto miesta je staršia ako 30 minút.",
+  "older-photo-info": "Fotka je staršia ako 30 min.",
   "take-photo": "Odfotiť",
   "no-acitivity": "Dlhšia neaktivita účtu",
   "no-acitivity-info": "Pre zobrazenie fotografií musíte prispieť aktuálnou fotografiou z ľubovoľného miesta",
@@ -310,7 +310,12 @@
   "all-marked-read": "Označené ako prečítané",
   "welcome-back": "Vitaj späť",
   "sign-in-to-continue": "Prihlás sa do svojho účtu pre pokračovanie",
-  "password-min-length": "Heslo musí mať aspoň 8 znakov"
+  "password-min-length": "Heslo musí mať aspoň 8 znakov",
+  "explore-places-subtitle": "Objavuj miesta a nájdi úžasné momenty zdieľané komunitou.",
+  "first-to-share-subtitle": "Buď prvý, kto sa podelí o moment z tohto miesta!",
+  "total": "Celkom",
+  "unread": "Neprečítané",
+  "use-travel-mode": "Použiť cestovný režim"
 
 }
 

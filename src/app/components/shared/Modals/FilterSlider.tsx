@@ -237,7 +237,7 @@ const FilterSlider = () => {
         <View style={styles.fakeLocationSection}>
           <View style={styles.fakeLocationHeader}>
             <Text style={styles.sectionTitle}>
-              {t('use-different-location')}
+              {t('use-travel-mode')}
             </Text>
             <Switch
               value={useFakeLocation}

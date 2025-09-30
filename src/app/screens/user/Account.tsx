@@ -310,11 +310,6 @@ export const Account = () => {
               style={styles.profileImage}
               resizeMode={FastImage.resizeMode.cover}
             />
-            {premium && (
-              <View style={styles.premiumBadge}>
-                <FontAwesomeIcon icon={Icons.Crown} size={14} color="#FFD700" />
-              </View>
-            )}
           </View>
 
           <Text style={styles.displayName}>{userDisplayName}</Text>

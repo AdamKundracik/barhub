@@ -38,7 +38,7 @@
   "select-location": "Select place location",
   "photos-info": "No images for this place",
   "request-photo": "Request photo",
-  "request-photo-info": "By click on this button you will request any user who is located in requested place, to take picture of the place",
+  "request-photo-info": "Request a fresh photo from this location.",
   "grantPermission": "Grant permission",
   "pick-from-gallery": "Pick picture from gallery",
   "take-new-picture": "Take new picture",
@@ -124,7 +124,7 @@
   "add-comment": "Add a comment... ",
   "send": "Send",
   "sending": "Sending...",
-  "older-photo-info": "The photo from this place is older than 30 minutes.",
+  "older-photo-info": "Photo is older than 30 min.",
   "take-photo": "Take photo",
   "no-acitivity": "To view the photos, you must contribute a current photo from a location.",
   "no-acitivity-info": "Longer account inactivity",
@@ -312,5 +312,10 @@
   "all-marked-read": "All marked as read",
   "welcome-back": "Welcome Back",
   "sign-in-to-continue": "Sign in to your account to continue",
-  "password-min-length": "Password must be at least 8 characters"
+  "password-min-length": "Password must be at least 8 characters",
+  "explore-places-subtitle": "Explore places and discover amazing moments shared by the community.",
+  "first-to-share-subtitle": "Be the first to share a moment from this place!",
+  "total": "Total",
+  "unread": "Unread",
+  "use-travel-mode": "Use travel mode"
 }
