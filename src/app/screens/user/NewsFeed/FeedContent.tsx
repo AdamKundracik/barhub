@@ -74,11 +74,7 @@ export const FeedContent: React.FC<FeedContentProps> = ({
         }
       >
         <EmptyState requestPhoto={requestPhoto} />
-        {!premium && (
-          <View style={[styles.inlineAdContainer, { bottom: tabBarHeight }]}>
-            <InlineAd />
-          </View>
-        )}
+
       </ScrollView>
     </>
   );
