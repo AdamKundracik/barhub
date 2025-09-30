@@ -28,7 +28,6 @@ import InteractionBar from './InteractionBar';
 import { postBgColor, primaryBgColor } from '@/src/app/utils/styles/colors';
 
 // Constants
-const { width: screenWidth } = Dimensions.get('window');
 const isTablet = Device.isTablet();
 const DEBOUNCE_DELAY = 700;
 const DOUBLE_TAP_MAX_DURATION = 250;
@@ -259,15 +258,14 @@ const UserPost: React.FC<UserPostProps> = ({
     >
       {/* Modern Place Name Header */}
       {!isFiltering && (
-        <Animated.View
-          entering={SlideInUp.delay(50).duration(500)}
+        <View
           style={[styles.placeName, isTablet && tabletStyles.placeName]}
         >
           <PlaceNameSeparator
             placeNameLocal={trimmedPlaceName}
             placeIdLocal={folderId}
           />
-        </Animated.View>
+        </View>
       )}
 
       {/* Enhanced Post Card */}

@@ -1,13 +1,20 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Dimensions, Animated } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { LinearGradient } from 'expo-linear-gradient';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faCamera, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
 import {
   primaryColor,
   primaryTextColor,
   separatorColor,
+  primaryBgColor,
+  postBgColor,
 } from '../../../utils/styles/colors';
 import RequestPhotoButton from './RequestPhotoButton';
 import { usePlaceStore } from '../../../utils/store/placesStore';
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 interface EmptyStateProps {
   requestPhoto: () => void;
@@ -16,66 +23,173 @@ interface EmptyStateProps {
 const EmptyState = (props: EmptyStateProps) => {
   const { t } = useTranslation();
   const { placeId } = usePlaceStore();
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const slideAnim = React.useRef(new Animated.Value(30)).current;
+
+  React.useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fadeAnim, slideAnim]);
 
   if (!placeId) {
     return (
-      <View style={styles.container}>
-        <View style={styles.card}>
-          <Text style={styles.infoText}>{t('no-feed-photos')}</Text>
-        </View>
-      </View>
+      <>
+        <Animated.View 
+          style={[
+            styles.contentContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          <View style={styles.iconContainer}>
+            <LinearGradient
+              colors={[primaryColor + '20', primaryColor + '10']}
+              style={styles.iconBackground}
+            >
+              <FontAwesomeIcon 
+                icon={faCamera} 
+                size={48} 
+                color={primaryColor} 
+              />
+            </LinearGradient>
+          </View>
+          
+          <View style={styles.textContainer}>
+            <Text style={styles.mainTitle}>{t('no-feed-photos')}</Text>
+            <Text style={styles.subtitle}>
+              {t('explore-places-subtitle')}
+            </Text>
+          </View>
+
+          <View style={styles.decorativeElements}>
+            <View style={[styles.dot, { backgroundColor: primaryColor + '40' }]} />
+            <View style={[styles.dot, { backgroundColor: primaryColor + '60' }]} />
+            <View style={[styles.dot, { backgroundColor: primaryColor }]} />
+          </View>
+        </Animated.View>
+      </>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.card}>
-        <Text style={styles.infoText}>{t('photos-info')}</Text>
-        <RequestPhotoButton requestPhoto={props.requestPhoto} />
-        <Text style={styles.infoText2}>{t('request-photo-info')}</Text>
-      </View>
-    </View>
+    <>
+      <Animated.View 
+        style={[
+          styles.contentContainer,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
+          },
+        ]}
+      >
+        <View style={styles.iconContainer}>
+          <LinearGradient
+            colors={[primaryColor + '20', primaryColor + '10']}
+            style={styles.iconBackground}
+          >
+            <FontAwesomeIcon 
+              icon={faMapMarkerAlt} 
+              size={48} 
+              color={primaryColor} 
+            />
+          </LinearGradient>
+        </View>
+        
+        <View style={styles.textContainer}>
+          <Text style={styles.mainTitle}>{t('photos-info')}</Text>
+          <Text style={styles.subtitle}>
+            {t('first-to-share-subtitle')}
+          </Text>
+        </View>
+
+        <View style={styles.actionContainer}>
+          <RequestPhotoButton requestPhoto={props.requestPhoto} />
+          <Text style={styles.helpText}>{t('request-photo-info')}</Text>
+        </View>
+      </Animated.View>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  contentContainer: {
     flex: 1,
-    alignSelf: 'center',
-    justifyContent: 'center',
-    width: 300,
-  },
-  card: {
-    padding: 20,
-    borderWidth: 1,
-    borderColor: primaryColor,
-    borderRadius: 20,
-  },
-  infoText: {
-    textAlign: 'center',
-    fontSize: 16,
-    color: primaryTextColor,
-  },
-  infoText2: {
-    textAlign: 'center',
-    fontSize: 16,
-    color: separatorColor,
-    marginBottom: 16,
-  },
-  button: {
-    borderRadius: 30,
-    borderColor: primaryColor,
-    borderWidth: 1,
-    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 30,
-    marginBottom: 36,
+    paddingHorizontal: 32,
+    // paddingTop: 20,
+    paddingBottom: 40,
   },
-  buttonText: {
-    fontSize: 16,
+  iconContainer: {
+    marginBottom: 32,
+    alignItems: 'center',
+  },
+  iconBackground: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: primaryColor + '30',
+  },
+  textContainer: {
+    alignItems: 'center',
+    marginBottom: 32,
+    maxWidth: screenWidth - 64,
+  },
+  mainTitle: {
+    fontSize: 24,
     fontWeight: 'bold',
-    color: primaryColor,
+    color: primaryTextColor,
+    textAlign: 'center',
+    marginBottom: 12,
+    letterSpacing: 0.5,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: separatorColor,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginHorizontal: 20,
+  },
+  actionContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  helpText: {
+    fontSize: 14,
+    color: separatorColor,
+    textAlign: 'center',
+    marginTop: 16,
+    lineHeight: 20,
+    marginHorizontal: 24,
+    opacity: 0.8,
+  },
+  decorativeElements: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 4,
   },
 });
 
