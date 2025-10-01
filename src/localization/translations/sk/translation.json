@@ -315,7 +315,12 @@
   "first-to-share-subtitle": "Buď prvý, kto sa podelí o moment z tohto miesta!",
   "total": "Celkom",
   "unread": "Neprečítané",
-  "use-travel-mode": "Použiť cestovný režim"
+  "use-travel-mode": "Použiť cestovný režim",
+  "no_internet_connection": "Žiadne internetové pripojenie",
+  "no_internet_title": "Žiadne internetové pripojenie",
+  "no_internet_description": "Skontrolujte svoje pripojenie a skúste to znova. Barhub vyžaduje internetové pripojenie na správne fungovanie.",
+  "network_type": "Typ siete",
+  "retry": "Skúsiť znova"
 
 }
 

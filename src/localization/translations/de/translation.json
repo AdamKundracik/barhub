@@ -317,5 +317,10 @@
   "first-to-share-subtitle": "Sei der Erste, der einen Moment von diesem Ort teilt!",
   "total": "Gesamt",
   "unread": "Ungelesen",
-  "use-travel-mode": "Reisemodus verwenden"
+  "use-travel-mode": "Reisemodus verwenden",
+  "no_internet_connection": "Keine Internetverbindung",
+  "no_internet_title": "Keine Internetverbindung",
+  "no_internet_description": "Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut. Barhub benötigt eine Internetverbindung, um ordnungsgemäß zu funktionieren.",
+  "network_type": "Netzwerktyp",
+  "retry": "Erneut versuchen"
 }

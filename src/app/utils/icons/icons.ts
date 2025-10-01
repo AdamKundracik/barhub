@@ -59,6 +59,7 @@ import {
   faUser,
   faUserCircle,
   faUsers,
+  faWifi,
   faX,
 } from '@fortawesome/free-solid-svg-icons';
 import {
@@ -139,4 +140,5 @@ export const Icons = {
   House: faHouse,
   TriangleExclamation: faTriangleExclamation,
   ShieldHalved: faShieldHalved,
+  Wifi: faWifi,
 };
