@@ -2,7 +2,6 @@ import React, { useCallback, useMemo } from 'react';
 import {
   Alert,
   Animated,
-  Dimensions,
   Pressable,
   StyleSheet,
   Text,
@@ -32,14 +31,10 @@ import {
   withSpring,
 } from 'react-native-reanimated';
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = -120;
-const DELETE_THRESHOLD = -180;
 
 const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   item,
-  onSwipeStart,
-  onSwipeEnd,
 }) => {
   const translateX = useSharedValue(0);
   const scale = useSharedValue(1);
@@ -49,7 +44,23 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   const { t } = useTranslation();
   const locales = useLocales();
 
-  // Get notification configuration
+  const getTimeUnit = useCallback(
+    (count: number, unit: 'minute' | 'hour') => {
+      const currentLanguage = locales[0]?.languageCode || 'sk';
+
+      if (count === 1) {
+        return t(unit);
+      }
+
+      if (currentLanguage === 'sk') {
+        return t(`${unit}s_2_4`);
+      }
+
+      return t(`${unit}s_2_4`); // This covers German, English, Spanish
+    },
+    [locales, t]
+  );
+
   const notificationConfig = useMemo(() => {
     const configs = {
       [NotificationType.LIKE]: {
@@ -115,13 +126,35 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
     // Less than 1 hour
     if (diff < 3600000) {
       const minutes = Math.floor(diff / 60000);
-      return `${minutes} ${minutes === 1 ? t('minute') : t('minutes')} ${t('ago')}`;
+      const timeUnit = getTimeUnit(minutes, 'minute');
+      const currentLanguage = locales[0]?.languageCode || 'sk';
+
+      // Different word order for different languages
+      if (currentLanguage === 'es') {
+        return `${t('ago')} ${minutes} ${timeUnit}`;
+      } else if (currentLanguage === 'en') {
+        return `${minutes} ${timeUnit} ${t('ago')}`;
+      } else {
+        // Slovak and German: "pred X minútami/vor X Minuten"
+        return `${t('ago')} ${minutes} ${timeUnit}`;
+      }
     }
 
     // Less than 1 day
     if (diff < 86400000) {
       const hours = Math.floor(diff / 3600000);
-      return `${hours} ${hours === 1 ? t('hour') : t('hours')} ${t('ago')}`;
+      const timeUnit = getTimeUnit(hours, 'hour');
+      const currentLanguage = locales[0]?.languageCode || 'sk';
+
+      // Different word order for different languages
+      if (currentLanguage === 'es') {
+        return `${t('ago')} ${hours} ${timeUnit}`;
+      } else if (currentLanguage === 'en') {
+        return `${hours} ${timeUnit} ${t('ago')}`;
+      } else {
+        // Slovak and German: "pred X hodinami/vor X Stunden"
+        return `${t('ago')} ${hours} ${timeUnit}`;
+      }
     }
 
     // Format full date

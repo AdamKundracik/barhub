@@ -11,6 +11,7 @@ import { Navigation } from './src/app/navigation';
 import { RevenueCatProvider } from './src/app/providers/RevenueCatProvider';
 import { PermissionsProvider } from './src/app/providers/PermissionsProvider';
 import { AppStateProvider } from './src/app/providers/AppStateProvider';
+import { NetworkProvider } from './src/app/providers/NetworkProvider';
 
 import i18n from './src/localization/i18n';
 import { createQueryClientWithPersistence } from './src/app/utils/hooks/useQueryClient';
@@ -35,15 +36,17 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <I18nextProvider i18n={i18n}>
-            <AppStateProvider>
-              <PermissionsProvider>
-                <RevenueCatProvider>
-                  <BottomSheetModalProvider>
-                    <Navigation />
-                  </BottomSheetModalProvider>
-                </RevenueCatProvider>
-              </PermissionsProvider>
-            </AppStateProvider>
+            <NetworkProvider>
+              <AppStateProvider>
+                <PermissionsProvider>
+                  <RevenueCatProvider>
+                    <BottomSheetModalProvider>
+                      <Navigation />
+                    </BottomSheetModalProvider>
+                  </RevenueCatProvider>
+                </PermissionsProvider>
+              </AppStateProvider>
+            </NetworkProvider>
           </I18nextProvider>
         </GestureHandlerRootView>
       </QueryClientProvider>

@@ -236,7 +236,10 @@
     "successTitle": "Reporte enviado",
     "successDescription": "Gracias por su reporte, nuestro equipo lo revisará.",
     "confirmTitle": "Confirmar reporte",
-    "confirmMessage": "¿Realmente quieres reportar esto como {{reason}}?"
+    "confirmMessage": "¿Realmente quieres reportar esto como {{reason}}?",
+    "customReasonTitle": "Motivo Personalizado",
+    "customReasonPlaceholder": "Escribe tu motivo para reportar...",
+    "customReasonRequired": "El motivo es requerido"
   },
   "uploadPost": {
     "successTitle": "Publicación guardada",
@@ -317,5 +320,18 @@
   "first-to-share-subtitle": "¡Sé el primero en compartir un momento de este lugar!",
   "total": "Total",
   "unread": "No leído",
-  "use-travel-mode": "Usar modo de viaje"
+  "use-travel-mode": "Usar modo de viaje",
+  "no_internet_connection": "Sin conexión a internet",
+  "no_internet_title": "Sin Conexión a Internet",
+  "no_internet_description": "Por favor, verifique su conexión e intente nuevamente. Barhub requiere una conexión a internet para funcionar correctamente.",
+  "network_type": "Tipo de red",
+  "retry": "Reintentar",
+  "just-now": "Ahora mismo",
+  "minute": "minuto",
+  "minutes_2_4": "minutos",
+  "minutes_5_plus": "minutos",
+  "hour": "hora",
+  "hours_2_4": "horas",
+  "hours_5_plus": "horas",
+  "ago": "hace"
 }

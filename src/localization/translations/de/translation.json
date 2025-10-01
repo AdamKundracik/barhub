@@ -244,7 +244,10 @@
     "successTitle": "Meldung gesendet",
     "successDescription": "Vielen Dank für Ihre Meldung, unser Team wird dies prüfen.",
     "confirmTitle": "Meldung bestätigen",
-    "confirmMessage": "Möchten Sie diesen Beitrag wirklich als {{reason}} melden?"
+    "confirmMessage": "Möchten Sie diesen Beitrag wirklich als {{reason}} melden?",
+    "customReasonTitle": "Benutzerdefinierter Grund",
+    "customReasonPlaceholder": "Schreiben Sie Ihren Grund für die Meldung...",
+    "customReasonRequired": "Grund ist erforderlich"
   },
   "or": "oder",
   "delete-post": "Beitrag löschen",
@@ -317,5 +320,18 @@
   "first-to-share-subtitle": "Sei der Erste, der einen Moment von diesem Ort teilt!",
   "total": "Gesamt",
   "unread": "Ungelesen",
-  "use-travel-mode": "Reisemodus verwenden"
+  "use-travel-mode": "Reisemodus verwenden",
+  "no_internet_connection": "Keine Internetverbindung",
+  "no_internet_title": "Keine Internetverbindung",
+  "no_internet_description": "Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut. Barhub benötigt eine Internetverbindung, um ordnungsgemäß zu funktionieren.",
+  "network_type": "Netzwerktyp",
+  "retry": "Erneut versuchen",
+  "just-now": "Gerade eben",
+  "minute": "Minute",
+  "minutes_2_4": "Minuten",
+  "minutes_5_plus": "Minuten",
+  "hour": "Stunde",
+  "hours_2_4": "Stunden",
+  "hours_5_plus": "Stunden",
+  "ago": "vor"
 }

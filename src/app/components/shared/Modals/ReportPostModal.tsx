@@ -4,6 +4,7 @@ import {
   Alert,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -24,7 +25,7 @@ import { bottomModalBgColor } from '@/src/app/utils/styles/colors';
 type PostReportModalProps = {
   visible: boolean;
   onClose: () => void;
-  onSave: (reason: ReportReason) => Promise<void> | void; // môže byť async
+  onSave: (reason: ReportReason, customReason?: string) => Promise<void> | void; // môže byť async
 };
 
 export const PostReportModal = ({
@@ -36,10 +37,16 @@ export const PostReportModal = ({
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
+  const [showCustomReason, setShowCustomReason] = useState(false);
+  const [customReason, setCustomReason] = useState('');
+  const [customReasonError, setCustomReasonError] = useState('');
 
   useEffect(() => {
     if (visible) {
       bottomSheetRef.current?.present();
+      setShowCustomReason(false);
+      setCustomReason('');
+      setCustomReasonError('');
     } else {
       bottomSheetRef.current?.dismiss();
     }
@@ -58,6 +65,11 @@ export const PostReportModal = ({
   );
 
   const handleSelect = (reason: ReportReason, label: string) => {
+    if (reason === ReportReason.OTHER) {
+      setShowCustomReason(true);
+      return;
+    }
+
     Alert.alert(
       t('reportPost.confirmTitle'),
       t('reportPost.confirmMessage', { reason: label }),
@@ -79,6 +91,39 @@ export const PostReportModal = ({
     );
   };
 
+  const handleCustomReasonSubmit = () => {
+    if (!customReason.trim()) {
+      setCustomReasonError(t('reportPost.customReasonRequired'));
+      return;
+    }
+
+    Alert.alert(
+      t('reportPost.confirmTitle'),
+      t('reportPost.confirmMessage', { reason: customReason.trim() }),
+      [
+        { text: t('cancel'), style: 'cancel' },
+        {
+          text: t('reportPost.submit'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              await onSave(ReportReason.OTHER, customReason.trim());
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleBackToReasons = () => {
+    setShowCustomReason(false);
+    setCustomReason('');
+    setCustomReasonError('');
+  };
+
   const reasons = [
     { value: ReportReason.SPAM, label: t('reportPost.spam') },
     { value: ReportReason.INAPPROPRIATE, label: t('reportPost.inappropriate') },
@@ -89,60 +134,109 @@ export const PostReportModal = ({
   const renderFooter = useCallback(
     (props: BottomSheetFooterProps) => (
       <BottomSheetFooter {...props} bottomInset={insets.bottom + 20}>
-        <View style={styles.cancelContainer}>
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={onClose}
-            disabled={loading}
-          >
-            <Text style={styles.cancelText}>{t('cancel')}</Text>
-          </TouchableOpacity>
+        <View style={styles.footerContainer}>
+          {showCustomReason ? (
+            <>
+              <TouchableOpacity
+                style={[styles.button, styles.submitButton]}
+                onPress={handleCustomReasonSubmit}
+                disabled={loading || !customReason.trim()}
+              >
+                <Text style={styles.submitButtonText}>{t('reportPost.submit')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={handleBackToReasons}
+                disabled={loading}
+              >
+                <Text style={styles.cancelButtonText}>{t('go-back')}</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={onClose}
+              disabled={loading}
+            >
+              <Text style={styles.cancelText}>{t('cancel')}</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </BottomSheetFooter>
     ),
-    []
+    [showCustomReason, customReason, loading]
   );
 
   return (
     <BottomSheetModal
-      ref={bottomSheetRef}
-      snapPoints={['60%']}
-      backdropComponent={renderBackdrop}
-      onDismiss={onClose}
-      backgroundStyle={styles.container}
-      handleIndicatorStyle={styles.handleIndicator}
-      enablePanDownToClose
-      footerComponent={renderFooter}
-    >
-      <BottomSheetView style={styles.content}>
-        <Text style={styles.title}>{t('reportPost.title')}</Text>
-        <Text style={styles.subtitle}>{t('reportPost.chooseReason')}</Text>
-
-        {reasons.map(r => (
-          <TouchableOpacity
-            key={r.value}
-            style={styles.option}
-            activeOpacity={0.7}
-            onPress={() => handleSelect(r.value, r.label)}
-            disabled={loading}
-          >
-            <View style={styles.optionRow}>
-              <Text style={styles.optionText}>{r.label}</Text>
-              <FontAwesomeIcon
-                icon={Icons.ChevronRight}
-                size={16}
-                color={'white'}
+        ref={bottomSheetRef}
+        snapPoints={['60%']}
+        backdropComponent={renderBackdrop}
+        onDismiss={onClose}
+        backgroundStyle={styles.container}
+        handleIndicatorStyle={styles.handleIndicator}
+        enablePanDownToClose
+        footerComponent={renderFooter}
+      >
+        <BottomSheetView style={styles.content}>
+          {showCustomReason ? (
+            <>
+              <Text style={styles.title}>{t('reportPost.customReasonTitle')}</Text>
+              
+              <TextInput
+                style={[styles.textInput, customReasonError ? styles.textInputError : null]}
+                placeholder={t('reportPost.customReasonPlaceholder')}
+                placeholderTextColor="#666"
+                value={customReason}
+                onChangeText={(text) => {
+                  setCustomReason(text);
+                  if (customReasonError) setCustomReasonError('');
+                }}
+                multiline
+                numberOfLines={4}
+                maxLength={500}
+                editable={!loading}
+                autoFocus
               />
-            </View>
-          </TouchableOpacity>
-        ))}
-      </BottomSheetView>
+              
+              {customReasonError ? <Text style={styles.errorText}>{customReasonError}</Text> : null}
+              
+              <Text style={styles.characterCount}>
+                {customReason.length}/500
+              </Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.title}>{t('reportPost.title')}</Text>
+              <Text style={styles.subtitle}>{t('reportPost.chooseReason')}</Text>
 
-      {loading && (
-        <View style={styles.loaderOverlay}>
-          <ActivityIndicator size="large" color="#fff" />
-        </View>
-      )}
+              {reasons.map(r => (
+                <TouchableOpacity
+                  key={r.value}
+                  style={styles.option}
+                  activeOpacity={0.7}
+                  onPress={() => handleSelect(r.value, r.label)}
+                  disabled={loading}
+                >
+                  <View style={styles.optionRow}>
+                    <Text style={styles.optionText}>{r.label}</Text>
+                    <FontAwesomeIcon
+                      icon={Icons.ChevronRight}
+                      size={16}
+                      color={'white'}
+                    />
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </>
+          )}
+        </BottomSheetView>
+
+        {loading && (
+          <View style={styles.loaderOverlay}>
+            <ActivityIndicator size="large" color="#fff" />
+          </View>
+        )}
     </BottomSheetModal>
   );
 };
@@ -189,8 +283,22 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginVertical: 10,
   },
-  cancelContainer: {
+  footerContainer: {
     paddingHorizontal: 20,
+    gap: 12,
+  },
+  button: {
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  submitButton: {
+    backgroundColor: '#007AFF',
+  },
+  submitButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   cancelButton: {
     marginTop: 12,
@@ -203,6 +311,36 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '500',
+  },
+  cancelButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  textInput: {
+    backgroundColor: '#333',
+    color: 'white',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    textAlignVertical: 'top',
+    minHeight: 120,
+    borderWidth: 1,
+    borderColor: '#444',
+    marginBottom: 8,
+  },
+  textInputError: {
+    borderColor: '#ff4444',
+  },
+  errorText: {
+    color: '#ff4444',
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  characterCount: {
+    color: '#666',
+    fontSize: 12,
+    textAlign: 'right',
   },
   loaderOverlay: {
     ...StyleSheet.absoluteFillObject,

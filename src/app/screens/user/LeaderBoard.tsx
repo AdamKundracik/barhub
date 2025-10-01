@@ -194,10 +194,9 @@ const LeaderboardScreen = () => {
   }, [data]);
 
   return (
-    <ScreenLayout>
+    <ScreenLayout title={`🏆 ${t('leaderboard.topUsers')}`} showTitle>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.mainTitle}>🏆 {t('leaderboard.topUsers')}</Text>
         <Text style={styles.subtitle}>
           {selectedTab === 'week'
             ? t('leaderboard.week')

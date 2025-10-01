@@ -8,12 +8,16 @@ import { useAppState } from '../providers/AppStateProvider';
 import { PermissionsScreen } from '../screens/user/Permissions/Permissions';
 import { usePermissionsContext } from '../providers/PermissionsProvider';
 import { useAppInitialization } from '@/src/app/utils/hooks/useInitializationApp';
+import { useNetwork } from '../providers/NetworkProvider';
+import { NetworkTopBar } from '../components/shared/NetworkTopBar';
+import { OfflineScreen } from '../screens/shared/OfflineScreen';
 
 export const Navigation = () => {
   const { authUser, emailVerified, isAppInitialized } = useAppInitialization();
 
   const { hasAllPermissions, checkAllPermissions } = usePermissionsContext();
   const { appState } = useAppState();
+  const { isConnected, isLoading: isNetworkLoading } = useNetwork();
 
   useEffect(() => {
     switch (appState) {
@@ -23,7 +27,7 @@ export const Navigation = () => {
     }
   }, [appState]);
 
-  if (!isAppInitialized) {
+  if (!isAppInitialized || isNetworkLoading) {
     return <Loading />;
   }
 
@@ -31,17 +35,30 @@ export const Navigation = () => {
     return <PermissionsScreen />;
   }
 
+  // Show offline screen if user is authenticated but has no network connection
+  if (authUser && emailVerified && !isConnected) {
+    return (
+      <>
+        <NetworkTopBar />
+        <OfflineScreen />
+      </>
+    );
+  }
+
   return (
-    <NavigationContainer>
-      {authUser ? (
-        emailVerified ? (
-          <UserNav />
+    <>
+      <NetworkTopBar />
+      <NavigationContainer>
+        {authUser ? (
+          emailVerified ? (
+            <UserNav />
+          ) : (
+            <NotVerifiedNav />
+          )
         ) : (
-          <NotVerifiedNav />
-        )
-      ) : (
-        <AuthNav />
-      )}
-    </NavigationContainer>
+          <AuthNav />
+        )}
+      </NavigationContainer>
+    </>
   );
 };

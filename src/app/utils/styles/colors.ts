@@ -11,6 +11,6 @@ export const postBgColor = '#03031C';
 export const warningColor = '#FE7878';
 export const successColor = 'rgba(76, 175, 80, 0.8)';
 
-export const bottomModalBgColor = 'rgba(20,27,34,0.9)';
+export const bottomModalBgColor = 'rgba(20,27,34,0.8)';
 
 export const secondaryTextColor = '#a0a0a0';
