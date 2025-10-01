@@ -322,5 +322,13 @@
   "no_internet_title": "Sin Conexión a Internet",
   "no_internet_description": "Por favor, verifique su conexión e intente nuevamente. Barhub requiere una conexión a internet para funcionar correctamente.",
   "network_type": "Tipo de red",
-  "retry": "Reintentar"
+  "retry": "Reintentar",
+  "just-now": "Ahora mismo",
+  "minute": "minuto",
+  "minutes_2_4": "minutos",
+  "minutes_5_plus": "minutos",
+  "hour": "hora",
+  "hours_2_4": "horas",
+  "hours_5_plus": "horas",
+  "ago": "hace"
 }

@@ -239,6 +239,7 @@ export const Account = () => {
       <ScreenLayout
         title={t('edit-profile')}
         showBackButton
+        showTitle
         onBackPress={() => setIsEditing(false)}
       >
         <EditProfile

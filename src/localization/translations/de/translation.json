@@ -322,5 +322,13 @@
   "no_internet_title": "Keine Internetverbindung",
   "no_internet_description": "Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut. Barhub benötigt eine Internetverbindung, um ordnungsgemäß zu funktionieren.",
   "network_type": "Netzwerktyp",
-  "retry": "Erneut versuchen"
+  "retry": "Erneut versuchen",
+  "just-now": "Gerade eben",
+  "minute": "Minute",
+  "minutes_2_4": "Minuten",
+  "minutes_5_plus": "Minuten",
+  "hour": "Stunde",
+  "hours_2_4": "Stunden",
+  "hours_5_plus": "Stunden",
+  "ago": "vor"
 }

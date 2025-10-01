@@ -36,12 +36,12 @@ export const ScreenLayout = ({
                 <FontAwesomeIcon icon={Icons.Left} size={24} color="white" />
               </Pressable>
             ) : (
-              <Box style={styles.backButtonPlaceholder} />
+              showTitle && <Box style={styles.backButtonPlaceholder} />
             )}
 
             {/* Title */}
             {showTitle && title && (
-              <Center style={styles.titleContainer}>
+              <Center style={[styles.titleContainer, !showBackButton && styles.titleContainerFullWidth]}>
                 <Text numberOfLines={1} style={styles.titleText}>
                   {title}
                 </Text>
@@ -49,7 +49,7 @@ export const ScreenLayout = ({
             )}
 
             {/* Right placeholder (for symmetry) */}
-            <Box style={styles.rightPlaceholder} />
+            {showBackButton && <Box style={styles.rightPlaceholder} />}
           </Box>
         )}
 
@@ -66,12 +66,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     height: 56,
-    marginBottom: 10,
+    marginBottom: 12,
+    position: 'relative',
   },
   backButton: { padding: 8 },
   backButtonPlaceholder: { width: 40 }, // placeholder to keep title centered
   titleContainer: { flex: 1, alignItems: 'center' },
-  titleText: { color: 'white', fontSize: 18, fontWeight: '600' },
+  titleContainerFullWidth: { 
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  titleText: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    lineHeight: 28,
+    textAlign: 'center',
+  },
   rightPlaceholder: { width: 40 }, // for symmetry with back button
   content: { flex: 1 },
 });

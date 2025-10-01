@@ -220,13 +220,6 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
         showsVerticalScrollIndicator={false}
         bounces={false}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.titleContainer}>
-            <Text style={styles.title}>{t('edit-profile')}</Text>
-          </View>
-        </View>
-
         {/* Profile Picture Section */}
         <View style={styles.profileCard}>
           <TouchableOpacity
@@ -446,7 +439,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: primaryColor,
+    color: 'white',
     marginLeft: 12,
   },
   subtitle: {
@@ -593,7 +586,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
     paddingVertical: 14,
   },
   errorText: {
