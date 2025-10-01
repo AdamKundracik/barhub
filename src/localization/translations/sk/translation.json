@@ -234,7 +234,10 @@
     "successTitle": "Hlásenie odoslané",
     "successDescription": "Ďakujeme za vaše hlásenie, náš tím sa nim bude zaoberať.",
     "confirmTitle": "Potvrdenie nahlásenia",
-    "confirmMessage": "Naozaj chcete nahlásiť ako {{reason}}?"
+    "confirmMessage": "Naozaj chcete nahlásiť ako {{reason}}?",
+    "customReasonTitle": "Vlastný dôvod",
+    "customReasonPlaceholder": "Napíšte dôvod nahlásenia...",
+    "customReasonRequired": "Dôvod je povinný"
   },
   "or": "alebo",
   "delete-post": "Zmazať príspevok",

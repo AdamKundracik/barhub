@@ -5,6 +5,7 @@ interface ModalsState {
   isHelpOpen: boolean;
   isInfoOpen: boolean;
   isLogoutConfirmOpen: boolean;
+  isCustomReasonOpen: boolean;
 
   openFilter: () => void;
   closeFilter: () => void;
@@ -21,6 +22,10 @@ interface ModalsState {
   openLogoutConfirm: () => void;
   closeLogoutConfirm: () => void;
   toggleLogoutConfirm: () => void;
+
+  openCustomReason: () => void;
+  closeCustomReason: () => void;
+  toggleCustomReason: () => void;
 }
 
 export const modalsStore = create<ModalsState>(set => ({
@@ -28,6 +33,7 @@ export const modalsStore = create<ModalsState>(set => ({
   isHelpOpen: false,
   isInfoOpen: false,
   isLogoutConfirmOpen: false,
+  isCustomReasonOpen: false,
 
   openFilter: () => set({ isFilterOpen: true }),
   closeFilter: () => set({ isFilterOpen: false }),
@@ -45,4 +51,9 @@ export const modalsStore = create<ModalsState>(set => ({
   closeLogoutConfirm: () => set({ isLogoutConfirmOpen: false }),
   toggleLogoutConfirm: () =>
     set(state => ({ isLogoutConfirmOpen: !state.isLogoutConfirmOpen })),
+
+  openCustomReason: () => set({ isCustomReasonOpen: true }),
+  closeCustomReason: () => set({ isCustomReasonOpen: false }),
+  toggleCustomReason: () =>
+    set(state => ({ isCustomReasonOpen: !state.isCustomReasonOpen })),
 }));

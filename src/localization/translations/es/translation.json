@@ -236,7 +236,10 @@
     "successTitle": "Reporte enviado",
     "successDescription": "Gracias por su reporte, nuestro equipo lo revisará.",
     "confirmTitle": "Confirmar reporte",
-    "confirmMessage": "¿Realmente quieres reportar esto como {{reason}}?"
+    "confirmMessage": "¿Realmente quieres reportar esto como {{reason}}?",
+    "customReasonTitle": "Motivo Personalizado",
+    "customReasonPlaceholder": "Escribe tu motivo para reportar...",
+    "customReasonRequired": "El motivo es requerido"
   },
   "uploadPost": {
     "successTitle": "Publicación guardada",

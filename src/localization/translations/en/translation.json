@@ -236,7 +236,10 @@
     "successTitle": "Report Sent",
     "successDescription": "Thank you for your report, our team will review it.",
     "confirmTitle": "Confirm Report",
-    "confirmMessage": "Do you really want to report this as {{reason}}?"
+    "confirmMessage": "Do you really want to report this as {{reason}}?",
+    "customReasonTitle": "Custom Reason",
+    "customReasonPlaceholder": "Write your reason for reporting...",
+    "customReasonRequired": "Reason is required"
   },
   "uploadPost": {
     "successTitle": "Post saved",

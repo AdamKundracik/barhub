@@ -244,7 +244,10 @@
     "successTitle": "Meldung gesendet",
     "successDescription": "Vielen Dank für Ihre Meldung, unser Team wird dies prüfen.",
     "confirmTitle": "Meldung bestätigen",
-    "confirmMessage": "Möchten Sie diesen Beitrag wirklich als {{reason}} melden?"
+    "confirmMessage": "Möchten Sie diesen Beitrag wirklich als {{reason}} melden?",
+    "customReasonTitle": "Benutzerdefinierter Grund",
+    "customReasonPlaceholder": "Schreiben Sie Ihren Grund für die Meldung...",
+    "customReasonRequired": "Grund ist erforderlich"
   },
   "or": "oder",
   "delete-post": "Beitrag löschen",
