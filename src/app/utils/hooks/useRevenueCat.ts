@@ -5,7 +5,7 @@ import Purchases, {
   PurchasesPackage,
 } from 'react-native-purchases';
 import { Platform } from 'react-native';
-import { useUserStore } from '../../stores/userStore';
+import { useUserStore } from '../store/userStore';
 import { useAuth } from '../../providers/AuthProvider';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useTranslation } from 'react-i18next';
@@ -65,7 +65,7 @@ export const useRevenueCat = ({
       const isPremium = !!entitlements['subscription']; // názov podľa RC Dashboard
 
       // Update premium status in store (this will also update backend)
-      await setPremium(isPremium);
+      setPremium(isPremium);
 
       if (onCustomerInfoUpdated) {
         await onCustomerInfoUpdated();

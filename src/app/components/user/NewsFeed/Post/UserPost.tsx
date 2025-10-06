@@ -1,10 +1,9 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Device from 'react-native-device-info';
 import Animated, {
   FadeIn,
   runOnJS,
-  SlideInUp,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -187,7 +186,7 @@ const UserPost: React.FC<UserPostProps> = ({
   isFiltering,
   onCommentPress,
 }) => {
-  const { premium, canSeeContent } = useUserStore();
+  const { isPremium, canSeeContent } = useUserStore();
 
   // Early return if no post
   if (!post) {
@@ -240,8 +239,8 @@ const UserPost: React.FC<UserPostProps> = ({
 
   // Computed values
   const shouldShowBlur = useMemo(
-    () => !premium && !canSeeContent,
-    [premium, canSeeContent]
+    () => !isPremium() && !canSeeContent,
+    [isPremium, canSeeContent]
   );
 
   const trimmedPlaceName = useMemo(() => trimPlaceName(placeName), [placeName]);
@@ -258,9 +257,7 @@ const UserPost: React.FC<UserPostProps> = ({
     >
       {/* Modern Place Name Header */}
       {!isFiltering && (
-        <View
-          style={[styles.placeName, isTablet && tabletStyles.placeName]}
-        >
+        <View style={[styles.placeName, isTablet && tabletStyles.placeName]}>
           <PlaceNameSeparator
             placeNameLocal={trimmedPlaceName}
             placeIdLocal={folderId}

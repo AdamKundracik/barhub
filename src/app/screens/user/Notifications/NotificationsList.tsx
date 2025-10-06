@@ -33,7 +33,7 @@ import {
 const NotificationsList: React.FC = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
-  const { premium } = useUserStore();
+  const { isPremium } = useUserStore();
   const { data: storeData, markAllAsSeen } = useNotificationsStore();
 
   const { isLoading, refetch, isFetching } = useNotificationsQuery();
@@ -218,7 +218,7 @@ const NotificationsList: React.FC = () => {
         </View>
 
         {/* Enhanced Ad Container */}
-        {!premium && (
+        {!isPremium() && (
           <Animated.View
             entering={FadeInUp.delay(300).springify()}
             style={styles.adContainer}

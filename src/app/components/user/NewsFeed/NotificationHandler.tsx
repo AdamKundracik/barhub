@@ -4,7 +4,7 @@ import * as Notifications from 'expo-notifications';
 import { registerForPushNotificationsAsync } from '../../../utils/functions/notofications-handler';
 import { openCamera } from '../../../utils/helper-functions/openCamera';
 import { NotificationType } from '../../../utils/types/notification-types';
-import { useUserStore } from '@/src/app/stores/userStore';
+import { useUserStore } from '@/src/app/utils/store/userStore';
 import { userService } from '@/src/app/services/userService';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
@@ -25,7 +25,7 @@ export function useNotificationsHandler() {
     const { getUserId } = useUserStore.getState();
     const userId = getUserId();
     if (!userId) return;
-    
+
     const success = await userService.addPushToken(userId, token);
     if (success) setCurrentPushToken(token);
   };
@@ -35,7 +35,7 @@ export function useNotificationsHandler() {
     const { getUserId } = useUserStore.getState();
     const userId = getUserId();
     if (!userId) return;
-    
+
     await userService.removePushToken(userId, token);
   };
 

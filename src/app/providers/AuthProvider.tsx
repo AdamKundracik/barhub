@@ -13,7 +13,7 @@ import {
 } from '../services/authService';
 import { userService } from '../services/userService';
 import { pushTokenService } from '../services/pushTokenService';
-import { useUserStore } from '../stores/userStore';
+import { useUserStore } from '../utils/store/userStore';
 import { useLocationStore } from '../utils/store/locationStore';
 import { getCoords } from '../utils/helper-functions/get-coords';
 
@@ -41,7 +41,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   // Zustand stores
-  const { setUserData } = useUserStore();
+  const { setUserData, updateCanSeeContent } = useUserStore();
   const { setUseFakeLocation, setFakeLocationName, setInitialized } =
     useLocationStore();
 
@@ -51,14 +51,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   // Save current location to backend
-  const saveCurrentLocationToBackend = async (userId: string): Promise<void> => {
+  const saveCurrentLocationToBackend = async (
+    userId: string
+  ): Promise<void> => {
     try {
       console.log('[AuthProvider] Getting current location for user:', userId);
-      
+
       // Get current location
       const location = await getCoords();
       console.log('[AuthProvider] Current location:', location);
-      
+
       // Save to backend
       const success = await userService.updateLocation(userId, location);
       if (success) {
@@ -84,13 +86,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Store complete backend DTO in new userStore
         setUserData(appUserData);
 
+        // Update canSeeContent based on lastUploadedPostAt
+        updateCanSeeContent();
+
         // Set fake location usage from backend
         if (appUserData.usingFakeLocation !== undefined) {
           setUseFakeLocation(appUserData.usingFakeLocation);
         }
 
         setInitialized(true);
-        
+
         // Save current location to backend immediately after auth
         console.log('[AuthProvider] Saving current location to backend');
         await saveCurrentLocationToBackend(userData.id.toString());
@@ -126,9 +131,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(userData);
           // Load extended user data and populate stores
           await loadUserData(userData);
-          
+
           // Initialize push token service and save token to backend
-          console.log('[AuthProvider] Initializing push token service on app startup');
+          console.log(
+            '[AuthProvider] Initializing push token service on app startup'
+          );
           await pushTokenService.initialize(userData.id.toString());
         } else {
           // If we can't get user data, logout
@@ -159,13 +166,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(userData);
         // Load extended user data and populate stores
         await loadUserData(userData);
-        
+
         // Initialize push token service and save token to backend
-        console.log('[AuthProvider] Initializing push token service after login');
+        console.log(
+          '[AuthProvider] Initializing push token service after login'
+        );
         await pushTokenService.initialize(userData.id.toString());
-        
+
         // Save current location to backend immediately after login
-        console.log('[AuthProvider] Saving current location to backend after login');
+        console.log(
+          '[AuthProvider] Saving current location to backend after login'
+        );
         await saveCurrentLocationToBackend(userData.id.toString());
       } else {
         throw new Error('Failed to get user data after login');
@@ -191,13 +202,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(userData);
         // Load extended user data and populate stores
         await loadUserData(userData);
-        
+
         // Initialize push token service and save token to backend
-        console.log('[AuthProvider] Initializing push token service after registration');
+        console.log(
+          '[AuthProvider] Initializing push token service after registration'
+        );
         await pushTokenService.initialize(userData.id.toString());
-        
+
         // Save current location to backend immediately after registration
-        console.log('[AuthProvider] Saving current location to backend after registration');
+        console.log(
+          '[AuthProvider] Saving current location to backend after registration'
+        );
         await saveCurrentLocationToBackend(userData.id.toString());
       } else {
         throw new Error('Failed to get user data after registration');
@@ -213,18 +228,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     try {
       setIsLoading(true);
-      
+
       // Remove push token from backend BEFORE clearing auth tokens
       if (user) {
-        console.log('[AuthProvider] Removing push token from backend before logout');
+        console.log(
+          '[AuthProvider] Removing push token from backend before logout'
+        );
         try {
           await pushTokenService.removePushTokenFromBackend(user.id.toString());
         } catch (error) {
-          console.error('[AuthProvider] Error removing push token from backend:', error);
+          console.error(
+            '[AuthProvider] Error removing push token from backend:',
+            error
+          );
           // Continue with logout even if push token removal fails
         }
       }
-      
+
       // Now clear auth tokens and logout
       await authService.logout();
       setUser(null);
@@ -235,7 +255,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUseFakeLocation(false);
       setFakeLocationName('');
       setInitialized(false);
-      
+
       // Clear push token service
       pushTokenService.clearToken();
     } catch (error) {

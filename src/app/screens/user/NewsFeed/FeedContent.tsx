@@ -1,9 +1,8 @@
 import React from 'react';
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import PostsList from '../../../components/user/NewsFeed/PostList';
 import PostLoaderView from '../../../components/user/NewsFeed/Post/Loaders/PostLoaderView';
 import EmptyState from '../../../components/user/NewsFeed/EmptyState';
-import InlineAd from '@/src/app/components/user/InlineAd';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
@@ -39,7 +38,7 @@ export const FeedContent: React.FC<FeedContentProps> = ({
   isFetchingNextPage,
   fetchMorePosts,
 }) => {
-  const { premium } = useUserStore();
+  const { isPremium } = useUserStore();
   const tabBarHeight = useBottomTabBarHeight();
 
   if (isLoading) {
@@ -74,7 +73,6 @@ export const FeedContent: React.FC<FeedContentProps> = ({
         }
       >
         <EmptyState requestPhoto={requestPhoto} />
-
       </ScrollView>
     </>
   );

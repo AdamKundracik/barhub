@@ -59,7 +59,7 @@ const FilterSlider = () => {
   const { useFakeLocation, setUseFakeLocation, fakeLocationName } =
     useLocationStore();
 
-  const { premium } = useUserStore();
+  const { isPremium } = useUserStore();
 
   const { isRefetching } = useNewsFeedData(); // inside FilterSlider
 
@@ -146,7 +146,8 @@ const FilterSlider = () => {
   );
 
   function handleFakeLocationToggle(value: boolean) {
-    if (premium) {
+    console.log('PREMIUM', isPremium());
+    if (isPremium()) {
       setUseFakeLocation(value);
     } else {
       setTempUseFakeLocation(useFakeLocation);
@@ -236,9 +237,7 @@ const FilterSlider = () => {
         </View>
         <View style={styles.fakeLocationSection}>
           <View style={styles.fakeLocationHeader}>
-            <Text style={styles.sectionTitle}>
-              {t('use-travel-mode')}
-            </Text>
+            <Text style={styles.sectionTitle}>{t('use-travel-mode')}</Text>
             <Switch
               value={useFakeLocation}
               onValueChange={handleFakeLocationToggle}

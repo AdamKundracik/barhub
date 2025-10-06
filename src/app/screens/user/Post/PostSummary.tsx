@@ -55,7 +55,7 @@ export const PostSummary = ({ route }: any) => {
   const { showSuccessToast, showErrorToast } = useCustomToast();
 
   const { resetFilters } = useFiltersStore();
-  const { setLastUploadedPost } = useUserStore();
+  const { updateUserData } = useUserStore();
 
   const [selectedOccupancy, setSelectedOccupancy] =
     useState<OccupancyEnum | null>(null);
@@ -152,7 +152,7 @@ export const PostSummary = ({ route }: any) => {
         );
       }
 
-      setLastUploadedPost(new Date());
+      updateUserData({ lastUploadedPostAt: new Date().toISOString() });
       resetFilters();
       await refetch();
 

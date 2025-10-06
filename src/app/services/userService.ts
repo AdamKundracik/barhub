@@ -49,6 +49,13 @@ class UserService {
         backendUpdates.dateOfBirth = updates.dateOfBirth;
       }
 
+      // ADD THIS: Premium field mapping
+      if (updates.premium !== undefined) {
+        backendUpdates.premium = updates.premium;
+      }
+
+      console.log('[UserService] Backend updates to send:', backendUpdates);
+
       // Use PATCH method and /users/me endpoint for current user
       const updatedUser = await apiUtils.patch<ClientDTO>(
         ENDPOINTS.USERS.ME,
@@ -56,6 +63,8 @@ class UserService {
       );
 
       console.log('[UserService] User updated successfully');
+      console.log('updated', updatedUser);
+
       return updatedUser;
     } catch (error) {
       console.error('Error updating user:', error);

@@ -2,9 +2,8 @@ import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { LocationType } from '../types/types';
 import { setUser } from '../services/functions';
-import { useUserStore } from '@/src/app/utils/store/userStore';
 import { userService } from '@/src/app/services/userService';
-import { useUserStore as useNewUserStore } from '@/src/app/stores/userStore';
+import { useUserStore as useNewUserStore } from '@/src/app/utils/store/userStore';
 
 interface LocationStore {
   location: LocationType | null;
@@ -49,7 +48,7 @@ useLocationStore.subscribe(
   state => state.useFakeLocation,
   (newVal, prevVal) => {
     if (newVal !== prevVal) {
-      useUserStore.getState().setUserData({ isUsingFakeLocation: newVal });
+      useNewUserStore.getState().updateUserData({ usingFakeLocation: newVal });
       setUser({ isUsingFakeLocation: newVal });
     }
   }

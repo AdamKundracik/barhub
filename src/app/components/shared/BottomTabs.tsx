@@ -23,7 +23,6 @@ import { BlurView } from 'expo-blur';
 import { useTranslation } from 'react-i18next';
 import { usePostsStore } from '@/src/app/utils/store/postStore';
 import { useUserStore } from '@/src/app/utils/store/userStore';
-import { toDate } from '@/src/app/utils/helper-functions/toDate';
 import { useNewsFeedData } from '@/src/app/utils/hooks/NewsFeed/usePostData';
 
 const Tab = createBottomTabNavigator();
@@ -31,7 +30,7 @@ const Tab = createBottomTabNavigator();
 const BottomTabs = () => {
   const { useFakeLocation } = useLocationStore();
   const { scrollOnTop } = usePostsStore();
-  const { lastUploadedPost } = useUserStore();
+  const { userData } = useUserStore();
   const { refetch } = useNewsFeedData();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
@@ -44,7 +43,9 @@ const BottomTabs = () => {
     }
 
     // 2️⃣ Check last uploaded post (5 min cooldown)
-    const lastDate = toDate(lastUploadedPost);
+    const lastDate = userData?.lastUploadedPostAt
+      ? new Date(userData.lastUploadedPostAt)
+      : null;
     if (lastDate) {
       const now = Date.now();
       const diffMs = now - lastDate.getTime();

@@ -48,7 +48,7 @@ const PostsList = ({
 }: PostsListProps) => {
   const { t } = useTranslation();
   const { placeId } = usePlaceStore();
-  const { premium } = useUserStore();
+  const { isPremium } = useUserStore();
   const flatListRef = useRef<FlashListRef<any>>(null);
   // const [showScrollTopButton, setShowScrollTopButton] = useState(false);
   // const scrollButtonAnimation = useRef(new Animated.Value(0)).current;
@@ -122,7 +122,7 @@ const PostsList = ({
               onCommentPress(postId, expoPushToken, userId)
             }
             isFiltering={isFiltering}
-            hasPremium={userData?.premium ?? false}
+            hasPremium={isPremium()}
             post={item}
             setZoomedPost={setZoomedPost}
             isZoomed={zoomedPost === item.photoUrl}
@@ -130,7 +130,7 @@ const PostsList = ({
         </View>
       );
 
-      if (index > 0 && index % 3 === 0 && !premium) {
+      if (index > 0 && index % 3 === 0 && !isPremium()) {
         return (
           <>
             <NativeAdComponent />
@@ -143,11 +143,10 @@ const PostsList = ({
     },
     [
       zoomedPost,
-      premium,
+      isPremium,
       requestPhoto,
       onCommentPress,
       isFiltering,
-      userData?.premium,
       setZoomedPost,
     ]
   );
