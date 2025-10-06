@@ -3,12 +3,12 @@ import {
   GoogleAuthProvider,
   OAuthProvider,
   signInWithCredential,
-  signInWithEmailAndPassword,
 } from 'firebase/auth';
 import * as AppleAuth from 'expo-apple-authentication';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { auth } from '@/firebaseConfig';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../providers/AuthProvider';
 
 export interface LoginFormData {
   email: string;
@@ -17,6 +17,7 @@ export interface LoginFormData {
 
 export const useLoginForm = () => {
   const { t } = useTranslation();
+  const { login } = useAuth();
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: '',
@@ -149,11 +150,14 @@ export const useLoginForm = () => {
     setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, formData.email, formData.password);
+      await login({
+        email: formData.email,
+        password: formData.password,
+      });
       return { success: true };
     } catch (error: any) {
       console.error('Email/Password sign-in error:', error);
-      const errorMessage = getFirebaseErrorMessage(error.code);
+      const errorMessage = error.message || t('unknown-error') || 'An error occurred. Please try again.';
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);

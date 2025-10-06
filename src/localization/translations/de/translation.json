@@ -145,6 +145,7 @@
   "account-state": "Kontostatus",
   "date-of-birth-not-set": "Geburtsdatum nicht festgelegt",
   "delete-account": "Konto löschen",
+  "delete-account-warning": "Sind Sie sicher, dass Sie Ihr Konto löschen möchten? Diese Aktion ist unumkehrbar und alle Ihre Daten werden dauerhaft entfernt.",
   "contact-us": "Zögere nicht, uns bezüglich Anregungen und Wünschen zu kontaktieren",
   "input-email": "Gib deine E-Mail-Adresse ein",
   "any-questions": "Anregung oder Frage",
@@ -278,7 +279,7 @@
     "title": "Bestenliste",
     "topUsers": "Top-Benutzer",
     "week": "Diese Woche",
-    "allTime": "Gesamt"
+    "yearly": "Jahr"
   },
   "liked-your-photo": "hat dein Foto mit „Gefällt mir“ markiert",
   "commented-your-photo": "hat dein Foto kommentiert",
@@ -293,6 +294,8 @@
   "no-data": "Keine Daten",
   "explore": "Entdecken",
   "search": "Suchen",
+  "no-search-history": "Kein Suchverlauf",
+  "yearly": "Jahr",
   "camera": {
     "fakeLocationBlocked": "Kamera kann bei falschem Standort nicht geöffnet werden",
     "waitBeforeNextUpload": "Bitte warten Sie noch {{time}}s, bevor Sie erneut hochladen"

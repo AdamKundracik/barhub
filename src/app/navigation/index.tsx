@@ -2,18 +2,19 @@ import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { Loading } from '../components/shared/Loading';
 import AuthNav from './AuthNav';
-import NotVerifiedNav from './NotVerifiedNav';
 import { UserNav } from './UserNav';
 import { useAppState } from '../providers/AppStateProvider';
 import { PermissionsScreen } from '../screens/user/Permissions/Permissions';
 import { usePermissionsContext } from '../providers/PermissionsProvider';
 import { useAppInitialization } from '@/src/app/utils/hooks/useInitializationApp';
+import { useAuth } from '../providers/AuthProvider';
 import { useNetwork } from '../providers/NetworkProvider';
 import { NetworkTopBar } from '../components/shared/NetworkTopBar';
 import { OfflineScreen } from '../screens/shared/OfflineScreen';
 
 export const Navigation = () => {
-  const { authUser, emailVerified, isAppInitialized } = useAppInitialization();
+  const { isAppInitialized } = useAppInitialization();
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
   const { hasAllPermissions, checkAllPermissions } = usePermissionsContext();
   const { appState } = useAppState();
@@ -27,7 +28,7 @@ export const Navigation = () => {
     }
   }, [appState]);
 
-  if (!isAppInitialized || isNetworkLoading) {
+  if (!isAppInitialized || isNetworkLoading || isAuthLoading) {
     return <Loading />;
   }
 
@@ -36,7 +37,7 @@ export const Navigation = () => {
   }
 
   // Show offline screen if user is authenticated but has no network connection
-  if (authUser && emailVerified && !isConnected) {
+  if (isAuthenticated && !isConnected) {
     return (
       <>
         <NetworkTopBar />
@@ -49,15 +50,7 @@ export const Navigation = () => {
     <>
       <NetworkTopBar />
       <NavigationContainer>
-        {authUser ? (
-          emailVerified ? (
-            <UserNav />
-          ) : (
-            <NotVerifiedNav />
-          )
-        ) : (
-          <AuthNav />
-        )}
+        {isAuthenticated ? <UserNav /> : <AuthNav />}
       </NavigationContainer>
     </>
   );

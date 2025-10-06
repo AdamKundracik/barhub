@@ -78,7 +78,7 @@ export const useLocation = () => {
       await BackgroundGeolocation.ready({
         disableLocationAuthorizationAlert: true,
         desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_NAVIGATION,
-        distanceFilter: 25,
+        distanceFilter: 10,
         stopTimeout: 3,
         debug: false,
         logLevel: BackgroundGeolocation.LOG_LEVEL_OFF,

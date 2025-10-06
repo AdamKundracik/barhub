@@ -1,7 +1,7 @@
 import React, { createContext, ReactNode, useContext } from 'react';
 import { PurchasesPackage } from 'react-native-purchases';
 import { User } from '@/shared';
-import { useUserData } from '@/src/app/utils/hooks/useUserData';
+import { useUserData } from '@/src/app/hooks/useUserQuery';
 import { useRevenueCat } from '@/src/app/utils/hooks/useRevenueCat';
 
 interface RevenueCatContextType {
@@ -16,7 +16,7 @@ interface RevenueCatContextType {
 const RevenueCatContext = createContext<RevenueCatContextType | null>(null);
 
 export const RevenueCatProvider = ({ children }: { children: ReactNode }) => {
-  const { data: currentUser } = useUserData();
+  const { userData: currentUser } = useUserData();
 
   const revenueCatHook = useRevenueCat();
 

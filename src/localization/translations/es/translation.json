@@ -145,6 +145,7 @@
   "account-state": "estado de la cuenta",
   "date-of-birth-not-set": "fecha de nacimiento no establecida",
   "delete-account": "eliminar cuenta",
+  "delete-account-warning": "¿Está seguro de que desea eliminar su cuenta? Esta acción es irreversible y todos sus datos serán eliminados permanentemente.",
   "contact-us": "No dudes en contactarnos con sugerencias y solicitudes",
   "input-email": "Introduce tu correo electrónico",
   "any-questions": "Sugerencia o pregunta",
@@ -278,7 +279,7 @@
     "title": "Clasificación",
     "topUsers": "Mejores usuarios",
     "week": "Esta semana",
-    "allTime": "Histórico"
+    "yearly": "Año"
   },
   "liked-your-photo": "le gustó tu foto",
   "commented-your-photo": "comentó en tu foto",
@@ -293,6 +294,8 @@
   "no-data": "Sin datos",
   "explore": "Explorar",
   "search": "Buscar",
+  "no-search-history": "Sin historial de búsqueda",
+  "yearly": "Año",
   "camera": {
     "fakeLocationBlocked": "No se puede abrir la cámara con ubicación falsa",
     "waitBeforeNextUpload": "Espere {{time}}s antes de subir otra foto"

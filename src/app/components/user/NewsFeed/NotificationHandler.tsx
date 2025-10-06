@@ -4,8 +4,8 @@ import * as Notifications from 'expo-notifications';
 import { registerForPushNotificationsAsync } from '../../../utils/functions/notofications-handler';
 import { openCamera } from '../../../utils/helper-functions/openCamera';
 import { NotificationType } from '../../../utils/types/notification-types';
-import { useUserStore } from '@/src/app/utils/store/userStore';
-import userClient from '@/src/app/utils/services/user.service';
+import { useUserStore } from '@/src/app/stores/userStore';
+import { userService } from '@/src/app/services/userService';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { UserStackList } from '@/src/app/utils/types/screen-types';
@@ -22,13 +22,21 @@ export function useNotificationsHandler() {
 
   const addPushToken = async (token: string) => {
     if (!token) return;
-    const response = await userClient.addPushToken(token);
-    if (response.success) setCurrentPushToken(token);
+    const { getUserId } = useUserStore.getState();
+    const userId = getUserId();
+    if (!userId) return;
+    
+    const success = await userService.addPushToken(userId, token);
+    if (success) setCurrentPushToken(token);
   };
 
   const removePushToken = async (token: string) => {
     if (!token) return;
-    await userClient.removePushToken(token);
+    const { getUserId } = useUserStore.getState();
+    const userId = getUserId();
+    if (!userId) return;
+    
+    await userService.removePushToken(userId, token);
   };
 
   const unsubscribeNotifications = () => {
@@ -64,7 +72,14 @@ export function useNotificationsHandler() {
           sentAt,
           notificationType,
           id,
-        } = response.notification.request.content.data;
+        } = response.notification.request.content.data as {
+          placeId: string;
+          senderToken: string;
+          notificationTTL: number;
+          sentAt: string;
+          notificationType: string;
+          id: string;
+        };
 
         switch (notificationType as NotificationType) {
           case NotificationType.LIKE:

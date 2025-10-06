@@ -27,69 +27,64 @@ import {
   deleteProfilePicture,
   uploadProfilePhotoAsync,
 } from '../../../utils/helper-functions/imageUploadFunctions';
-import { setUser } from '../../../utils/services/functions';
-import { updateProfile } from 'firebase/auth';
 import SlidingView from '@/src/app/components/shared/Modals/SlidingView';
 import { Input, InputField } from '@/components/ui/input';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { useLocales } from 'expo-localization';
 import { auth } from '@/firebaseConfig';
-import { User } from '@/shared';
+import { ClientDTO } from '@/src/app/types/dto';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
-import { useQueryClient } from 'react-query';
-import { useUserData } from '@/src/app/utils/hooks/useUserData';
+import { useUserData } from '@/src/app/hooks/useUserQuery';
 import FastImage from 'react-native-fast-image';
 
 type EditProfileProps = {
-  user: User | null;
+  user: ClientDTO | null;
   onEditCLose: () => void;
 };
 
 const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
   const { t } = useTranslation();
-  const { refetch: fetchUserData } = useUserData();
+  const {
+    updateProfileAsync,
+    isUpdatingProfile,
+    updatePhotoAsync,
+    deletePhotoAsync,
+    isUpdatingPhoto,
+    isDeletingPhoto,
+    displayName,
+    email,
+    photoUrl,
+    isPremium,
+  } = useUserData();
   const locales = useLocales();
   const { showSuccessToast, showErrorToast } = useCustomToast();
-  const queryClient = useQueryClient();
 
   const [openImageOptions, setOpenImageOptions] = useState(false);
   const [username, setUsername] = useState<string | null | undefined>(
-    auth.currentUser?.displayName
+    displayName
   );
-  const [email] = useState<string | null | undefined>(auth.currentUser?.email);
+  const [userEmail] = useState<string | null | undefined>(email);
   const [birthDate, setBirthDate] = useState<Date>(
     user?.dateOfBirth ? new Date(user.dateOfBirth) : new Date()
   );
-  const [isSaving, setIsSaving] = useState(false);
   const [datePickerOpened, setDatePickerOpened] = useState(false);
-  const [imageUploading, setImageUploading] = useState(false);
 
   function validateInputs(): boolean {
     return !username || username.trim().length === 0;
   }
 
   const handleImageUpload = async (uri: string) => {
-    setImageUploading(true);
     try {
       const uploadedUri = await uploadProfilePhotoAsync(uri);
-      const response = await setUser({ photoURL: uploadedUri });
 
-      if (response.success) {
-        await updateProfile(auth.currentUser!, { photoURL: uploadedUri });
-        await queryClient.invalidateQueries({
-          queryKey: ['userData', auth.currentUser?.uid],
-        });
-        showSuccessToast(
-          t('toastPhotoUpdatedTitle'),
-          t('toastPhotoUpdatedDesc')
-        );
-      } else {
-        showErrorToast(t('toastErrorTitle'), t('toastErrorDesc'));
-      }
-    } catch {
+      // Use the new photo mutation with optimistic updates
+      await updatePhotoAsync(uploadedUri);
+
+      showSuccessToast(t('toastPhotoUpdatedTitle'), t('toastPhotoUpdatedDesc'));
+    } catch (error) {
+      console.error('Error uploading image:', error);
       showErrorToast(t('toastErrorTitle'), t('toastErrorDesc'));
     } finally {
-      setImageUploading(false);
       setOpenImageOptions(false);
     }
   };
@@ -144,28 +139,15 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
   };
 
   const removePicture = async () => {
-    setImageUploading(true);
     try {
-      if (auth.currentUser?.providerId !== 'google.com') {
-        await deleteProfilePicture(auth.currentUser?.uid!);
-      }
-      const response = await setUser({ photoURL: '' });
-      if (response.success) {
-        await updateProfile(auth.currentUser!, { photoURL: '' });
-        await queryClient.invalidateQueries({
-          queryKey: ['userData', auth.currentUser?.uid],
-        });
-        showSuccessToast(
-          t('toastPhotoDeletedTitle'),
-          t('toastPhotoDeletedDesc')
-        );
-      } else {
-        showErrorToast(t('toastErrorTitle'), t('toastErrorDesc'));
-      }
-    } catch {
+      // Use the new delete photo mutation with optimistic updates
+      await deletePhotoAsync();
+
+      showSuccessToast(t('toastPhotoDeletedTitle'), t('toastPhotoDeletedDesc'));
+    } catch (error) {
+      console.error('Error deleting photo:', error);
       showErrorToast(t('toastErrorTitle'), t('toastErrorDesc'));
     } finally {
-      setImageUploading(false);
       setOpenImageOptions(false);
     }
   };
@@ -183,29 +165,20 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
   };
 
   const handleUpdateUser = async () => {
-    if (!auth.currentUser || validateInputs()) return;
+    if (validateInputs()) return;
 
-    setIsSaving(true);
     try {
-      const response = await setUser({
-        displayName: username?.trim(),
+      // Use the new profile update mutation with optimistic updates
+      await updateProfileAsync({
+        name: username?.trim(),
         dateOfBirth: birthDate.toISOString(),
       });
 
-      if (response.success) {
-        await updateProfile(auth.currentUser, {
-          displayName: username?.trim(),
-        });
-        if (fetchUserData) await fetchUserData();
-        showSuccessToast(t('toastDataUpdatedTitle'), t('toastDataUpdatedDesc'));
-        onEditCLose();
-      } else {
-        showErrorToast(t('toastErrorTitle'), t('toastErrorDesc'));
-      }
-    } catch {
+      showSuccessToast(t('toastDataUpdatedTitle'), t('toastDataUpdatedDesc'));
+      onEditCLose();
+    } catch (error) {
+      console.error('Error updating user:', error);
       showErrorToast(t('toastErrorTitle'), t('toastErrorDesc'));
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -223,29 +196,32 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
         {/* Profile Picture Section */}
         <View style={styles.profileCard}>
           <TouchableOpacity
-            onPress={() => !imageUploading && setOpenImageOptions(true)}
+            onPress={() =>
+              !(isUpdatingPhoto || isDeletingPhoto) && setOpenImageOptions(true)
+            }
             style={styles.profileImageContainer}
-            disabled={imageUploading}
+            disabled={isUpdatingPhoto || isDeletingPhoto}
           >
             <FastImage
               source={
-                auth.currentUser?.photoURL
+                photoUrl
                   ? {
-                      uri: auth.currentUser.photoURL,
+                      uri: photoUrl,
                       priority: FastImage.priority.normal,
                     }
                   : require('../../../../../assets/userIcon.png')
               }
               style={[
                 styles.profilePicture,
-                user?.premium && styles.premiumBorder,
-                imageUploading && styles.profilePictureLoading,
+                isPremium && styles.premiumBorder,
+                (isUpdatingPhoto || isDeletingPhoto) &&
+                  styles.profilePictureLoading,
               ]}
               resizeMode={FastImage.resizeMode.cover}
             />
 
             <View style={styles.editIconContainer}>
-              {imageUploading ? (
+              {isUpdatingPhoto || isDeletingPhoto ? (
                 <View style={styles.loadingContainer}>
                   <ButtonSpinner color={primaryBgColor} size="small" />
                 </View>
@@ -258,7 +234,7 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
               )}
             </View>
 
-            {user?.premium && (
+            {isPremium && (
               <View style={styles.premiumBadge}>
                 <FontAwesomeIcon icon={Icons.Crown} size={12} color="#FFC107" />
               </View>
@@ -289,7 +265,7 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
             >
               <InputField
                 type="text"
-                value={email!}
+                value={userEmail!}
                 editable={false}
                 style={[styles.inputText, styles.disabledText]}
               />
@@ -368,12 +344,13 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
             action="primary"
             style={[
               styles.saveButton,
-              (isSaving || validateInputs()) && styles.saveButtonDisabled,
+              (isUpdatingProfile || validateInputs()) &&
+                styles.saveButtonDisabled,
             ]}
             onPress={handleUpdateUser}
-            isDisabled={isSaving || validateInputs()}
+            isDisabled={isUpdatingProfile || validateInputs()}
           >
-            {isSaving ? (
+            {isUpdatingProfile ? (
               <ButtonSpinner color="white" />
             ) : (
               <ButtonText style={styles.saveButtonText}>

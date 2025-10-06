@@ -144,6 +144,7 @@
   "account-state": "Stav účtu",
   "date-of-birth-not-set": "Dátum narodenia nie je nastavený",
   "delete-account": "Vymazať účet",
+  "delete-account-warning": "Naozaj chcete vymazať svoj účet? Táto akcia je nevratná a všetky vaše dáta budú natrvalo odstránené.",
   "contact-us": "Neváhaj sa nám ozvať ohľadom pripomienok a želaní",
   "input-email": "Zadaj svoj email",
   "any-questions": "Pripomienka alebo dotaz",
@@ -276,7 +277,7 @@
     "title": "Rebríček",
     "topUsers": "Najlepší používatelia",
     "week": "Týždeň",
-    "allTime": "Celkový"
+    "yearly": "Rok"
   },
   "liked-your-photo": "sa páčil tvoj príspevok",
   "commented-your-photo": "okomentoval tvoj príspevok",
@@ -291,6 +292,8 @@
   "no-data": "Žiadne dáta",
   "explore": "Objavuj",
   "search": "Hľadaj",
+  "no-search-history": "Žiadna história vyhľadávania",
+  "yearly": "Rok",
   "camera": {
     "fakeLocationBlocked": "Nie je možné otvoriť kameru pri falošnej lokalizácii",
     "waitBeforeNextUpload": "Počkajte ešte {{time}}s pred ďalším uploadom"

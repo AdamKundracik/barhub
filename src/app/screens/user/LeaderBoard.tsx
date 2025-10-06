@@ -12,10 +12,18 @@ import FastImage from 'react-native-fast-image';
 import { primaryColor } from '../../utils/styles/colors';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { useTranslation } from 'react-i18next';
-import { LeaderboardUser } from '@/src/app/utils/services/leaderboard-service';
 import { useLeaderboard } from '@/src/app/utils/hooks/useLeaderboard';
-import { FlashList } from '@shopify/flash-list';
 import { BlurView } from 'expo-blur';
+import { FlashList } from '@shopify/flash-list';
+
+// Define LeaderboardUser interface locally to match backend data
+interface LeaderboardUser {
+  userId: string;
+  displayName: string;
+  photoUrl: string;
+  points: number;
+  rank?: number | null;
+}
 
 const medalMap = [
   require('../../../../assets/gold-medal.png'),
@@ -124,7 +132,11 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
 
       {/* Avatar */}
       <FastImage
-        source={{ uri: user.photoUrl }}
+        source={
+          user.photoUrl
+            ? { uri: user.photoUrl }
+            : require('../../../../assets/userIcon.png')
+        }
         style={[
           styles.avatar,
           isTopThree && {
@@ -166,7 +178,7 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
 };
 
 const LeaderboardScreen = () => {
-  const [selectedTab, setSelectedTab] = useState<'week' | 'all'>('week');
+  const [selectedTab, setSelectedTab] = useState<'week' | 'yearly'>('week');
   const [animationKey, setAnimationKey] = useState('0'); // Kľúč pre resetovanie animácií
   const { data, isLoading, error, refetch } = useLeaderboard(selectedTab);
 
@@ -174,12 +186,17 @@ const LeaderboardScreen = () => {
 
   const topUsers: LeaderboardUser[] = data?.topUsers || [];
   const currentUser: LeaderboardUser | null = data?.currentUser || null;
-  const isCurrentInTop = topUsers.some(u => u.userId === currentUser?.userId);
+  const isCurrentInTop = data?.currentUserInTop100 || false;
 
   // Výška bottom tabs (rovnaká logika ako v BottomTabs.tsx)
   const bottomTabsHeight = Platform.OS === 'ios' ? 90 : 80;
 
-  const handleTabChange = async (tab: 'week' | 'all') => {
+  const handleTabChange = async (tab: 'week' | 'yearly') => {
+    // Ak je už vybraná tá istá možnosť, nerob nič
+    if (selectedTab === tab) {
+      return;
+    }
+    console.log('selectedTab: ', selectedTab);
     setSelectedTab(tab);
     // Resetovanie animačného kľúča pre nové animácie
     setAnimationKey(prev => (parseInt(prev) + 1).toString());
@@ -200,7 +217,7 @@ const LeaderboardScreen = () => {
         <Text style={styles.subtitle}>
           {selectedTab === 'week'
             ? t('leaderboard.week')
-            : t('leaderboard.allTime')}
+            : t('leaderboard.yearly')}
         </Text>
       </View>
 
@@ -213,7 +230,8 @@ const LeaderboardScreen = () => {
               selectedTab === 'week' && styles.tabButtonActive,
             ]}
             onPress={() => handleTabChange('week')}
-            activeOpacity={0.7}
+            activeOpacity={selectedTab === 'week' ? 1 : 0.7}
+            disabled={selectedTab === 'week'}
           >
             <Text
               style={[
@@ -228,24 +246,24 @@ const LeaderboardScreen = () => {
           <TouchableOpacity
             style={[
               styles.tabButton,
-              selectedTab === 'all' && styles.tabButtonActive,
+              selectedTab === 'yearly' && styles.tabButtonActive,
             ]}
-            onPress={() => handleTabChange('all')}
-            activeOpacity={0.7}
+            onPress={() => handleTabChange('yearly')}
+            activeOpacity={selectedTab === 'yearly' ? 1 : 0.7}
+            disabled={selectedTab === 'yearly'}
           >
             <Text
               style={[
                 styles.tabText,
-                selectedTab === 'all' && styles.tabTextActive,
+                selectedTab === 'yearly' && styles.tabTextActive,
               ]}
             >
-              {t('leaderboard.allTime')}
+              {t('leaderboard.yearly')}
             </Text>
           </TouchableOpacity>
         </BlurView>
       </View>
 
-      {/* FlatList */}
       <FlashList
         contentContainerStyle={{
           paddingBottom:
@@ -290,7 +308,9 @@ const LeaderboardScreen = () => {
       {/* Error handling */}
       {error && (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Error: {error.message}</Text>
+          <Text style={styles.errorText}>
+            Error: {error instanceof Error ? error.message : 'Unknown error'}
+          </Text>
         </View>
       )}
     </ScreenLayout>

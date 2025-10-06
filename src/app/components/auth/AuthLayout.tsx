@@ -55,9 +55,14 @@ export const AuthLayout = ({ children }: LayoutProps) => {
       <KeyboardAvoidingView
         style={styles.content}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
-        <ScrollView contentContainerStyle={styles.scrollView}>
+        <ScrollView 
+          contentContainerStyle={styles.scrollView}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          automaticallyAdjustKeyboardInsets={true}
+        >
           <View style={styles.mainContent}>
             <View style={authPageStyles.authPageContainer}>{children}</View>
           </View>

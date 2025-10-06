@@ -3,7 +3,8 @@ import { subscribeWithSelector } from 'zustand/middleware';
 import { LocationType } from '../types/types';
 import { setUser } from '../services/functions';
 import { useUserStore } from '@/src/app/utils/store/userStore';
-import { geohashForLocation } from 'geofire-common';
+import { userService } from '@/src/app/services/userService';
+import { useUserStore as useNewUserStore } from '@/src/app/stores/userStore';
 
 interface LocationStore {
   location: LocationType | null;
@@ -56,16 +57,36 @@ useLocationStore.subscribe(
 
 useLocationStore.subscribe(
   state => state.location,
-  (newVal, prevVal) => {
+  async (newVal, prevVal) => {
     if (newVal !== prevVal && newVal) {
-      const hash = geohashForLocation([
-        newVal?.latitude ?? 0,
-        newVal?.longitude ?? 0,
-      ]);
-      setUser({
-        location: newVal,
-        geohash: hash,
-      });
+      console.log(
+        '[LocationStore] Location changed, updating backend:',
+        newVal
+      );
+
+      // Update new user store (for new system)
+      const newUserStore = useNewUserStore.getState();
+      const userId = newUserStore.getUserId();
+
+      if (userId) {
+        try {
+          console.log('NEW VAL', newVal);
+
+          // Update backend with new location API
+          await userService.updateLocation(userId, {
+            latitude: newVal.latitude,
+            longitude: newVal.longitude,
+          });
+          console.log(
+            '[LocationStore] Location updated successfully in backend'
+          );
+        } catch (error) {
+          console.error(
+            '[LocationStore] Error updating location in backend:',
+            error
+          );
+        }
+      }
     }
   }
 );

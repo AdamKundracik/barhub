@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Pressable,
   SafeAreaView,
@@ -22,14 +23,15 @@ import {
 } from '../../utils/styles/colors';
 import EditProfile from '../../components/user/Account/EditProfile';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
-import { auth } from '@/firebaseConfig';
-import { useUserStore } from '@/src/app/utils/store/userStore';
+import { useUserStore } from '@/src/app/stores/userStore';
+import { useUserData } from '@/src/app/hooks/useUserQuery';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import FastImage from 'react-native-fast-image';
 import * as MailComposer from 'expo-mail-composer';
 import { BlurView } from 'expo-blur';
-import { signOut } from 'firebase/auth';
+import { useAuth } from '../../providers/AuthProvider';
 import { useNotificationsHandler } from '@/src/app/components/user/NewsFeed/NotificationHandler';
+import { userService } from '@/src/app/services/userService';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface ActionButtonProps {
@@ -39,6 +41,7 @@ interface ActionButtonProps {
   onPress: () => void;
   variant?: 'default' | 'warning' | 'premium';
   showChevron?: boolean;
+  loading?: boolean;
 }
 
 interface InfoItemProps {
@@ -55,6 +58,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   onPress,
   variant = 'default',
   showChevron = true,
+  loading = false,
 }) => {
   const getVariantColors = () => {
     switch (variant) {
@@ -95,7 +99,8 @@ const ActionButton: React.FC<ActionButtonProps> = ({
           opacity: pressed ? 0.8 : 1,
         },
       ]}
-      onPress={onPress}
+      onPress={loading ? undefined : onPress}
+      disabled={loading}
     >
       <View style={styles.actionButtonContent}>
         <View style={styles.actionButtonLeft}>
@@ -118,7 +123,11 @@ const ActionButton: React.FC<ActionButtonProps> = ({
             )}
           </View>
         </View>
-        {showChevron && (
+        {loading ? (
+          <View style={styles.actionButtonRight}>
+            <ActivityIndicator size="small" color={colors.iconColor} />
+          </View>
+        ) : showChevron ? (
           <View style={styles.actionButtonRight}>
             <FontAwesomeIcon
               icon={Icons.ChevronRight}
@@ -126,7 +135,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
               color={separatorColor}
             />
           </View>
-        )}
+        ) : null}
       </View>
     </Pressable>
   );
@@ -152,51 +161,35 @@ const InfoItem: React.FC<InfoItemProps> = ({
 );
 
 export const Account = () => {
-  const { userData, premium } = useUserStore();
+  const {
+    userData,
+    isPremium,
+    displayName,
+    email,
+    photoUrl,
+    deleteAccountAsync,
+    isDeletingAccount,
+  } = useUserData();
+  const { logout } = useAuth();
   const { t } = useTranslation();
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
-  const { unsubscribeNotifications, removePushToken } =
-    useNotificationsHandler();
+  const { unsubscribeNotifications } = useNotificationsHandler();
   const { currentPushToken } = useUserStore();
 
   const [isEditing, setIsEditing] = useState(false);
 
   const userDisplayName = useMemo(
-    () => auth.currentUser?.displayName || t('anonymous-user'),
-    [auth.currentUser?.displayName, t]
+    () => displayName || t('anonymous-user'),
+    [displayName, t]
   );
 
-  const userEmail = useMemo(
-    () => auth.currentUser?.email || t('no-email'),
-    [auth.currentUser?.email, t]
-  );
+  const userEmail = useMemo(() => email || t('no-email'), [email, t]);
 
   const formattedBirthDate = useMemo(() => {
     if (!userData?.dateOfBirth) return t('date-of-birth-not-set');
     return new Date(userData.dateOfBirth).toLocaleDateString();
   }, [userData?.dateOfBirth, t]);
-
-  const handleDeleteUser = async () => {
-    try {
-      await auth.currentUser!.delete();
-      showSuccessToast(t('account-deleted-success'));
-    } catch {
-      showErrorToast(t('something-went-wrong'));
-    }
-  };
-
-  const confirmDeleteAccount = () => {
-    Alert.alert(
-      t('delete-account-title'),
-      t('delete-account-info'),
-      [
-        { text: t('cancel'), style: 'cancel' },
-        { text: t('submit'), style: 'destructive', onPress: handleDeleteUser },
-      ],
-      { cancelable: true }
-    );
-  };
 
   const confirmSignOut = () => {
     Alert.alert(
@@ -225,13 +218,62 @@ export const Account = () => {
   };
 
   const handleSignOut = async () => {
-    unsubscribeNotifications();
-    await removePushToken(currentPushToken ?? '');
-    await signOut(auth)
-      .then(async () => {
-        showSuccessToast(t('you-have-been-signed-out'));
-      })
-      .catch(console.error);
+    try {
+      unsubscribeNotifications();
+
+      // Use new backend logout (push token removal is handled in AuthProvider)
+      await logout();
+      showSuccessToast(t('you-have-been-signed-out'));
+    } catch (error) {
+      console.error('Error signing out:', error);
+      showErrorToast(t('error-signing-out'));
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      unsubscribeNotifications();
+
+      // First remove push token from backend (before account deletion)
+      if (currentPushToken && userData?.id) {
+        try {
+          console.log('[Account] Removing push token before account deletion');
+          await userService.removePushToken(
+            userData.id.toString(),
+            currentPushToken
+          );
+        } catch (error) {
+          console.error('[Account] Error removing push token:', error);
+          // Continue with account deletion even if push token removal fails
+        }
+      }
+
+      // Delete account via backend API
+      await deleteAccountAsync();
+
+      // Logout after successful deletion (this will clear local state)
+      await logout();
+      showSuccessToast(t('account-deleted-successfully'));
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      showErrorToast(t('error-deleting-account'));
+    }
+  };
+
+  const confirmDeleteAccount = () => {
+    Alert.alert(
+      t('delete-account'),
+      t('delete-account-warning'),
+      [
+        { text: t('cancel'), style: 'cancel' },
+        {
+          text: t('delete'),
+          style: 'destructive',
+          onPress: handleDeleteAccount,
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   if (isEditing) {
@@ -291,7 +333,7 @@ export const Account = () => {
         {/* Enhanced Profile Section */}
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
-            {premium && (
+            {isPremium && (
               <LinearGradient
                 colors={['#FFD700', '#FFA500', '#FF6347']}
                 style={styles.premiumRing}
@@ -301,9 +343,9 @@ export const Account = () => {
             )}
             <FastImage
               source={
-                auth.currentUser?.photoURL
+                photoUrl
                   ? {
-                      uri: auth.currentUser.photoURL,
+                      uri: photoUrl,
                       priority: FastImage.priority.high,
                     }
                   : require('../../../../assets/userIcon.png')
@@ -319,16 +361,16 @@ export const Account = () => {
             <View
               style={[
                 styles.statusDot,
-                { backgroundColor: premium ? '#FFD700' : primaryColor },
+                { backgroundColor: isPremium ? '#FFD700' : primaryColor },
               ]}
             />
             <Text
               style={[
                 styles.statusText,
-                { color: premium ? '#FFD700' : primaryColor },
+                { color: isPremium ? '#FFD700' : primaryColor },
               ]}
             >
-              {premium ? 'Premium' : 'Basic'}
+              {isPremium ? 'Premium' : 'Basic'}
             </Text>
           </View>
         </View>
@@ -398,6 +440,7 @@ export const Account = () => {
               onPress={confirmDeleteAccount}
               variant="warning"
               showChevron={false}
+              loading={isDeletingAccount}
             />
           </View>
         </BlurView>

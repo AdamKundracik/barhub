@@ -1,8 +1,5 @@
 import { useState } from 'react';
-import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile, } from 'firebase/auth';
-import { setUser } from '../utils/services/functions';
-import { uploadProfilePhotoAsync } from '../utils/helper-functions/imageUploadFunctions';
-import { auth } from '@/firebaseConfig';
+import { useAuth } from '../providers/AuthProvider';
 
 export interface RegisterFormData {
   email: string;
@@ -23,6 +20,7 @@ export interface FormErrors {
 }
 
 export const useRegisterForm = (t: (key: string, options?: any) => string) => {
+  const { register } = useAuth();
   const [formData, setFormData] = useState<RegisterFormData>({
     email: '',
     username: '',
@@ -123,59 +121,34 @@ export const useRegisterForm = (t: (key: string, options?: any) => string) => {
 
     setLoading(true);
     try {
-      await createUserWithEmailAndPassword(
-        auth,
-        formData.email,
-        formData.password
-      );
-      await sendEmailVerification(auth.currentUser as any);
-
-      if (auth.currentUser) {
-        if (formData.profileImage) {
-          const url = await uploadProfilePhotoAsync(formData.profileImage);
-          await updateProfile(auth.currentUser, {
-            displayName: formData.username,
-            photoURL: url,
-          });
-        } else {
-          await updateProfile(auth.currentUser, {
-            displayName: formData.username,
-          });
-        }
-      }
-
-      await setUser({
-        displayName: formData.username,
-        photoURL: formData.profileImage,
-        dateOfBirth: formData.dateOfBirth.toDateString(),
-        acceptTermsOfUse: formData.acceptsTermsOfUse,
+      // Format date of birth to YYYY-MM-DD format (avoid timezone issues)
+      const year = formData.dateOfBirth.getFullYear();
+      const month = String(formData.dateOfBirth.getMonth() + 1).padStart(2, '0');
+      const day = String(formData.dateOfBirth.getDate()).padStart(2, '0');
+      const formattedDateOfBirth = `${year}-${month}-${day}`;
+      
+      await register({
+        name: formData.username,
+        email: formData.email,
+        password: formData.password,
+        dateOfBirth: formattedDateOfBirth,
+        photoUrl: formData.profileImage || undefined,
       });
 
       return true;
     } catch (error: any) {
-      let errorMessage = t('sing-up-error');
+      console.error('Registration error:', error);
+      let errorMessage = error.message || t('sing-up-error');
 
-      switch (error.code) {
-        case 'auth/email-already-in-use':
-          errorMessage = t('email-in-use');
-          setErrors(prev => ({ ...prev, email: errorMessage }));
-          break;
-        case 'auth/invalid-email':
-          errorMessage = t('invalid-email');
-          setErrors(prev => ({ ...prev, email: errorMessage }));
-          break;
-        case 'auth/operation-not-allowed':
-          errorMessage = t('sing-up-error');
-          break;
-        case 'auth/weak-password':
-          errorMessage = t('weak-password');
-          setErrors(prev => ({ ...prev, password: errorMessage }));
-          break;
-        default:
-          errorMessage = error.message || t('sing-up-error');
+      // Handle specific error messages from backend
+      if (error.message?.includes('email')) {
+        setErrors(prev => ({ ...prev, email: errorMessage }));
+      } else if (error.message?.includes('password')) {
+        setErrors(prev => ({ ...prev, password: errorMessage }));
+      } else {
+        setErrors(prev => ({ ...prev, general: errorMessage }));
       }
 
-      setErrors(prev => ({ ...prev, general: errorMessage }));
       return false;
     } finally {
       setLoading(false);

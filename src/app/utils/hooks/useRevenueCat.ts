@@ -5,10 +5,8 @@ import Purchases, {
   PurchasesPackage,
 } from 'react-native-purchases';
 import { Platform } from 'react-native';
-import { useUserStore } from '../store/userStore';
-import { setUser } from '../services/functions';
-import { User } from '@/shared';
-import { auth } from '@/firebaseConfig';
+import { useUserStore } from '../../stores/userStore';
+import { useAuth } from '../../providers/AuthProvider';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useTranslation } from 'react-i18next';
 
@@ -27,10 +25,11 @@ export const useRevenueCat = ({
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const { t } = useTranslation();
 
-  const { premium, setPremium } = useUserStore();
+  const { isPremium, setPremium } = useUserStore();
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (!auth.currentUser) return;
+    if (!user?.id) return;
 
     const initRevenueCat = async () => {
       try {
@@ -39,7 +38,7 @@ export const useRevenueCat = ({
         Purchases.configure({ apiKey });
         await Purchases.setLogLevel(LOG_LEVEL.WARN);
 
-        const { customerInfo } = await Purchases.logIn(auth.currentUser!.uid);
+        const { customerInfo } = await Purchases.logIn(user.id.toString());
         Purchases.addCustomerInfoUpdateListener(updateCustomerInformation);
 
         await loadOfferings();
@@ -51,7 +50,7 @@ export const useRevenueCat = ({
     };
 
     initRevenueCat();
-  }, [auth.currentUser]);
+  }, [user?.id]);
 
   const loadOfferings = async () => {
     const offerings = await Purchases.getOfferings();
@@ -65,8 +64,8 @@ export const useRevenueCat = ({
       const entitlements = customerInfo?.entitlements?.active ?? {};
       const isPremium = !!entitlements['subscription']; // názov podľa RC Dashboard
 
-      setPremium(isPremium);
-      await setUser({ premium: isPremium } as Partial<User>);
+      // Update premium status in store (this will also update backend)
+      await setPremium(isPremium);
 
       if (onCustomerInfoUpdated) {
         await onCustomerInfoUpdated();
@@ -94,7 +93,7 @@ export const useRevenueCat = ({
   };
 
   return {
-    premium,
+    premium: isPremium(),
     packages,
     isReady,
     purchasePackage,

@@ -8,6 +8,7 @@ import {
 } from 'react-native-reanimated';
 
 import { Navigation } from './src/app/navigation';
+import { AuthProvider } from './src/app/providers/AuthProvider';
 import { RevenueCatProvider } from './src/app/providers/RevenueCatProvider';
 import { PermissionsProvider } from './src/app/providers/PermissionsProvider';
 import { AppStateProvider } from './src/app/providers/AppStateProvider';
@@ -36,17 +37,19 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <I18nextProvider i18n={i18n}>
-            <NetworkProvider>
-              <AppStateProvider>
-                <PermissionsProvider>
-                  <RevenueCatProvider>
-                    <BottomSheetModalProvider>
-                      <Navigation />
-                    </BottomSheetModalProvider>
-                  </RevenueCatProvider>
-                </PermissionsProvider>
-              </AppStateProvider>
-            </NetworkProvider>
+            <AuthProvider>
+              <NetworkProvider>
+                <AppStateProvider>
+                  <PermissionsProvider>
+                    <RevenueCatProvider>
+                      <BottomSheetModalProvider>
+                        <Navigation />
+                      </BottomSheetModalProvider>
+                    </RevenueCatProvider>
+                  </PermissionsProvider>
+                </AppStateProvider>
+              </NetworkProvider>
+            </AuthProvider>
           </I18nextProvider>
         </GestureHandlerRootView>
       </QueryClientProvider>

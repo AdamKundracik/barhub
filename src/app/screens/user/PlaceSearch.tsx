@@ -29,7 +29,7 @@ import InlineAd from '@/src/app/components/user/InlineAd';
 // Store and utilities
 import { usePlaceStore } from '../../utils/store/placesStore';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
-import { useUserStore } from '@/src/app/utils/store/userStore';
+import { useUserData } from '@/src/app/hooks/useUserQuery';
 import { UserStackList } from '../../utils/types/screen-types';
 import { fetchPlaceAutocomplete } from '../../utils/helper-functions/fetchPlacesAPI';
 import { generateUID } from '@/src/app/utils/helper-functions/generateUID';
@@ -175,7 +175,10 @@ export const PlaceSearch: React.FC = () => {
   const insets = useSafeAreaInsets();
 
   const { setPlaceId, setPlaceName } = usePlaceStore();
-  const { addToSearchHistory, searchHistory, premium } = useUserStore();
+  const { addSearchHistoryItemAsync, userData, isPremium } = useUserData();
+
+  // Get search history from userData
+  const searchHistory = userData?.searchHistory || [];
 
   const debouncedQuery = useDebounce(query, 300);
   const {
@@ -217,12 +220,17 @@ export const PlaceSearch: React.FC = () => {
       setPlaceName(mainText);
 
       if (!fromHistory) {
-        await addToSearchHistory({ placeId, mainText, secondaryText });
+        try {
+          await addSearchHistoryItemAsync({ placeId, mainText, secondaryText });
+        } catch (error) {
+          console.error('Error adding to search history:', error);
+          // Continue navigation even if search history fails
+        }
       }
 
       navigation.navigate('Feed');
     },
-    [setPlaceId, setPlaceName, addToSearchHistory, navigation]
+    [setPlaceId, setPlaceName, addSearchHistoryItemAsync, navigation]
   );
 
   const handleClearSearch = useCallback(() => {
@@ -356,7 +364,7 @@ export const PlaceSearch: React.FC = () => {
                   styles.scrollContent,
                   {
                     paddingBottom:
-                      tabBarHeight + insets.bottom + (!premium ? 100 : 20),
+                      tabBarHeight + insets.bottom + (!isPremium ? 100 : 20),
                   },
                 ]}
               >
@@ -367,7 +375,7 @@ export const PlaceSearch: React.FC = () => {
         </KeyboardAvoidingView>
 
         {/* Banner Ad */}
-        {!premium && (
+        {!isPremium && (
           <View
             style={[
               styles.adContainer,

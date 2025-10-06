@@ -27,16 +27,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import * as Icons from '@fortawesome/free-solid-svg-icons';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useNotificationsHandler } from '@/src/app/components/user/NewsFeed/NotificationHandler';
-import { useUserStore } from '@/src/app/utils/store/userStore';
 
 const EmailNotVerified = () => {
   const { t } = useTranslation();
   const [resending, setResending] = useState(false);
   const [checking, setChecking] = useState(false);
   const { showSuccessToast, showErrorToast } = useCustomToast();
-  const { unsubscribeNotifications, removePushToken } =
-    useNotificationsHandler();
-  const { currentPushToken } = useUserStore();
+  const { unsubscribeNotifications } = useNotificationsHandler();
 
   const userEmail = auth.currentUser?.email || '';
 
@@ -135,11 +132,10 @@ const EmailNotVerified = () => {
         style: 'destructive',
         onPress: async () => {
           try {
-            // Unsubscribe from notifications and remove push token
+            // Unsubscribe from notifications
             unsubscribeNotifications();
-            await removePushToken(currentPushToken ?? '');
 
-            // Sign out
+            // Sign out (push token removal is handled in AuthProvider)
             await signOut(auth);
 
             // Navigation handled by auth state listener
