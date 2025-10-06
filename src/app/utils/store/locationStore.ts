@@ -70,8 +70,6 @@ useLocationStore.subscribe(
 
       if (userId) {
         try {
-          console.log('NEW VAL', newVal);
-
           // Update backend with new location API
           await userService.updateLocation(userId, {
             latitude: newVal.latitude,

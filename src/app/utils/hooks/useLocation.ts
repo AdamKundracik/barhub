@@ -46,7 +46,7 @@ export const useLocation = () => {
         };
 
         const current = locationRef.current;
-        if (!event.coords?.speed || event.coords?.speed <= 4) {
+        if (!event.coords?.speed || event.coords?.speed <= 5) {
           if (
             !current ||
             current.latitude !== currentLocation.latitude ||
@@ -78,13 +78,31 @@ export const useLocation = () => {
       await BackgroundGeolocation.ready({
         disableLocationAuthorizationAlert: true,
         desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_NAVIGATION,
-        distanceFilter: 10,
-        stopTimeout: 3,
+        distanceFilter: 20, // 20 meters - reasonable threshold
+        stopTimeout: 10, // 10 seconds - send update when stationary, then stop
         debug: false,
         logLevel: BackgroundGeolocation.LOG_LEVEL_OFF,
         stopOnTerminate: false,
         startOnBoot: true,
         showsBackgroundLocationIndicator: false,
+        // Optimized settings for reasonable DB writes
+        stationaryRadius: 20, // 20 meters radius for stationary detection
+        activityRecognitionInterval: 10000, // 10 seconds
+        minimumActivityRecognitionConfidence: 75, // 75% confidence
+        heartbeatInterval: 60, // 1 minute heartbeat
+        // Additional settings for better control
+        locationUpdateInterval: 30000, // 30 seconds between location updates
+        fastestLocationUpdateInterval: 15000, // 15 seconds minimum
+        locationTimeout: 60, // 60 seconds timeout
+        deferTime: 0, // No defer time
+        // Battery optimization
+        pausesLocationUpdatesAutomatically: true, // Pause when stationary
+        backgroundPermissionRationale: {
+          title: "Allow {applicationName} to access to this device's location even when closed or not in use.",
+          message: "This app collects location data to enable features like finding nearby places and sharing your location with friends.",
+          positiveAction: 'Change to "Allow all the time"',
+          negativeAction: 'Cancel'
+        }
       });
 
       return () => {
