@@ -34,12 +34,14 @@ export const useUserQuery = () => {
       return userData;
     },
     enabled: isAuthenticated, // Only run when user is authenticated
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 30 * 1000, // 30 seconds (shorter for webhook updates)
     cacheTime: 10 * 60 * 1000, // 10 minutes
-    refetchOnWindowFocus: false,
+    refetchInterval: 30 * 1000, // Auto-refresh every 30 seconds to catch webhook updates
+    refetchOnWindowFocus: true, // Refresh when app comes to foreground
     refetchOnReconnect: true,
     retry: 2,
     onSuccess: data => {
+      console.log(data);
       console.log('[useUserQuery] User data fetched successfully');
       if (data) {
         setUserData(data);

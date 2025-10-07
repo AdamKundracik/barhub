@@ -33,6 +33,7 @@ import { useAuth } from '../../providers/AuthProvider';
 import { useNotificationsHandler } from '@/src/app/components/user/NewsFeed/NotificationHandler';
 import { userService } from '@/src/app/services/userService';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useUserRole } from '@/src/app/hooks/useUserRole';
 
 interface ActionButtonProps {
   icon: any;
@@ -176,6 +177,7 @@ export const Account = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { unsubscribeNotifications } = useNotificationsHandler();
   const { currentPushToken } = useUserStore();
+  const { role, isAdmin, isModerator } = useUserRole();
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -357,21 +359,58 @@ export const Account = () => {
 
           <Text style={styles.displayName}>{userDisplayName}</Text>
 
-          <View style={styles.statusBadge}>
-            <View
-              style={[
-                styles.statusDot,
-                { backgroundColor: isPremium ? '#FFD700' : primaryColor },
-              ]}
-            />
-            <Text
-              style={[
-                styles.statusText,
-                { color: isPremium ? '#FFD700' : primaryColor },
-              ]}
-            >
-              {isPremium ? 'Premium' : 'Basic'}
-            </Text>
+          <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+            {/* Premium Badge */}
+            <View style={styles.statusBadge}>
+              <View
+                style={[
+                  styles.statusDot,
+                  { backgroundColor: isPremium ? '#FFD700' : primaryColor },
+                ]}
+              />
+              <Text
+                style={[
+                  styles.statusText,
+                  { color: isPremium ? '#FFD700' : primaryColor },
+                ]}
+              >
+                {isPremium ? 'Premium' : 'Basic'}
+              </Text>
+            </View>
+
+            {/* Role Badge */}
+            {(isAdmin || isModerator) && (
+              <View
+                style={[
+                  styles.statusBadge,
+                  {
+                    backgroundColor: isAdmin
+                      ? 'rgba(239, 68, 68, 0.15)'
+                      : 'rgba(59, 130, 246, 0.15)',
+                    borderColor: isAdmin
+                      ? 'rgba(239, 68, 68, 0.3)'
+                      : 'rgba(59, 130, 246, 0.3)',
+                  },
+                ]}
+              >
+                <FontAwesomeIcon
+                  icon={isAdmin ? Icons.RankingStar : Icons.ShieldHalved}
+                  size={12}
+                  color={isAdmin ? '#EF4444' : '#3B82F6'}
+                />
+                <Text
+                  style={[
+                    styles.statusText,
+                    {
+                      color: isAdmin ? '#EF4444' : '#3B82F6',
+                      marginLeft: 4,
+                    },
+                  ]}
+                >
+                  {isAdmin ? 'ADMIN' : 'MODERATOR'}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -396,6 +435,30 @@ export const Account = () => {
             />
           </View>
         </BlurView>
+
+        {/* Admin Panel Card (Admin/Moderator only) */}
+        {(isAdmin || isModerator) && (
+          <BlurView intensity={20} tint="dark" style={styles.card}>
+            <View style={styles.cardHeader}>
+              <FontAwesomeIcon
+                icon={Icons.RankingStar}
+                size={20}
+                color={isAdmin ? '#EF4444' : '#3B82F6'}
+              />
+              <Text style={styles.cardTitle}>Admin Panel</Text>
+            </View>
+
+            <View style={styles.cardContent}>
+              <ActionButton
+                icon={Icons.Users}
+                title="User Management"
+                description="Manage users, roles, and permissions"
+                onPress={() => navigation.navigate('AdminPanel' as never)}
+                variant="premium"
+              />
+            </View>
+          </BlurView>
+        )}
 
         {/* Actions Card */}
         <BlurView intensity={20} tint="dark" style={styles.card}>

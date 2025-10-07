@@ -62,11 +62,16 @@ export const useRevenueCat = ({
   const updateCustomerInformation = async (customerInfo: CustomerInfo) => {
     try {
       const entitlements = customerInfo?.entitlements?.active ?? {};
-      const isPremium = !!entitlements['subscription']; // názov podľa RC Dashboard
+      const isPremiumInRC = !!entitlements['subscription']; // názov podľa RC Dashboard
 
-      // Update premium status in store (this will also update backend)
-      setPremium(isPremium);
-
+      console.log('[RevenueCat] Customer info updated - Premium in RC:', isPremiumInRC);
+      console.log('[RevenueCat] Premium status is managed by backend webhook - not updating locally');
+      
+      // DO NOT update premium locally - it's managed by backend via webhook
+      // Backend will receive webhook from RevenueCat and update DB
+      // Frontend will get updated premium status via auto-refresh (every 30s)
+      
+      // Trigger callback to refresh user data from backend
       if (onCustomerInfoUpdated) {
         await onCustomerInfoUpdated();
       }

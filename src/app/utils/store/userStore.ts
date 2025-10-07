@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
-import { ClientDTO, SearchHistoryItemEmbeddable } from '../../types/dto';
+import { ClientDTO, SearchHistoryItemEmbeddable, RoleEnum } from '../../types/dto';
 import { userService } from '../../services/userService';
 
 // Updated UserStore interface using backend DTO
@@ -29,6 +29,13 @@ interface UserStore {
   // Premium status
   isPremium: () => boolean;
   setPremium: (premium: boolean) => void;
+
+  // Role management
+  getRole: () => RoleEnum | null;
+  isAdmin: () => boolean;
+  isModerator: () => boolean;
+  isUser: () => boolean;
+  hasAdminAccess: () => boolean; // Admin or Moderator
 
   // Helper getters
   getDisplayName: () => string;
@@ -121,25 +128,14 @@ export const useUserStore = create<UserStore>()(
       return userData?.premium || false;
     },
 
-    setPremium: async (premium: boolean) => {
+    setPremium: (premium: boolean) => {
       const { userData } = get();
       if (!userData) return;
 
-      try {
-        // Update local state
-        get().updateUserData({ premium });
-        console.log('PREMIUM', premium);
-        // Update backend
-        const result = await userService.updateUser(userData.id.toString(), {
-          premium,
-        });
-        console.log('RESULT', result);
-        console.log('[UserStore] Premium status updated:', premium);
-      } catch (error) {
-        console.error('[UserStore] Error updating premium status:', error);
-        // Revert local state on error
-        get().updateUserData({ premium: !premium });
-      }
+      // Update local state only
+      // Backend is updated automatically via RevenueCat webhook
+      get().updateUserData({ premium });
+      console.log('[UserStore] Premium status updated locally:', premium);
     },
 
     getDisplayName: () => {
@@ -160,6 +156,32 @@ export const useUserStore = create<UserStore>()(
     getUserId: () => {
       const { userData } = get();
       return userData?.id?.toString() || null;
+    },
+
+    // Role management functions
+    getRole: () => {
+      const { userData } = get();
+      return userData?.role || null;
+    },
+
+    isAdmin: () => {
+      const { userData } = get();
+      return userData?.role === RoleEnum.ADMIN;
+    },
+
+    isModerator: () => {
+      const { userData } = get();
+      return userData?.role === RoleEnum.MODERATOR;
+    },
+
+    isUser: () => {
+      const { userData } = get();
+      return userData?.role === RoleEnum.USER;
+    },
+
+    hasAdminAccess: () => {
+      const { userData } = get();
+      return userData?.role === RoleEnum.ADMIN || userData?.role === RoleEnum.MODERATOR;
     },
   }))
 );
@@ -182,4 +204,9 @@ export const userSelectors = {
     state.userData?.searchHistory || [],
   canSeeContent: (state: ReturnType<typeof useUserStore.getState>) =>
     state.canSeeContent,
+  role: (state: ReturnType<typeof useUserStore.getState>) => state.getRole(),
+  isAdmin: (state: ReturnType<typeof useUserStore.getState>) => state.isAdmin(),
+  isModerator: (state: ReturnType<typeof useUserStore.getState>) => state.isModerator(),
+  isUser: (state: ReturnType<typeof useUserStore.getState>) => state.isUser(),
+  hasAdminAccess: (state: ReturnType<typeof useUserStore.getState>) => state.hasAdminAccess(),
 };

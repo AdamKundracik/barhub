@@ -56,6 +56,7 @@ class AuthService {
       // Store tokens
       await this.storeTokens(authResponse.token, authResponse.refreshToken);
 
+      console.log(authResponse.token);
       return authResponse;
     } catch (error) {
       console.error('Login error:', error);

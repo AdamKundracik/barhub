@@ -28,6 +28,7 @@ import { useQueryClient } from 'react-query';
 import { usePlaceStore } from '@/src/app/utils/store/placesStore';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { getAuth } from 'firebase/auth';
+import { useUserRole } from '@/src/app/hooks/useUserRole';
 import FastImage from 'react-native-fast-image';
 
 const normalizeTimestamp = (
@@ -152,6 +153,7 @@ const UserLineComponent = ({
   const { t } = useTranslation();
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const auth = getAuth();
+  const { hasAdminAccess } = useUserRole();
 
   // --- ENHANCED TIME FORMATTING ---
   const formattedTime = useMemo(() => {
@@ -194,6 +196,12 @@ const UserLineComponent = ({
   const isOwnPost = useMemo(
     () => auth.currentUser?.uid === postUserId,
     [auth.currentUser?.uid, postUserId]
+  );
+
+  // Can delete if: own post OR admin/moderator
+  const canDeletePost = useMemo(
+    () => isOwnPost || hasAdminAccess,
+    [isOwnPost, hasAdminAccess]
   );
 
   const safePostId = postId || '';
@@ -336,7 +344,7 @@ const UserLineComponent = ({
       </Animated.View>
 
       <PostOptionsModal
-        showDelete={isOwnPost}
+        showDelete={canDeletePost}
         visible={isOptionsModalOpen}
         onClose={() => setIsOptionsModalOpen(false)}
         onDelete={handleDelete}

@@ -1,5 +1,12 @@
 // Backend DTO types - mirroring Java DTOs exactly
 
+// Enums
+export enum RoleEnum {
+  USER = 'USER',
+  MODERATOR = 'MODERATOR',
+  ADMIN = 'ADMIN'
+}
+
 // Base types
 export interface AbstractEntityDTO {
   id: number;
@@ -29,6 +36,7 @@ export interface ClientDTO extends AbstractAuditableEntityDTO {
   lastCheckedNotifications: string; // ISO string format
   photoUrl?: string;
   premium: boolean;
+  role: RoleEnum;
   pushTokens: string[];
   searchHistory: SearchHistoryItemEmbeddable[];
 }

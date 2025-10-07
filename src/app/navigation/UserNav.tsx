@@ -9,6 +9,7 @@ import SelectFakeLocation from '../screens/user/SelectFakeLocation';
 import Licenses from '@/src/app/screens/user/Info/Screens/LIcenses';
 import BottomTabs from '@/src/app/components/shared/BottomTabs';
 import { PasswordChangeScreen } from '@/src/app/screens/user/ChangePassword';
+import { AdminPanel } from '@/src/app/screens/user/AdminPanel';
 
 const RootStack = createNativeStackNavigator();
 
@@ -40,6 +41,9 @@ export function UserNav() {
       />
 
       <RootStack.Screen name="Licenses" component={Licenses} />
+
+      {/* Admin Panel for ADMIN/MODERATOR */}
+      <RootStack.Screen name="AdminPanel" component={AdminPanel} />
     </RootStack.Navigator>
   );
 }

@@ -33,6 +33,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNewsFeedData } from '@/src/app/utils/hooks/NewsFeed/usePostData';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { modalsStore } from '@/src/app/utils/store/modalsStore';
+import { useUserRole } from '@/src/app/hooks/useUserRole';
 
 export const PLACE_TYPES: PlaceType[] = [
   'bar',
@@ -60,6 +61,7 @@ const FilterSlider = () => {
     useLocationStore();
 
   const { isPremium } = useUserStore();
+  const { hasAdminAccess } = useUserRole();
 
   const { isRefetching } = useNewsFeedData(); // inside FilterSlider
 
@@ -147,7 +149,8 @@ const FilterSlider = () => {
 
   function handleFakeLocationToggle(value: boolean) {
     console.log('PREMIUM', isPremium());
-    if (isPremium()) {
+    // Admin/Moderator can always toggle, or user with premium
+    if (isPremium() || hasAdminAccess) {
       setUseFakeLocation(value);
     } else {
       setTempUseFakeLocation(useFakeLocation);

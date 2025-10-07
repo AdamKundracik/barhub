@@ -112,7 +112,7 @@ export const Icons = {
   Remove: faRemove,
   Ban: faBan,
   Pin: faMapPin,
-  Left: faChevronLeft,
+  ChevronLeft: faChevronLeft,
   Info: faInfoCircle,
   Help: faQuestionCircle,
   Coins: faCoins,

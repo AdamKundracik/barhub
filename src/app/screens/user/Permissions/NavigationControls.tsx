@@ -24,7 +24,7 @@ export const NavigationControls: React.FC<NavigationControlsProps> = ({
         style={styles.arrowButton}
       >
         <FontAwesomeIcon
-          icon={Icons.Left}
+          icon={Icons.ChevronLeft}
           size={24}
           color={currentStep === 0 ? 'rgba(255,255,255,0.3)' : '#fff'}
         />

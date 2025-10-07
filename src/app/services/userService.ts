@@ -5,6 +5,7 @@ import {
   PushTokenRequestDTO,
   SearchHistoryItemEmbeddable,
   UploadLocationRequestDTO,
+  RoleEnum,
 } from '../types/dto';
 
 // Use exact backend DTO types
@@ -245,6 +246,51 @@ class UserService {
     } catch (error) {
       console.error('Error fetching search history:', error);
       return [];
+    }
+  }
+
+  // Admin functions
+  async getAllUsers(): Promise<ClientDTO[]> {
+    try {
+      console.log('[UserService] Fetching all users');
+      const users = await apiUtils.get<ClientDTO[]>('/users');
+      return users || [];
+    } catch (error) {
+      console.error('Error fetching all users:', error);
+      throw error;
+    }
+  }
+
+  async updateUserRole(userId: number, role: RoleEnum): Promise<boolean> {
+    try {
+      console.log('[UserService] Updating user role:', userId, role);
+      await apiUtils.patch(`/admin/users/${userId}/role`, { role: role.toString() });
+      return true;
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      throw error;
+    }
+  }
+
+  async updateUserDisabledStatus(userId: number, disabled: boolean): Promise<boolean> {
+    try {
+      console.log('[UserService] Updating user disabled status:', userId, disabled);
+      await apiUtils.patch(`/admin/users/${userId}/disabled`, { disabled });
+      return true;
+    } catch (error) {
+      console.error('Error updating user disabled status:', error);
+      throw error;
+    }
+  }
+
+  async updateUserPremium(userId: number, premium: boolean): Promise<boolean> {
+    try {
+      console.log('[UserService] Updating user premium status:', userId, premium);
+      await apiUtils.patch(`/admin/users/${userId}/premium`, { premium });
+      return true;
+    } catch (error) {
+      console.error('Error updating user premium status:', error);
+      throw error;
     }
   }
 }

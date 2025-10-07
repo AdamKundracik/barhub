@@ -28,6 +28,7 @@ import { Icons } from '@/src/app/utils/icons/icons';
 import { getTimeAgoFromTimestampSeconds } from '@/src/app/utils/helper-functions/timeAgo';
 import FastImage from 'react-native-fast-image';
 import { FlashList } from '@shopify/flash-list';
+import { useUserRole } from '@/src/app/hooks/useUserRole';
 
 type Props = {
   expoPushToken: string;
@@ -41,6 +42,7 @@ type Props = {
 const CommentsSlider = (props: Props) => {
   const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const { hasAdminAccess } = useUserRole();
 
   const [newComment, setNewComment] = useState('');
   const [inputHeight, setInputHeight] = useState(40);
@@ -308,7 +310,7 @@ const CommentsSlider = (props: Props) => {
                           item?.creationTime?.seconds
                         )}
                       </Text>
-                      {item?.userId === auth.currentUser?.uid && (
+                      {(item?.userId === auth.currentUser?.uid || hasAdminAccess) && (
                         <TouchableOpacity
                           onPress={() => handleDeleteComment(item?.id)}
                           style={styles.trashButton}
