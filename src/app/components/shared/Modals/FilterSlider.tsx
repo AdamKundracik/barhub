@@ -148,7 +148,6 @@ const FilterSlider = () => {
   );
 
   function handleFakeLocationToggle(value: boolean) {
-    console.log('PREMIUM', isPremium());
     // Admin/Moderator can always toggle, or user with premium
     if (isPremium() || hasAdminAccess) {
       setUseFakeLocation(value);

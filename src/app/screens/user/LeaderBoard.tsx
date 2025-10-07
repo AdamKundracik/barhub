@@ -14,7 +14,7 @@ import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { useTranslation } from 'react-i18next';
 import { useLeaderboard } from '@/src/app/utils/hooks/useLeaderboard';
 import { BlurView } from 'expo-blur';
-import { FlashList } from '@shopify/flash-list';
+import { FlashList } from '@shopify/flash-list'; // Define LeaderboardUser interface locally to match backend data
 
 // Define LeaderboardUser interface locally to match backend data
 interface LeaderboardUser {
@@ -196,7 +196,6 @@ const LeaderboardScreen = () => {
     if (selectedTab === tab) {
       return;
     }
-    console.log('selectedTab: ', selectedTab);
     setSelectedTab(tab);
     // Resetovanie animačného kľúča pre nové animácie
     setAnimationKey(prev => (parseInt(prev) + 1).toString());

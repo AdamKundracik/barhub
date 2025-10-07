@@ -131,16 +131,6 @@ export interface PostsByPlaceRequestDTO {
   limit?: number;
 }
 
-export interface LikePostRequestDTO {
-  userId: string;
-}
-
-export interface LikePostResponseDTO {
-  success: boolean;
-  likesCount: number;
-  isLiked: boolean;
-}
-
 export interface PaginatedPostsResponseDTO {
   posts: PostDTO[];
   totalElements: number;
@@ -158,16 +148,20 @@ export interface CreatePostRequestDTO {
 
 // Notification DTOs
 export interface NotificationDTO extends AbstractAuditableEntityDTO {
-  type: string;
-  message: string;
+  postId?: number;
+  notificationType: string;
+  placeId?: string; // Google Place ID (string)
+  sender?: ClientDTO; // Full sender user object
+  senderName: string;
+  senderToken?: string;
   read: boolean;
-  userId: string;
-  relatedEntityId?: string;
-  relatedEntityType?: string;
+  userId: number;
+  commentText?: string;
 }
 
 export interface GetUserNotificationsResponseDTO {
   notifications: NotificationDTO[];
+  hasNewNotifications: boolean;
   newNotificationsCount: number;
 }
 
@@ -232,3 +226,48 @@ export interface ApiError {
 
 // Helper type for converting dates
 export type DateString = string; // ISO format: "yyyy-MM-dd HH:mm:ss[.SSSSSS]"
+
+// Notification DTOs
+export interface RequestNotificationDTO {
+  placeId: string; // Google Place ID (string)
+  placeName: string;
+  placeLocation: {
+    latitude: number;
+    longitude: number;
+  };
+  senderToken: string;
+  senderId: number;
+}
+
+export interface ResponseNotificationDTO {
+  placeId: string; // Google Place ID (string)
+  senderToken: string;
+  postId: number;
+  userId: number;
+}
+
+export interface LikeNotificationDTO {
+  postAuthorId: number;
+  senderId: number;
+  senderName: string;
+  postId: number;
+}
+
+export interface CommentNotificationDTO {
+  postAuthorId: number;
+  senderId: number;
+  senderName: string;
+  postId: number;
+  commentText: string;
+}
+
+// Like DTOs
+export interface LikePostRequestDTO {
+  userId: number;
+}
+
+export interface LikePostResponseDTO {
+  liked: boolean;
+  totalLikes: number;
+  message: string;
+}

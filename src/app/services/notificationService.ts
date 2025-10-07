@@ -1,10 +1,12 @@
 import { apiUtils } from '../utils/api/apiClient';
 import { ENDPOINTS } from '../config/api';
 import {
-  CommentRequestDTO,
-  CommentResponseDTO,
+  CommentNotificationDTO,
   GetUserNotificationsResponseDTO,
+  LikeNotificationDTO,
   NotificationDTO,
+  RequestNotificationDTO,
+  ResponseNotificationDTO,
 } from '../types/dto';
 
 class NotificationService {
@@ -20,7 +22,7 @@ class NotificationService {
     }
   }
 
-  // Get notifications for specific user
+  // Get notifications for a specific user
   async getUserNotifications(
     userId: string
   ): Promise<GetUserNotificationsResponseDTO> {
@@ -32,6 +34,7 @@ class NotificationService {
       console.error('Error fetching user notifications:', error);
       return {
         notifications: [],
+        hasNewNotifications: false,
         newNotificationsCount: 0,
       };
     }
@@ -77,33 +80,11 @@ class NotificationService {
     }
   }
 
-  // Create new notification
-  async createNotification(
-    notification: Partial<NotificationDTO>
-  ): Promise<NotificationDTO | null> {
+  // Send like notification (matches backend LikeNotificationDTO)
+  async sendLikeNotification(request: LikeNotificationDTO): Promise<boolean> {
     try {
-      return await apiUtils.post<NotificationDTO>(
-        ENDPOINTS.NOTIFICATIONS.BASE,
-        notification
-      );
-    } catch (error) {
-      console.error('Error creating notification:', error);
-      return null;
-    }
-  }
-
-  // Send like notification
-  async sendLikeNotification(
-    postId: string,
-    likerUserId: string,
-    postAuthorUserId: string
-  ): Promise<boolean> {
-    try {
-      await apiUtils.post(`${ENDPOINTS.NOTIFICATIONS.BASE}/send-like`, {
-        postId,
-        likerUserId,
-        postAuthorUserId,
-      });
+      console.log('[NotificationService] Sending like notification:', request);
+      await apiUtils.post(`${ENDPOINTS.NOTIFICATIONS.BASE}/send-like`, request);
       return true;
     } catch (error) {
       console.error('Error sending like notification:', error);
@@ -111,57 +92,112 @@ class NotificationService {
     }
   }
 
-  // Send comment notification
+  // Send comment notification (matches backend CommentNotificationDTO)
   async sendCommentNotification(
-    request: CommentRequestDTO
-  ): Promise<CommentResponseDTO | null> {
+    request: CommentNotificationDTO
+  ): Promise<boolean> {
     try {
-      return await apiUtils.post<CommentResponseDTO>(
+      console.log(
+        '[NotificationService] Sending comment notification:',
+        request
+      );
+      await apiUtils.post(
         `${ENDPOINTS.NOTIFICATIONS.BASE}/send-comment`,
         request
       );
-    } catch (error) {
-      console.error('Error sending comment notification:', error);
-      return null;
-    }
-  }
-
-  // Send request notification
-  async sendRequestNotification(
-    fromUserId: string,
-    toUserId: string,
-    message: string
-  ): Promise<boolean> {
-    try {
-      await apiUtils.post(`${ENDPOINTS.NOTIFICATIONS.BASE}/send-request`, {
-        fromUserId,
-        toUserId,
-        message,
-      });
       return true;
     } catch (error) {
-      console.error('Error sending request notification:', error);
+      console.error('Error sending comment notification:', error);
       return false;
     }
   }
 
-  // Send response notification
-  async sendResponseNotification(
-    fromUserId: string,
-    toUserId: string,
-    message: string,
-    accepted: boolean
-  ): Promise<boolean> {
+  // Send request notification (matches backend RequestNotificationDTO)
+  async sendRequestNotification(
+    request: RequestNotificationDTO
+  ): Promise<{ success: boolean; recipients: number[] } | null> {
     try {
-      await apiUtils.post(`${ENDPOINTS.NOTIFICATIONS.BASE}/send-response`, {
-        fromUserId,
-        toUserId,
-        message,
-        accepted,
-      });
-      return true;
+      console.log(
+        '[NotificationService] Sending request notification:',
+        request
+      );
+      return await apiUtils.post<{
+        success: boolean;
+        recipients: number[];
+      }>(`${ENDPOINTS.NOTIFICATIONS.BASE}/send-request`, request);
+    } catch (error) {
+      console.error('Error sending request notification:', error);
+      return null;
+    }
+  }
+
+  // Send response notification (matches backend ResponseNotificationDTO)
+  async sendResponseNotification(
+    request: ResponseNotificationDTO
+  ): Promise<{ success: boolean; recipients: number[] } | null> {
+    try {
+      console.log(
+        '[NotificationService] Sending response notification:',
+        request
+      );
+      return await apiUtils.post<{
+        success: boolean;
+        recipients: number[];
+      }>(`${ENDPOINTS.NOTIFICATIONS.BASE}/send-response`, request);
     } catch (error) {
       console.error('Error sending response notification:', error);
+      return null;
+    }
+  }
+
+  // Mark all notifications as seen
+  async markAllAsSeen(
+    userId: string
+  ): Promise<{ success: boolean; updatedCount: number } | null> {
+    try {
+      console.log(
+        '[NotificationService] Marking all notifications as seen for user:',
+        userId
+      );
+      return await apiUtils.patch<{
+        success: boolean;
+        updatedCount: number;
+      }>(`${ENDPOINTS.NOTIFICATIONS.BASE}/user/${userId}/mark-all-seen`);
+    } catch (error) {
+      console.error('Error marking notifications as seen:', error);
+      return null;
+    }
+  }
+
+  // Mark notification as read
+  async markAsRead(notificationId: number): Promise<NotificationDTO | null> {
+    try {
+      console.log(
+        '[NotificationService] Marking notification as read:',
+        notificationId
+      );
+      return await apiUtils.patch<NotificationDTO>(
+        `${ENDPOINTS.NOTIFICATIONS.BASE}/${notificationId}/read`
+      );
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      return null;
+    }
+  }
+
+  // Delete notification
+  async deleteNotification(notificationId: number): Promise<boolean> {
+    try {
+      console.log(
+        '[NotificationService] Deleting notification:',
+        notificationId
+      );
+      await apiUtils.delete(
+        `${ENDPOINTS.NOTIFICATIONS.BASE}/${notificationId}`
+      );
+      return true;
+    } catch (error) {
+      console.error('Error deleting notification:', error);
       return false;
     }
   }

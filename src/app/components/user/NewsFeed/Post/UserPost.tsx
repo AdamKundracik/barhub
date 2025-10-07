@@ -107,8 +107,8 @@ const usePostLike = (
 
     debounceTimeout.current = setTimeout(async () => {
       try {
-        if (liked !== previousLikeState && auth.currentUser?.displayName) {
-          await toggleLike(postId, auth.currentUser.displayName);
+        if (liked !== previousLikeState && auth.currentUser?.uid) {
+          await toggleLike(postId, auth.currentUser.uid);
           setPreviousLikeState(prev => !prev);
           optimisticUpdate(liked ?? false);
         }

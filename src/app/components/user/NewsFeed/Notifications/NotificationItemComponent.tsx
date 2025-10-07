@@ -40,6 +40,8 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
 
+  console.log('[NotificationItemComponent] item.sender:', item.sender);
+
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
   const locales = useLocales();
@@ -65,7 +67,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
     const configs = {
       [NotificationType.LIKE]: {
         label: t('new-like'),
-        text: `${item.senderName} ${t('liked-your-photo')}`,
+        text: `${item.sender?.name} ${t('liked-your-photo')}`,
         icon: Icons.HeartSolid,
         color: '#FF6B85',
         bgGradient: ['rgba(255, 107, 133, 0.1)', 'rgba(255, 107, 133, 0.05)'],
@@ -73,7 +75,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
       },
       [NotificationType.COMMENT]: {
         label: t('new-comment'),
-        text: `${item.senderName} ${t('commented-your-photo')}`,
+        text: `${item.sender?.name} ${t('commented-your-photo')}`,
         icon: Icons.CommentSolid,
         color: '#4A90E2',
         bgGradient: ['rgba(74, 144, 226, 0.1)', 'rgba(74, 144, 226, 0.05)'],
@@ -81,7 +83,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
       },
       [NotificationType.REQUEST]: {
         label: t('request'),
-        text: `${item.senderName} ${t('sent-request')}`,
+        text: `${item.sender?.name} ${t('sent-request')}`,
         icon: Icons.Bell,
         color: primaryColor,
         bgGradient: [`rgba(16, 217, 185, 0.15)`, `rgba(16, 217, 185, 0.08)`],
@@ -89,7 +91,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
       },
       [NotificationType.RESPONSE]: {
         label: t('response'),
-        text: `${item.senderName} ${t('responded-to-request')}`,
+        text: `${item.sender?.name} ${t('responded-to-request')}`,
         icon: Icons.Bell,
         color: successColor,
         bgGradient: [`rgba(76, 175, 80, 0.1)`, `rgba(76, 175, 80, 0.05)`],
@@ -102,16 +104,19 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
 
   // Format timestamp
   const formattedTime = useMemo(() => {
-    if (!item.creationTime || typeof item.creationTime !== 'object') {
+    if (!item.creationTime) {
       return '';
     }
 
+    // Parse LocalDateTime string: "2025-10-07T22:29:23.517475"
     let timestamp: number;
-    if ('_seconds' in item.creationTime) {
-      timestamp = (item.creationTime._seconds as number) * 1000;
-    } else if ('seconds' in item.creationTime) {
-      timestamp = item.creationTime.seconds * 1000;
-    } else {
+    try {
+      const dateStr = item.creationTime.includes('T')
+        ? item.creationTime
+        : item.creationTime.replace(' ', 'T');
+      timestamp = new Date(dateStr).getTime();
+    } catch (error) {
+      console.error('Error parsing notification time:', error);
       return '';
     }
 
@@ -174,15 +179,20 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   const isExpired = useMemo(() => {
     if (item.notificationType !== NotificationType.REQUEST) return false;
 
-    if (!item.creationTime || typeof item.creationTime !== 'object')
-      return true;
+    if (!item.creationTime) return true;
 
+    // Parse LocalDateTime string: "2025-10-07T22:29:23.517475"
     let timestamp: number;
-    if ('_seconds' in item.creationTime) {
-      timestamp = (item.creationTime._seconds as number) * 1000;
-    } else if ('seconds' in item.creationTime) {
-      timestamp = item.creationTime.seconds * 1000;
-    } else {
+    try {
+      const dateStr = item.creationTime.includes('T')
+        ? item.creationTime
+        : item.creationTime.replace(' ', 'T');
+      timestamp = new Date(dateStr).getTime();
+    } catch (error) {
+      console.error(
+        'Error parsing notification time for expiration check:',
+        error
+      );
       return true;
     }
 

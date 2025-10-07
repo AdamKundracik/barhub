@@ -32,7 +32,6 @@ class UserClient {
       { canUpload: boolean; remainingSeconds?: number }
     >(functions, 'canUploadPhoto');
     const { data } = await cloudFunction();
-    console.log(data);
     return data;
   };
 }

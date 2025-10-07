@@ -1,4 +1,4 @@
-import { Timestamp } from 'firebase/firestore';
+import { ClientDTO } from '@/src/app/types/dto';
 
 export enum NotificationType {
   REQUEST = 'REQUEST',
@@ -12,11 +12,12 @@ export interface NotificationItem {
   postId: string;
   label: string;
   text: string;
-  creationTime: Timestamp;
+  creationTime: string; // LocalDateTime from backend: "2025-10-07T22:29:23.517475"
   userId: string;
   notificationType: NotificationType;
   senderToken?: string;
   placeId?: string;
+  sender?: ClientDTO; // Full sender user object from backend
   senderName: string;
   senderId?: string;
   read: boolean;
@@ -44,10 +45,6 @@ export interface MarkNotificationReadResult {
   success: boolean;
   updatedCount: number;
 }
-
-export type AdminNotificationItem = Omit<NotificationItem, 'creationTime'> & {
-  creationTime: FirebaseFirestore.Timestamp;
-};
 
 export interface SaveNotificationRequest extends NotificationItem {}
 

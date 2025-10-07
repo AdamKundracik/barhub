@@ -30,9 +30,10 @@ export const useNotificationsQuery = (): {
     onSuccess: async data => {
       setNotifications(data);
     },
-    staleTime: 60_000 * 3,
+    staleTime: 1000, // Shorter cache for debugging
+    cacheTime: 1000,
     refetchOnWindowFocus: true,
-    refetchInterval: 60_000 * 3,
+    refetchInterval: false, // Disable auto-refetch during debugging
   });
 
   return {

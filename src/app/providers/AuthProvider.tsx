@@ -192,7 +192,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (credentials: RegisterCredentials) => {
     try {
       setIsLoading(true);
-      console.log(credentials);
       // Register and get tokens
       await authService.register(credentials);
 

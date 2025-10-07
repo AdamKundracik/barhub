@@ -393,11 +393,6 @@ export const Account = () => {
                   },
                 ]}
               >
-                <FontAwesomeIcon
-                  icon={isAdmin ? Icons.RankingStar : Icons.ShieldHalved}
-                  size={12}
-                  color={isAdmin ? '#EF4444' : '#3B82F6'}
-                />
                 <Text
                   style={[
                     styles.statusText,
@@ -441,7 +436,7 @@ export const Account = () => {
           <BlurView intensity={20} tint="dark" style={styles.card}>
             <View style={styles.cardHeader}>
               <FontAwesomeIcon
-                icon={Icons.RankingStar}
+                icon={Icons.ShieldHalved}
                 size={20}
                 color={isAdmin ? '#EF4444' : '#3B82F6'}
               />

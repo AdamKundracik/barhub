@@ -285,8 +285,6 @@ export async function sendNotificationToRecipients(
 ): Promise<string[]> {
   const uniqueUserIds = new Set<string>();
 
-  console.log(recipients);
-
   for (const recipient of recipients) {
     uniqueUserIds.add(recipient.userId);
 

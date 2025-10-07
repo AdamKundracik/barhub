@@ -46,14 +46,10 @@ export const getCurrentUser = async (): Promise<User | undefined> => {
 
 export const toggleLike = async (
   postId: string,
-  senderUserName: string
+  userId: string
 ): Promise<any> => {
-  const cloudFunction = httpsCallable(functions, 'toggleLikeSecondGen');
-  const response = await cloudFunction({
-    postId,
-    senderUserName,
-  });
-  return response;
+  const { postService } = await import('@/src/app/services/postService');
+  return await postService.toggleLike(postId, userId);
 };
 
 export const fetchPostById = async (postId: string) => {

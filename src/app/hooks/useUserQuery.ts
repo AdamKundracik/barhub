@@ -15,7 +15,7 @@ export const USER_QUERY_KEYS = {
 
 // Main user data query hook
 export const useUserQuery = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { setUserData, setUserDataLoading, updateCanSeeContent } =
     useUserStore();
 
@@ -41,7 +41,6 @@ export const useUserQuery = () => {
     refetchOnReconnect: true,
     retry: 2,
     onSuccess: data => {
-      console.log(data);
       console.log('[useUserQuery] User data fetched successfully');
       if (data) {
         setUserData(data);
