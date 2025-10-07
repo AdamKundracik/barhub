@@ -1,7 +1,8 @@
-import React, { useCallback, useState, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Modal,
   StyleSheet,
   Text,
   TextInput,
@@ -26,6 +27,7 @@ import FastImage from 'react-native-fast-image';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
+import { useTranslation } from 'react-i18next';
 
 interface UserItemProps {
   user: ClientDTO;
@@ -149,6 +151,7 @@ export const AdminPanel: React.FC = () => {
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const queryClient = useQueryClient();
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<ClientDTO | null>(null);
@@ -186,12 +189,12 @@ export const AdminPanel: React.FC = () => {
     },
     {
       onSuccess: () => {
-        showSuccessToast('Success', 'User role updated successfully');
+        showSuccessToast(t('success'), t('admin.roleUpdated'));
         queryClient.invalidateQueries(['admin', 'users']);
         setSelectedUser(null);
       },
       onError: (error: any) => {
-        showErrorToast('Error', error.message || 'Failed to update role');
+        showErrorToast(t('error'), error.message || 'Failed to update role');
       },
     }
   );
@@ -204,15 +207,15 @@ export const AdminPanel: React.FC = () => {
     {
       onSuccess: (_, variables) => {
         showSuccessToast(
-          'Success',
-          `User ${variables.disabled ? 'disabled' : 'enabled'} successfully`
+          t('success'),
+          variables.disabled ? t('admin.userDisabled') : t('admin.userEnabled')
         );
         queryClient.invalidateQueries(['admin', 'users']);
         setSelectedUser(null);
       },
       onError: (error: any) => {
         showErrorToast(
-          'Error',
+          t('error'),
           error.message || 'Failed to update user status'
         );
       },
@@ -225,17 +228,14 @@ export const AdminPanel: React.FC = () => {
       return await userService.updateUserPremium(userId, premium);
     },
     {
-      onSuccess: (_, variables) => {
-        showSuccessToast(
-          'Success',
-          `Premium ${variables.premium ? 'granted' : 'revoked'} successfully`
-        );
+      onSuccess: () => {
+        showSuccessToast(t('success'), t('admin.premiumUpdated'));
         queryClient.invalidateQueries(['admin', 'users']);
         setSelectedUser(null);
       },
       onError: (error: any) => {
         showErrorToast(
-          'Error',
+          t('error'),
           error.message || 'Failed to update premium status'
         );
       },
@@ -251,12 +251,12 @@ export const AdminPanel: React.FC = () => {
       if (!selectedUser) return;
 
       Alert.alert(
-        'Change User Role',
-        `Are you sure you want to change ${selectedUser.name}'s role to ${newRole}?`,
+        t('admin.changeRole'),
+        t('admin.changeRoleConfirm', { name: selectedUser.name, role: newRole }),
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: t('cancel'), style: 'cancel' },
           {
-            text: 'Confirm',
+            text: t('confirm'),
             style: 'destructive',
             onPress: () => {
               updateRoleMutation.mutate({ userId: selectedUser.id, newRole });
@@ -271,14 +271,15 @@ export const AdminPanel: React.FC = () => {
   const handleToggleDisabled = useCallback(() => {
     if (!selectedUser) return;
 
-    const action = selectedUser.disabled ? 'enable' : 'disable';
     Alert.alert(
-      `${action.charAt(0).toUpperCase() + action.slice(1)} User`,
-      `Are you sure you want to ${action} ${selectedUser.name}?`,
+      selectedUser.disabled ? t('admin.enableUser') : t('admin.disableUser'),
+      selectedUser.disabled 
+        ? t('admin.enableConfirm', { name: selectedUser.name })
+        : t('admin.disableConfirm', { name: selectedUser.name }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         {
-          text: 'Confirm',
+          text: t('confirm'),
           style: 'destructive',
           onPress: () => {
             disableUserMutation.mutate({
@@ -289,19 +290,20 @@ export const AdminPanel: React.FC = () => {
         },
       ]
     );
-  }, [selectedUser, disableUserMutation]);
+  }, [selectedUser, disableUserMutation, t]);
 
   const handleTogglePremium = useCallback(() => {
     if (!selectedUser || !isAdmin) return;
 
-    const action = selectedUser.premium ? 'revoke' : 'grant';
     Alert.alert(
-      `${action.charAt(0).toUpperCase() + action.slice(1)} Premium`,
-      `Are you sure you want to ${action} premium for ${selectedUser.name}?`,
+      selectedUser.premium ? t('admin.revokePremium') : t('admin.grantPremium'),
+      selectedUser.premium
+        ? t('admin.revokePremiumConfirm', { name: selectedUser.name })
+        : t('admin.grantPremiumConfirm', { name: selectedUser.name }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         {
-          text: 'Confirm',
+          text: t('confirm'),
           onPress: () => {
             updatePremiumMutation.mutate({
               userId: selectedUser.id,
@@ -311,13 +313,13 @@ export const AdminPanel: React.FC = () => {
         },
       ]
     );
-  }, [selectedUser, isAdmin, updatePremiumMutation]);
+  }, [selectedUser, isAdmin, updatePremiumMutation, t]);
 
   const filteredUsers = useMemo(() => {
     if (!searchQuery || searchQuery.trim() === '') {
       return users; // Return all users if search is empty
     }
-    
+
     const query = searchQuery.toLowerCase().trim();
     return users.filter(
       user =>
@@ -327,14 +329,17 @@ export const AdminPanel: React.FC = () => {
     );
   }, [users, searchQuery]);
 
-  const stats = useMemo(() => ({
-    total: users.length,
-    admins: users.filter(u => u.role === RoleEnum.ADMIN).length,
-    moderators: users.filter(u => u.role === RoleEnum.MODERATOR).length,
-    users: users.filter(u => u.role === RoleEnum.USER).length,
-    premium: users.filter(u => u.premium).length,
-    disabled: users.filter(u => u.disabled).length,
-  }), [users]);
+  const stats = useMemo(
+    () => ({
+      total: users.length,
+      admins: users.filter(u => u.role === RoleEnum.ADMIN).length,
+      moderators: users.filter(u => u.role === RoleEnum.MODERATOR).length,
+      users: users.filter(u => u.role === RoleEnum.USER).length,
+      premium: users.filter(u => u.premium).length,
+      disabled: users.filter(u => u.disabled).length,
+    }),
+    [users]
+  );
 
   if (!isAdmin && !isModerator) {
     return (
@@ -364,7 +369,7 @@ export const AdminPanel: React.FC = () => {
               />
             </TouchableOpacity>
 
-            <Text style={styles.headerTitle}>Admin Panel</Text>
+            <Text style={styles.headerTitle}>{t('admin.panel')}</Text>
 
             <TouchableOpacity
               onPress={() => refetch()}
@@ -382,31 +387,31 @@ export const AdminPanel: React.FC = () => {
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{stats.total}</Text>
-              <Text style={styles.statLabel}>Total</Text>
+              <Text style={styles.statLabel}>{t('admin.total')}</Text>
             </View>
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: '#EF4444' }]}>
                 {stats.admins}
               </Text>
-              <Text style={styles.statLabel}>Admins</Text>
+              <Text style={styles.statLabel}>{t('admin.admins')}</Text>
             </View>
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: '#3B82F6' }]}>
                 {stats.moderators}
               </Text>
-              <Text style={styles.statLabel}>Mods</Text>
+              <Text style={styles.statLabel}>{t('admin.moderators')}</Text>
             </View>
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: '#FFD700' }]}>
                 {stats.premium}
               </Text>
-              <Text style={styles.statLabel}>Premium</Text>
+              <Text style={styles.statLabel}>{t('admin.premium')}</Text>
             </View>
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: warningColor }]}>
                 {stats.disabled}
               </Text>
-              <Text style={styles.statLabel}>Disabled</Text>
+              <Text style={styles.statLabel}>{t('admin.disabled')}</Text>
             </View>
           </View>
         </View>
@@ -420,7 +425,7 @@ export const AdminPanel: React.FC = () => {
           />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search users..."
+            placeholder={t('admin.searchUsers')}
             placeholderTextColor={separatorColor}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -440,7 +445,7 @@ export const AdminPanel: React.FC = () => {
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={primaryColor} />
-            <Text style={styles.loadingText}>Loading users...</Text>
+            <Text style={styles.loadingText}>{t('admin.loadingUsers')}</Text>
           </View>
         ) : (
           <FlashList
@@ -464,32 +469,37 @@ export const AdminPanel: React.FC = () => {
                   size={48}
                   color={separatorColor}
                 />
-                <Text style={styles.emptyText}>
-                  {searchQuery ? 'No users found' : 'No users available'}
-                </Text>
+                <Text style={styles.emptyText}>{t('admin.noUsersFound')}</Text>
               </View>
             }
           />
         )}
 
         {/* User Actions Modal */}
-        {selectedUser && (
-          <BlurView intensity={80} tint="dark" style={styles.modalOverlay}>
+        <Modal
+          visible={selectedUser !== null}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setSelectedUser(null)}
+        >
+          <BlurView intensity={100} tint="dark" style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>{selectedUser.name}</Text>
+                <Text style={styles.modalTitle}>{selectedUser?.name}</Text>
                 <TouchableOpacity onPress={() => setSelectedUser(null)}>
                   <FontAwesomeIcon icon={Icons.Remove} size={24} color="#FFF" />
                 </TouchableOpacity>
               </View>
 
-              <Text style={styles.modalSubtitle}>{selectedUser.email}</Text>
+              <Text style={styles.modalSubtitle}>{selectedUser?.email}</Text>
 
               <View style={styles.modalActions}>
                 {/* Role Change (Admin only) */}
                 {isAdmin && (
                   <>
-                    <Text style={styles.actionSectionTitle}>Change Role</Text>
+                    <Text style={styles.actionSectionTitle}>
+                      {t('admin.changeRole')}
+                    </Text>
                     <View style={styles.roleButtons}>
                       {[RoleEnum.USER, RoleEnum.MODERATOR, RoleEnum.ADMIN].map(
                         roleOption => (
@@ -497,16 +507,16 @@ export const AdminPanel: React.FC = () => {
                             key={roleOption}
                             style={[
                               styles.roleButton,
-                              selectedUser.role === roleOption &&
+                              selectedUser?.role === roleOption &&
                                 styles.roleButtonActive,
                             ]}
                             onPress={() => handleChangeRole(roleOption)}
-                            disabled={selectedUser.role === roleOption}
+                            disabled={selectedUser?.role === roleOption}
                           >
                             <Text
                               style={[
                                 styles.roleButtonText,
-                                selectedUser.role === roleOption &&
+                                selectedUser?.role === roleOption &&
                                   styles.roleButtonTextActive,
                               ]}
                             >
@@ -531,9 +541,9 @@ export const AdminPanel: React.FC = () => {
                       color="#FFD700"
                     />
                     <Text style={styles.actionButtonText}>
-                      {selectedUser.premium
-                        ? 'Revoke Premium'
-                        : 'Grant Premium'}
+                      {selectedUser?.premium
+                        ? t('admin.revokePremium')
+                        : t('admin.grantPremium')}
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -544,20 +554,22 @@ export const AdminPanel: React.FC = () => {
                   onPress={handleToggleDisabled}
                 >
                   <FontAwesomeIcon
-                    icon={selectedUser.disabled ? Icons.Check : Icons.Lock}
+                    icon={selectedUser?.disabled ? Icons.Check : Icons.Lock}
                     size={18}
                     color={warningColor}
                   />
                   <Text
                     style={[styles.actionButtonText, { color: warningColor }]}
                   >
-                    {selectedUser.disabled ? 'Enable User' : 'Disable User'}
+                    {selectedUser?.disabled
+                      ? t('admin.enableUser')
+                      : t('admin.disableUser')}
                   </Text>
                 </TouchableOpacity>
               </View>
             </View>
           </BlurView>
-        )}
+        </Modal>
       </View>
     </ScreenLayout>
   );
@@ -755,19 +767,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   modalOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: 20,
   },
   modalContent: {
     width: '100%',
     maxWidth: 400,
-    backgroundColor: 'rgba(30, 30, 30, 0.95)',
-    borderRadius: 24,
-    padding: 24,
+    backgroundColor: primaryBgColor,
+    borderRadius: 20,
+    padding: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   modalHeader: {
     flexDirection: 'row',

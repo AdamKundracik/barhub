@@ -14,6 +14,7 @@ import {
   faCheck,
   faChevronLeft,
   faChevronRight,
+  faChevronUp,
   faCircleCheck,
   faCircleXmark,
   faCog,
@@ -138,7 +139,8 @@ export const Icons = {
   Envelope: faEnvelope,
   RankingStar: faRankingStar,
   House: faHouse,
-  TriangleExclamation: faTriangleExclamation,
+  Warning: faTriangleExclamation,
   ShieldHalved: faShieldHalved,
   Wifi: faWifi,
+  ChevronUp: faChevronUp,
 };

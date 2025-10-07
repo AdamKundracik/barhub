@@ -177,7 +177,7 @@ export const Account = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { unsubscribeNotifications } = useNotificationsHandler();
   const { currentPushToken } = useUserStore();
-  const { role, isAdmin, isModerator } = useUserRole();
+  const { isAdmin, isModerator } = useUserRole();
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -449,13 +449,25 @@ export const Account = () => {
             </View>
 
             <View style={styles.cardContent}>
-              <ActionButton
-                icon={Icons.Users}
-                title="User Management"
-                description="Manage users, roles, and permissions"
-                onPress={() => navigation.navigate('AdminPanel' as never)}
-                variant="premium"
-              />
+              <View style={{ gap: 16 }}>
+                <ActionButton
+                  icon={Icons.Users}
+                  title={t('admin.userManagement')}
+                  description={t('admin.userManagementDesc')}
+                  onPress={() => navigation.navigate('AdminPanel' as never)}
+                  variant="premium"
+                />
+
+                <ActionButton
+                  icon={Icons.Warning}
+                  title={t('admin.reportsManagement')}
+                  description={t('admin.reportsManagementDesc')}
+                  onPress={() =>
+                    navigation.navigate('ReportsManagement' as never)
+                  }
+                  variant="warning"
+                />
+              </View>
             </View>
           </BlurView>
         )}

@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { Loading } from '../components/shared/Loading';
 import AuthNav from './AuthNav';
-import { UserNav } from './UserNav';
+import { UserNavWrapper } from './UserNavWrapper';
 import { useAppState } from '../providers/AppStateProvider';
 import { PermissionsScreen } from '../screens/user/Permissions/Permissions';
 import { usePermissionsContext } from '../providers/PermissionsProvider';
@@ -50,7 +50,7 @@ export const Navigation = () => {
     <>
       <NetworkTopBar />
       <NavigationContainer>
-        {isAuthenticated ? <UserNav /> : <AuthNav />}
+        {isAuthenticated ? <UserNavWrapper /> : <AuthNav />}
       </NavigationContainer>
     </>
   );
