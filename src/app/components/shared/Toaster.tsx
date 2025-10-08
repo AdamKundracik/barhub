@@ -6,8 +6,61 @@ import {
   ToastTitle,
   useToast,
 } from '@/components/ui/toast';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  runOnJS,
+} from 'react-native-reanimated';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+const SwipeableToast = ({
+  children,
+  onDismiss,
+  style,
+}: {
+  children: React.ReactNode;
+  onDismiss: () => void;
+  style?: any;
+}) => {
+  const translateY = useSharedValue(0);
+  const opacity = useSharedValue(1);
+
+  const panGesture = Gesture.Pan()
+    .onUpdate((event) => {
+      // Only allow swipe up (negative Y)
+      if (event.translationY < 0) {
+        translateY.value = event.translationY;
+        // Fade out as user swipes up
+        opacity.value = Math.max(0, 1 + event.translationY / 100);
+      }
+    })
+    .onEnd((event) => {
+      if (event.translationY < -50) {
+        // Swipe threshold met - dismiss
+        translateY.value = withSpring(-200, { damping: 20 });
+        opacity.value = withSpring(0, { damping: 20 });
+        runOnJS(onDismiss)();
+      } else {
+        // Reset position
+        translateY.value = withSpring(0);
+        opacity.value = withSpring(1);
+      }
+    });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+    opacity: opacity.value,
+  }));
+
+  return (
+    <GestureDetector gesture={panGesture}>
+      <Animated.View style={[style, animatedStyle]}>{children}</Animated.View>
+    </GestureDetector>
+  );
+};
 
 export const useCustomToast = () => {
   const toast = useToast();
@@ -16,21 +69,29 @@ export const useCustomToast = () => {
     toast.show({
       placement: 'top',
       duration: 3000,
-      render: ({ id }) => (
-        <Toast
-          nativeID={`toast-${id}`}
-          action="success"
-          variant="outline"
-          style={[styles.successContainer, { width: SCREEN_WIDTH - 20 }]} // 20px padding from edges
-        >
-          <ToastTitle style={styles.successTitle}>{title}</ToastTitle>
-          {description && (
-            <ToastDescription style={styles.successDescription}>
-              {description}
-            </ToastDescription>
-          )}
-        </Toast>
-      ),
+      render: ({ id }) => {
+        const handleDismiss = () => {
+          toast.close(id);
+        };
+
+        return (
+          <SwipeableToast onDismiss={handleDismiss}>
+            <Toast
+              nativeID={`toast-${id}`}
+              action="success"
+              variant="outline"
+              style={[styles.successContainer, { width: SCREEN_WIDTH - 20 }]}
+            >
+              <ToastTitle style={styles.successTitle}>{title}</ToastTitle>
+              {description && (
+                <ToastDescription style={styles.successDescription}>
+                  {description}
+                </ToastDescription>
+              )}
+            </Toast>
+          </SwipeableToast>
+        );
+      },
     });
   };
 
@@ -38,21 +99,29 @@ export const useCustomToast = () => {
     toast.show({
       placement: 'top',
       duration: 3000,
-      render: ({ id }) => (
-        <Toast
-          nativeID={`toast-${id}`}
-          action="error"
-          variant="outline"
-          style={[styles.errorContainer, { width: SCREEN_WIDTH - 20 }]} // full width minus padding
-        >
-          <ToastTitle style={styles.errorTitle}>{title}</ToastTitle>
-          {description && (
-            <ToastDescription style={styles.errorDescription}>
-              {description}
-            </ToastDescription>
-          )}
-        </Toast>
-      ),
+      render: ({ id }) => {
+        const handleDismiss = () => {
+          toast.close(id);
+        };
+
+        return (
+          <SwipeableToast onDismiss={handleDismiss}>
+            <Toast
+              nativeID={`toast-${id}`}
+              action="error"
+              variant="outline"
+              style={[styles.errorContainer, { width: SCREEN_WIDTH - 20 }]}
+            >
+              <ToastTitle style={styles.errorTitle}>{title}</ToastTitle>
+              {description && (
+                <ToastDescription style={styles.errorDescription}>
+                  {description}
+                </ToastDescription>
+              )}
+            </Toast>
+          </SwipeableToast>
+        );
+      },
     });
   };
 

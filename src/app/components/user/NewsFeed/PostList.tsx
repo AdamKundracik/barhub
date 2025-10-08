@@ -36,7 +36,6 @@ const PostsList = ({
   posts,
   zoomedPost,
   setZoomedPost,
-  userData,
   requestPhoto,
   fetchMorePosts,
   onRefresh,
@@ -166,7 +165,12 @@ const PostsList = ({
           />
         }
         refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={onRefresh}
+            tintColor={primaryColor}
+            colors={[primaryColor]}
+          />
         }
         onEndReached={hasMorePosts ? fetchMorePosts : null}
         onEndReachedThreshold={0.5}

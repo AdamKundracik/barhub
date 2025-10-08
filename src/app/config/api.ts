@@ -23,6 +23,10 @@ export const ENDPOINTS = {
     FORGOT_PASSWORD: '/auth/password/forgot',
     RESET_PASSWORD: '/auth/password/reset',
     UPDATE_PASSWORD: '/auth/password/update',
+    SEND_VERIFICATION_EMAIL: '/auth/email/send-verification',
+    RESEND_VERIFICATION_EMAIL: '/auth/email/resend-verification',
+    VERIFY_EMAIL: '/auth/email/verify',
+    VALIDATE_EMAIL_TOKEN: '/auth/email/validate',
   },
   
   // User endpoints

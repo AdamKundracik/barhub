@@ -7,6 +7,7 @@ import {
   SignUpRequestDTO,
 } from '../types/dto';
 import { useUserStore } from '../utils/store/userStore';
+import { emailVerificationService } from './emailVerificationService';
 
 // Type aliases for better naming
 export type LoginCredentials = SignInRequestDTO;
@@ -59,6 +60,10 @@ class AuthService {
 
       // Store user data if available
       if (authResponse.user) {
+        await AsyncStorage.setItem(
+          USER_DATA_KEY,
+          JSON.stringify(authResponse.user)
+        );
         // Also update Zustand store
         useUserStore.getState().setUserData(authResponse.user);
       }
@@ -102,6 +107,17 @@ class AuthService {
         );
         // Also update Zustand store
         useUserStore.getState().setUserData(authResponse.user);
+        
+        // Send verification email if user is not verified
+        if (!authResponse.user.emailVerified) {
+          try {
+            await emailVerificationService.sendVerificationEmail(authResponse.user.email);
+            console.log('[AuthService] Verification email sent after registration');
+          } catch (emailError) {
+            console.error('[AuthService] Failed to send verification email:', emailError);
+            // Don't throw - registration was successful even if email fails
+          }
+        }
       }
 
       return authResponse;

@@ -7,9 +7,9 @@ import {
   View,
 } from 'react-native';
 import Layout from '@/src/app/components/shared/Layouts/Layout';
-import { sendEmailVerification, signOut } from 'firebase/auth';
 import { useTranslation } from 'react-i18next';
-import { auth } from '@/firebaseConfig';
+import { emailVerificationService } from '../../services/emailVerificationService';
+import { useAuth } from '../../providers/AuthProvider';
 import {
   postBgColor,
   primaryColor,
@@ -34,22 +34,22 @@ const EmailNotVerified = () => {
   const [checking, setChecking] = useState(false);
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const { unsubscribeNotifications } = useNotificationsHandler();
+  const { user, refreshUser, logout } = useAuth();
 
-  const userEmail = auth.currentUser?.email || '';
+  const userEmail = user?.email || '';
 
   // Manual check for email verification
   const checkEmailVerification = async () => {
-    if (!auth.currentUser || checking) return;
+    if (!user || checking) return;
 
     try {
       setChecking(true);
 
-      // Reload user to get the latest emailVerified status
-      await auth.currentUser.reload();
+      // Refresh user data from backend to get latest emailVerified status
+      await refreshUser();
 
-      // If email is verified, the onAuthStateChanged listener
-      // in useInitializationApp will trigger and navigation will update automatically
-      if (auth.currentUser.emailVerified) {
+      // Check if user is now verified
+      if (user.emailVerified) {
         console.log('Email verified! Navigation will update automatically.');
         showSuccessToast(
           t('email-verified') || 'Email verified!',
@@ -87,11 +87,11 @@ const EmailNotVerified = () => {
   }, []);
 
   const handleResendVerification = async () => {
-    if (!auth.currentUser || resending) return;
+    if (!user || resending) return;
 
     setResending(true);
     try {
-      await sendEmailVerification(auth.currentUser);
+      await emailVerificationService.resendVerificationEmail();
       showSuccessToast(
         t('verification-email-resent'),
         t('verification-email-resent-desc')
@@ -99,20 +99,17 @@ const EmailNotVerified = () => {
     } catch (error: any) {
       console.error('Error resending verification email:', error);
 
-      // Handle specific Firebase errors
+      // Handle specific errors
       let errorMessage = t('please-try-again-later');
 
-      if (error.code === 'auth/too-many-requests') {
-        errorMessage =
-          t('too-many-requests') ||
-          'Too many requests. Please wait a minute before trying again.';
-      } else if (error.code === 'auth/user-token-expired') {
-        errorMessage =
-          t('session-expired') ||
-          'Your session has expired. Please sign in again.';
-      } else if (error.code === 'auth/network-request-failed') {
-        errorMessage =
-          t('network-error') || 'Network error. Please check your connection.';
+      if (error.message?.includes('too many') || error.message?.includes('rate limit')) {
+        errorMessage = t('too-many-requests');
+      } else if (error.message?.includes('expired') || error.message?.includes('session')) {
+        errorMessage = t('session-expired');
+      } else if (error.message?.includes('network')) {
+        errorMessage = t('network-error');
+      } else if (error.message) {
+        errorMessage = error.message;
       }
 
       showErrorToast(t('email-verification-error'), errorMessage);
@@ -135,10 +132,10 @@ const EmailNotVerified = () => {
             // Unsubscribe from notifications
             unsubscribeNotifications();
 
-            // Sign out (push token removal is handled in AuthProvider)
-            await signOut(auth);
+            // Sign out using AuthProvider (push token removal is handled there)
+            await logout();
 
-            // Navigation handled by auth state listener
+            // Navigation handled by auth state change
           } catch (error) {
             console.error('Error signing out:', error);
             showErrorToast(t('error'), t('something-went-wrong'));

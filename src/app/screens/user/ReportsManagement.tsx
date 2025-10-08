@@ -31,10 +31,7 @@ interface ReportItemProps {
   onReportPress: (report: ReportDTO) => void;
 }
 
-const ReportItem: React.FC<ReportItemProps> = ({ report, onReportPress }) => {
-  const { t } = useTranslation();
-  console.log('[ReportItem] Rendering report:', report);
-
+const ReportItem = ({ report, onReportPress }: ReportItemProps) => {
   const getReasonColor = (reason: string) => {
     switch (reason.toUpperCase()) {
       case 'SPAM':
@@ -89,7 +86,9 @@ const ReportItem: React.FC<ReportItemProps> = ({ report, onReportPress }) => {
           <View style={styles.reportMeta}>
             <Text style={styles.metaText}>Post ID: {report.postId}</Text>
             <Text style={styles.metaText}>•</Text>
-            <Text style={styles.metaText}>Reporter: {report.userName || `User #${report.userId}`}</Text>
+            <Text style={styles.metaText}>
+              Reporter: {report.userName || `User #${report.userId}`}
+            </Text>
           </View>
 
           {report.createdAt && (
@@ -462,11 +461,10 @@ export const ReportsManagement: React.FC = () => {
                   </Text>
                 </View>
                 <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>
-                    {t('admin.reporter')}:
-                  </Text>
+                  <Text style={styles.detailLabel}>{t('admin.reporter')}:</Text>
                   <Text style={styles.detailValue}>
-                    {selectedReport?.userName || `User #${selectedReport?.userId}`}
+                    {selectedReport?.userName ||
+                      `User #${selectedReport?.userId}`}
                   </Text>
                 </View>
                 <View style={styles.detailRow}>
@@ -487,17 +485,17 @@ export const ReportsManagement: React.FC = () => {
                     </Text>
                   </View>
                 )}
-                {selectedReport?.otherReasonMessage && 
-                 String(selectedReport.reason).toUpperCase() === 'OTHER' && (
-                  <View style={styles.detailColumn}>
-                    <Text style={styles.detailLabel}>
-                      {t('admin.description')}:
-                    </Text>
-                    <Text style={styles.detailValue}>
-                      {selectedReport.otherReasonMessage}
-                    </Text>
-                  </View>
-                )}
+                {selectedReport?.otherReasonMessage &&
+                  String(selectedReport.reason).toUpperCase() === 'OTHER' && (
+                    <View style={styles.detailColumn}>
+                      <Text style={styles.detailLabel}>
+                        {t('admin.description')}:
+                      </Text>
+                      <Text style={styles.detailValue}>
+                        {selectedReport.otherReasonMessage}
+                      </Text>
+                    </View>
+                  )}
               </View>
 
               {/* Actions */}
@@ -689,7 +687,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: separatorColor,
     marginTop: 6,
-    fontStyle: 'italic',
   },
   loadingContainer: {
     flex: 1,

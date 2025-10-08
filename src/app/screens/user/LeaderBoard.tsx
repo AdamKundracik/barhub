@@ -271,7 +271,12 @@ const LeaderboardScreen = () => {
               : bottomTabsHeight,
         }}
         refreshControl={
-          <RefreshControl refreshing={isLoading} onRefresh={refetch} />
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={refetch}
+            tintColor={primaryColor}
+            colors={[primaryColor]}
+          />
         }
         data={topUsers}
         keyExtractor={item => item.userId}

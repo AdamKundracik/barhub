@@ -1,6 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import EmailNotVerified from '../screens/user/EmailNotVerified';
+import { VerifyEmail } from '../screens/auth/VerifyEmail';
 
 const NotVerifiedStack = createNativeStackNavigator();
 
@@ -15,6 +16,10 @@ const NotVerifiedNav = () => {
       <NotVerifiedStack.Screen
         name={'EmailNotVerified'}
         component={EmailNotVerified}
+      />
+      <NotVerifiedStack.Screen
+        name={'VerifyEmail'}
+        component={VerifyEmail}
       />
     </NotVerifiedStack.Navigator>
   );

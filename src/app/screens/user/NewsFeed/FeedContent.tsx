@@ -3,8 +3,7 @@ import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import PostsList from '../../../components/user/NewsFeed/PostList';
 import PostLoaderView from '../../../components/user/NewsFeed/Post/Loaders/PostLoaderView';
 import EmptyState from '../../../components/user/NewsFeed/EmptyState';
-import { useUserStore } from '@/src/app/utils/store/userStore';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { primaryColor } from '../../../utils/styles/colors';
 
 interface FeedContentProps {
   isLoading: boolean;
@@ -38,9 +37,6 @@ export const FeedContent: React.FC<FeedContentProps> = ({
   isFetchingNextPage,
   fetchMorePosts,
 }) => {
-  const { isPremium } = useUserStore();
-  const tabBarHeight = useBottomTabBarHeight();
-
   if (isLoading) {
     return <PostLoaderView />;
   }
@@ -69,7 +65,12 @@ export const FeedContent: React.FC<FeedContentProps> = ({
       <ScrollView
         contentContainerStyle={styles.scrollViewContent}
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={onRefresh}
+            tintColor={primaryColor}
+            colors={[primaryColor]}
+          />
         }
       >
         <EmptyState requestPhoto={requestPhoto} />

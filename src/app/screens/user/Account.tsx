@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   Pressable,
+  RefreshControl,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -170,6 +171,7 @@ export const Account = () => {
     photoUrl,
     deleteAccountAsync,
     isDeletingAccount,
+    refetch,
   } = useUserData();
   const { logout } = useAuth();
   const { t } = useTranslation();
@@ -180,6 +182,18 @@ export const Account = () => {
   const { isAdmin, isModerator } = useUserRole();
 
   const [isEditing, setIsEditing] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } catch (error) {
+      console.error('Error refreshing user data:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const userDisplayName = useMemo(
     () => displayName || t('anonymous-user'),
@@ -331,6 +345,14 @@ export const Account = () => {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={primaryColor}
+            colors={[primaryColor]}
+          />
+        }
       >
         {/* Enhanced Profile Section */}
         <View style={styles.profileSection}>

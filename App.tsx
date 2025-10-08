@@ -33,9 +33,9 @@ export default function App() {
   useAppInitialization();
 
   return (
-    <GluestackUIProvider mode="dark">
-      <QueryClientProvider client={queryClient}>
-        <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <GluestackUIProvider mode="dark">
+        <QueryClientProvider client={queryClient}>
           <I18nextProvider i18n={i18n}>
             <AuthProvider>
               <NetworkProvider>
@@ -51,8 +51,8 @@ export default function App() {
               </NetworkProvider>
             </AuthProvider>
           </I18nextProvider>
-        </GestureHandlerRootView>
-      </QueryClientProvider>
-    </GluestackUIProvider>
+        </QueryClientProvider>
+      </GluestackUIProvider>
+    </GestureHandlerRootView>
   );
 }

@@ -125,7 +125,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
 
         // Then refresh from server
-        console.log('[AuthProvider] Refreshing user data from server');
         userData = await authService.getCurrentUser();
         if (userData) {
           setUser(userData);
