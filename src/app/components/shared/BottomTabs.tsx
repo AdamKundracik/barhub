@@ -24,6 +24,7 @@ import { useTranslation } from 'react-i18next';
 import { usePostsStore } from '@/src/app/utils/store/postStore';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { useNewsFeedData } from '@/src/app/utils/hooks/NewsFeed/usePostData';
+import { useUserRole } from '@/src/app/hooks/useUserRole';
 
 const Tab = createBottomTabNavigator();
 
@@ -34,6 +35,7 @@ const BottomTabs = () => {
   const { refetch } = useNewsFeedData();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
+  const { hasAdminAccess } = useUserRole();
 
   const handleOpenCamera = async () => {
     // 1️⃣ Block if using fake location
@@ -42,27 +44,29 @@ const BottomTabs = () => {
       return;
     }
 
-    // 2️⃣ Check last uploaded post (5 min cooldown)
-    const lastDate = userData?.lastUploadedPostAt
-      ? new Date(userData.lastUploadedPostAt)
-      : null;
-    if (lastDate) {
-      const now = Date.now();
-      const diffMs = now - lastDate.getTime();
-      const fiveMinutes = 5 * 60 * 1000;
+    // 2️⃣ Check last uploaded post (5 min cooldown) - only for regular users
+    if (!hasAdminAccess) {
+      const lastDate = userData?.lastUploadedPostAt
+        ? new Date(userData.lastUploadedPostAt)
+        : null;
+      if (lastDate) {
+        const now = Date.now();
+        const diffMs = now - lastDate.getTime();
+        const fiveMinutes = 5 * 60 * 1000;
 
-      if (diffMs < fiveMinutes) {
-        const waitMs = fiveMinutes - diffMs;
-        const formatWait = (ms: number) => {
-          const totalSeconds = Math.ceil(ms / 1000);
-          const minutes = Math.floor(totalSeconds / 60);
-          const seconds = totalSeconds % 60;
-          return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-        };
-        Alert.alert(
-          t('camera.waitBeforeNextUpload', { time: formatWait(waitMs) })
-        );
-        return;
+        if (diffMs < fiveMinutes) {
+          const waitMs = fiveMinutes - diffMs;
+          const formatWait = (ms: number) => {
+            const totalSeconds = Math.ceil(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+          };
+          Alert.alert(
+            t('camera.waitBeforeNextUpload', { time: formatWait(waitMs) })
+          );
+          return;
+        }
       }
     }
 

@@ -49,14 +49,14 @@ class ReportService {
   // Create report (Any user can report a post)
   async createReport(
     userId: number,
-    postId: number,
+    postId: string, // Frontend uses string, convert to number for backend
     reason: ReasonTypeEnum,
     otherReasonMessage?: string
   ): Promise<ReportDTO> {
     try {
-      const reportData: Omit<ReportDTO, 'id' | 'createdAt' | 'updatedAt'> = {
+      const reportData: Omit<ReportDTO, 'id' | 'createdAt' | 'updatedAt' | 'userName'> = {
         userId,
-        postId,
+        postId: parseInt(postId), // Convert string to number for backend
         reason,
         otherReasonMessage,
       };

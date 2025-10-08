@@ -47,7 +47,7 @@ export const ENDPOINTS = {
     LIKE: (id: string) => `/posts/${id}/like`,
     LIKES_COUNT: (id: string) => `/posts/${id}/likes/count`,
     FRESH_CONTENT: '/posts/fresh-content',
-    BY_PLACE: '/posts/place',
+    BY_PLACE: '/posts/placeId',
   },
   
   // Notification endpoints

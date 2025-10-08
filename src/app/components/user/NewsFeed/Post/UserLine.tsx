@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Timestamp } from 'firebase/firestore';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   FadeIn,
@@ -13,15 +12,18 @@ import Animated, {
 import { PostReportModal } from '@/src/app/components/shared/Modals/ReportPostModal';
 import { ReportReason } from '@/src/app/utils/types/Feed/PostTypes';
 import { useTranslation } from 'react-i18next';
-import { Post, UserInfo } from '@/shared';
+import { Post } from '@/common/types/postTypes';
+import { UserInfo } from '@/shared';
 import {
   postBgColor,
   primaryColor,
   separatorColor,
 } from '@/src/app/utils/styles/colors';
-import { FirebaseTimestamp } from '@/src/app/utils/types/types';
 import { Icons } from '@/src/app/utils/icons/icons';
-import { reportService, ReasonTypeEnum } from '@/src/app/services/reportService';
+import {
+  ReasonTypeEnum,
+  reportService,
+} from '@/src/app/services/reportService';
 import { PostOptionsModal } from '@/src/app/components/shared/Modals/PostOptionsModal';
 import postService from '@/src/app/utils/services/post.service';
 import { useQueryClient } from 'react-query';
@@ -31,17 +33,6 @@ import { getAuth } from 'firebase/auth';
 import { useUserRole } from '@/src/app/hooks/useUserRole';
 import FastImage from 'react-native-fast-image';
 import { useUserStore } from '@/src/app/utils/store/userStore';
-
-const normalizeTimestamp = (
-  timestamp: FirebaseTimestamp | undefined
-): Timestamp => {
-  if (!timestamp) {
-    return new Timestamp(0, 0);
-  }
-  const seconds = timestamp._seconds || 0;
-  const nanoseconds = timestamp._nanoseconds || 0;
-  return new Timestamp(seconds, nanoseconds);
-};
 
 // Enhanced Avatar Component
 const UserAvatar: React.FC<{
@@ -132,7 +123,7 @@ const MoreOptionsButton: React.FC<{ onPress: () => void }> = ({ onPress }) => {
 };
 
 type Props = {
-  date: FirebaseTimestamp | undefined;
+  date: Date | string | number | any | undefined; // Can be Date, string, number, or serialized object from cache
   address: string | undefined;
   profileImage: string | null | undefined;
   user: UserInfo | undefined | null;
@@ -161,7 +152,24 @@ const UserLineComponent = ({
     if (!date) return '';
 
     try {
-      const dateObj = new Date(normalizeTimestamp(date).toMillis());
+      // Convert to Date object if needed (React Query cache may serialize Date to string/object)
+      let dateObj: Date;
+      if (date instanceof Date) {
+        dateObj = date;
+      } else if (typeof date === 'string' || typeof date === 'number') {
+        dateObj = new Date(date);
+      } else if (typeof date === 'object' && 'toDate' in date && typeof date.toDate === 'function') {
+        // Firestore Timestamp
+        dateObj = date.toDate();
+      } else {
+        return '';
+      }
+
+      // Validate date
+      if (isNaN(dateObj.getTime())) {
+        return '';
+      }
+
       const now = new Date();
       const diffInMinutes = Math.floor(
         (now.getTime() - dateObj.getTime()) / (1000 * 60)
@@ -189,7 +197,7 @@ const UserLineComponent = ({
 
       return `${day}.${month}.${year}  ${hours}:${minutes}`;
     } catch (error) {
-      console.error('Error formatting date:', error);
+      console.error('Error formatting date:', error, date);
       return '';
     }
   }, [date]);
@@ -205,8 +213,6 @@ const UserLineComponent = ({
     [isOwnPost, hasAdminAccess]
   );
 
-  const safePostId = postId || '';
-  const safeUserId = user?.id || '';
   const safeUserName = user?.displayName || 'Unknown User';
   const safeAddress = address || '';
 
@@ -214,7 +220,7 @@ const UserLineComponent = ({
   const handleReport = useCallback(
     async (reason: ReportReason, customReason?: string) => {
       const currentUserId = useUserStore.getState().getUserId();
-      
+
       if (!postId || !currentUserId) {
         showErrorToast(t('error'), 'Missing post or user information');
         return;
@@ -223,14 +229,14 @@ const UserLineComponent = ({
       try {
         // Convert ReportReason to ReasonTypeEnum (they match now after enum update)
         const backendReason = reason as unknown as ReasonTypeEnum;
-        
+
         await reportService.createReport(
-          parseInt(currentUserId),
-          parseInt(postId),
+          currentUserId,
+          postId, // reportService handles string to number conversion
           backendReason,
           customReason
         );
-        
+
         showSuccessToast(
           t('reportPost.successTitle'),
           t('reportPost.successDescription')
@@ -261,37 +267,51 @@ const UserLineComponent = ({
   );
 
   const deletePost = useCallback(
-    async (postId: string, placeId: string | null) => {
-      if (!postId) return;
+    async (targetPostId: string, targetPlaceId: string | null) => {
+      if (!targetPostId) return;
 
       try {
-        const result = await postService.deletePost(postId);
+        const result = await postService.deletePost(targetPostId);
         if (!result.success) throw new Error('Failed to delete post');
 
+        // Update main posts cache
         queryClient.setQueryData(['posts'], (oldData: any) => {
-          if (!oldData) return oldData;
-          const newPages = oldData.pages.map((page: any) => ({
-            ...page,
-            posts: page.posts.filter((p: Post) => p.id !== postId),
-          }));
+          if (!oldData || !oldData.pages) return oldData;
+          
+          const newPages = oldData.pages.map((page: any) => {
+            if (!page || !Array.isArray(page.posts)) return page;
+            
+            return {
+              ...page,
+              posts: page.posts.filter((p: Post) => p.id !== targetPostId),
+            };
+          });
+          
           return {
             ...oldData,
             pages: newPages,
-            pageParams: [...oldData.pageParams],
+            pageParams: oldData.pageParams || [],
           };
         });
 
-        if (placeId) {
-          queryClient.setQueryData(['posts', placeId], (oldData: any) => {
-            if (!oldData) return oldData;
-            const newPages = oldData.pages.map((page: any) => ({
-              ...page,
-              posts: page.posts.filter((p: Post) => p.id !== postId),
-            }));
+        // Update place-specific cache if applicable
+        if (targetPlaceId) {
+          queryClient.setQueryData(['posts', targetPlaceId], (oldData: any) => {
+            if (!oldData || !oldData.pages) return oldData;
+            
+            const newPages = oldData.pages.map((page: any) => {
+              if (!page || !Array.isArray(page.posts)) return page;
+              
+              return {
+                ...page,
+                posts: page.posts.filter((p: Post) => p.id !== targetPostId),
+              };
+            });
+            
             return {
               ...oldData,
               pages: newPages,
-              pageParams: [...oldData.pageParams],
+              pageParams: oldData.pageParams || [],
             };
           });
         }
@@ -307,16 +327,21 @@ const UserLineComponent = ({
         setIsOptionsModalOpen(false);
       }
     },
-    [queryClient, placeId, showSuccessToast, showErrorToast, t]
+    [queryClient, showSuccessToast, showErrorToast, t]
   );
 
   const handleDelete = useCallback(
-    () => confirmDelete(() => deletePost(safePostId, placeId)),
-    [confirmDelete, deletePost, safePostId, placeId]
+    () =>
+      confirmDelete(() => {
+        if (postId) {
+          deletePost(postId, placeId);
+        }
+      }),
+    [confirmDelete, deletePost, postId, placeId]
   );
 
   // Don't render if essential data is missing
-  if (!safePostId) {
+  if (!postId) {
     return null;
   }
 
@@ -376,11 +401,21 @@ const UserLineComponent = ({
 };
 
 export const UserLine = React.memo(UserLineComponent, (prev, next) => {
+  // Safely compare dates (handle Date, string, number, or serialized objects)
+  const getParsedTime = (date: any): number => {
+    if (!date) return 0;
+    if (date instanceof Date) return date.getTime();
+    if (typeof date === 'string' || typeof date === 'number') return new Date(date).getTime();
+    return 0;
+  };
+  
+  const prevTime = getParsedTime(prev.date);
+  const nextTime = getParsedTime(next.date);
+  
   return (
     prev.postId === next.postId &&
     prev.user?.id === next.user?.id &&
-    prev.date?._seconds === next.date?._seconds &&
-    prev.date?._nanoseconds === next.date?._nanoseconds &&
+    prevTime === nextTime &&
     prev.address === next.address &&
     prev.postUserId === next.postUserId
   );

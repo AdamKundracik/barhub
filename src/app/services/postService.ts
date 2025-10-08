@@ -79,10 +79,11 @@ class PostService {
   // Like/unlike post
   async toggleLike(
     postId: string,
-    userId: string
+    userId: number
   ): Promise<LikePostResponseDTO | null> {
+    console.log('TOGGLED');
     try {
-      const request: LikePostRequestDTO = { userId };
+      const request: LikePostRequestDTO = { userId: userId };
       return await apiUtils.post<LikePostResponseDTO>(
         ENDPOINTS.POSTS.LIKE(postId),
         request

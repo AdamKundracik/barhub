@@ -8,11 +8,13 @@ import {
   OccupancyTypes,
   PlaceType,
 } from '@/src/app/utils/types/Feed/PostTypes';
+import { useAuth } from '@/src/app/providers/AuthProvider';
 
 export const useNewsFeedData = () => {
   const { distance, selectedPlaces, selectedOccupancy } = useFiltersStore();
   const { location, fakeLocation, useFakeLocation } = useLocationStore();
   const { placeId } = usePlaceStore();
+  const { isAuthenticated } = useAuth();
 
   const currentLocation = useFakeLocation ? fakeLocation : location;
 
@@ -29,8 +31,8 @@ export const useNewsFeedData = () => {
     ({ pageParam = null }) =>
       handleFreshContent(distance, pageParam, placeId, currentLocation!),
     {
-      getNextPageParam: lastPage => lastPage?.lastVisible || null,
-      enabled: !!currentLocation,
+      getNextPageParam: lastPage => lastPage?.lastVisible || null, // lastVisible is mapped from nextCursor
+      enabled: !!currentLocation && isAuthenticated, // Wait for both location and authentication
     }
   );
 

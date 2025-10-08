@@ -5,12 +5,12 @@ import LoadingIndicator from './LoadingIndicator';
 import PostOldInfo from './Post/PostOldInfo';
 import { usePlaceStore } from '../../../utils/store/placesStore';
 import { primaryColor } from '../../../utils/styles/colors';
-import { FirebaseTimestamp } from '../../../utils/types/types';
 import { useTranslation } from 'react-i18next';
 import NativeAdComponent from '@/src/app/components/user/NativeAd';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { usePostsStore } from '@/src/app/utils/store/postStore';
-import { Post, User } from '@/shared';
+import { Post } from '@/common/types/postTypes';
+import { User } from '@/shared';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 
 interface PostsListProps {
@@ -73,12 +73,31 @@ const PostsList = ({
   // };
 
   const isOlderThanMinutes = (
-    timestamp: FirebaseTimestamp,
+    date: Date | string | number | any,
     minutes: number
   ): boolean => {
-    const seconds = timestamp?._seconds || 0;
+    if (!date) return false;
+
+    let timestampMs: number;
+
+    // Handle Date object (from BE LocalDateTime via mapper)
+    if (date instanceof Date) {
+      timestampMs = date.getTime();
+    }
+    // Handle string (ISO format) or number (timestamp)
+    else if (typeof date === 'string' || typeof date === 'number') {
+      timestampMs = new Date(date).getTime();
+    }
+    // Handle serialized Date from React Query cache
+    else if (typeof date === 'object' && date.time) {
+      timestampMs = date.time;
+    }
+    // Fallback
+    else {
+      return false;
+    }
+
     const now = Date.now();
-    const timestampMs = seconds * 1000;
     const minutesInMs = minutes * 60 * 1000;
 
     return now - timestampMs > minutesInMs;
@@ -176,7 +195,7 @@ const PostsList = ({
         onEndReachedThreshold={0.5}
         ListHeaderComponent={
           <>
-            {placeId && isOlderThanMinutes(posts[0].creationTime, 30) && (
+            {placeId && posts.length > 0 && isOlderThanMinutes(posts[0].creationTime, 30) && (
               <PostOldInfo requestPhoto={requestPhoto} />
             )}
           </>
