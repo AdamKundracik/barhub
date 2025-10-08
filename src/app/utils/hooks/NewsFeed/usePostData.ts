@@ -27,7 +27,9 @@ export const useNewsFeedData = () => {
     refetch,
     isRefetching,
   } = useInfiniteQuery(
-    placeId ? ['posts', placeId] : ['posts'],
+    placeId 
+      ? ['posts', placeId, currentLocation?.latitude, currentLocation?.longitude, distance] 
+      : ['posts', currentLocation?.latitude, currentLocation?.longitude, distance],
     ({ pageParam = null }) =>
       handleFreshContent(distance, pageParam, placeId, currentLocation!),
     {

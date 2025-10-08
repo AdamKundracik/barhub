@@ -1,9 +1,4 @@
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import * as React from 'react';
 import { useState } from 'react';
 import { AppleButton } from '@invertase/react-native-apple-authentication';
@@ -99,7 +94,6 @@ export const LogIn = ({ navigation }: any) => {
 
       {/* Welcome Text */}
       <View style={styles.welcomeContainer}>
-        <Text style={styles.welcomeTitle}>{t('welcome-back') || 'Welcome Back'}</Text>
         <Text style={styles.welcomeSubtitle}>
           {t('sign-in-to-continue') || 'Sign in to your account to continue'}
         </Text>
@@ -132,7 +126,7 @@ export const LogIn = ({ navigation }: any) => {
             type="text"
             placeholder={t('email')}
             style={{ color: primaryTextColor }}
-            onChangeText={(value) => updateField('email', value)}
+            onChangeText={value => updateField('email', value)}
             onFocus={() => setFocusedInput('email')}
             onBlur={() => {
               setFocusedInput(null);
@@ -188,7 +182,7 @@ export const LogIn = ({ navigation }: any) => {
             type={togglePassword ? 'text' : 'password'}
             placeholder={t('password')}
             style={{ color: primaryTextColor }}
-            onChangeText={(value) => updateField('password', value)}
+            onChangeText={value => updateField('password', value)}
             onFocus={() => setFocusedInput('password')}
             onBlur={() => {
               setFocusedInput(null);
@@ -271,7 +265,9 @@ export const LogIn = ({ navigation }: any) => {
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
           <Text style={styles.registerText}>
             {t('noAccount') || "Don't have an account?"}{' '}
-            <Text style={styles.registerTextBold}>{t('registerYourself') || 'Sign Up'}</Text>
+            <Text style={styles.registerTextBold}>
+              {t('registerYourself') || 'Sign Up'}
+            </Text>
           </Text>
         </TouchableOpacity>
       </Center>
