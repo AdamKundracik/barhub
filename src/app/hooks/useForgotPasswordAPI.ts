@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
+import { authService } from '../services/authService';
 
-export const useForgotPassword = (t: (key: string) => string) => {
+export const useForgotPasswordAPI = (t: (key: string) => string) => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
@@ -23,10 +23,9 @@ export const useForgotPassword = (t: (key: string) => string) => {
     }
 
     setLoading(true);
-    const auth = getAuth();
 
     try {
-      await sendPasswordResetEmail(auth, email);
+      await authService.forgotPassword(email);
       setEmailSent(true);
       return { success: true };
     } catch (error: any) {
@@ -34,21 +33,12 @@ export const useForgotPassword = (t: (key: string) => string) => {
 
       let errorMessage;
 
-      switch (error.code) {
-        case 'auth/user-not-found':
-          errorMessage = t('user-not-found');
-          break;
-        case 'auth/invalid-email':
-          errorMessage = t('invalid-email');
-          break;
-        case 'auth/too-many-requests':
-          errorMessage = t('too-many-requests');
-          break;
-        case 'auth/network-request-failed':
-          errorMessage = t('network-error');
-          break;
-        default:
-          errorMessage = error.message || t('something-went-wrong');
+      if (error.message?.includes('not found')) {
+        errorMessage = t('user-not-found');
+      } else if (error.message?.includes('network')) {
+        errorMessage = t('network-error');
+      } else {
+        errorMessage = error.message || t('something-went-wrong');
       }
 
       return { success: false, error: errorMessage };
@@ -73,3 +63,4 @@ export const useForgotPassword = (t: (key: string) => string) => {
     resetForm,
   };
 };
+

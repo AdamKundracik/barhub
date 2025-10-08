@@ -20,6 +20,9 @@ export const ENDPOINTS = {
     SIGNUP: '/auth/signup',
     REFRESH: '/auth/refresh',
     LOGOUT: '/auth/logout',
+    FORGOT_PASSWORD: '/auth/password/forgot',
+    RESET_PASSWORD: '/auth/password/reset',
+    UPDATE_PASSWORD: '/auth/password/update',
   },
   
   // User endpoints

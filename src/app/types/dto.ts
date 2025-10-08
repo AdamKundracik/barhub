@@ -86,6 +86,7 @@ export interface SignUpRequestDTO {
 export interface JwtAuthenticationResponseDTO {
   token: string;
   refreshToken: string;
+  user?: ClientDTO; // User data included in login/register response
 }
 
 export interface RefreshTokenRequestDTO {

@@ -6,6 +6,7 @@ import {
   SignInRequestDTO,
   SignUpRequestDTO,
 } from '../types/dto';
+import { useUserStore } from '../utils/store/userStore';
 
 // Type aliases for better naming
 export type LoginCredentials = SignInRequestDTO;
@@ -56,6 +57,12 @@ class AuthService {
       // Store tokens
       await this.storeTokens(authResponse.token, authResponse.refreshToken);
 
+      // Store user data if available
+      if (authResponse.user) {
+        // Also update Zustand store
+        useUserStore.getState().setUserData(authResponse.user);
+      }
+
       return authResponse;
     } catch (error) {
       console.error('Login error:', error);
@@ -86,6 +93,16 @@ class AuthService {
 
       // Store tokens
       await this.storeTokens(authResponse.token, authResponse.refreshToken);
+
+      // Store user data if available
+      if (authResponse.user) {
+        await AsyncStorage.setItem(
+          USER_DATA_KEY,
+          JSON.stringify(authResponse.user)
+        );
+        // Also update Zustand store
+        useUserStore.getState().setUserData(authResponse.user);
+      }
 
       return authResponse;
     } catch (error) {
@@ -173,6 +190,9 @@ class AuthService {
       // Store user data locally
       await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
 
+      // Update Zustand store
+      useUserStore.getState().setUserData(userData);
+
       return userData;
     } catch (error) {
       console.error('Get current user error:', error);
@@ -251,11 +271,10 @@ class AuthService {
       this.refreshToken = null;
 
       // Clear tokens from storage
-      await AsyncStorage.multiRemove([
-        ACCESS_TOKEN_KEY,
-        REFRESH_TOKEN_KEY,
-        USER_DATA_KEY,
-      ]);
+      await AsyncStorage.multiRemove([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY]);
+
+      // Clear user data from Zustand store
+      useUserStore.getState().setUserData(null);
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -292,7 +311,94 @@ class AuthService {
     }
   }
 
-  // Make authenticated API request
+  // Forgot password - request reset email
+  async forgotPassword(email: string): Promise<void> {
+    try {
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}${ENDPOINTS.AUTH.FORGOT_PASSWORD}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to send reset email');
+      }
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to send reset email');
+      }
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      throw error;
+    }
+  }
+
+  // Reset password using reset token
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    try {
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}${ENDPOINTS.AUTH.RESET_PASSWORD}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ token, newPassword }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to reset password');
+      }
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to reset password');
+      }
+    } catch (error) {
+      console.error('Reset password error:', error);
+      throw error;
+    }
+  }
+
+  // Update password for an authenticated user
+  async updatePassword(
+    oldPassword: string,
+    newPassword: string
+  ): Promise<void> {
+    try {
+      const response = await this.makeAuthenticatedRequest(
+        `${API_CONFIG.BASE_URL}${ENDPOINTS.AUTH.UPDATE_PASSWORD}`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ oldPassword, newPassword }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to update password');
+      }
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to update password');
+      }
+    } catch (error) {
+      console.error('Update password error:', error);
+      throw error;
+    }
+  }
+
+  // Make an authenticated API request
   async makeAuthenticatedRequest(
     url: string,
     options: RequestInit = {}

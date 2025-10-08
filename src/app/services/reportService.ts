@@ -27,7 +27,9 @@ class ReportService {
   async getReportsByType(reasonType: string): Promise<ReportDTO[]> {
     try {
       console.log('[ReportService] Fetching reports by type:', reasonType);
-      const reports = await apiUtils.get<ReportDTO[]>(`/reports/type/${reasonType}`);
+      const reports = await apiUtils.get<ReportDTO[]>(
+        `/reports/type/${reasonType}`
+      );
       return reports || [];
     } catch (error) {
       console.error('Error fetching reports by type:', error);
@@ -48,11 +50,12 @@ class ReportService {
   }
 
   // Create report (Any user can report)
-  async createReport(report: Omit<ReportDTO, 'id' | 'createdAt' | 'updatedAt'>): Promise<ReportDTO> {
+  async createReport(
+    report: Omit<ReportDTO, 'id' | 'createdAt' | 'updatedAt'>
+  ): Promise<ReportDTO> {
     try {
       console.log('[ReportService] Creating report:', report);
-      const createdReport = await apiUtils.post<ReportDTO>('/reports', report);
-      return createdReport;
+      return await apiUtils.post<ReportDTO>('/reports', report);
     } catch (error) {
       console.error('Error creating report:', error);
       throw error;
@@ -61,4 +64,3 @@ class ReportService {
 }
 
 export const reportService = new ReportService();
-
