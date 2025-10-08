@@ -1,14 +1,9 @@
 import { apiUtils } from '../utils/api/apiClient';
+import { ReportDTO, ReasonTypeEnum } from '../types/dto';
 
-export interface ReportDTO {
-  id: number;
-  postId: number;
-  reporterId: number;
-  reason: string;
-  description?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+// Export ReasonTypeEnum for backward compatibility
+export { ReasonTypeEnum } from '../types/dto';
+export type { ReportDTO } from '../types/dto';
 
 class ReportService {
   // Get all reports (Admin/Moderator only)
@@ -16,6 +11,8 @@ class ReportService {
     try {
       console.log('[ReportService] Fetching all reports');
       const reports = await apiUtils.get<ReportDTO[]>('/reports');
+      console.log(reports);
+      
       return reports || [];
     } catch (error) {
       console.error('Error fetching reports:', error);
@@ -49,13 +46,23 @@ class ReportService {
     }
   }
 
-  // Create report (Any user can report)
+  // Create report (Any user can report a post)
   async createReport(
-    report: Omit<ReportDTO, 'id' | 'createdAt' | 'updatedAt'>
+    userId: number,
+    postId: number,
+    reason: ReasonTypeEnum,
+    otherReasonMessage?: string
   ): Promise<ReportDTO> {
     try {
-      console.log('[ReportService] Creating report:', report);
-      return await apiUtils.post<ReportDTO>('/reports', report);
+      const reportData: Omit<ReportDTO, 'id' | 'createdAt' | 'updatedAt'> = {
+        userId,
+        postId,
+        reason,
+        otherReasonMessage,
+      };
+      
+      console.log('[ReportService] Creating report:', reportData);
+      return await apiUtils.post<ReportDTO>('/reports', reportData);
     } catch (error) {
       console.error('Error creating report:', error);
       throw error;

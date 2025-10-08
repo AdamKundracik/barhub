@@ -407,7 +407,9 @@
     "all": "All",
     "reportReason": "Reason",
     "postId": "Post ID",
+    "reporter": "Reporter",
     "reporterId": "Reporter ID",
+    "reportedAt": "Reported At",
     "description": "Description",
     "noDescription": "No description provided"
   }

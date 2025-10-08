@@ -21,7 +21,7 @@ import {
 } from '@/src/app/utils/styles/colors';
 import { FirebaseTimestamp } from '@/src/app/utils/types/types';
 import { Icons } from '@/src/app/utils/icons/icons';
-import reportClient from '@/src/app/utils/services/reports.service';
+import { reportService, ReasonTypeEnum } from '@/src/app/services/reportService';
 import { PostOptionsModal } from '@/src/app/components/shared/Modals/PostOptionsModal';
 import postService from '@/src/app/utils/services/post.service';
 import { useQueryClient } from 'react-query';
@@ -30,6 +30,7 @@ import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { getAuth } from 'firebase/auth';
 import { useUserRole } from '@/src/app/hooks/useUserRole';
 import FastImage from 'react-native-fast-image';
+import { useUserStore } from '@/src/app/utils/store/userStore';
 
 const normalizeTimestamp = (
   timestamp: FirebaseTimestamp | undefined
@@ -211,26 +212,37 @@ const UserLineComponent = ({
 
   // --- CALLBACKS ---
   const handleReport = useCallback(
-    async (reason: ReportReason) => {
-      if (!safePostId || !safeUserId) {
-        showErrorToast('Error', 'Missing post or user information');
+    async (reason: ReportReason, customReason?: string) => {
+      const currentUserId = useUserStore.getState().getUserId();
+      
+      if (!postId || !currentUserId) {
+        showErrorToast(t('error'), 'Missing post or user information');
         return;
       }
 
       try {
-        await reportClient.reportPost(safeUserId, safePostId, reason);
+        // Convert ReportReason to ReasonTypeEnum (they match now after enum update)
+        const backendReason = reason as unknown as ReasonTypeEnum;
+        
+        await reportService.createReport(
+          parseInt(currentUserId),
+          parseInt(postId),
+          backendReason,
+          customReason
+        );
+        
         showSuccessToast(
-          t('reportPost.confirmTitle'),
-          t('reportPost.confirmMessage', { reason: t(`reportPost.${reason}`) })
+          t('reportPost.successTitle'),
+          t('reportPost.successDescription')
         );
       } catch (error: any) {
         console.error('Failed to report post:', error);
-        showErrorToast('Failed to report post', error.message);
+        showErrorToast(t('error'), error.message || t('something-went-wrong'));
       } finally {
         setIsReportModalOpen(false);
       }
     },
-    [safePostId, safeUserId, showSuccessToast, showErrorToast, t]
+    [postId, showSuccessToast, showErrorToast, t]
   );
 
   const confirmDelete = useCallback(

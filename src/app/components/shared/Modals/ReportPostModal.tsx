@@ -2,6 +2,9 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -81,7 +84,7 @@ export const PostReportModal = ({
           onPress: async () => {
             try {
               setLoading(true);
-              await onSave(reason);
+              await onSave(reason, undefined);
             } finally {
               setLoading(false);
             }
@@ -177,8 +180,15 @@ export const PostReportModal = ({
         handleIndicatorStyle={styles.handleIndicator}
         enablePanDownToClose
         footerComponent={renderFooter}
+        keyboardBehavior="interactive"
+        keyboardBlurBehavior="restore"
+        android_keyboardInputMode="adjustResize"
       >
-        <BottomSheetView style={styles.content}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+        >
+          <BottomSheetView style={styles.content}>
           {showCustomReason ? (
             <>
               <Text style={styles.title}>{t('reportPost.customReasonTitle')}</Text>
@@ -197,6 +207,9 @@ export const PostReportModal = ({
                 maxLength={500}
                 editable={!loading}
                 autoFocus
+                returnKeyType="done"
+                blurOnSubmit={true}
+                onSubmitEditing={() => Keyboard.dismiss()}
               />
               
               {customReasonError ? <Text style={styles.errorText}>{customReasonError}</Text> : null}
@@ -230,13 +243,14 @@ export const PostReportModal = ({
               ))}
             </>
           )}
-        </BottomSheetView>
 
-        {loading && (
-          <View style={styles.loaderOverlay}>
-            <ActivityIndicator size="large" color="#fff" />
-          </View>
-        )}
+          {loading && (
+            <View style={styles.loaderOverlay}>
+              <ActivityIndicator size="large" color="#fff" />
+            </View>
+          )}
+        </BottomSheetView>
+      </KeyboardAvoidingView>
     </BottomSheetModal>
   );
 };

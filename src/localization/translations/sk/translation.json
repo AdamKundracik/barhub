@@ -408,7 +408,9 @@
     "all": "Všetky",
     "reportReason": "Dôvod",
     "postId": "ID príspevku",
+    "reporter": "Nahlasujúci",
     "reporterId": "ID nahlasujúceho",
+    "reportedAt": "Nahlásené",
     "description": "Popis",
     "noDescription": "Bez popisu"
   }

@@ -483,6 +483,11 @@ export const AdminPanel: React.FC = () => {
           onRequestClose={() => setSelectedUser(null)}
         >
           <BlurView intensity={100} tint="dark" style={styles.modalOverlay}>
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={() => setSelectedUser(null)}
+              style={StyleSheet.absoluteFill}
+            />
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>{selectedUser?.name}</Text>

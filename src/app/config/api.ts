@@ -61,4 +61,11 @@ export const ENDPOINTS = {
     TOP_100: (type: string, userId: string) => `/leaderboards/type/${type}/top100?currentUserId=${userId}`,
     BY_CLIENT: (clientId: string) => `/leaderboards/client/${clientId}`,
   },
+  
+  // Report endpoints
+  REPORTS: {
+    BASE: '/reports',
+    BY_ID: (id: string) => `/reports/${id}`,
+    BY_TYPE: (type: string) => `/reports/type/${type}`,
+  },
 };

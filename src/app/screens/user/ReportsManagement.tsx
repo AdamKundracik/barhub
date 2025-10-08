@@ -32,20 +32,24 @@ interface ReportItemProps {
 }
 
 const ReportItem: React.FC<ReportItemProps> = ({ report, onReportPress }) => {
+  const { t } = useTranslation();
+  console.log('[ReportItem] Rendering report:', report);
+
   const getReasonColor = (reason: string) => {
-    switch (reason.toLowerCase()) {
-      case 'spam':
-      case 'harassment':
+    switch (reason.toUpperCase()) {
+      case 'SPAM':
+      case 'HARASSMENT':
         return '#EF4444'; // Red
-      case 'inappropriate':
-      case 'violence':
+      case 'INAPPROPRIATE':
         return '#F59E0B'; // Orange
       default:
         return '#6B7280'; // Gray
     }
   };
 
+  const reasonStr = String(report.reason);
   const reasonColor = getReasonColor(report.reason);
+  const isOtherReason = reasonStr.toUpperCase() === 'OTHER';
 
   return (
     <TouchableOpacity
@@ -70,21 +74,29 @@ const ReportItem: React.FC<ReportItemProps> = ({ report, onReportPress }) => {
               ]}
             >
               <Text style={[styles.reasonText, { color: reasonColor }]}>
-                {report.reason}
+                {reasonStr}
               </Text>
             </View>
             <Text style={styles.reportId}>#{report.id}</Text>
           </View>
 
-          <Text style={styles.reportDescription} numberOfLines={2}>
-            {report.description || 'No description provided'}
-          </Text>
+          {isOtherReason && report.otherReasonMessage && (
+            <Text style={styles.reportDescription} numberOfLines={2}>
+              {report.otherReasonMessage}
+            </Text>
+          )}
 
           <View style={styles.reportMeta}>
             <Text style={styles.metaText}>Post ID: {report.postId}</Text>
             <Text style={styles.metaText}>•</Text>
-            <Text style={styles.metaText}>Reporter: {report.reporterId}</Text>
+            <Text style={styles.metaText}>Reporter: {report.userName || `User #${report.userId}`}</Text>
           </View>
+
+          {report.createdAt && (
+            <Text style={styles.reportTimestamp}>
+              {new Date(report.createdAt).toLocaleString()}
+            </Text>
+          )}
         </View>
       </View>
 
@@ -108,6 +120,10 @@ export const ReportsManagement: React.FC = () => {
   const [selectedFilter, setSelectedFilter] = useState<string>('ALL');
   const [showFilters, setShowFilters] = useState(false);
 
+  console.log('[ReportsManagement] Component rendered');
+  console.log('[ReportsManagement] isAdmin:', isAdmin);
+  console.log('[ReportsManagement] isModerator:', isModerator);
+
   // Fetch all reports (Admin/Moderator only)
   const {
     data: reports = [],
@@ -116,7 +132,10 @@ export const ReportsManagement: React.FC = () => {
   } = useQuery<ReportDTO[]>(
     ['admin', 'reports'],
     async () => {
-      return await reportService.getAllReports();
+      const data = await reportService.getAllReports();
+      console.log('[ReportsManagement] Fetched reports:', data);
+      console.log('[ReportsManagement] Reports count:', data?.length || 0);
+      return data;
     },
     {
       enabled: isAdmin || isModerator,
@@ -147,47 +166,61 @@ export const ReportsManagement: React.FC = () => {
   }, []);
 
   const handleDeleteReport = useCallback(() => {
-    if (!selectedReport) return;
+    if (!selectedReport || !selectedReport.id) return;
 
-    Alert.alert(
-      t('admin.deleteReport'),
-      t('admin.deleteReportConfirm'),
-      [
-        { text: t('cancel'), style: 'cancel' },
-        {
-          text: t('delete-post'),
-          style: 'destructive',
-          onPress: () => {
-            deleteReportMutation.mutate(selectedReport.id);
-          },
+    Alert.alert(t('admin.deleteReport'), t('admin.deleteReportConfirm'), [
+      { text: t('cancel'), style: 'cancel' },
+      {
+        text: t('delete-post'),
+        style: 'destructive',
+        onPress: () => {
+          deleteReportMutation.mutate(selectedReport.id!);
         },
-      ]
-    );
+      },
+    ]);
   }, [selectedReport, deleteReportMutation, t]);
 
   // Filter reports by selected type
   const filteredReports = useMemo(() => {
+    console.log('[ReportsManagement] === FILTERING ===');
+    console.log('[ReportsManagement] Total reports:', reports.length);
+    console.log(
+      '[ReportsManagement] Reports data:',
+      JSON.stringify(reports, null, 2)
+    );
+    console.log('[ReportsManagement] Selected filter:', selectedFilter);
+
     if (selectedFilter === 'ALL') {
+      console.log('[ReportsManagement] Returning all reports:', reports);
       return reports;
     }
-    return reports.filter(
-      r => r.reason.toLowerCase() === selectedFilter.toLowerCase()
-    );
+
+    const filtered = reports.filter(r => {
+      const reasonStr = r.reason;
+      const matches = reasonStr.toUpperCase() === selectedFilter.toUpperCase();
+      console.log(
+        `[ReportsManagement] Report ${r.id}: reason=${reasonStr}, matches=${matches}`
+      );
+      return matches;
+    });
+
+    console.log('[ReportsManagement] Filtered reports count:', filtered.length);
+    console.log('[ReportsManagement] Filtered reports:', filtered);
+    return filtered;
   }, [reports, selectedFilter]);
 
-  const stats = useMemo(
-    () => ({
+  const stats = useMemo(() => {
+    return {
       total: reports.length,
-      spam: reports.filter(r => r.reason.toLowerCase() === 'spam').length,
+      spam: reports.filter(r => r.reason.toUpperCase() === 'SPAM').length,
       inappropriate: reports.filter(
-        r => r.reason.toLowerCase() === 'inappropriate'
+        r => r.reason.toUpperCase() === 'INAPPROPRIATE'
       ).length,
-      harassment: reports.filter(r => r.reason.toLowerCase() === 'harassment')
+      harassment: reports.filter(r => r.reason.toUpperCase() === 'HARASSMENT')
         .length,
-      other: reports.filter(r => r.reason.toLowerCase() === 'other').length,
-    }),
-    [reports]
-  );
+      other: reports.filter(r => r.reason.toUpperCase() === 'OTHER').length,
+    };
+  }, [reports]);
 
   const FILTER_TYPES = [
     { key: 'ALL', label: t('admin.all'), color: primaryColor },
@@ -202,10 +235,10 @@ export const ReportsManagement: React.FC = () => {
       <ScreenLayout>
         <View style={styles.unauthorizedContainer}>
           <FontAwesomeIcon icon={Icons.Lock} size={64} color={warningColor} />
-          <Text style={styles.unauthorizedTitle}>{t('admin.accessDenied')}</Text>
-          <Text style={styles.unauthorizedText}>
-            {t('admin.noPermission')}
+          <Text style={styles.unauthorizedTitle}>
+            {t('admin.accessDenied')}
           </Text>
+          <Text style={styles.unauthorizedText}>{t('admin.noPermission')}</Text>
         </View>
       </ScreenLayout>
     );
@@ -225,7 +258,9 @@ export const ReportsManagement: React.FC = () => {
               />
             </TouchableOpacity>
 
-            <Text style={styles.headerTitle}>{t('admin.reportsManagement')}</Text>
+            <Text style={styles.headerTitle}>
+              {t('admin.reportsManagement')}
+            </Text>
 
             <TouchableOpacity
               onPress={() => refetch()}
@@ -249,7 +284,11 @@ export const ReportsManagement: React.FC = () => {
               <Text style={[styles.statValue, { color: '#EF4444' }]}>
                 {stats.spam}
               </Text>
-              <Text style={styles.statLabel} numberOfLines={1} adjustsFontSizeToFit>
+              <Text
+                style={styles.statLabel}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
                 {t('admin.spam')}
               </Text>
             </View>
@@ -257,7 +296,11 @@ export const ReportsManagement: React.FC = () => {
               <Text style={[styles.statValue, { color: '#F59E0B' }]}>
                 {stats.inappropriate}
               </Text>
-              <Text style={styles.statLabel} numberOfLines={1} adjustsFontSizeToFit>
+              <Text
+                style={styles.statLabel}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
                 {t('admin.inappropriate')}
               </Text>
             </View>
@@ -265,7 +308,11 @@ export const ReportsManagement: React.FC = () => {
               <Text style={[styles.statValue, { color: '#EF4444' }]}>
                 {stats.harassment}
               </Text>
-              <Text style={styles.statLabel} numberOfLines={1} adjustsFontSizeToFit>
+              <Text
+                style={styles.statLabel}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
                 {t('admin.harassment')}
               </Text>
             </View>
@@ -273,7 +320,11 @@ export const ReportsManagement: React.FC = () => {
               <Text style={[styles.statValue, { color: '#6B7280' }]}>
                 {stats.other}
               </Text>
-              <Text style={styles.statLabel} numberOfLines={1} adjustsFontSizeToFit>
+              <Text
+                style={styles.statLabel}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
                 {t('admin.other')}
               </Text>
             </View>
@@ -294,7 +345,8 @@ export const ReportsManagement: React.FC = () => {
               color={primaryColor}
             />
             <Text style={styles.filterToggleText}>
-              {t('admin.filters')} {selectedFilter !== 'ALL' && `• ${selectedFilter}`}
+              {t('admin.filters')}{' '}
+              {selectedFilter !== 'ALL' && `• ${selectedFilter}`}
             </Text>
             <FontAwesomeIcon
               icon={showFilters ? Icons.ChevronUp : Icons.ChevronRight}
@@ -350,7 +402,9 @@ export const ReportsManagement: React.FC = () => {
         ) : (
           <FlashList
             data={filteredReports}
-            keyExtractor={item => item.id.toString()}
+            keyExtractor={item =>
+              item.id?.toString() || Math.random().toString()
+            }
             renderItem={({ item }) => (
               <ReportItem report={item} onReportPress={handleReportPress} />
             )}
@@ -394,9 +448,11 @@ export const ReportsManagement: React.FC = () => {
               {/* Report Details */}
               <View style={styles.reportDetails}>
                 <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>{t('admin.reportReason')}:</Text>
+                  <Text style={styles.detailLabel}>
+                    {t('admin.reportReason')}:
+                  </Text>
                   <Text style={styles.detailValue}>
-                    {selectedReport?.reason}
+                    {selectedReport?.reason && String(selectedReport.reason)}
                   </Text>
                 </View>
                 <View style={styles.detailRow}>
@@ -406,16 +462,39 @@ export const ReportsManagement: React.FC = () => {
                   </Text>
                 </View>
                 <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>{t('admin.reporterId')}:</Text>
+                  <Text style={styles.detailLabel}>
+                    {t('admin.reporter')}:
+                  </Text>
                   <Text style={styles.detailValue}>
-                    {selectedReport?.reporterId}
+                    {selectedReport?.userName || `User #${selectedReport?.userId}`}
                   </Text>
                 </View>
-                {selectedReport?.description && (
-                  <View style={styles.detailColumn}>
-                    <Text style={styles.detailLabel}>{t('admin.description')}:</Text>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>
+                    {t('admin.reporterId')}:
+                  </Text>
+                  <Text style={styles.detailValue}>
+                    {selectedReport?.userId}
+                  </Text>
+                </View>
+                {selectedReport?.createdAt && (
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>
+                      {t('admin.reportedAt')}:
+                    </Text>
                     <Text style={styles.detailValue}>
-                      {selectedReport.description}
+                      {new Date(selectedReport.createdAt).toLocaleString()}
+                    </Text>
+                  </View>
+                )}
+                {selectedReport?.otherReasonMessage && 
+                 String(selectedReport.reason).toUpperCase() === 'OTHER' && (
+                  <View style={styles.detailColumn}>
+                    <Text style={styles.detailLabel}>
+                      {t('admin.description')}:
+                    </Text>
+                    <Text style={styles.detailValue}>
+                      {selectedReport.otherReasonMessage}
                     </Text>
                   </View>
                 )}
@@ -605,6 +684,12 @@ const styles = StyleSheet.create({
   metaText: {
     fontSize: 12,
     color: separatorColor,
+  },
+  reportTimestamp: {
+    fontSize: 11,
+    color: separatorColor,
+    marginTop: 6,
+    fontStyle: 'italic',
   },
   loadingContainer: {
     flex: 1,

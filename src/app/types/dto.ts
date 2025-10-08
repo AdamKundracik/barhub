@@ -203,13 +203,19 @@ export interface LeaderboardDTO extends AbstractAuditableEntityDTO {
 }
 
 // Report DTOs
+export enum ReasonTypeEnum {
+  SPAM = 'SPAM',
+  INAPPROPRIATE = 'INAPPROPRIATE',
+  HARASSMENT = 'HARASSMENT',
+  OTHER = 'OTHER',
+}
+
 export interface ReportDTO extends AbstractAuditableEntityDTO {
-  reportedEntityId: string;
-  reportedEntityType: string;
-  reporterId: string;
-  reason: string;
-  description?: string;
-  status: string;
+  userId: number;
+  userName: string; // Name of user who created the report
+  postId: number;
+  reason: ReasonTypeEnum | string; // Backend may return string
+  otherReasonMessage?: string;
 }
 
 // Utility types for API responses
