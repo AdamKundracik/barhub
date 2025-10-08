@@ -10,7 +10,10 @@ export interface PlaceState {
   listRef: RefObject<FlashListRef<any> | null> | null;
   setListRef: (ref: RefObject<FlashListRef<any> | null> | null) => void;
   scrollOnTop: () => void;
+  isScrolling: boolean;
 }
+
+let scrollTimeout: NodeJS.Timeout | null = null;
 
 export const usePostsStore = create<PlaceState>()((set, get) => ({
   posts: null,
@@ -18,15 +21,36 @@ export const usePostsStore = create<PlaceState>()((set, get) => ({
 
   listRef: null,
   setListRef: ref => set({ listRef: ref }),
+  
+  isScrolling: false,
 
   scrollOnTop: () => {
-    const ref = get().listRef;
+    const state = get();
+    
+    // Prevent multiple simultaneous scroll calls
+    if (state.isScrolling) {
+      return;
+    }
+    
+    const ref = state.listRef;
     if (ref?.current) {
-      // FlashList also has scrollToOffset
+      set({ isScrolling: true });
+      
+      // Clear any existing timeout
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+      
+      // Scroll to top instantly to prevent interrupted animations
       ref.current.scrollToOffset?.({
         offset: 0,
-        animated: true,
+        animated: false, // Changed to false for instant scroll
       });
+      
+      // Reset isScrolling flag after a short delay
+      scrollTimeout = setTimeout(() => {
+        set({ isScrolling: false });
+      }, 100);
     }
   },
 }));

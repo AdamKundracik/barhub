@@ -17,6 +17,7 @@ export function useNotificationsHandler() {
   const [expoPushToken, setExpoPushToken] = useState<string>('');
   const notificationListener = useRef<Notifications.Subscription | null>(null);
   const responseListener = useRef<Notifications.Subscription | null>(null);
+  const processingNotification = useRef<string | null>(null);
   const { setCurrentPushToken } = useUserStore();
   const { refetch } = useNotificationsQuery();
 
@@ -26,7 +27,7 @@ export function useNotificationsHandler() {
     const userId = getUserId();
     if (!userId) return;
 
-    const success = await userService.addPushToken(userId, token);
+    const success = await userService.addPushToken(userId.toString(), token);
     if (success) setCurrentPushToken(token);
   };
 
@@ -36,7 +37,7 @@ export function useNotificationsHandler() {
     const userId = getUserId();
     if (!userId) return;
 
-    await userService.removePushToken(userId, token);
+    await userService.removePushToken(userId.toString(), token);
   };
 
   const unsubscribeNotifications = () => {
@@ -80,6 +81,20 @@ export function useNotificationsHandler() {
           notificationType: string;
           id: string;
         };
+
+        // Prevent duplicate processing of the same notification
+        const notificationKey = `${id}-${notificationType}`;
+        if (processingNotification.current === notificationKey) {
+          console.log('[NotificationHandler] Already processing notification:', notificationKey);
+          return;
+        }
+        
+        processingNotification.current = notificationKey;
+        
+        // Reset after 2 seconds to allow retry if needed
+        setTimeout(() => {
+          processingNotification.current = null;
+        }, 2000);
 
         switch (notificationType as NotificationType) {
           case NotificationType.LIKE:
