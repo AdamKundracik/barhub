@@ -1,6 +1,10 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
-import { ClientDTO, SearchHistoryItemEmbeddable, RoleEnum } from '../../types/dto';
+import {
+  ClientDTO,
+  RoleEnum,
+  SearchHistoryItemEmbeddable,
+} from '../../types/dto';
 import { userService } from '../../services/userService';
 
 // Updated UserStore interface using backend DTO
@@ -41,7 +45,7 @@ interface UserStore {
   getDisplayName: () => string;
   getEmail: () => string;
   getPhotoUrl: () => string | undefined;
-  getUserId: () => string | null;
+  getUserId: () => number | null;
 }
 
 export const useUserStore = create<UserStore>()(
@@ -155,7 +159,7 @@ export const useUserStore = create<UserStore>()(
 
     getUserId: () => {
       const { userData } = get();
-      return userData?.id?.toString() || null;
+      return userData?.id || null;
     },
 
     // Role management functions
@@ -181,7 +185,10 @@ export const useUserStore = create<UserStore>()(
 
     hasAdminAccess: () => {
       const { userData } = get();
-      return userData?.role === RoleEnum.ADMIN || userData?.role === RoleEnum.MODERATOR;
+      return (
+        userData?.role === RoleEnum.ADMIN ||
+        userData?.role === RoleEnum.MODERATOR
+      );
     },
   }))
 );
@@ -206,7 +213,9 @@ export const userSelectors = {
     state.canSeeContent,
   role: (state: ReturnType<typeof useUserStore.getState>) => state.getRole(),
   isAdmin: (state: ReturnType<typeof useUserStore.getState>) => state.isAdmin(),
-  isModerator: (state: ReturnType<typeof useUserStore.getState>) => state.isModerator(),
+  isModerator: (state: ReturnType<typeof useUserStore.getState>) =>
+    state.isModerator(),
   isUser: (state: ReturnType<typeof useUserStore.getState>) => state.isUser(),
-  hasAdminAccess: (state: ReturnType<typeof useUserStore.getState>) => state.hasAdminAccess(),
+  hasAdminAccess: (state: ReturnType<typeof useUserStore.getState>) =>
+    state.hasAdminAccess(),
 };

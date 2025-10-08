@@ -1,4 +1,5 @@
 import { httpsCallable } from 'firebase/functions';
+import { functions } from '@/firebaseConfig';
 import { GetFreshnessContentResult } from '../types/functions-types';
 import { GeoPointType } from '../types/types';
 import {
@@ -6,29 +7,54 @@ import {
   SavePostResponse,
 } from '@/functions/src/services/postService';
 import { Post } from '@/shared';
-import { functions } from '@/firebaseConfig';
+import { authService } from '../../services/authService';
+import { API_CONFIG, ENDPOINTS } from '../../config/api';
 
 class PostService {
   public savePost = async (post: Omit<Post, 'creationTime'>) => {
-    const cloudFunction = httpsCallable(functions, 'savePostSecondGen');
-    const response = await cloudFunction({
-      post,
-    });
-    const data = response.data as SavePostResponse;
-    return data.post;
+    try {
+      const response = await authService.makeAuthenticatedRequest(
+        `${API_CONFIG.BASE_URL}${ENDPOINTS.POSTS.BASE}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(post),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to save post');
+      }
+
+      const data = await response.json();
+      return data; // Backend returns the saved post with ID
+    } catch (error) {
+      console.error('Error saving post:', error);
+      throw error;
+    }
   };
 
   public deletePost = async (postId: string): Promise<DeletePostResponse> => {
     try {
-      const cloudFunction = httpsCallable<
-        { postId: string },
-        DeletePostResponse
-      >(functions, 'deletePostSecondGen');
+      const response = await authService.makeAuthenticatedRequest(
+        `${API_CONFIG.BASE_URL}${ENDPOINTS.POSTS.BY_ID(postId)}`,
+        {
+          method: 'DELETE',
+        }
+      );
 
-      const response = await cloudFunction({ postId });
-      return response.data;
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to delete post');
+      }
+
+      const data = await response.json();
+      return data;
     } catch (error) {
-      console.error('Error calling deletePost:', error);
+      console.error('Error deleting post:', error);
       throw error;
     }
   };
@@ -39,27 +65,27 @@ export const getFreshContent = async (
   radius: number,
   lastVisible?: string
 ): Promise<GetFreshnessContentResult> => {
-  const cloudFunction = httpsCallable(functions, 'getFreshContentSecondGen');
-  const response = (await cloudFunction({
+  const cloudFunction = httpsCallable<any, GetFreshnessContentResult>(functions, 'getFreshContentSecondGen');
+  const response = await cloudFunction({
     geoPoint,
     radius,
     pageSize: 5,
     lastVisible: lastVisible,
-  })) as unknown as GetFreshnessContentResult;
-  return response;
+  });
+  return response.data;
 };
 
 export const getPostsByPlaceId = async (
   placeId: string,
   lastVisible?: string
 ): Promise<GetFreshnessContentResult> => {
-  const cloudFunction = httpsCallable(functions, 'getPostsByPlaceIdSecondGen');
-  const response = (await cloudFunction({
+  const cloudFunction = httpsCallable<any, GetFreshnessContentResult>(functions, 'getPostsByPlaceIdSecondGen');
+  const response = await cloudFunction({
     placeId,
     pageSize: 5,
     lastVisible: lastVisible,
-  })) as unknown as GetFreshnessContentResult;
-  return response;
+  });
+  return response.data;
 };
 
 const postService = new PostService();

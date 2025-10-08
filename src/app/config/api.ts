@@ -42,6 +42,7 @@ export const ENDPOINTS = {
   // Post endpoints
   POSTS: {
     BASE: '/posts',
+    UPLOAD: '/posts/upload',
     BY_ID: (id: string) => `/posts/${id}`,
     LIKE: (id: string) => `/posts/${id}/like`,
     LIKES_COUNT: (id: string) => `/posts/${id}/likes/count`,
@@ -71,5 +72,12 @@ export const ENDPOINTS = {
     BASE: '/reports',
     BY_ID: (id: string) => `/reports/${id}`,
     BY_TYPE: (type: string) => `/reports/type/${type}`,
+  },
+
+  // Image endpoints (Cloudflare)
+  IMAGES: {
+    UPLOAD_POST: '/images/upload/post',
+    UPLOAD_PROFILE: '/images/upload/profile',
+    DELETE: (imageId: string) => `/images/${imageId}`,
   },
 };

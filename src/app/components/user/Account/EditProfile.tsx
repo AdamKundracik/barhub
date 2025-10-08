@@ -23,15 +23,11 @@ import {
 import { formStyles } from '../../../utils/styles/styles';
 import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
-import {
-  deleteProfilePicture,
-  uploadProfilePhotoAsync,
-} from '../../../utils/helper-functions/imageUploadFunctions';
+import { imageService } from '../../../services/imageService';
 import SlidingView from '@/src/app/components/shared/Modals/SlidingView';
 import { Input, InputField } from '@/components/ui/input';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { useLocales } from 'expo-localization';
-import { auth } from '@/firebaseConfig';
 import { ClientDTO } from '@/src/app/types/dto';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useUserData } from '@/src/app/hooks/useUserQuery';
@@ -75,7 +71,7 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
 
   const handleImageUpload = async (uri: string) => {
     try {
-      const uploadedUri = await uploadProfilePhotoAsync(uri);
+      const uploadedUri = await imageService.uploadProfilePhoto(uri);
 
       // Use the new photo mutation with optimistic updates
       await updatePhotoAsync(uploadedUri);
@@ -125,9 +121,7 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
       });
 
       if (!result.canceled) {
-        if (auth.currentUser?.providerId !== 'google.com') {
-          await deleteProfilePicture(auth.currentUser?.uid!);
-        }
+        // Backend will handle old image deletion automatically
         await handleImageUpload(result.assets[0].uri);
       } else {
         setOpenImageOptions(false);

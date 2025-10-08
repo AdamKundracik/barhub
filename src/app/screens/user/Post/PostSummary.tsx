@@ -20,12 +20,9 @@ import { Place } from '../../../utils/types/types';
 import { useTranslation } from 'react-i18next';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
-import { uploadImageAsync } from '../../../utils/helper-functions/imageUploadFunctions';
+import { imageService } from '../../../services/imageService';
 import { useQueryClient } from 'react-query';
-import postService from '../../../utils/services/post.service';
-import { geohashForLocation } from 'geofire-common';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
-import { sendResponseNotificationToRecipients } from '../../../utils/services/notifications-service';
 import { generateUID } from '../../../utils/helper-functions/generateUID';
 import { Post } from '@/common/types/postTypes';
 import { OccupancyEnum } from '@/src/app/utils/types/Feed/PostTypes';
@@ -33,7 +30,7 @@ import { Center } from '@/components/ui/center';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { useFiltersStore } from '@/src/app/utils/store/filtersStorage';
 import FastImage from 'react-native-fast-image';
-import { useUserData } from '@/src/app/utils/hooks/useUserData';
+import { useUserData } from '@/src/app/hooks/useUserQuery';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 
@@ -51,7 +48,7 @@ export const PostSummary = ({ route }: any) => {
   const { t } = useTranslation();
   const routeParams = route.params as SummaryProps;
   const navigation = useNavigation<NavigationProp<UserStackList>>();
-  const { refetch } = useUserData();
+  const { refetch, userData, userId } = useUserData();
   const { showSuccessToast, showErrorToast } = useCustomToast();
 
   const { resetFilters } = useFiltersStore();
@@ -111,46 +108,32 @@ export const PostSummary = ({ route }: any) => {
     setIsSaving(true);
 
     try {
-      const fileId = generateUID();
-      const url = await uploadImageAsync(image, place.id, fileId);
-
-      if (!url) {
-        throw new Error('Failed to upload image');
+      // Check if userId exists
+      if (!userId) {
+        throw new Error('User ID not found');
       }
 
-      const hash = geohashForLocation([
-        place.location.latitude ?? 0,
-        place.location.longitude ?? 0,
-      ]);
+      const fileId = generateUID();
 
-      const newPost: Omit<Post, 'creationTime'> = {
-        geohash: hash,
+      // Upload image and save post in one call
+      // Backend handles both Cloudflare upload and DB save
+      const savedPost = await imageService.uploadPostImage(image, {
+        userId: userId,
+        placeId: place.id,
+        fileId: fileId,
         location: {
           _lat: place.location.latitude ?? 0,
           _long: place.location.longitude ?? 0,
         },
         placeTypes: place.types,
-        id: '',
-        userId: '',
-        fileId: fileId,
         occupancy: selectedOccupancy,
-        folderId: place.id,
-        timestamp: Date.now(),
         placeName: place.displayName.text ?? '',
         placeAddress: place.formattedAddress ?? '',
-        photoUrl: url,
-      };
+        senderToken: senderToken, // Backend sends notification if senderToken exists
+      });
 
-      const addedPostResponse = await postService.savePost(newPost);
+      // Invalidate queries to refresh feed
       await queryClient.invalidateQueries({ queryKey: ['posts'] });
-
-      if (senderToken) {
-        await sendResponseNotificationToRecipients(
-          place.id,
-          senderToken,
-          addedPostResponse.id
-        );
-      }
 
       updateUserData({ lastUploadedPostAt: new Date().toISOString() });
       resetFilters();
