@@ -122,7 +122,8 @@ export const useLocation = () => {
         try {
           await BackgroundGeolocation.start();
           await getCurrentLocation();
-          refetch();
+          // Don't refetch posts automatically on location change
+          // refetch();
         } catch (err) {
           console.error('Failed to start BackgroundGeolocation:', err);
         }
@@ -130,6 +131,7 @@ export const useLocation = () => {
         try {
           await BackgroundGeolocation.stop();
           if (fakeLocation) setLocation(fakeLocation);
+          // Refetch only when switching to fake location (manual action)
           refetch();
         } catch (err) {
           console.error('Failed to stop BackgroundGeolocation:', err);
@@ -147,6 +149,10 @@ export const useLocation = () => {
     setLocation,
   ]);
 
+  // Disabled: Don't update location on app state change
+  // This was causing posts to refetch every time user returns from background
+  // Background geolocation will still update location when user moves
+  /*
   useEffect(() => {
     const handleAppStateChange = (state: AppStateStatus) => {
       if (state === 'active') {
@@ -160,6 +166,7 @@ export const useLocation = () => {
     );
     return () => subscription.remove();
   }, [getCurrentLocation]);
+  */
 
   // Initial fetch on mount
   useEffect(() => {

@@ -18,6 +18,15 @@ export const useNewsFeedData = () => {
 
   const currentLocation = useFakeLocation ? fakeLocation : location;
 
+  // Round GPS coordinates to 4 decimal places (~11 meters precision)
+  // This prevents query key from changing on tiny location updates
+  const roundedLat = currentLocation?.latitude 
+    ? Math.round(currentLocation.latitude * 10000) / 10000 
+    : null;
+  const roundedLong = currentLocation?.longitude 
+    ? Math.round(currentLocation.longitude * 10000) / 10000 
+    : null;
+
   const {
     data: postsData,
     isFetchingNextPage,
@@ -28,8 +37,8 @@ export const useNewsFeedData = () => {
     isRefetching,
   } = useInfiniteQuery(
     placeId 
-      ? ['posts', placeId, currentLocation?.latitude, currentLocation?.longitude, distance] 
-      : ['posts', currentLocation?.latitude, currentLocation?.longitude, distance],
+      ? ['posts', placeId, roundedLat, roundedLong, distance] 
+      : ['posts', roundedLat, roundedLong, distance],
     ({ pageParam = null }) =>
       handleFreshContent(distance, pageParam, placeId, currentLocation!),
     {

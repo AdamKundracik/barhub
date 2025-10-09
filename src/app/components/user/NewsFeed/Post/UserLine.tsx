@@ -139,6 +139,7 @@ const UserLineComponent = ({
   user,
   date,
   address,
+  postUserId,
   canDelete = false,
   canReport = false,
   canHighlight = false,
