@@ -438,18 +438,33 @@ class AuthService {
 
     // If unauthorized, try to refresh token and retry once
     if (response.status === 401) {
+      console.log('[AuthService] Got 401, attempting to refresh token');
       const newToken = await this.refreshAccessToken();
       if (newToken) {
+        console.log('[AuthService] Token refreshed, retrying request');
         const retryHeaders = {
           ...options.headers,
           Authorization: `Bearer ${newToken}`,
           'Content-Type': 'application/json',
         };
 
-        return fetch(url, {
+        const retryResponse = await fetch(url, {
           ...options,
           headers: retryHeaders,
         });
+
+        // If still 401 after refresh, token is invalid
+        if (retryResponse.status === 401) {
+          console.log('[AuthService] Still 401 after refresh, token invalid');
+          await this.logout();
+          throw new Error('Session expired. Please login again.');
+        }
+
+        return retryResponse;
+      } else {
+        console.log('[AuthService] Token refresh failed, logging out');
+        await this.logout();
+        throw new Error('Session expired. Please login again.');
       }
     }
 

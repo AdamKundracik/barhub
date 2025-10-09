@@ -3,8 +3,10 @@ import React, {
   ReactNode,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import {
   authService,
   LoginCredentials,
@@ -39,6 +41,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const appState = useRef<AppStateStatus>(AppState.currentState);
 
   // Zustand stores
   const { setUserData, updateCanSeeContent } = useUserStore();
@@ -49,6 +52,63 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     initializeAuth();
   }, []);
+
+  // Handle app state changes - refresh token when app comes to foreground
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', async (nextAppState) => {
+      // App came to foreground from background
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        console.log('[AuthProvider] App came to foreground, checking token validity');
+        
+        // Only refresh if user is authenticated
+        if (user) {
+          try {
+            // getValidAccessToken will automatically refresh if expired
+            const token = await authService.getValidAccessToken();
+            if (!token) {
+              console.log('[AuthProvider] Token refresh failed, logging out');
+              await logout();
+            } else {
+              console.log('[AuthProvider] Token is valid or was refreshed successfully');
+            }
+          } catch (error) {
+            console.error('[AuthProvider] Error checking token on foreground:', error);
+          }
+        }
+      }
+
+      appState.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [user]);
+
+  // Periodic token check - refresh token every 4 minutes if user is active
+  useEffect(() => {
+    if (!user) return;
+
+    const interval = setInterval(async () => {
+      try {
+        console.log('[AuthProvider] Periodic token check');
+        const token = await authService.getValidAccessToken();
+        if (!token) {
+          console.log('[AuthProvider] Periodic check: Token refresh failed, logging out');
+          await logout();
+        }
+      } catch (error) {
+        console.error('[AuthProvider] Error in periodic token check:', error);
+      }
+    }, 4 * 60 * 1000); // Check every 4 minutes
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [user]);
 
   // Save current location to backend
   const saveCurrentLocationToBackend = async (
