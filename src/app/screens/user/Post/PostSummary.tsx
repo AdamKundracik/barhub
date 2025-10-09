@@ -33,6 +33,7 @@ import FastImage from 'react-native-fast-image';
 import { useUserData } from '@/src/app/hooks/useUserQuery';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useUserStore } from '@/src/app/utils/store/userStore';
+import { buttonStyles } from '../../../utils/styles/buttonStyles';
 
 type SummaryProps = {
   image: string;
@@ -259,18 +260,17 @@ export const PostSummary = ({ route }: any) => {
           <Button
             variant="solid"
             size="lg"
-            action="primary"
             style={[
-              styles.saveButton,
-              !selectedOccupancy && styles.saveButtonDisabled,
+              buttonStyles.primary,
+              !selectedOccupancy && buttonStyles.primaryDisabled,
             ]}
             onPress={handleSavePost}
             isDisabled={isSaving || !selectedOccupancy}
           >
             {isSaving ? (
-              <ButtonSpinner />
+              <ButtonSpinner color="#000" />
             ) : (
-              <ButtonText style={styles.saveButtonText}>{t('save')}</ButtonText>
+              <ButtonText style={buttonStyles.primaryText}>{t('save')}</ButtonText>
             )}
           </Button>
         </Center>
@@ -500,24 +500,6 @@ const styles = StyleSheet.create({
   // Save button
   buttonContainer: {
     marginTop: 10,
-  },
-  saveButton: {
-    backgroundColor: primaryColor,
-    borderRadius: 16,
-    width: '100%',
-    elevation: 4,
-    shadowColor: primaryColor,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-  },
-  saveButtonDisabled: {
-    backgroundColor: '#666',
-    shadowColor: '#666',
-  },
-  saveButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
   },
 
   // Modal - Much wider and better

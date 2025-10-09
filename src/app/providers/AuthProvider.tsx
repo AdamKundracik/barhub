@@ -115,31 +115,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     userId: string
   ): Promise<void> => {
     try {
-      console.log('[AuthProvider] Getting current location for user:', userId);
-
       // Get current location
       const location = await getCoords();
-      console.log('[AuthProvider] Current location:', location);
 
       // Save to backend
-      const success = await userService.updateLocation(userId, location);
-      if (success) {
-        console.log('[AuthProvider] Location saved to backend successfully');
-      } else {
-        console.error('[AuthProvider] Failed to save location to backend');
-      }
+      await userService.updateLocation(userId, location);
     } catch (error) {
-      console.error('[AuthProvider] Error saving location to backend:', error);
+      console.error('Error saving location to backend:', error);
       // Don't throw - location saving is not critical for auth flow
     }
   };
 
   // Load user data and populate stores
   const loadUserData = async (userData: User): Promise<void> => {
-    console.log('[AuthProvider] loadUserData called');
     try {
       // Get extended user data from backend
-      console.log('[AuthProvider] Getting extended user data from backend');
       const appUserData = await userService.getCurrentUser();
 
       if (appUserData) {
@@ -157,7 +147,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setInitialized(true);
 
         // Save current location to backend immediately after auth
-        console.log('[AuthProvider] Saving current location to backend');
         await saveCurrentLocationToBackend(userData.id.toString());
       }
     } catch (error) {
@@ -166,7 +155,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const initializeAuth = async () => {
-    console.log('[AuthProvider] initializeAuth called');
     try {
       setIsLoading(true);
 
@@ -188,14 +176,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         userData = await authService.getCurrentUser();
         if (userData) {
           setUser(userData);
-          // Load extended user data and populate stores
-          await loadUserData(userData);
+        // Load extended user data and populate stores
+        await loadUserData(userData);
 
-          // Initialize push token service and save token to backend
-          console.log(
-            '[AuthProvider] Initializing push token service on app startup'
-          );
-          await pushTokenService.initialize(userData.id.toString());
+        // Initialize push token service and save token to backend
+        await pushTokenService.initialize(userData.id.toString());
         } else {
           // If we can't get user data, logout
           await authService.logout();
@@ -227,15 +212,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         await loadUserData(userData);
 
         // Initialize push token service and save token to backend
-        console.log(
-          '[AuthProvider] Initializing push token service after login'
-        );
         await pushTokenService.initialize(userData.id.toString());
 
         // Save current location to backend immediately after login
-        console.log(
-          '[AuthProvider] Saving current location to backend after login'
-        );
         await saveCurrentLocationToBackend(userData.id.toString());
       } else {
         throw new Error('Failed to get user data after login');
@@ -262,15 +241,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         await loadUserData(userData);
 
         // Initialize push token service and save token to backend
-        console.log(
-          '[AuthProvider] Initializing push token service after registration'
-        );
         await pushTokenService.initialize(userData.id.toString());
 
         // Save current location to backend immediately after registration
-        console.log(
-          '[AuthProvider] Saving current location to backend after registration'
-        );
         await saveCurrentLocationToBackend(userData.id.toString());
       } else {
         throw new Error('Failed to get user data after registration');
@@ -289,16 +262,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Remove push token from backend BEFORE clearing auth tokens
       if (user) {
-        console.log(
-          '[AuthProvider] Removing push token from backend before logout'
-        );
         try {
           await pushTokenService.removePushTokenFromBackend(user.id.toString());
         } catch (error) {
-          console.error(
-            '[AuthProvider] Error removing push token from backend:',
-            error
-          );
+          console.error('Error removing push token from backend:', error);
           // Continue with logout even if push token removal fails
         }
       }

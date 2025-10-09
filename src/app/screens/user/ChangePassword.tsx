@@ -42,6 +42,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
 import { useChangePasswordAPI } from '../../hooks/useChangePasswordAPI';
 import { Text } from '@/components/ui/text';
+import { buttonStyles } from '../../utils/styles/buttonStyles';
 
 type InputField = 'oldPassword' | 'newPassword' | 'confirmPassword';
 
@@ -226,8 +227,8 @@ export const PasswordChangeScreen = () => {
               variant="solid"
               size="lg"
               style={[
-                styles.submitButton,
-                !isFormValid() && styles.submitButtonDisabled,
+                buttonStyles.primary,
+                !isFormValid() && buttonStyles.primaryDisabled,
               ]}
               onPress={handleChangePassword}
               isDisabled={!isFormValid() || loading}
@@ -235,7 +236,7 @@ export const PasswordChangeScreen = () => {
               {loading ? (
                 <LoadingIndicator />
               ) : (
-                <ButtonText style={styles.submitButtonText}>
+                <ButtonText style={buttonStyles.primaryText}>
                   {t('change-password') || 'Change Password'}
                 </ButtonText>
               )}
@@ -342,24 +343,5 @@ const styles = StyleSheet.create({
   errorText: {
     color: warningColor,
     fontSize: 14,
-  },
-
-  // Submit Button
-  submitButton: {
-    backgroundColor: primaryColor,
-    borderRadius: 16,
-    shadowColor: primaryColor,
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  submitButtonDisabled: {
-    backgroundColor: separatorColor,
-    shadowOpacity: 0,
-  },
-  submitButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000',
   },
 });

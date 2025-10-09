@@ -19,8 +19,8 @@ import {
   primaryTextColor,
   secondaryTextColor,
   separatorColor,
+  warningColor,
 } from '../../../utils/styles/colors';
-import { formStyles } from '../../../utils/styles/styles';
 import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { imageService } from '../../../services/imageService';
@@ -32,6 +32,16 @@ import { ClientDTO } from '@/src/app/types/dto';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useUserData } from '@/src/app/hooks/useUserQuery';
 import FastImage from 'react-native-fast-image';
+import {
+  FormControl,
+  FormControlError,
+  FormControlErrorIcon,
+  FormControlErrorText,
+  FormControlLabel,
+  FormControlLabelText,
+} from '@/components/ui/form-control';
+import { AlertCircleIcon } from '@/components/ui/icon';
+import { buttonStyles } from '../../../utils/styles/buttonStyles';
 
 type EditProfileProps = {
   user: ClientDTO | null;
@@ -64,6 +74,7 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
     user?.dateOfBirth ? new Date(user.dateOfBirth) : new Date()
   );
   const [datePickerOpened, setDatePickerOpened] = useState(false);
+  const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
   function validateInputs(): boolean {
     return !username || username.trim().length === 0;
@@ -227,12 +238,6 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
                 />
               )}
             </View>
-
-            {isPremium && (
-              <View style={styles.premiumBadge}>
-                <FontAwesomeIcon icon={Icons.Crown} size={12} color="#FFC107" />
-              </View>
-            )}
           </TouchableOpacity>
 
           <Text style={styles.profileImageHint}>
@@ -243,45 +248,51 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
         {/* Form Section */}
         <View style={styles.formCard}>
           {/* Email Field */}
-          <View style={styles.inputContainer}>
-            <View style={styles.inputLabelContainer}>
-              <FontAwesomeIcon
-                icon={Icons.Envelope}
-                size={16}
-                color={primaryColor}
-              />
-              <Text style={styles.inputLabel}>{t('email')}</Text>
-            </View>
-            <Input
-              variant="rounded"
-              size="xl"
-              style={[formStyles.inputPrimary, styles.input]}
-            >
+          <FormControl size="md" isDisabled={true} style={styles.formControl}>
+            <FormControlLabel>
+              <FormControlLabelText style={styles.labelText}>
+                <FontAwesomeIcon
+                  icon={Icons.Envelope}
+                  size={14}
+                  color={primaryColor}
+                  style={{ marginRight: 8 }}
+                />
+                {t('email')}
+              </FormControlLabelText>
+            </FormControlLabel>
+            <Input variant="rounded" size="xl" style={styles.input}>
               <InputField
                 type="text"
                 value={userEmail!}
                 editable={false}
-                style={[styles.inputText, styles.disabledText]}
+                style={[styles.inputField, styles.disabledText]}
               />
             </Input>
-          </View>
+          </FormControl>
 
           {/* Username Field */}
-          <View style={styles.inputContainer}>
-            <View style={styles.inputLabelContainer}>
-              <FontAwesomeIcon
-                icon={Icons.User}
-                size={16}
-                color={primaryColor}
-              />
-              <Text style={styles.inputLabel}>{t('user-name')}</Text>
-            </View>
+          <FormControl
+            size="md"
+            isInvalid={validateInputs()}
+            style={styles.formControl}
+          >
+            <FormControlLabel>
+              <FormControlLabelText style={styles.labelText}>
+                <FontAwesomeIcon
+                  icon={Icons.User}
+                  size={14}
+                  color={primaryColor}
+                  style={{ marginRight: 8 }}
+                />
+                {t('user-name')} <Text style={styles.requiredStar}>*</Text>
+              </FormControlLabelText>
+            </FormControlLabel>
             <Input
               variant="rounded"
               size="xl"
               style={[
-                formStyles.inputPrimary,
                 styles.input,
+                focusedInput === 'username' && styles.inputFocused,
                 validateInputs() && styles.inputError,
               ]}
             >
@@ -290,31 +301,45 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
                 placeholder={t('enter-username')}
                 value={username || ''}
                 onChangeText={setUsername}
-                style={styles.inputText}
+                style={styles.inputField}
                 maxLength={30}
+                onFocus={() => setFocusedInput('username')}
+                onBlur={() => setFocusedInput(null)}
               />
             </Input>
-            {validateInputs() && (
-              <Text style={styles.errorText}>{t('username-required')}</Text>
-            )}
             <Text style={styles.charCount}>{username?.length || 0}/30</Text>
-          </View>
+            {validateInputs() && (
+              <FormControlError>
+                <FormControlErrorIcon as={AlertCircleIcon} />
+                <FormControlErrorText style={styles.errorText}>
+                  {t('username-required')}
+                </FormControlErrorText>
+              </FormControlError>
+            )}
+          </FormControl>
 
           {/* Date of Birth Field */}
-          <View style={styles.inputContainer}>
-            <View style={styles.inputLabelContainer}>
-              <FontAwesomeIcon
-                icon={Icons.Calendar}
-                size={16}
-                color={primaryColor}
-              />
-              <Text style={styles.inputLabel}>{t('date-of-birth')}</Text>
-            </View>
+          <FormControl size="md" style={styles.formControl}>
+            <FormControlLabel>
+              <FormControlLabelText style={styles.labelText}>
+                <FontAwesomeIcon
+                  icon={Icons.Calendar}
+                  size={14}
+                  color={primaryColor}
+                  style={{ marginRight: 8 }}
+                />
+                {t('date-of-birth')}
+              </FormControlLabelText>
+            </FormControlLabel>
             <TouchableOpacity
               onPress={() => setDatePickerOpened(true)}
-              style={[formStyles.inputPrimary, styles.input, styles.dateInput]}
+              style={[
+                styles.input,
+                styles.dateInput,
+                focusedInput === 'dateOfBirth' && styles.inputFocused,
+              ]}
             >
-              <Text style={styles.inputText}>
+              <Text style={styles.inputField}>
                 {birthDate.toLocaleDateString(locales[0].languageCode!, {
                   year: 'numeric',
                   month: 'long',
@@ -323,11 +348,11 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
               </Text>
               <FontAwesomeIcon
                 icon={Icons.ChevronRight}
-                size={14}
+                size={16}
                 color={separatorColor}
               />
             </TouchableOpacity>
-          </View>
+          </FormControl>
         </View>
 
         {/* Save Button */}
@@ -335,19 +360,18 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
           <Button
             variant="solid"
             size="lg"
-            action="primary"
             style={[
-              styles.saveButton,
+              buttonStyles.primary,
               (isUpdatingProfile || validateInputs()) &&
-                styles.saveButtonDisabled,
+                buttonStyles.primaryDisabled,
             ]}
             onPress={handleUpdateUser}
             isDisabled={isUpdatingProfile || validateInputs()}
           >
             {isUpdatingProfile ? (
-              <ButtonSpinner color="white" />
+              <ButtonSpinner color="#000" />
             ) : (
-              <ButtonText style={styles.saveButtonText}>
+              <ButtonText style={buttonStyles.primaryText}>
                 {t('save-changes')}
               </ButtonText>
             )}
@@ -492,124 +516,77 @@ const styles = StyleSheet.create({
   formCard: {
     backgroundColor: postBgColor,
     borderRadius: 20,
-    padding: 20,
+    padding: 24,
     marginBottom: 24,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#333',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
-    gap: 10,
+    elevation: 4,
   },
-  inputContainer: {
-    marginBottom: 20,
+  formControl: {
+    marginBottom: 16,
   },
-  inputLabelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '600',
+  labelText: {
     color: primaryColor,
-    marginLeft: 8,
-    flex: 1,
-  },
-  requiredIndicator: {
     fontSize: 16,
-    color: '#FF6B6B',
-    fontWeight: 'bold',
-  },
-  verifiedBadge: {
+    fontWeight: '500',
+    marginBottom: 4,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(68, 170, 68, 0.1)',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
   },
-  verifiedText: {
-    fontSize: 12,
-    color: '#44AA44',
-    marginLeft: 4,
-    fontWeight: '500',
+  requiredStar: {
+    color: warningColor,
+    fontSize: 16,
   },
   input: {
-    borderRadius: 12,
     backgroundColor: primaryBgColor,
+    borderColor: '#333',
+    borderWidth: 1,
+  },
+  inputFocused: {
+    borderColor: primaryColor,
     borderWidth: 2,
-    borderColor: separatorColor,
-    minHeight: 52,
   },
   inputError: {
-    borderColor: '#FF6B6B',
+    borderColor: warningColor,
+    borderWidth: 2,
   },
-  inputText: {
+  inputField: {
     color: primaryTextColor,
     fontSize: 16,
-    fontWeight: '500',
   },
   disabledText: {
     color: secondaryTextColor,
+    opacity: 0.6,
   },
   dateInput: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: primaryBgColor,
+    borderColor: '#333',
+    borderWidth: 1,
+    borderRadius: 12,
+    minHeight: 52,
   },
   errorText: {
-    fontSize: 12,
-    color: '#FF6B6B',
-    marginTop: 4,
-    marginLeft: 4,
+    color: warningColor,
+    fontSize: 14,
   },
   charCount: {
     fontSize: 12,
     color: secondaryTextColor,
     textAlign: 'right',
-    marginTop: 4,
+    marginTop: 6,
   },
 
   // Buttons Section
   buttonContainer: {
     gap: 16,
-  },
-  saveButton: {
-    backgroundColor: primaryColor,
-    borderRadius: 16,
-    height: 56,
-    elevation: 4,
-    shadowColor: primaryColor,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  saveButtonDisabled: {
-    backgroundColor: '#666',
-    elevation: 0,
-    shadowOpacity: 0,
-  },
-  saveButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: primaryBgColor,
-  },
-  cancelButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: separatorColor,
-    borderRadius: 16,
-    height: 56,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: separatorColor,
   },
 });
 

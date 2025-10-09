@@ -112,9 +112,8 @@ class AuthService {
         if (!authResponse.user.emailVerified) {
           try {
             await emailVerificationService.sendVerificationEmail(authResponse.user.email);
-            console.log('[AuthService] Verification email sent after registration');
           } catch (emailError) {
-            console.error('[AuthService] Failed to send verification email:', emailError);
+            console.error('Failed to send verification email:', emailError);
             // Don't throw - registration was successful even if email fails
           }
         }
@@ -166,19 +165,12 @@ class AuthService {
 
   // Get current user data
   async getCurrentUser(retryCount = 0): Promise<User | null> {
-    console.log(
-      `[AuthService] getCurrentUser called, retryCount: ${retryCount}`
-    );
     try {
       const token = await this.getValidAccessToken();
       if (!token) {
-        console.log('[AuthService] No valid token available');
         return null;
       }
 
-      console.log(
-        `[AuthService] Making request to ${API_CONFIG.BASE_URL}${ENDPOINTS.USERS.ME}`
-      );
       const response = await fetch(
         `${API_CONFIG.BASE_URL}${ENDPOINTS.USERS.ME}`,
         {
@@ -257,8 +249,7 @@ class AuthService {
       // Call backend logout endpoint to clear Redis data
       if (this.refreshToken) {
         try {
-          console.log('[AuthService] Calling backend logout endpoint');
-          const response = await fetch(
+          await fetch(
             `${API_CONFIG.BASE_URL}${ENDPOINTS.AUTH.LOGOUT}`,
             {
               method: 'POST',
@@ -268,16 +259,8 @@ class AuthService {
               body: JSON.stringify({ refreshToken: this.refreshToken }),
             }
           );
-
-          if (!response.ok) {
-            console.warn(
-              '[AuthService] Backend logout failed, continuing with local cleanup'
-            );
-          } else {
-            console.log('[AuthService] Backend logout successful');
-          }
         } catch (error) {
-          console.error('[AuthService] Error calling backend logout:', error);
+          console.error('Error calling backend logout:', error);
           // Continue with local cleanup even if backend logout fails
         }
       }
@@ -438,10 +421,8 @@ class AuthService {
 
     // If unauthorized, try to refresh token and retry once
     if (response.status === 401) {
-      console.log('[AuthService] Got 401, attempting to refresh token');
       const newToken = await this.refreshAccessToken();
       if (newToken) {
-        console.log('[AuthService] Token refreshed, retrying request');
         const retryHeaders = {
           ...options.headers,
           Authorization: `Bearer ${newToken}`,
@@ -455,14 +436,12 @@ class AuthService {
 
         // If still 401 after refresh, token is invalid
         if (retryResponse.status === 401) {
-          console.log('[AuthService] Still 401 after refresh, token invalid');
           await this.logout();
           throw new Error('Session expired. Please login again.');
         }
 
         return retryResponse;
       } else {
-        console.log('[AuthService] Token refresh failed, logging out');
         await this.logout();
         throw new Error('Session expired. Please login again.');
       }
