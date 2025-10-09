@@ -42,6 +42,11 @@ export interface Post {
   commentsCount?: number; // Optional, not in PostDTO yet
   isLiked: boolean; // Maps to 'liked' from PostDTO
   
+  // Permissions (from PostDTO)
+  canDelete: boolean; // Current user can delete this post
+  canReport: boolean; // Current user can report this post
+  canHighlight: boolean; // Current user can highlight this post
+  
   // User info (PostAuthorDTO: id, name, photoUrl)
   user?: {
     id: string;

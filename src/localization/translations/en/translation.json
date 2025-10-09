@@ -267,6 +267,8 @@
   },
   "or": "or",
   "delete-post": "Delete post",
+  "highlight-post": "Highlight Post",
+  "unhighlight-post": "Remove Highlight",
   "about-me": "About me",
   "change-password": "Change password",
   "camera-cannot-open-fake-location": "Camera cannot be opened while using a fake location",

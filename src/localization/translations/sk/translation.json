@@ -260,6 +260,8 @@
   "about-me": "O mne",
   "change-password": "Zmeniť heslo",
   "camera-cannot-open-fake-location": "Fotoaparát nemožno otvoriť počas použitia falošnej polohy",
+  "highlight-post": "Zvýrazniť príspevok",
+  "unhighlight-post": "Odstrániť zvýraznenie",
   "deletePost": {
     "title": "Vymazať príspevok",
     "confirmTitle": "Potvrdenie vymazania",

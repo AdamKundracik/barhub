@@ -131,6 +131,9 @@ export const mapBackendPostToFrontend = (backendPost: any): Post => {
     likesCount: backendPost.likesCount || 0,
     commentsCount: backendPost.commentsCount || 0,
     isLiked: backendPost.liked || false,
+    canDelete: backendPost.canDelete || false,
+    canReport: backendPost.canReport || false,
+    canHighlight: backendPost.canHighlight || false,
     user: userInfo,
   };
 };

@@ -29,8 +29,6 @@ import postService from '@/src/app/utils/services/post.service';
 import { useQueryClient } from 'react-query';
 import { usePlaceStore } from '@/src/app/utils/store/placesStore';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
-import { getAuth } from 'firebase/auth';
-import { useUserRole } from '@/src/app/hooks/useUserRole';
 import FastImage from 'react-native-fast-image';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 
@@ -129,6 +127,9 @@ type Props = {
   user: UserInfo | undefined | null;
   postId: string | undefined;
   postUserId: string | undefined;
+  canDelete?: boolean; // Permission from backend
+  canReport?: boolean; // Permission from backend
+  canHighlight?: boolean; // Permission from backend
 };
 
 const UserLineComponent = ({
@@ -137,6 +138,9 @@ const UserLineComponent = ({
   date,
   address,
   postUserId,
+  canDelete = false,
+  canReport = false,
+  canHighlight = false,
 }: Props) => {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
@@ -144,8 +148,6 @@ const UserLineComponent = ({
   const { placeId } = usePlaceStore();
   const { t } = useTranslation();
   const { showSuccessToast, showErrorToast } = useCustomToast();
-  const auth = getAuth();
-  const { hasAdminAccess } = useUserRole();
 
   // --- ENHANCED TIME FORMATTING ---
   const formattedTime = useMemo(() => {
@@ -202,16 +204,8 @@ const UserLineComponent = ({
     }
   }, [date]);
 
-  const isOwnPost = useMemo(
-    () => auth.currentUser?.uid === postUserId,
-    [auth.currentUser?.uid, postUserId]
-  );
-
-  // Can delete if: own post OR admin/moderator
-  const canDeletePost = useMemo(
-    () => isOwnPost || hasAdminAccess,
-    [isOwnPost, hasAdminAccess]
-  );
+  // Use permissions from backend instead of calculating locally
+  // Backend already handles ownership and role checks
 
   const safeUserName = user?.displayName || 'Unknown User';
   const safeAddress = address || '';
@@ -381,13 +375,20 @@ const UserLineComponent = ({
       </Animated.View>
 
       <PostOptionsModal
-        showDelete={canDeletePost}
+        showDelete={canDelete}
+        showReport={canReport}
+        showHighlight={canHighlight}
         visible={isOptionsModalOpen}
         onClose={() => setIsOptionsModalOpen(false)}
         onDelete={handleDelete}
         onReport={() => {
           setIsOptionsModalOpen(false);
           setIsReportModalOpen(true);
+        }}
+        onHighlight={() => {
+          // TODO: Implement highlight functionality
+          console.log('Highlight post:', postId);
+          setIsOptionsModalOpen(false);
         }}
       />
 
@@ -417,7 +418,10 @@ export const UserLine = React.memo(UserLineComponent, (prev, next) => {
     prev.user?.id === next.user?.id &&
     prevTime === nextTime &&
     prev.address === next.address &&
-    prev.postUserId === next.postUserId
+    prev.postUserId === next.postUserId &&
+    prev.canDelete === next.canDelete &&
+    prev.canReport === next.canReport &&
+    prev.canHighlight === next.canHighlight
   );
 });
 

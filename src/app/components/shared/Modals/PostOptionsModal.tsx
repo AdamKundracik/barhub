@@ -24,10 +24,13 @@ import {
 
 type PostOptionsModalProps = {
   visible: boolean;
-  showDelete: boolean;
+  showDelete?: boolean; // From backend canDelete permission
+  showReport?: boolean; // From backend canReport permission
+  showHighlight?: boolean; // From backend canHighlight permission
   onClose: () => void;
   onDelete: () => Promise<void> | void;
   onReport: () => void; // otvorí Report modal
+  onHighlight?: () => void; // highlight/unhighlight post
 };
 
 export const PostOptionsModal = ({
@@ -35,7 +38,10 @@ export const PostOptionsModal = ({
   onClose,
   onDelete,
   onReport,
-  showDelete,
+  onHighlight,
+  showDelete = false,
+  showReport = true,
+  showHighlight = false,
 }: PostOptionsModalProps) => {
   const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
@@ -101,6 +107,22 @@ export const PostOptionsModal = ({
       footerComponent={renderFooter}
     >
       <BottomSheetView style={styles.content}>
+        {showHighlight && onHighlight && (
+          <TouchableOpacity
+            style={styles.option}
+            activeOpacity={0.7}
+            onPress={onHighlight}
+            disabled={loading}
+          >
+            <View style={styles.optionRow}>
+              <Text style={[styles.optionText, { color: '#FFC107' }]}>
+                {t('highlight-post') || 'Highlight Post'}
+              </Text>
+              <FontAwesomeIcon icon={Icons.RankingStar} size={16} color="#FFC107" />
+            </View>
+          </TouchableOpacity>
+        )}
+
         {showDelete && (
           <TouchableOpacity
             style={styles.option}
@@ -115,19 +137,21 @@ export const PostOptionsModal = ({
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity
-          style={styles.option}
-          activeOpacity={0.7}
-          onPress={onReport}
-          disabled={loading}
-        >
-          <View style={styles.optionRow}>
-            <Text style={[styles.optionText, { color: warningColor }]}>
-              {t('reportPost.title')}
-            </Text>
-            <FontAwesomeIcon icon={Icons.Flag} size={16} color={warningColor} />
-          </View>
-        </TouchableOpacity>
+        {showReport && (
+          <TouchableOpacity
+            style={styles.option}
+            activeOpacity={0.7}
+            onPress={onReport}
+            disabled={loading}
+          >
+            <View style={styles.optionRow}>
+              <Text style={[styles.optionText, { color: warningColor }]}>
+                {t('reportPost.title')}
+              </Text>
+              <FontAwesomeIcon icon={Icons.Flag} size={16} color={warningColor} />
+            </View>
+          </TouchableOpacity>
+        )}
       </BottomSheetView>
 
       {loading && (

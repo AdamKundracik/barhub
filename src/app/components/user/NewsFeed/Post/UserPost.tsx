@@ -307,6 +307,9 @@ const UserPost: React.FC<UserPostProps> = ({
           profileImage={user?.photoUrl ?? ''}
           postId={id}
           postUserId={userId}
+          canDelete={post.canDelete}
+          canReport={post.canReport}
+          canHighlight={post.canHighlight}
         />
 
         {/* Enhanced Image Container */}
