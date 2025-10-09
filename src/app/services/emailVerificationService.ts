@@ -23,10 +23,10 @@ class EmailVerificationService {
         throw new Error(errorData.error || 'Failed to send verification email');
       }
 
-      console.log(
-        '[EmailVerificationService] Verification email sent to:',
-        email
-      );
+      // console.log(
+      //   '[EmailVerificationService] Verification email sent to:',
+      //   email
+      // );
     } catch (error) {
       console.error('Send verification email error:', error);
       throw error;
@@ -52,7 +52,7 @@ class EmailVerificationService {
         );
       }
 
-      console.log('[EmailVerificationService] Verification email resent');
+      // console.log('[EmailVerificationService] Verification email resent');
     } catch (error) {
       console.error('Resend verification email error:', error);
       throw error;

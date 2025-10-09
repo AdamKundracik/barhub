@@ -25,7 +25,7 @@ export const useRevenueCat = ({
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const { t } = useTranslation();
 
-  const { isPremium, setPremium } = useUserStore();
+  const { isPremium } = useUserStore();
   const { user } = useAuth();
 
   useEffect(() => {
@@ -64,13 +64,13 @@ export const useRevenueCat = ({
       const entitlements = customerInfo?.entitlements?.active ?? {};
       const isPremiumInRC = !!entitlements['subscription']; // názov podľa RC Dashboard
 
-      console.log('[RevenueCat] Customer info updated - Premium in RC:', isPremiumInRC);
-      console.log('[RevenueCat] Premium status is managed by backend webhook - not updating locally');
-      
+      // console.log('[RevenueCat] Customer info updated - Premium in RC:', isPremiumInRC);
+      // console.log('[RevenueCat] Premium status is managed by backend webhook - not updating locally');
+
       // DO NOT update premium locally - it's managed by backend via webhook
       // Backend will receive webhook from RevenueCat and update DB
       // Frontend will get updated premium status via auto-refresh (every 30s)
-      
+
       // Trigger callback to refresh user data from backend
       if (onCustomerInfoUpdated) {
         await onCustomerInfoUpdated();

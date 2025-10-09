@@ -40,7 +40,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
 
-  console.log('[NotificationItemComponent] item.sender:', item.sender);
+  // console.log('[NotificationItemComponent] item.sender:', item.sender);
 
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();

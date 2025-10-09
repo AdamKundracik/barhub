@@ -160,7 +160,11 @@ const UserLineComponent = ({
         dateObj = date;
       } else if (typeof date === 'string' || typeof date === 'number') {
         dateObj = new Date(date);
-      } else if (typeof date === 'object' && 'toDate' in date && typeof date.toDate === 'function') {
+      } else if (
+        typeof date === 'object' &&
+        'toDate' in date &&
+        typeof date.toDate === 'function'
+      ) {
         // Firestore Timestamp
         dateObj = date.toDate();
       } else {
@@ -271,16 +275,16 @@ const UserLineComponent = ({
         // Update main posts cache
         queryClient.setQueryData(['posts'], (oldData: any) => {
           if (!oldData || !oldData.pages) return oldData;
-          
+
           const newPages = oldData.pages.map((page: any) => {
             if (!page || !Array.isArray(page.posts)) return page;
-            
+
             return {
               ...page,
               posts: page.posts.filter((p: Post) => p.id !== targetPostId),
             };
           });
-          
+
           return {
             ...oldData,
             pages: newPages,
@@ -292,16 +296,16 @@ const UserLineComponent = ({
         if (targetPlaceId) {
           queryClient.setQueryData(['posts', targetPlaceId], (oldData: any) => {
             if (!oldData || !oldData.pages) return oldData;
-            
+
             const newPages = oldData.pages.map((page: any) => {
               if (!page || !Array.isArray(page.posts)) return page;
-              
+
               return {
                 ...page,
                 posts: page.posts.filter((p: Post) => p.id !== targetPostId),
               };
             });
-            
+
             return {
               ...oldData,
               pages: newPages,
@@ -387,7 +391,7 @@ const UserLineComponent = ({
         }}
         onHighlight={() => {
           // TODO: Implement highlight functionality
-          console.log('Highlight post:', postId);
+          // console.log('Highlight post:', postId);
           setIsOptionsModalOpen(false);
         }}
       />
@@ -406,13 +410,14 @@ export const UserLine = React.memo(UserLineComponent, (prev, next) => {
   const getParsedTime = (date: any): number => {
     if (!date) return 0;
     if (date instanceof Date) return date.getTime();
-    if (typeof date === 'string' || typeof date === 'number') return new Date(date).getTime();
+    if (typeof date === 'string' || typeof date === 'number')
+      return new Date(date).getTime();
     return 0;
   };
-  
+
   const prevTime = getParsedTime(prev.date);
   const nextTime = getParsedTime(next.date);
-  
+
   return (
     prev.postId === next.postId &&
     prev.user?.id === next.user?.id &&

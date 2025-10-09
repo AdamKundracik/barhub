@@ -58,10 +58,10 @@ useLocationStore.subscribe(
   state => state.location,
   async (newVal, prevVal) => {
     if (newVal !== prevVal && newVal) {
-      console.log(
-        '[LocationStore] Location changed, updating backend:',
-        newVal
-      );
+      // console.log(
+      //   '[LocationStore] Location changed, updating backend:',
+      //   newVal
+      // );
 
       // Update new user store (for new system)
       const newUserStore = useNewUserStore.getState();
@@ -74,9 +74,9 @@ useLocationStore.subscribe(
             latitude: newVal.latitude,
             longitude: newVal.longitude,
           });
-          console.log(
-            '[LocationStore] Location updated successfully in backend'
-          );
+          // console.log(
+          //   '[LocationStore] Location updated successfully in backend'
+          // );
         } catch (error) {
           console.error(
             '[LocationStore] Error updating location in backend:',

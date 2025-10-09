@@ -253,7 +253,7 @@ export const Account = () => {
       // First remove push token from backend (before account deletion)
       if (currentPushToken && userData?.id) {
         try {
-          console.log('[Account] Removing push token before account deletion');
+          // // console.log('[Account] Removing push token before account deletion');
           await userService.removePushToken(
             userData.id.toString(),
             currentPushToken

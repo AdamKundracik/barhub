@@ -49,6 +49,15 @@ const authLinking = {
           token: (token: string) => token,
         },
       },
+      VerifyEmail: {
+        path: 'verify-email',
+        parse: {
+          token: (token: string) => `${token}`,
+        },
+        stringify: {
+          token: (token: string) => token,
+        },
+      },
     },
   },
 };

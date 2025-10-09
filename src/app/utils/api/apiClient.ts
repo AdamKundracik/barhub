@@ -1,12 +1,18 @@
-import { authService } from '../../services/authService';
 import { API_CONFIG } from '../../config/api';
 
 // Custom fetch wrapper with automatic token handling
 class ApiClient {
   private baseURL: string;
+  // Store reference to auth service (set later to avoid circular dependency)
+  private getAuthService: (() => any) | null = null;
 
   constructor(baseURL: string) {
     this.baseURL = baseURL;
+  }
+
+  // Set auth service reference (called from authService after initialization)
+  setAuthService(getAuthServiceFn: () => any) {
+    this.getAuthService = getAuthServiceFn;
   }
 
   // Make authenticated request
@@ -29,7 +35,13 @@ class ApiClient {
       }
 
       // For other endpoints, use authenticated request
-      return await authService.makeAuthenticatedRequest(url, options);
+      if (this.getAuthService) {
+        const authService = this.getAuthService();
+        return await authService.makeAuthenticatedRequest(url, options);
+      } else {
+        // Fallback if authService not set yet (shouldn't happen in practice)
+        throw new Error('AuthService not initialized');
+      }
     } catch (error) {
       console.error('API request failed:', error);
       throw error;

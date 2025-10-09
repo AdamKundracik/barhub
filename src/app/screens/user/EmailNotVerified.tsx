@@ -48,24 +48,21 @@ const EmailNotVerified = () => {
       // Refresh user data from backend to get latest emailVerified status
       await refreshUser();
 
-      // Check if user is now verified
-      if (user.emailVerified) {
-        console.log('Email verified! Navigation will update automatically.');
-        showSuccessToast(
-          t('email-verified') || 'Email verified!',
-          t('redirecting') || 'Redirecting to app...'
-        );
-      } else {
+      // Use a small delay to ensure user state is updated in AuthProvider
+      setTimeout(() => {
+        // AuthProvider will automatically navigate away if email is verified
+        // If we're still here after refresh, email is not verified yet
         showErrorToast(
           t('not-verified-yet') || 'Not verified yet',
           t('please-check-email') ||
             'Please check your email and click the verification link.'
         );
-      }
+        setChecking(false);
+      }, 500);
+
     } catch (error) {
       console.error('Error checking email verification:', error);
       showErrorToast(t('error'), t('something-went-wrong'));
-    } finally {
       setChecking(false);
     }
   };

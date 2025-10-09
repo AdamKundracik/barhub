@@ -46,7 +46,7 @@ export const ResetPassword = ({ navigation }: any) => {
   const { t } = useTranslation();
   const route = useRoute();
   const { showSuccessToast, showErrorToast } = useCustomToast();
-  
+
   const [token, setToken] = useState<string>('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -60,10 +60,10 @@ export const ResetPassword = ({ navigation }: any) => {
   // Get token from route params (deep link) or query params
   useEffect(() => {
     const params = route.params as any;
-    console.log('[ResetPassword] Route params:', params);
-    
+    // console.log('[ResetPassword] Route params:', params);
+
     if (params?.token) {
-      console.log('[ResetPassword] Token from params:', params.token);
+      // console.log('[ResetPassword] Token from params:', params.token);
       setToken(params.token);
     }
   }, [route.params]);
@@ -73,7 +73,7 @@ export const ResetPassword = ({ navigation }: any) => {
   const isFormValid = token !== '' && isPasswordValid && passwordsMatch;
 
   const togglePasswordVisibility = (field: keyof typeof passwordVisibility) => {
-    setPasswordVisibility((prev) => ({ ...prev, [field]: !prev[field] }));
+    setPasswordVisibility(prev => ({ ...prev, [field]: !prev[field] }));
   };
 
   const handleResetPassword = async () => {
@@ -83,10 +83,11 @@ export const ResetPassword = ({ navigation }: any) => {
 
     try {
       await authService.resetPassword(token, password);
-      
+
       showSuccessToast(
         t('password-reset-success') || 'Password Reset!',
-        t('password-reset-success-desc') || 'Your password has been reset successfully. You can now login.'
+        t('password-reset-success-desc') ||
+          'Your password has been reset successfully. You can now login.'
       );
 
       // Navigate to login after successful reset
@@ -95,10 +96,12 @@ export const ResetPassword = ({ navigation }: any) => {
       }, 1500);
     } catch (error: any) {
       console.error('Error resetting password:', error);
-      
+
       let errorMessage = t('something-went-wrong');
       if (error.message?.includes('expired')) {
-        errorMessage = t('reset-token-expired') || 'Reset link has expired. Please request a new one.';
+        errorMessage =
+          t('reset-token-expired') ||
+          'Reset link has expired. Please request a new one.';
       } else if (error.message?.includes('invalid')) {
         errorMessage = t('reset-token-invalid') || 'Invalid reset link.';
       } else if (error.message) {
@@ -135,11 +138,7 @@ export const ResetPassword = ({ navigation }: any) => {
       !isInvalid;
 
     return (
-      <FormControl
-        size="md"
-        isInvalid={isInvalid}
-        style={styles.formControl}
-      >
+      <FormControl size="md" isInvalid={isInvalid} style={styles.formControl}>
         <FormControlLabel>
           <FormControlLabelText style={styles.labelText}>
             {t(translationKey)} <Text style={styles.requiredStar}>*</Text>
@@ -188,7 +187,9 @@ export const ResetPassword = ({ navigation }: any) => {
 
         {showMatchHelper && (
           <FormControlHelper>
-            <FormControlHelperText style={[styles.helperText, { color: warningColor }]}>
+            <FormControlHelperText
+              style={[styles.helperText, { color: warningColor }]}
+            >
               {t('noMatchingPasswords') || 'Passwords do not match'}
             </FormControlHelperText>
           </FormControlHelper>
@@ -199,7 +200,8 @@ export const ResetPassword = ({ navigation }: any) => {
             <FormControlErrorIcon as={AlertCircleIcon} />
             <FormControlErrorText style={styles.errorText}>
               {field === 'password'
-                ? t('password-too-short') || 'Password must be at least 6 characters'
+                ? t('password-too-short') ||
+                  'Password must be at least 6 characters'
                 : t('noMatchingPasswords') || 'Passwords do not match'}
             </FormControlErrorText>
           </FormControlError>
@@ -247,7 +249,9 @@ export const ResetPassword = ({ navigation }: any) => {
 
             {/* Title */}
             <Center style={styles.titleContainer}>
-              <Text style={styles.title}>{t('reset-password') || 'Reset Password'}</Text>
+              <Text style={styles.title}>
+                {t('reset-password') || 'Reset Password'}
+              </Text>
               <Text style={styles.subtitle}>
                 {t('reset-password-desc') || 'Enter your new password below'}
               </Text>
@@ -441,4 +445,3 @@ const styles = StyleSheet.create({
 });
 
 export default ResetPassword;
-

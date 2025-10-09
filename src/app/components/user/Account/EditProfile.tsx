@@ -82,7 +82,11 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
 
   const handleImageUpload = async (uri: string) => {
     try {
-      const uploadedUri = await imageService.uploadProfilePhoto(uri);
+      if (!user?.id) {
+        throw new Error('User ID not found');
+      }
+
+      const uploadedUri = await imageService.uploadProfilePhoto(uri, user.id);
 
       // Use the new photo mutation with optimistic updates
       await updatePhotoAsync(uploadedUri);

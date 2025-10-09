@@ -3,9 +3,9 @@ import { ENDPOINTS } from '../config/api';
 import {
   ClientDTO,
   PushTokenRequestDTO,
+  RoleEnum,
   SearchHistoryItemEmbeddable,
   UploadLocationRequestDTO,
-  RoleEnum,
 } from '../types/dto';
 
 // Use exact backend DTO types
@@ -28,7 +28,7 @@ class UserService {
     updates: Partial<ClientDTO>
   ): Promise<ClientDTO | null> {
     try {
-      console.log('[UserService] Updating user:', userId, updates);
+      // console.log('[UserService] Updating user:', userId, updates);
 
       // Convert ClientDTO updates to backend-compatible format
       const backendUpdates: Record<string, any> = {};
@@ -55,18 +55,10 @@ class UserService {
         backendUpdates.premium = updates.premium;
       }
 
-      console.log('[UserService] Backend updates to send:', backendUpdates);
-
-      // Use PATCH method and /users/me endpoint for current user
-      const updatedUser = await apiUtils.patch<ClientDTO>(
+      return await apiUtils.patch<ClientDTO>(
         ENDPOINTS.USERS.ME,
         backendUpdates
       );
-
-      console.log('[UserService] User updated successfully');
-      console.log('updated', updatedUser);
-
-      return updatedUser;
     } catch (error) {
       console.error('Error updating user:', error);
       throw error;
@@ -106,7 +98,8 @@ class UserService {
   // Delete user photo
   async deletePhoto(userId: string): Promise<ClientDTO | null> {
     try {
-      return await this.updateUser(userId, { photoUrl: undefined });
+      // Send null to backend to clear the photoUrl
+      return await this.updateUser(userId, { photoUrl: null as any });
     } catch (error) {
       console.error('Error deleting photo:', error);
       throw error;
@@ -116,10 +109,10 @@ class UserService {
   // Delete current user account
   async deleteCurrentUser(): Promise<boolean> {
     try {
-      console.log('[UserService] Deleting current user account');
+      // console.log('[UserService] Deleting current user account');
 
       await apiUtils.delete(ENDPOINTS.USERS.DELETE_ME);
-      console.log('[UserService] User account deleted successfully');
+      // console.log('[UserService] User account deleted successfully');
       return true;
     } catch (error) {
       console.error('Error deleting user account:', error);
@@ -171,11 +164,11 @@ class UserService {
     location: { latitude: number; longitude: number }
   ): Promise<boolean> {
     try {
-      console.log(
-        '[UserService] Updating location for user:',
-        userId,
-        location
-      );
+      // console.log(
+      //   '[UserService] Updating location for user:',
+      //   userId,
+      //   location
+      // );
 
       const request: UploadLocationRequestDTO = {
         latitude: location.latitude,
@@ -183,7 +176,7 @@ class UserService {
       };
 
       await apiUtils.patch(ENDPOINTS.USERS.LOCATION(userId), request);
-      console.log('[UserService] Location updated successfully');
+      // console.log('[UserService] Location updated successfully');
       return true;
     } catch (error) {
       console.error('Error updating location:', error);
@@ -252,7 +245,7 @@ class UserService {
   // Admin functions
   async getAllUsers(): Promise<ClientDTO[]> {
     try {
-      console.log('[UserService] Fetching all users');
+      // console.log('[UserService] Fetching all users');
       const users = await apiUtils.get<ClientDTO[]>('/users');
       return users || [];
     } catch (error) {
@@ -263,8 +256,10 @@ class UserService {
 
   async updateUserRole(userId: number, role: RoleEnum): Promise<boolean> {
     try {
-      console.log('[UserService] Updating user role:', userId, role);
-      await apiUtils.patch(`/admin/users/${userId}/role`, { role: role.toString() });
+      // console.log('[UserService] Updating user role:', userId, role);
+      await apiUtils.patch(`/admin/users/${userId}/role`, {
+        role: role.toString(),
+      });
       return true;
     } catch (error) {
       console.error('Error updating user role:', error);
@@ -272,9 +267,16 @@ class UserService {
     }
   }
 
-  async updateUserDisabledStatus(userId: number, disabled: boolean): Promise<boolean> {
+  async updateUserDisabledStatus(
+    userId: number,
+    disabled: boolean
+  ): Promise<boolean> {
     try {
-      console.log('[UserService] Updating user disabled status:', userId, disabled);
+      // console.log(
+      //   '[UserService] Updating user disabled status:',
+      //   userId,
+      //   disabled
+      // );
       await apiUtils.patch(`/admin/users/${userId}/disabled`, { disabled });
       return true;
     } catch (error) {
@@ -285,7 +287,11 @@ class UserService {
 
   async updateUserPremium(userId: number, premium: boolean): Promise<boolean> {
     try {
-      console.log('[UserService] Updating user premium status:', userId, premium);
+      // console.log(
+      //   '[UserService] Updating user premium status:',
+      //   userId,
+      //   premium
+      // );
       await apiUtils.patch(`/admin/users/${userId}/premium`, { premium });
       return true;
     } catch (error) {

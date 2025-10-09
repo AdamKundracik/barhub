@@ -42,12 +42,6 @@ const HelpScreen = () => {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
 
-  const handleMessageChange = (text: string) => {
-    if (text.length <= MAX_CHAR_COUNT) {
-      setMessage(text);
-    }
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -131,7 +125,7 @@ const HelpScreen = () => {
                 action="primary"
                 style={formStyles.buttonPrimary}
                 onPress={() => {
-                  console.log('Sending help request:', { email, message });
+                  // console.log('Sending help request:', { email, message });
                 }}
               >
                 <ButtonText style={formStyles.buttonText}>

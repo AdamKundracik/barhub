@@ -18,6 +18,7 @@ export const ENDPOINTS = {
   AUTH: {
     SIGNIN: '/auth/signin',
     SIGNUP: '/auth/signup',
+    SIGNUP_WITH_PHOTO: '/auth/signup/with-photo',
     REFRESH: '/auth/refresh',
     LOGOUT: '/auth/logout',
     FORGOT_PASSWORD: '/auth/password/forgot',

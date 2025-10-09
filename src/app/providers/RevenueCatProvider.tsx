@@ -16,14 +16,18 @@ interface RevenueCatContextType {
 const RevenueCatContext = createContext<RevenueCatContextType | null>(null);
 
 export const RevenueCatProvider = ({ children }: { children: ReactNode }) => {
-  const { userData: currentUser, refetch: refetchUserData, isPremium } = useUserData();
+  const {
+    userData: currentUser,
+    refetch: refetchUserData,
+    isPremium,
+  } = useUserData();
 
   // Pass refetch function to RevenueCat hook for manual refresh after purchase
   const revenueCatHook = useRevenueCat({
     onCustomerInfoUpdated: async () => {
-      console.log('[RevenueCatProvider] Refreshing user data from backend after purchase...');
+      // console.log('[RevenueCatProvider] Refreshing user data from backend after purchase...');
       await refetchUserData();
-    }
+    },
   });
 
   return (

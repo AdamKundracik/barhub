@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Dimensions,
@@ -24,7 +24,6 @@ import { imageService } from '../../../services/imageService';
 import { useQueryClient } from 'react-query';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { generateUID } from '../../../utils/helper-functions/generateUID';
-import { Post } from '@/common/types/postTypes';
 import { OccupancyEnum } from '@/src/app/utils/types/Feed/PostTypes';
 import { Center } from '@/components/ui/center';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
@@ -34,6 +33,7 @@ import { useUserData } from '@/src/app/hooks/useUserQuery';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { buttonStyles } from '../../../utils/styles/buttonStyles';
+import { usePostsStore } from '@/src/app/utils/store/postStore';
 
 type SummaryProps = {
   image: string;
@@ -49,11 +49,11 @@ export const PostSummary = ({ route }: any) => {
   const { t } = useTranslation();
   const routeParams = route.params as SummaryProps;
   const navigation = useNavigation<NavigationProp<UserStackList>>();
-  const { refetch, userData, userId } = useUserData();
+  const { refetch, userId } = useUserData();
   const { showSuccessToast, showErrorToast } = useCustomToast();
-
   const { resetFilters } = useFiltersStore();
   const { updateUserData } = useUserStore();
+  const { scrollOnTop } = usePostsStore();
 
   const [selectedOccupancy, setSelectedOccupancy] =
     useState<OccupancyEnum | null>(null);
@@ -62,6 +62,9 @@ export const PostSummary = ({ route }: any) => {
   );
   const [showPicker, setShowPicker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  const scrollViewRef = useRef<ScrollView>(null);
+  const saveButtonRef = useRef<View>(null);
 
   const image = routeParams?.image;
   const place = routeParams?.place;
@@ -101,6 +104,20 @@ export const PostSummary = ({ route }: any) => {
   const confirmPickerSelection = useCallback(() => {
     setSelectedOccupancy(tempOccupancy);
     setShowPicker(false);
+
+    // Scroll to save button after selection
+    setTimeout(() => {
+      saveButtonRef.current?.measureLayout(
+        scrollViewRef.current as any,
+        (x, y) => {
+          scrollViewRef.current?.scrollTo({ y: y - 100, animated: true });
+        },
+        () => {
+          // Fallback: scroll to end if measure fails
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }
+      );
+    }, 300);
   }, [tempOccupancy]);
 
   const handleSavePost = useCallback(async () => {
@@ -118,7 +135,7 @@ export const PostSummary = ({ route }: any) => {
 
       // Upload image and save post in one call
       // Backend handles both Cloudflare upload and DB save
-      const savedPost = await imageService.uploadPostImage(image, {
+      await imageService.uploadPostImage(image, {
         userId: userId,
         placeId: place.id,
         fileId: fileId,
@@ -144,7 +161,14 @@ export const PostSummary = ({ route }: any) => {
         t('uploadPost.successTitle'),
         t('uploadPost.successDescription')
       );
+
+      // Navigate to Feed
       navigation.navigate('Feed');
+
+      // Scroll to top to show new post (with small delay for navigation)
+      setTimeout(() => {
+        scrollOnTop();
+      }, 100);
     } catch (error) {
       console.error('Error saving post:', error);
       showErrorToast(t('something-went-wrong'));
@@ -167,6 +191,7 @@ export const PostSummary = ({ route }: any) => {
   return (
     <ScreenLayout onBackPress={navigation.goBack} showBackButton>
       <ScrollView
+        ref={scrollViewRef}
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -256,24 +281,28 @@ export const PostSummary = ({ route }: any) => {
         </View>
 
         {/* Save Button */}
-        <Center style={styles.buttonContainer}>
-          <Button
-            variant="solid"
-            size="lg"
-            style={[
-              buttonStyles.primary,
-              !selectedOccupancy && buttonStyles.primaryDisabled,
-            ]}
-            onPress={handleSavePost}
-            isDisabled={isSaving || !selectedOccupancy}
-          >
-            {isSaving ? (
-              <ButtonSpinner color="#000" />
-            ) : (
-              <ButtonText style={buttonStyles.primaryText}>{t('save')}</ButtonText>
-            )}
-          </Button>
-        </Center>
+        <View ref={saveButtonRef} collapsable={false}>
+          <Center style={styles.buttonContainer}>
+            <Button
+              variant="solid"
+              size="lg"
+              style={[
+                buttonStyles.primary,
+                !selectedOccupancy && buttonStyles.primaryDisabled,
+              ]}
+              onPress={handleSavePost}
+              isDisabled={isSaving || !selectedOccupancy}
+            >
+              {isSaving ? (
+                <ButtonSpinner color="#000" />
+              ) : (
+                <ButtonText style={buttonStyles.primaryText}>
+                  {t('save')}
+                </ButtonText>
+              )}
+            </Button>
+          </Center>
+        </View>
       </ScrollView>
 
       {/* Enhanced Occupancy Picker Modal */}

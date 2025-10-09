@@ -81,7 +81,6 @@ class PostService {
     postId: string,
     userId: number
   ): Promise<LikePostResponseDTO | null> {
-    console.log('TOGGLED');
     try {
       const request: LikePostRequestDTO = { userId: userId };
       return await apiUtils.post<LikePostResponseDTO>(

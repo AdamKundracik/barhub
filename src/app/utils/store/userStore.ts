@@ -45,7 +45,7 @@ interface UserStore {
   getDisplayName: () => string;
   getEmail: () => string;
   getPhotoUrl: () => string | undefined;
-  getUserId: () => number | null;
+  getUserId: () => string | null;
 }
 
 export const useUserStore = create<UserStore>()(
@@ -139,7 +139,7 @@ export const useUserStore = create<UserStore>()(
       // Update local state only
       // Backend is updated automatically via RevenueCat webhook
       get().updateUserData({ premium });
-      console.log('[UserStore] Premium status updated locally:', premium);
+      // console.log('[UserStore] Premium status updated locally:', premium);
     },
 
     getDisplayName: () => {
@@ -159,7 +159,7 @@ export const useUserStore = create<UserStore>()(
 
     getUserId: () => {
       const { userData } = get();
-      return userData?.id || null;
+      return userData?.id.toString() || null;
     },
 
     // Role management functions

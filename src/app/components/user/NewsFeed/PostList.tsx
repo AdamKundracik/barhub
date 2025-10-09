@@ -124,6 +124,9 @@ const PostsList = ({
     return null;
   };
 
+  // ✅ Memoizovaný NativeAd komponent
+  const MemoizedNativeAd = React.memo(() => <NativeAdComponent />, () => true);
+
   // ✅ Memoizovaný renderItem
   const renderItem = useCallback(
     ({ item, index }: { item: Post; index: number }) => {
@@ -148,12 +151,17 @@ const PostsList = ({
         </View>
       );
 
-      if (index > 0 && index % 3 === 0 && !isPremium()) {
+      // Show ad every 3 posts (but not on first post)
+      const shouldShowAd = index > 0 && index % 3 === 0 && !isPremium();
+
+      if (shouldShowAd) {
         return (
-          <>
-            <NativeAdComponent />
+          <View key={`post-with-ad-${item.id}`}>
+            <View key={`ad-${index}`}>
+              <MemoizedNativeAd />
+            </View>
             {postView}
-          </>
+          </View>
         );
       }
 
@@ -177,6 +185,7 @@ const PostsList = ({
         renderItem={renderItem}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.scrollView}
+        drawDistance={500} // Reduce overdraw for better performance
         ListFooterComponent={
           <ListFooter
             isFetchingNextPage={isFetchingNextPage}

@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
+  SafeAreaView,
   StyleSheet,
   View,
-  SafeAreaView,
-  ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import {
+  postBgColor,
   primaryColor,
   primaryTextColor,
   secondaryTextColor,
   warningColor,
-  postBgColor,
 } from '../../utils/styles/colors';
 import { Center } from '@/components/ui/center';
 import { Text } from '@/components/ui/text';
@@ -28,8 +28,7 @@ export const VerifyEmail = ({ navigation }: any) => {
   const { t } = useTranslation();
   const route = useRoute();
   const { refreshUser, isAuthenticated } = useAuth();
-  
-  const [token, setToken] = useState<string>('');
+
   const [loading, setLoading] = useState(false);
   const [verified, setVerified] = useState(false);
   const [error, setError] = useState<string>('');
@@ -37,9 +36,8 @@ export const VerifyEmail = ({ navigation }: any) => {
   // Get token from route params (deep link)
   useEffect(() => {
     const params = route.params as any;
-    
+
     if (params?.token) {
-      setToken(params.token);
       // Auto-verify when token is available
       verifyEmailWithToken(params.token);
     }
@@ -54,7 +52,7 @@ export const VerifyEmail = ({ navigation }: any) => {
     try {
       await emailVerificationService.verifyEmail(verificationToken);
       setVerified(true);
-      
+
       // If user is authenticated, refresh user data to update emailVerified status
       if (isAuthenticated) {
         await refreshUser();
@@ -67,12 +65,14 @@ export const VerifyEmail = ({ navigation }: any) => {
       }
     } catch (error: any) {
       console.error('Error verifying email:', error);
-      
+
       let errorMessage = t('something-went-wrong');
       if (error.message?.includes('expired')) {
-        errorMessage = t('verification-token-expired') || 'Verification link has expired.';
+        errorMessage =
+          t('verification-token-expired') || 'Verification link has expired.';
       } else if (error.message?.includes('invalid')) {
-        errorMessage = t('verification-token-invalid') || 'Invalid verification link.';
+        errorMessage =
+          t('verification-token-invalid') || 'Invalid verification link.';
       } else if (error.message) {
         errorMessage = error.message;
       }
@@ -84,81 +84,90 @@ export const VerifyEmail = ({ navigation }: any) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        {/* Icon */}
-        <Center style={styles.iconContainer}>
-          <View style={styles.iconCircle}>
-            {loading ? (
-              <ActivityIndicator size="large" color={primaryColor} />
-            ) : (
-              <FontAwesomeIcon
-                icon={verified ? Icons.faCheckCircle : Icons.faExclamationCircle}
-                size={64}
-                color={verified ? primaryColor : warningColor}
-              />
-            )}
-          </View>
-        </Center>
-
-        {/* Content Card */}
-        <View style={styles.card}>
-          <VStack space="lg">
-            {/* Title */}
-            <Center>
-              <Text style={styles.title}>
-                {loading
-                  ? t('checking-status') || 'Verifying Email...'
-                  : verified
-                  ? t('email-verified') || 'Email Verified!'
-                  : t('verification-failed') || 'Verification Failed'}
-              </Text>
-            </Center>
-
-            {/* Status Message */}
-            <Center>
-              <Text style={[styles.message, error && { color: warningColor }]}>
-                {loading
-                  ? t('please-wait') || 'Please wait while we verify your email...'
-                  : verified
-                  ? t('redirecting') || 'Redirecting to login...'
-                  : error || t('verification-error-message') || 'Unable to verify your email. The link may have expired.'}
-              </Text>
-            </Center>
-
-            {/* Loading Indicator */}
-            {loading && (
-              <Center>
+    <View style={styles.safeArea}>
+      <SafeAreaView style={styles.safeAreaInner}>
+        <View style={styles.container}>
+          {/* Icon */}
+          <Center style={styles.iconContainer}>
+            <View style={styles.iconCircle}>
+              {loading ? (
                 <ActivityIndicator size="large" color={primaryColor} />
-              </Center>
-            )}
+              ) : (
+                <FontAwesomeIcon
+                  icon={
+                    verified ? Icons.faCheckCircle : Icons.faExclamationCircle
+                  }
+                  size={64}
+                  color={verified ? primaryColor : warningColor}
+                />
+              )}
+            </View>
+          </Center>
 
-            {/* Error Actions */}
-            {error && !loading && (
+          {/* Content Card */}
+          <View style={styles.card}>
+            <VStack space="lg">
+              {/* Title */}
               <Center>
-                <Button
-                  variant="solid"
-                  size="lg"
-                  style={styles.button}
-                  onPress={() => navigation.navigate('Login')}
-                >
-                  <HStack space="sm" style={styles.buttonContent}>
-                    <FontAwesomeIcon
-                      icon={Icons.faArrowLeft}
-                      size={16}
-                      color={'#000'}
-                    />
-                    <ButtonText style={styles.buttonText}>
-                      {t('back-to-login')}
-                    </ButtonText>
-                  </HStack>
-                </Button>
+                <Text style={styles.title}>
+                  {loading
+                    ? t('checking-status') || 'Verifying Email...'
+                    : verified
+                      ? t('email-verified') || 'Email Verified!'
+                      : t('verification-failed') || 'Verification Failed'}
+                </Text>
               </Center>
-            )}
-          </VStack>
+
+              {/* Status Message */}
+              <Center>
+                <Text
+                  style={[styles.message, error && { color: warningColor }]}
+                >
+                  {loading
+                    ? t('please-wait') ||
+                      'Please wait while we verify your email...'
+                    : verified
+                      ? t('redirecting') || 'Redirecting to login...'
+                      : error ||
+                        t('verification-error-message') ||
+                        'Unable to verify your email. The link may have expired.'}
+                </Text>
+              </Center>
+
+              {/* Loading Indicator */}
+              {loading && (
+                <Center>
+                  <ActivityIndicator size="large" color={primaryColor} />
+                </Center>
+              )}
+
+              {/* Error Actions */}
+              {error && !loading && (
+                <Center>
+                  <Button
+                    variant="solid"
+                    size="lg"
+                    style={styles.button}
+                    onPress={() => navigation.navigate('Login')}
+                  >
+                    <HStack space="sm" style={styles.buttonContent}>
+                      <FontAwesomeIcon
+                        icon={Icons.faArrowLeft}
+                        size={16}
+                        color={'#000'}
+                      />
+                      <ButtonText style={styles.buttonText}>
+                        {t('back-to-login')}
+                      </ButtonText>
+                    </HStack>
+                  </Button>
+                </Center>
+              )}
+            </VStack>
+          </View>
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 };
 
@@ -167,9 +176,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#020213',
   },
+  safeAreaInner: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 20,
     justifyContent: 'center',
   },
   iconContainer: {
@@ -233,4 +247,3 @@ const styles = StyleSheet.create({
 });
 
 export default VerifyEmail;
-

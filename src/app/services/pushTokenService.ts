@@ -20,7 +20,7 @@ class PushTokenService {
    */
   async getExpoPushToken(): Promise<string | null> {
     try {
-      console.log('[PushTokenService] Getting Expo push token');
+      // console.log('[PushTokenService] Getting Expo push token');
 
       // Check permissions first
       const { status: existingStatus } =
@@ -71,7 +71,7 @@ class PushTokenService {
         pushTokenString = (await Notifications.getDevicePushTokenAsync()).data;
       }
 
-      console.log('[PushTokenService] Successfully obtained push token');
+      // console.log('[PushTokenService] Successfully obtained push token');
       this.currentToken = pushTokenString;
       return pushTokenString;
     } catch (error) {
@@ -86,18 +86,18 @@ class PushTokenService {
   async savePushTokenToBackend(userId: string): Promise<boolean> {
     try {
       if (!this.currentToken) {
-        console.log('[PushTokenService] No current token to save');
+        // console.log('[PushTokenService] No current token to save');
         return false;
       }
 
-      console.log(
-        '[PushTokenService] Saving push token to backend for user:',
-        userId
-      );
+      // console.log(
+      //   '[PushTokenService] Saving push token to backend for user:',
+      //   userId
+      // );
       const success = await userService.addPushToken(userId, this.currentToken);
 
       if (success) {
-        console.log('[PushTokenService] Push token saved successfully');
+        // console.log('[PushTokenService] Push token saved successfully');
         // Update user store
         const { setCurrentPushToken } = useUserStore.getState();
         setCurrentPushToken(this.currentToken);
@@ -123,21 +123,21 @@ class PushTokenService {
   async removePushTokenFromBackend(userId: string): Promise<boolean> {
     try {
       if (!this.currentToken) {
-        console.log('[PushTokenService] No current token to remove');
+        // console.log('[PushTokenService] No current token to remove');
         return true; // Nothing to remove
       }
 
-      console.log(
-        '[PushTokenService] Removing push token from backend for user:',
-        userId
-      );
+      // console.log(
+      //   '[PushTokenService] Removing push token from backend for user:',
+      //   userId
+      // );
       const success = await userService.removePushToken(
         userId,
         this.currentToken
       );
 
       if (success) {
-        console.log('[PushTokenService] Push token removed successfully');
+        // console.log('[PushTokenService] Push token removed successfully');
         // Clear from user store
         const { setCurrentPushToken } = useUserStore.getState();
         setCurrentPushToken(null);
@@ -163,7 +163,7 @@ class PushTokenService {
    */
   async initialize(userId?: string): Promise<string | null> {
     try {
-      console.log('[PushTokenService] Initializing push token service');
+      // console.log('[PushTokenService] Initializing push token service');
 
       // Get push token
       const token = await this.getExpoPushToken();

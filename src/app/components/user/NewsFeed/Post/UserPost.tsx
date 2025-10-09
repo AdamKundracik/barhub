@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Device from 'react-native-device-info';
 import Animated, {
@@ -12,10 +12,8 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import FastImage from 'react-native-fast-image';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { usePlaceStore } from '@/src/app/utils/store/placesStore';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { Post } from '@/common/types/postTypes';
-import { useQueryClient } from 'react-query';
 import { postService } from '@/src/app/services/postService';
 import { trimPlaceName } from '@/src/app/utils/helper-functions/trimPlaceName';
 
@@ -60,9 +58,20 @@ const usePostLike = (
   const backendLikedState = useRef(initialLiked);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
-  const queryClient = useQueryClient();
-  const { placeId } = usePlaceStore();
   const { getUserId } = useUserStore();
+
+  // Reset state when post changes (when component is reused for different post)
+  useEffect(() => {
+    setLiked(initialLiked);
+    setLikeCount(initialCount);
+    backendLikedState.current = initialLiked;
+    
+    // Clear any pending debounce timer when post changes
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+      debounceTimer.current = null;
+    }
+  }, [postId, initialLiked, initialCount]);
 
   const syncWithBackend = useCallback(
     async (currentUIState: boolean) => {
@@ -78,7 +87,7 @@ const usePostLike = (
         }
 
         // Call backend API to toggle
-        const response = await postService.toggleLike(postId, userId);
+        const response = await postService.toggleLike(postId, parseInt(userId, 10));
 
         if (response) {
           // Update backend state tracker
@@ -88,27 +97,8 @@ const usePostLike = (
           setLiked(response.liked);
           setLikeCount(response.totalLikes);
 
-          // Update React Query cache
-          const queryKey = placeId ? ['posts', placeId] : ['posts'];
-          queryClient.setQueryData(queryKey, (oldData: any) => {
-            if (!oldData?.pages) return oldData;
-
-            return {
-              ...oldData,
-              pages: oldData.pages.map((page: any) => ({
-                ...page,
-                posts: page.posts.map((p: Post) =>
-                  p.id === postId
-                    ? {
-                        ...p,
-                        isLiked: response.liked,
-                        likesCount: response.totalLikes,
-                      }
-                    : p
-                ),
-              })),
-            };
-          });
+          // Don't update cache - let natural refetch handle it
+          // This prevents issues with cache corruption where all posts at position 0 get liked
         }
       } catch (error) {
         console.error('Error syncing like with backend:', error);
@@ -119,7 +109,7 @@ const usePostLike = (
         );
       }
     },
-    [postId, placeId, queryClient, getUserId]
+    [postId, getUserId]
   );
 
   const handleLikeToggle = useCallback(() => {

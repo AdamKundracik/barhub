@@ -7,7 +7,7 @@ import {
   SignUpRequestDTO,
 } from '../types/dto';
 import { useUserStore } from '../utils/store/userStore';
-import { emailVerificationService } from './emailVerificationService';
+import { apiClient } from '../utils/api/apiClient';
 
 // Type aliases for better naming
 export type LoginCredentials = SignInRequestDTO;
@@ -111,6 +111,8 @@ class AuthService {
         // Send verification email if user is not verified
         if (!authResponse.user.emailVerified) {
           try {
+            // Lazy import to avoid circular dependency
+            const { emailVerificationService } = await import('./emailVerificationService');
             await emailVerificationService.sendVerificationEmail(authResponse.user.email);
           } catch (emailError) {
             console.error('Failed to send verification email:', emailError);
@@ -122,6 +124,86 @@ class AuthService {
       return authResponse;
     } catch (error) {
       console.error('Registration error:', error);
+      throw error;
+    }
+  }
+
+  // Register new user with profile photo
+  async registerWithPhoto(
+    credentials: RegisterCredentials,
+    photoUri: string
+  ): Promise<AuthResponse> {
+    try {
+      // Manipulate image (resize, compress, convert to WEBP)
+      const { manipulateAsync, SaveFormat } = require('expo-image-manipulator');
+      const manipulatedImage = await manipulateAsync(
+        photoUri,
+        [{ resize: { width: 800 } }],
+        { compress: 0.8, format: SaveFormat.WEBP }
+      );
+
+      // Create FormData
+      const formData = new FormData();
+      
+      // React Native FormData requires object with uri, type, name (not blob)
+      formData.append('profilePhoto', {
+        uri: manipulatedImage.uri,
+        type: 'image/webp',
+        name: 'profile.webp',
+      } as any);
+      
+      formData.append('name', credentials.name);
+      formData.append('email', credentials.email);
+      formData.append('password', credentials.password);
+      
+      if (credentials.dateOfBirth) {
+        // Convert date to ISO string format for backend
+        formData.append('dateOfBirth', credentials.dateOfBirth);
+      }
+
+      const uploadResponse = await fetch(
+        `${API_CONFIG.BASE_URL}${ENDPOINTS.AUTH.SIGNUP_WITH_PHOTO}`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+
+      if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Registration with photo failed');
+      }
+
+      const authResponse: AuthResponse = await uploadResponse.json();
+
+      // Store tokens
+      await this.storeTokens(authResponse.token, authResponse.refreshToken);
+
+      // Store user data if available
+      if (authResponse.user) {
+        await AsyncStorage.setItem(
+          USER_DATA_KEY,
+          JSON.stringify(authResponse.user)
+        );
+        // Also update Zustand store
+        useUserStore.getState().setUserData(authResponse.user);
+
+        // Send verification email if user is not verified
+        if (!authResponse.user.emailVerified) {
+          try {
+            // Lazy import to avoid circular dependency
+            const { emailVerificationService } = await import('./emailVerificationService');
+            await emailVerificationService.sendVerificationEmail(authResponse.user.email);
+          } catch (emailError) {
+            console.error('Failed to send verification email:', emailError);
+            // Don't throw - registration was successful even if email fails
+          }
+        }
+      }
+
+      return authResponse;
+    } catch (error) {
+      console.error('Registration with photo error:', error);
       throw error;
     }
   }
@@ -453,3 +535,6 @@ class AuthService {
 
 // Export singleton instance
 export const authService = new AuthService();
+
+// Set authService reference in apiClient to break circular dependency
+apiClient.setAuthService(() => authService);

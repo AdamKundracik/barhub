@@ -20,7 +20,7 @@ export interface FormErrors {
 }
 
 export const useRegisterForm = (t: (key: string, options?: any) => string) => {
-  const { register } = useAuth();
+  const { register, registerWithPhoto } = useAuth();
   const [formData, setFormData] = useState<RegisterFormData>({
     email: '',
     username: '',
@@ -121,19 +121,25 @@ export const useRegisterForm = (t: (key: string, options?: any) => string) => {
 
     setLoading(true);
     try {
-      // Format date of birth to YYYY-MM-DD format (avoid timezone issues)
+      // Format date of birth to ISO LocalDateTime format for backend
       const year = formData.dateOfBirth.getFullYear();
       const month = String(formData.dateOfBirth.getMonth() + 1).padStart(2, '0');
       const day = String(formData.dateOfBirth.getDate()).padStart(2, '0');
-      const formattedDateOfBirth = `${year}-${month}-${day}`;
+      const formattedDateOfBirth = `${year}-${month}-${day}T00:00:00`;
       
-      await register({
+      const credentials = {
         name: formData.username,
         email: formData.email,
         password: formData.password,
         dateOfBirth: formattedDateOfBirth,
-        photoUrl: formData.profileImage || undefined,
-      });
+      };
+
+      // Use registerWithPhoto if profile image is provided, otherwise use regular register
+      if (formData.profileImage) {
+        await registerWithPhoto(credentials, formData.profileImage);
+      } else {
+        await register(credentials);
+      }
 
       return true;
     } catch (error: any) {

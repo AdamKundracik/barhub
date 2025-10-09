@@ -22,18 +22,19 @@ export const handleFreshContent = async (
       response = await getPostsByPlaceId(
         placeId,
         cursor || undefined,
-        userId || undefined
+        parseInt(userId ?? '') || undefined
       );
     } else {
       response = await getFreshContent(
         geoPoint,
         radius,
         cursor || undefined,
-        userId || undefined
+        parseInt(userId ?? '') || undefined
       );
     }
 
     const data = response.data as InfinityScrollPost;
+    console.log(data.posts);
     if (!data?.posts?.length) {
       return { posts: [], lastVisible: null };
     }

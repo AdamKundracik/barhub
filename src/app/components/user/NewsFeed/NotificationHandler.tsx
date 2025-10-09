@@ -85,7 +85,6 @@ export function useNotificationsHandler() {
         // Prevent duplicate processing of the same notification
         const notificationKey = `${id}-${notificationType}`;
         if (processingNotification.current === notificationKey) {
-          console.log('[NotificationHandler] Already processing notification:', notificationKey);
           return;
         }
         

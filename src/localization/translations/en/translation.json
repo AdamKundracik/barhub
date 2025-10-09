@@ -203,6 +203,7 @@
   "response": "Response",
   "notification-processing-error": "notification-processing-error",
   "cancel": "Cancel",
+  "delete": "Delete",
   "permissions": {
     "title": "Required Permissions",
     "location": "Location Access",
@@ -304,6 +305,7 @@
   "responded-to-request": "responded to your request",
   "something-went-wrong": "Something went wrong",
   "account-deleted-success": "Account deleted successfully",
+  "account-deleted-successfully": "Account deleted successfully",
   "password-changed-success": "Password changed successfully",
   "password-changed-success-description": "Your password has been updated successfully",
   "password-change-error": "Error changing password",

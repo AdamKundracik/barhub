@@ -26,6 +26,10 @@ interface AuthContextType {
   isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (credentials: RegisterCredentials) => Promise<void>;
+  registerWithPhoto: (
+    credentials: RegisterCredentials,
+    photoUri: string
+  ) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -55,33 +59,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Handle app state changes - refresh token when app comes to foreground
   useEffect(() => {
-    const subscription = AppState.addEventListener('change', async (nextAppState) => {
-      // App came to foreground from background
-      if (
-        appState.current.match(/inactive|background/) &&
-        nextAppState === 'active'
-      ) {
-        console.log('[AuthProvider] App came to foreground, checking token validity');
-        
-        // Only refresh if user is authenticated
-        if (user) {
-          try {
-            // getValidAccessToken will automatically refresh if expired
-            const token = await authService.getValidAccessToken();
-            if (!token) {
-              console.log('[AuthProvider] Token refresh failed, logging out');
-              await logout();
-            } else {
-              console.log('[AuthProvider] Token is valid or was refreshed successfully');
+    const subscription = AppState.addEventListener(
+      'change',
+      async nextAppState => {
+        // App came to foreground from background
+        if (
+          appState.current.match(/inactive|background/) &&
+          nextAppState === 'active'
+        ) {
+          // console.log('[AuthProvider] App came to foreground, checking token validity');
+
+          // Only refresh if user is authenticated
+          if (user) {
+            try {
+              // getValidAccessToken will automatically refresh if expired
+              const token = await authService.getValidAccessToken();
+              if (!token) {
+                // console.log('[AuthProvider] Token refresh failed, logging out');
+                await logout();
+              } else {
+                // console.log('[AuthProvider] Token is valid or was refreshed successfully');
+              }
+            } catch (error) {
+              console.error(
+                '[AuthProvider] Error checking token on foreground:',
+                error
+              );
             }
-          } catch (error) {
-            console.error('[AuthProvider] Error checking token on foreground:', error);
           }
         }
-      }
 
-      appState.current = nextAppState;
-    });
+        appState.current = nextAppState;
+      }
+    );
 
     return () => {
       subscription.remove();
@@ -92,18 +102,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     if (!user) return;
 
-    const interval = setInterval(async () => {
-      try {
-        console.log('[AuthProvider] Periodic token check');
-        const token = await authService.getValidAccessToken();
-        if (!token) {
-          console.log('[AuthProvider] Periodic check: Token refresh failed, logging out');
-          await logout();
+    const interval = setInterval(
+      async () => {
+        try {
+          // console.log('[AuthProvider] Periodic token check');
+          const token = await authService.getValidAccessToken();
+          if (!token) {
+            // console.log('[AuthProvider] Periodic check: Token refresh failed, logging out');
+            await logout();
+          }
+        } catch (error) {
+          console.error('[AuthProvider] Error in periodic token check:', error);
         }
-      } catch (error) {
-        console.error('[AuthProvider] Error in periodic token check:', error);
-      }
-    }, 4 * 60 * 1000); // Check every 4 minutes
+      },
+      4 * 60 * 1000
+    ); // Check every 4 minutes
 
     return () => {
       clearInterval(interval);
@@ -176,11 +189,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         userData = await authService.getCurrentUser();
         if (userData) {
           setUser(userData);
-        // Load extended user data and populate stores
-        await loadUserData(userData);
+          // Load extended user data and populate stores
+          await loadUserData(userData);
 
-        // Initialize push token service and save token to backend
-        await pushTokenService.initialize(userData.id.toString());
+          // Initialize push token service and save token to backend
+          await pushTokenService.initialize(userData.id.toString());
         } else {
           // If we can't get user data, logout
           await authService.logout();
@@ -256,6 +269,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const registerWithPhoto = async (
+    credentials: RegisterCredentials,
+    photoUri: string
+  ) => {
+    try {
+      setIsLoading(true);
+      // Register with photo and get tokens
+      await authService.registerWithPhoto(credentials, photoUri);
+
+      // Get user data
+      const userData = await authService.getCurrentUser();
+      if (userData) {
+        setUser(userData);
+        // Load extended user data and populate stores
+        await loadUserData(userData);
+
+        // Initialize push token service and save token to backend
+        await pushTokenService.initialize(userData.id.toString());
+
+        // Save current location to backend immediately after registration
+        await saveCurrentLocationToBackend(userData.id.toString());
+      } else {
+        throw new Error('Failed to get user data after registration');
+      }
+    } catch (error) {
+      console.error('Registration with photo error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = async () => {
     try {
       setIsLoading(true);
@@ -313,6 +358,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoading,
     login,
     register,
+    registerWithPhoto,
     logout,
     refreshUser,
   };

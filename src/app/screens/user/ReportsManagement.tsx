@@ -119,9 +119,9 @@ export const ReportsManagement: React.FC = () => {
   const [selectedFilter, setSelectedFilter] = useState<string>('ALL');
   const [showFilters, setShowFilters] = useState(false);
 
-  console.log('[ReportsManagement] Component rendered');
-  console.log('[ReportsManagement] isAdmin:', isAdmin);
-  console.log('[ReportsManagement] isModerator:', isModerator);
+  // console.log('[ReportsManagement] Component rendered');
+  // console.log('[ReportsManagement] isAdmin:', isAdmin);
+  // console.log('[ReportsManagement] isModerator:', isModerator);
 
   // Fetch all reports (Admin/Moderator only)
   const {
@@ -132,8 +132,8 @@ export const ReportsManagement: React.FC = () => {
     ['admin', 'reports'],
     async () => {
       const data = await reportService.getAllReports();
-      console.log('[ReportsManagement] Fetched reports:', data);
-      console.log('[ReportsManagement] Reports count:', data?.length || 0);
+      // console.log('[ReportsManagement] Fetched reports:', data);
+      // console.log('[ReportsManagement] Reports count:', data?.length || 0);
       return data;
     },
     {
@@ -181,30 +181,30 @@ export const ReportsManagement: React.FC = () => {
 
   // Filter reports by selected type
   const filteredReports = useMemo(() => {
-    console.log('[ReportsManagement] === FILTERING ===');
-    console.log('[ReportsManagement] Total reports:', reports.length);
-    console.log(
-      '[ReportsManagement] Reports data:',
-      JSON.stringify(reports, null, 2)
-    );
-    console.log('[ReportsManagement] Selected filter:', selectedFilter);
+    // console.log('[ReportsManagement] === FILTERING ===');
+    // console.log('[ReportsManagement] Total reports:', reports.length);
+    // console.log(
+    //   '[ReportsManagement] Reports data:',
+    // JSON.stringify(reports, null, 2)
+    // );
+    // console.log('[ReportsManagement] Selected filter:', selectedFilter);
 
     if (selectedFilter === 'ALL') {
-      console.log('[ReportsManagement] Returning all reports:', reports);
+      // console.log('[ReportsManagement] Returning all reports:', reports);
       return reports;
     }
 
     const filtered = reports.filter(r => {
       const reasonStr = r.reason;
       const matches = reasonStr.toUpperCase() === selectedFilter.toUpperCase();
-      console.log(
-        `[ReportsManagement] Report ${r.id}: reason=${reasonStr}, matches=${matches}`
-      );
+      // console.log(
+      //   `[ReportsManagement] Report ${r.id}: reason=${reasonStr}, matches=${matches}`
+      // );
       return matches;
     });
 
-    console.log('[ReportsManagement] Filtered reports count:', filtered.length);
-    console.log('[ReportsManagement] Filtered reports:', filtered);
+    // console.log('[ReportsManagement] Filtered reports count:', filtered.length);
+    // console.log('[ReportsManagement] Filtered reports:', filtered);
     return filtered;
   }, [reports, selectedFilter]);
 

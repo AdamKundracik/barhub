@@ -39,41 +39,36 @@ class ImageService {
     }
   ): Promise<any> {
     try {
-      console.log('POST DATA', postData);
       // Manipulate image
       const manipulatedImage = await this.manipulateImage(uri);
 
-      // Convert to blob
-      const response = await fetch(manipulatedImage.uri);
-      const blob = await response.blob();
-
       // Create FormData
       const formData = new FormData();
-      
+
       // Image file
       formData.append('image', {
         uri: manipulatedImage.uri,
         type: 'image/webp',
         name: `${postData.fileId}.webp`,
       } as any);
-      
+
       // Post data - match backend parameter names
       formData.append('occupancy', postData.occupancy);
       formData.append('userId', postData.userId.toString());
       formData.append('placeId', postData.placeId);
       formData.append('placeName', postData.placeName);
       formData.append('placeAddress', postData.placeAddress);
-      
+
       // Location as separate lat/long fields
       formData.append('locationLat', postData.location._lat.toString());
       formData.append('locationLong', postData.location._long.toString());
-      
+
       // placeTypes as comma-separated string
       formData.append('placeTypes', postData.placeTypes.join(','));
-      
+
       // Optional parameters
       formData.append('isHighlighted', 'false');
-      
+
       if (postData.senderToken) {
         formData.append('senderToken', postData.senderToken);
       }
@@ -104,24 +99,31 @@ class ImageService {
   }
 
   /**
-   * Upload profile photo
+   * Upload profile photo to Cloudflare
+   * Uploads to 'profile_photos' folder with userId as fileId
    * @param uri - Local image URI
+   * @param userId - User ID (will be used as fileId)
    * @returns Cloudflare image URL
    */
-  async uploadProfilePhoto(uri: string): Promise<string> {
+  async uploadProfilePhoto(uri: string, userId: number): Promise<string> {
     try {
-      // Manipulate image
+      // Manipulate image (resize, compress, convert to WEBP)
       const manipulatedImage = await this.manipulateImage(uri);
-
-      // Convert to blob
-      const response = await fetch(manipulatedImage.uri);
-      const blob = await response.blob();
 
       // Create FormData
       const formData = new FormData();
-      formData.append('image', blob as any, 'profile.webp');
 
-      // Upload to backend (Cloudflare)
+      // React Native FormData requires object with uri, type, name (not blob)
+      formData.append('image', {
+        uri: manipulatedImage.uri,
+        type: 'image/webp',
+        name: `${userId}.webp`,
+      } as any);
+
+      formData.append('userId', userId.toString());
+      formData.append('folderId', 'profile_photos'); // Fixed folder for all profile photos
+
+      // Upload to backend (Cloudflare) - backend also updates user.photoUrl in DB
       const uploadResponse = await authService.makeAuthenticatedRequest(
         `${API_CONFIG.BASE_URL}${ENDPOINTS.IMAGES.UPLOAD_PROFILE}`,
         {
@@ -132,7 +134,11 @@ class ImageService {
 
       if (!uploadResponse.ok) {
         const errorData = await uploadResponse.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to upload profile photo');
+        throw new Error(
+          errorData.error ||
+            errorData.message ||
+            'Failed to upload profile photo'
+        );
       }
 
       const data = await uploadResponse.json();

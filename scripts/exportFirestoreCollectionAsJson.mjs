@@ -21,7 +21,7 @@ const db = getFirestore(app);
 // Check if collection name is passed as an argument
 const collectionName = process.argv[2];
 if (!collectionName) {
-    console.log('Please provide a collection name as an argument.');
+    // console.log('Please provide a collection name as an argument.');
     process.exit(1);
 }
 
@@ -33,7 +33,7 @@ async function exportCollectionToJson(collectionName) {
         const snapshot = await getDocs(collectionRef);
 
         if (snapshot.empty) {
-            console.log(`No documents found in collection: ${collectionName}`);
+            // console.log(`No documents found in collection: ${collectionName}`);
             return;
         }
 
@@ -48,7 +48,7 @@ async function exportCollectionToJson(collectionName) {
         // Write data to JSON file
         const fileName = `${collectionName}.json`;
         fs.writeFileSync(fileName, JSON.stringify(data, null, 2));
-        console.log(`Data from ${collectionName} has been exported to ${fileName}!`);
+        // console.log(`Data from ${collectionName} has been exported to ${fileName}!`);
     } catch (error) {
         console.error('Error exporting collection:', error);
     }

@@ -25,8 +25,8 @@ const mapNotificationDTOToItem = (dto: NotificationDTO): NotificationItem => {
   // Note: label and text are not used in UI (NotificationItemComponent generates them with i18n)
   // They're kept for backwards compatibility and potential future use
   let notificationType: NotificationType;
-  let label = '';
-  let text = '';
+  let label;
+  let text;
 
   switch (dto.notificationType) {
     case 'LIKE':
@@ -159,7 +159,7 @@ export const sendRequestNotificationToRecipients = async (
       senderId: Number(userId),
     });
 
-    console.log('[sendRequestNotification] Response:', response);
+    // console.log('[sendRequestNotification] Response:', response);
     return response?.success || false;
   } catch (error) {
     console.error('Error sending request notification:', error);
@@ -186,7 +186,7 @@ export const sendResponseNotificationToRecipients = async (
       userId: Number(userId),
     });
 
-    console.log('[sendResponseNotification] Response:', response);
+    // console.log('[sendResponseNotification] Response:', response);
     return response?.success || false;
   } catch (error) {
     console.error('Error sending response notification:', error);
