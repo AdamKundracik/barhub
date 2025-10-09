@@ -26,6 +26,7 @@
     "@invertase/react-native-apple-authentication": "^2.4.1",
     "@legendapp/motion": "^2.4.0",
     "@react-native-async-storage/async-storage": "2.1.2",
+    "@react-native-clipboard/clipboard": "^1.16.3",
     "@react-native-community/blur": "^4.4.1",
     "@react-native-community/geolocation": "^3.2.1",
     "@react-native-community/slider": "4.5.6",
@@ -106,7 +107,9 @@
     "shared": "file:./modules/shared",
     "tailwind-variants": "^0.1.20",
     "tailwindcss": "^3.4.17",
-    "zustand": "^5.0.0"
+    "zustand": "^5.0.0",
+    "expo-file-system": "~18.1.11",
+    "expo-sharing": "~13.1.5"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

@@ -8,8 +8,6 @@ import {
 } from 'react-native';
 import {
   BottomSheetBackdrop,
-  BottomSheetFooter,
-  BottomSheetFooterProps,
   BottomSheetModal,
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
@@ -31,6 +29,7 @@ type PostOptionsModalProps = {
   onDelete: () => Promise<void> | void;
   onReport: () => void; // otvorí Report modal
   onHighlight?: () => void; // highlight/unhighlight post
+  onShare?: () => void; // share post
 };
 
 export const PostOptionsModal = ({
@@ -39,6 +38,7 @@ export const PostOptionsModal = ({
   onDelete,
   onReport,
   onHighlight,
+  onShare,
   showDelete = false,
   showReport = true,
   showHighlight = false,
@@ -78,23 +78,6 @@ export const PostOptionsModal = ({
     }
   };
 
-  const renderFooter = useCallback(
-    (props: BottomSheetFooterProps) => (
-      <BottomSheetFooter {...props} bottomInset={insets.bottom + 20}>
-        <View style={styles.cancelContainer}>
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={onClose}
-            disabled={loading}
-          >
-            <Text style={styles.cancelText}>{t('cancel')}</Text>
-          </TouchableOpacity>
-        </View>
-      </BottomSheetFooter>
-    ),
-    [loading]
-  );
-
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
@@ -104,9 +87,25 @@ export const PostOptionsModal = ({
       backgroundStyle={styles.container}
       handleIndicatorStyle={styles.handleIndicator}
       enablePanDownToClose
-      footerComponent={renderFooter}
     >
       <BottomSheetView style={styles.content}>
+        {onShare && (
+          <TouchableOpacity
+            style={styles.option}
+            activeOpacity={0.7}
+            onPress={() => {
+              onShare();
+              onClose();
+            }}
+            disabled={loading}
+          >
+            <View style={styles.optionRow}>
+              <Text style={styles.optionText}>{t('share-post')}</Text>
+              <FontAwesomeIcon icon={Icons.Share} size={16} color="white" />
+            </View>
+          </TouchableOpacity>
+        )}
+
         {showHighlight && onHighlight && (
           <TouchableOpacity
             style={styles.option}
@@ -118,7 +117,11 @@ export const PostOptionsModal = ({
               <Text style={[styles.optionText, { color: '#FFC107' }]}>
                 {t('highlight-post') || 'Highlight Post'}
               </Text>
-              <FontAwesomeIcon icon={Icons.RankingStar} size={16} color="#FFC107" />
+              <FontAwesomeIcon
+                icon={Icons.RankingStar}
+                size={16}
+                color="#FFC107"
+              />
             </View>
           </TouchableOpacity>
         )}
@@ -148,7 +151,11 @@ export const PostOptionsModal = ({
               <Text style={[styles.optionText, { color: warningColor }]}>
                 {t('reportPost.title')}
               </Text>
-              <FontAwesomeIcon icon={Icons.Flag} size={16} color={warningColor} />
+              <FontAwesomeIcon
+                icon={Icons.Flag}
+                size={16}
+                color={warningColor}
+              />
             </View>
           </TouchableOpacity>
         )}

@@ -13,14 +13,11 @@ import {
 } from 'react-native';
 import {
   BottomSheetBackdrop,
-  BottomSheetFooter,
-  BottomSheetFooterProps,
   BottomSheetModal,
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { ReportReason } from '@/src/app/utils/types/Feed/PostTypes';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
 import { bottomModalBgColor } from '@/src/app/utils/styles/colors';
@@ -38,7 +35,6 @@ export const PostReportModal = ({
 }: PostReportModalProps) => {
   const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
-  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
   const [showCustomReason, setShowCustomReason] = useState(false);
   const [customReason, setCustomReason] = useState('');
@@ -134,71 +130,39 @@ export const PostReportModal = ({
     { value: ReportReason.OTHER, label: t('reportPost.other') },
   ];
 
-  const renderFooter = useCallback(
-    (props: BottomSheetFooterProps) => (
-      <BottomSheetFooter {...props} bottomInset={insets.bottom + 20}>
-        <View style={styles.footerContainer}>
-          {showCustomReason ? (
-            <>
-              <TouchableOpacity
-                style={[styles.button, styles.submitButton]}
-                onPress={handleCustomReasonSubmit}
-                disabled={loading || !customReason.trim()}
-              >
-                <Text style={styles.submitButtonText}>{t('reportPost.submit')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.button, styles.cancelButton]}
-                onPress={handleBackToReasons}
-                disabled={loading}
-              >
-                <Text style={styles.cancelButtonText}>{t('go-back')}</Text>
-              </TouchableOpacity>
-            </>
-          ) : (
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={onClose}
-              disabled={loading}
-            >
-              <Text style={styles.cancelText}>{t('cancel')}</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </BottomSheetFooter>
-    ),
-    [showCustomReason, customReason, loading]
-  );
-
   return (
     <BottomSheetModal
-        ref={bottomSheetRef}
-        snapPoints={['60%']}
-        backdropComponent={renderBackdrop}
-        onDismiss={onClose}
-        backgroundStyle={styles.container}
-        handleIndicatorStyle={styles.handleIndicator}
-        enablePanDownToClose
-        footerComponent={renderFooter}
-        keyboardBehavior="interactive"
-        keyboardBlurBehavior="restore"
-        android_keyboardInputMode="adjustResize"
+      ref={bottomSheetRef}
+      snapPoints={['60%']}
+      backdropComponent={renderBackdrop}
+      onDismiss={onClose}
+      backgroundStyle={styles.container}
+      handleIndicatorStyle={styles.handleIndicator}
+      enablePanDownToClose
+      keyboardBehavior="interactive"
+      keyboardBlurBehavior="restore"
+      android_keyboardInputMode="adjustResize"
+    >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{ flex: 1 }}
-        >
-          <BottomSheetView style={styles.content}>
+        <BottomSheetView style={styles.content}>
           {showCustomReason ? (
             <>
-              <Text style={styles.title}>{t('reportPost.customReasonTitle')}</Text>
-              
+              <Text style={styles.title}>
+                {t('reportPost.customReasonTitle')}
+              </Text>
+
               <TextInput
-                style={[styles.textInput, customReasonError ? styles.textInputError : null]}
+                style={[
+                  styles.textInput,
+                  customReasonError ? styles.textInputError : null,
+                ]}
                 placeholder={t('reportPost.customReasonPlaceholder')}
                 placeholderTextColor="#666"
                 value={customReason}
-                onChangeText={(text) => {
+                onChangeText={text => {
                   setCustomReason(text);
                   if (customReasonError) setCustomReasonError('');
                 }}
@@ -211,17 +175,41 @@ export const PostReportModal = ({
                 blurOnSubmit={true}
                 onSubmitEditing={() => Keyboard.dismiss()}
               />
-              
-              {customReasonError ? <Text style={styles.errorText}>{customReasonError}</Text> : null}
-              
+
+              {customReasonError ? (
+                <Text style={styles.errorText}>{customReasonError}</Text>
+              ) : null}
+
               <Text style={styles.characterCount}>
                 {customReason.length}/500
               </Text>
+
+              {/* Buttons inside content */}
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={[styles.button, styles.submitButton]}
+                  onPress={handleCustomReasonSubmit}
+                  disabled={loading || !customReason.trim()}
+                >
+                  <Text style={styles.submitButtonText}>
+                    {t('reportPost.submit')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.button, styles.cancelButton]}
+                  onPress={handleBackToReasons}
+                  disabled={loading}
+                >
+                  <Text style={styles.cancelButtonText}>{t('go-back')}</Text>
+                </TouchableOpacity>
+              </View>
             </>
           ) : (
             <>
               <Text style={styles.title}>{t('reportPost.title')}</Text>
-              <Text style={styles.subtitle}>{t('reportPost.chooseReason')}</Text>
+              <Text style={styles.subtitle}>
+                {t('reportPost.chooseReason')}
+              </Text>
 
               {reasons.map(r => (
                 <TouchableOpacity
@@ -297,9 +285,10 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginVertical: 10,
   },
-  footerContainer: {
-    paddingHorizontal: 20,
+  buttonContainer: {
+    paddingHorizontal: 0,
     gap: 12,
+    marginTop: 16,
   },
   button: {
     borderRadius: 12,

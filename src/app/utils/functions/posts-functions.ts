@@ -34,7 +34,7 @@ export const handleFreshContent = async (
     }
 
     const data = response.data as InfinityScrollPost;
-    console.log(data.posts);
+    // console.log(data.posts);
     if (!data?.posts?.length) {
       return { posts: [], lastVisible: null };
     }

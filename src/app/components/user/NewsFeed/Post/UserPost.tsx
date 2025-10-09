@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Device from 'react-native-device-info';
 import Animated, {
   FadeIn,
@@ -197,11 +198,27 @@ const UserPost: React.FC<UserPostProps> = ({
   onCommentPress,
 }) => {
   const { isPremium, canSeeContent } = useUserStore();
+  const navigation = useNavigation();
 
   // Early return if no post
   if (!post) {
     return null;
   }
+
+  // Navigate to PostDetail screen
+  const handleNavigateToDetail = useCallback(() => {
+    (navigation as any).navigate('PostDetail', { postId: post.id });
+  }, [navigation, post.id]);
+
+  // Share post
+  const handleShare = useCallback(async () => {
+    try {
+      const { shareService } = await import('@/src/app/services/shareService');
+      await shareService.sharePost(post);
+    } catch (error) {
+      console.error('Error sharing post:', error);
+    }
+  }, [post]);
 
   // Safe destructuring with defaults
   const {
@@ -300,6 +317,8 @@ const UserPost: React.FC<UserPostProps> = ({
           canDelete={post.canDelete}
           canReport={post.canReport}
           canHighlight={post.canHighlight}
+          onPress={handleNavigateToDetail}
+          onShare={handleShare}
         />
 
         {/* Enhanced Image Container */}

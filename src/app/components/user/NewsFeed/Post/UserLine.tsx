@@ -130,6 +130,8 @@ type Props = {
   canDelete?: boolean; // Permission from backend
   canReport?: boolean; // Permission from backend
   canHighlight?: boolean; // Permission from backend
+  onPress?: () => void; // Optional callback when UserLine is pressed
+  onShare?: () => void; // Optional callback for sharing post
 };
 
 const UserLineComponent = ({
@@ -137,10 +139,11 @@ const UserLineComponent = ({
   user,
   date,
   address,
-  postUserId,
   canDelete = false,
   canReport = false,
   canHighlight = false,
+  onPress,
+  onShare,
 }: Props) => {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
@@ -229,7 +232,7 @@ const UserLineComponent = ({
         const backendReason = reason as unknown as ReasonTypeEnum;
 
         await reportService.createReport(
-          currentUserId,
+          parseInt(currentUserId, 10),
           postId, // reportService handles string to number conversion
           backendReason,
           customReason
@@ -346,7 +349,12 @@ const UserLineComponent = ({
   return (
     <>
       <Animated.View entering={FadeIn.duration(400)} style={styles.container}>
-        <View style={styles.leftSection}>
+        <TouchableOpacity
+          style={styles.leftSection}
+          onPress={onPress}
+          activeOpacity={onPress ? 0.7 : 1}
+          disabled={!onPress}
+        >
           <UserAvatar
             photoUrl={user?.photoUrl}
             displayName={safeUserName}
@@ -373,7 +381,7 @@ const UserLineComponent = ({
               <Text style={styles.timeText}>{formattedTime}</Text>
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
 
         <MoreOptionsButton onPress={() => setIsOptionsModalOpen(true)} />
       </Animated.View>
@@ -394,6 +402,7 @@ const UserLineComponent = ({
           // console.log('Highlight post:', postId);
           setIsOptionsModalOpen(false);
         }}
+        onShare={onShare}
       />
 
       <PostReportModal
@@ -426,7 +435,9 @@ export const UserLine = React.memo(UserLineComponent, (prev, next) => {
     prev.postUserId === next.postUserId &&
     prev.canDelete === next.canDelete &&
     prev.canReport === next.canReport &&
-    prev.canHighlight === next.canHighlight
+    prev.canHighlight === next.canHighlight &&
+    prev.onPress === next.onPress &&
+    prev.onShare === next.onShare
   );
 });
 

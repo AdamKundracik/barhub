@@ -34,6 +34,24 @@ class PostService {
     }
   }
 
+  // Get single post by ID
+  async getPostById(postId: string, userId?: number): Promise<any | null> {
+    try {
+      const url = userId
+        ? `${ENDPOINTS.POSTS.BASE}/${postId}?userId=${userId}`
+        : `${ENDPOINTS.POSTS.BASE}/${postId}`;
+      
+      const backendPost = await apiUtils.get<any>(url);
+      
+      // Map backend DTO to frontend Post format
+      const { mapBackendPostToFrontend } = await import('../utils/mappers/postMapper');
+      return mapBackendPostToFrontend(backendPost);
+    } catch (error) {
+      console.error('Error fetching post by ID:', error);
+      return null;
+    }
+  }
+
   // Get paginated posts
   async getPaginatedPosts(
     page: number = 0,
@@ -53,16 +71,6 @@ class PostService {
         hasNext: false,
         hasPrevious: false,
       };
-    }
-  }
-
-  // Get post by ID
-  async getPostById(postId: string): Promise<PostDTO | null> {
-    try {
-      return await apiUtils.get<PostDTO>(ENDPOINTS.POSTS.BY_ID(postId));
-    } catch (error) {
-      console.error('Error fetching post by ID:', error);
-      return null;
     }
   }
 

@@ -67,7 +67,12 @@ const mainLinking = {
   prefixes: ['barhub://', 'https://barhub.app'],
   config: {
     screens: {
-      // Add main app screens here if needed
+      PostDetail: {
+        path: 'post/:postId',
+        parse: {
+          postId: (postId: string) => postId,
+        },
+      },
     },
   },
 };
