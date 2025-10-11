@@ -127,16 +127,11 @@ const FeedHeader = ({ placeName }: HeaderProps) => {
     <>
       {placeName && placeId && (
         <View style={styles.headerContainer}>
-          <View style={{ flex: 1 }}>
-            <PlaceFilterChip place={placeName} />
-          </View>
+          <PlaceFilterChip place={placeName} />
           
           {/* Favorite Button */}
           <TouchableOpacity
-            style={[
-              styles.favoriteButton,
-              isFavorite && styles.favoriteButtonActive,
-            ]}
+            style={styles.favoriteButton}
             onPress={handleToggleFavorite}
             disabled={isTogglingFavorite || isCheckingFavorite}
             activeOpacity={0.7}
@@ -146,8 +141,8 @@ const FeedHeader = ({ placeName }: HeaderProps) => {
             ) : (
               <FontAwesomeIcon
                 icon={isFavorite ? Icons.HeartSolid : Icons.Heart}
-                size={20}
-                color={isFavorite ? '#FF6B6B' : primaryColor}
+                size={24}
+                color={isFavorite ? '#FF6B6B' : 'rgba(255, 255, 255, 0.6)'}
               />
             )}
           </TouchableOpacity>
@@ -161,23 +156,15 @@ const styles = StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 5,
-    paddingHorizontal: 16,
-    gap: 12,
+    paddingLeft: 16,
+    paddingRight: 12,
   },
   favoriteButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(16, 217, 185, 0.1)',
-    borderWidth: 2,
-    borderColor: 'rgba(16, 217, 185, 0.3)',
+    padding: 8,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  favoriteButtonActive: {
-    backgroundColor: 'rgba(255, 107, 107, 0.15)',
-    borderColor: 'rgba(255, 107, 107, 0.4)',
   },
 });
 

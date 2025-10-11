@@ -186,6 +186,7 @@ const PostsList = ({
         keyExtractor={item => item.id}
         contentContainerStyle={styles.scrollView}
         drawDistance={500} // Reduce overdraw for better performance
+        showsVerticalScrollIndicator={false}
         ListFooterComponent={
           <ListFooter
             isFetchingNextPage={isFetchingNextPage}
