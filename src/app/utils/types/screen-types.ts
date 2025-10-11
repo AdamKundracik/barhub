@@ -20,6 +20,8 @@ export type UserStackList = {
 
   PostSummary: { image: string; place: Place };
 
+  PostDetail: { postId: string };
+
   NotificationsList: undefined;
 
   SelectFakeLocation: undefined;

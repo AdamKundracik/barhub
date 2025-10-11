@@ -10,11 +10,12 @@ type LayoutProps = {
 };
 
 export const PlaceFilterChip = (props: LayoutProps) => {
-  const { setPlaceId, setPlaceName } = usePlaceStore();
+  const { setPlaceId, setPlaceName, setPlaceAddress } = usePlaceStore();
 
   async function removeSavedPlace() {
     setPlaceId(null);
     setPlaceName(null);
+    setPlaceAddress(null);
   }
 
   return (

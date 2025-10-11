@@ -4,7 +4,6 @@ import {
   ServiceStatusEnum,
 } from '../types/functions-types';
 import { GeoPointType } from '../types/types';
-import { DeletePostResponse } from '@/functions/src/services/postService';
 import { Post } from '@/shared';
 import { authService } from '../../services/authService';
 import { API_CONFIG, ENDPOINTS } from '../../config/api';
@@ -37,7 +36,7 @@ class PostService {
     }
   };
 
-  public deletePost = async (postId: string): Promise<DeletePostResponse> => {
+  public deletePost = async (postId: string): Promise<{ success: boolean; message?: string }> => {
     try {
       const response = await authService.makeAuthenticatedRequest(
         `${API_CONFIG.BASE_URL}${ENDPOINTS.POSTS.BY_ID(postId)}`,
@@ -61,7 +60,10 @@ class PostService {
       return data;
     } catch (error) {
       console.error('Error deleting post:', error);
-      throw error;
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to delete post'
+      };
     }
   };
 }
@@ -101,7 +103,6 @@ export const getFreshContent = async (
     }
 
     const data = await response.json();
-    console.log(data.posts);
     // Map backend posts to frontend format
     const mappedPosts = mapBackendPostsToFrontend(data.posts || []);
 

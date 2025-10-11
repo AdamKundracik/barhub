@@ -45,7 +45,7 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
   const { location } = useLocationStore();
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
-  const { setPlaceId, setPlaceName } = usePlaceStore();
+  const { setPlaceId, setPlaceName, setPlaceAddress } = usePlaceStore();
 
   const mapRef = useRef<MapView>(null);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -70,9 +70,10 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
     const placePrediction = mapPlaceToPlacePrediction(selectedPlace);
     setPlaceId(placePrediction.placeId);
     setPlaceName(placePrediction.structuredFormat.mainText.text);
+    setPlaceAddress(placePrediction.structuredFormat.secondaryText.text);
     closeMap();
     navigation.navigate('Feed');
-  }, [selectedPlace, setPlaceId, setPlaceName, closeMap, navigation]);
+  }, [selectedPlace, setPlaceId, setPlaceName, setPlaceAddress, closeMap, navigation]);
 
   const handleSearchSurrounding = useCallback(async () => {
     if (loading) return;

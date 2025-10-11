@@ -67,7 +67,7 @@ export const HighlightedPostsGrid: React.FC<HighlightedPostsGridProps> = ({
             color={secondaryTextColor}
           />
           <Text style={styles.emptyText}>
-            No highlighted posts yet
+            {t('no-highlighted-posts')}
           </Text>
         </View>
       </View>

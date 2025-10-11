@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next';
 import { useQuery } from 'react-query';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { ClockIcon, MapPinIcon, XIcon } from 'lucide-react-native';
+import { FavoritePlaceDTO } from '../../types/dto';
 
 // UI Components
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
@@ -35,6 +36,8 @@ import { fetchPlaceAutocomplete } from '../../utils/helper-functions/fetchPlaces
 import { generateUID } from '@/src/app/utils/helper-functions/generateUID';
 import { Icons } from '../../utils/icons/icons';
 import { primaryColor, primaryDeepColor } from '../../utils/styles/colors';
+import { favoriteService } from '../../services/favoriteService';
+import { useUserFavorites } from '@/src/app/hooks/useUserFavorites';
 
 // Types
 interface PlaceSuggestion {
@@ -104,26 +107,26 @@ const PlaceItem: React.FC<{
   onPress: () => void;
   isHistory?: boolean;
 }> = ({ mainText, secondaryText, onPress, isHistory = false }) => (
-  <Pressable style={styles.placeItem} onPress={onPress}>
+  <Pressable style={placeItemStyle.placeItem} onPress={onPress}>
     {({ pressed }) => (
       <View
-        style={[styles.placeItemContent, pressed && styles.placeItemPressed]}
+        style={[placeItemStyle.placeItemContent, pressed && placeItemStyle.placeItemPressed]}
       >
-        <View style={styles.placeIconContainer}>
+        <View style={placeItemStyle.placeIconContainer}>
           {isHistory ? (
             <ClockIcon size={20} color={primaryColor} />
           ) : (
             <MapPinIcon size={20} color={primaryColor} />
           )}
         </View>
-        <View style={styles.placeTextContainer}>
-          <Text style={[styles.placeMainText, pressed && styles.textPressed]}>
+        <View style={placeItemStyle.placeTextContainer}>
+          <Text style={[placeItemStyle.placeMainText, pressed && placeItemStyle.textPressed]}>
             {mainText}
           </Text>
           <Text
             style={[
-              styles.placeSecondaryText,
-              pressed && styles.secondaryTextPressed,
+              placeItemStyle.placeSecondaryText,
+              pressed && placeItemStyle.secondaryTextPressed,
             ]}
           >
             {secondaryText}
@@ -174,8 +177,9 @@ export const PlaceSearch: React.FC = () => {
   const tabBarHeight = useBottomTabBarHeight();
   const insets = useSafeAreaInsets();
 
-  const { setPlaceId, setPlaceName } = usePlaceStore();
-  const { addSearchHistoryItemAsync, userData, isPremium } = useUserData();
+  const { setPlaceId, setPlaceName, setPlaceAddress } = usePlaceStore();
+  const { addSearchHistoryItemAsync, userData, isPremium, userId } = useUserData();
+  const { favorites } = useUserFavorites(userId);
 
   // Get search history from userData
   const searchHistory = userData?.searchHistory || [];
@@ -218,6 +222,7 @@ export const PlaceSearch: React.FC = () => {
 
       setPlaceId(placeId);
       setPlaceName(mainText);
+      setPlaceAddress(secondaryText);
 
       if (!fromHistory) {
         try {
@@ -243,13 +248,36 @@ export const PlaceSearch: React.FC = () => {
   }, []);
 
   // Render methods
+  const renderFavoritePlaces = useCallback(() => {
+    if (!favorites || favorites.length === 0) {
+      return null;
+    }
+
+    return (
+      <View style={styles.sectionContainer}>
+        <View style={styles.favoritesHeader}>
+          <FontAwesomeIcon icon={Icons.HeartSolid} size={18} color="#FF6B6B" />
+          <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Obľúbené miesta</Text>
+        </View>
+        {favorites.slice(0, 5).map((favorite, index) => (
+          <PlaceItem
+            key={`favorite-${index}`}
+            mainText={favorite.placeName}
+            secondaryText={favorite.placeAddress}
+            onPress={() => handlePlaceSelect({
+              placeId: favorite.placeId,
+              mainText: favorite.placeName,
+              secondaryText: favorite.placeAddress,
+            }, true)}
+          />
+        ))}
+      </View>
+    );
+  }, [favorites, handlePlaceSelect]);
+
   const renderSearchHistory = useCallback(() => {
     if (searchHistory.length === 0) {
-      return (
-        <EmptyState
-          message={t('no-search-history') || 'Žiadna história vyhľadávania'}
-        />
-      );
+      return null;
     }
 
     return (
@@ -312,10 +340,16 @@ export const PlaceSearch: React.FC = () => {
 
   const renderContent = useCallback(() => {
     if (query.length === 0) {
-      return renderSearchHistory();
+      // Show favorites first, then search history
+      return (
+        <>
+          {renderFavoritePlaces()}
+          {renderSearchHistory()}
+        </>
+      );
     }
     return renderSearchResults();
-  }, [query, renderSearchHistory, renderSearchResults]);
+  }, [query, renderFavoritePlaces, renderSearchHistory, renderSearchResults]);
 
   // Main render
   if (isMapShown) {
@@ -392,7 +426,56 @@ export const PlaceSearch: React.FC = () => {
   );
 };
 
-// Styles
+// PlaceItem Styles
+const placeItemStyle = StyleSheet.create({
+  placeItem: {
+    marginBottom: 2,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  placeItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 16,
+  },
+  placeItemPressed: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    transform: [{ scale: 0.98 }],
+  },
+  placeIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  placeTextContainer: {
+    flex: 1,
+  },
+  placeMainText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
+    marginBottom: 2,
+  },
+  placeSecondaryText: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  textPressed: {
+    color: primaryColor,
+  },
+  secondaryTextPressed: {
+    color: primaryColor,
+    opacity: 0.8,
+  },
+});
+
+// Main Screen Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -455,56 +538,19 @@ const styles = StyleSheet.create({
   sectionContainer: {
     marginBottom: 24,
   },
+  favoritesHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: 'white',
     marginBottom: 12,
     paddingHorizontal: 4,
-  },
-  placeItem: {
-    marginBottom: 2,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  placeItemContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 16,
-  },
-  placeItemPressed: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    transform: [{ scale: 0.98 }],
-  },
-  placeIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  placeTextContainer: {
-    flex: 1,
-  },
-  placeMainText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'white',
-    marginBottom: 2,
-  },
-  placeSecondaryText: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
-  },
-  textPressed: {
-    color: primaryColor,
-  },
-  secondaryTextPressed: {
-    color: primaryDeepColor,
   },
   emptyStateContainer: {
     alignItems: 'center',

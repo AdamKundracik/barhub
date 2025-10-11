@@ -37,6 +37,7 @@ import { Text } from '@/components/ui/text';
 import { HStack } from '@/components/ui/hstack';
 import { VStack } from '@/components/ui/vstack';
 import { Center } from '@/components/ui/center';
+import InlineAd from '@/src/app/components/user/InlineAd';
 
 export const PostDetail = () => {
   const route = useRoute();
@@ -44,7 +45,7 @@ export const PostDetail = () => {
   const { t } = useTranslation();
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const queryClient = useQueryClient();
-  const { getUserId } = useUserStore();
+  const { getUserId, isPremium } = useUserStore();
 
   const { postId } = route.params as { postId: string };
   const { post, isLoading, error, refetch } = usePostDetail(postId);
@@ -57,9 +58,11 @@ export const PostDetail = () => {
   // Local like state for optimistic updates
   const [localLiked, setLocalLiked] = useState(post?.isLiked || false);
   const [localLikeCount, setLocalLikeCount] = useState(post?.likesCount || 0);
-  
+
   // Local highlight state for optimistic updates
-  const [localIsHighlighted, setLocalIsHighlighted] = useState(post?.isHighlighted || false);
+  const [localIsHighlighted, setLocalIsHighlighted] = useState(
+    post?.isHighlighted || false
+  );
 
   // Sync local state with post data when it changes
   useEffect(() => {
@@ -162,18 +165,7 @@ export const PostDetail = () => {
         setLocalLiked(response.liked);
         setLocalLikeCount(response.totalLikes);
 
-        // Update local 'post' detail cache
-        queryClient.setQueryData(['post', post.id], (oldData: any) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            isLiked: response.liked,
-            likesCount: response.totalLikes,
-          };
-        });
-
         // Invalidate 'posts' feed cache to trigger refetch when user navigates back
-        // refetchActive: false means it won't refetch now, only when query becomes active again
         await queryClient.invalidateQueries(['posts'], {
           refetchActive: true,
         });
@@ -201,19 +193,14 @@ export const PostDetail = () => {
       setLocalIsHighlighted(!localIsHighlighted);
 
       // Call backend
-      const result = await postService.toggleHighlight(post.id, parseInt(userId, 10), localIsHighlighted);
+      const result = await postService.toggleHighlight(
+        post.id,
+        parseInt(userId, 10),
+        localIsHighlighted
+      );
 
       if (result.success) {
         setLocalIsHighlighted(result.isHighlighted);
-
-        // Update local 'post' detail cache
-        queryClient.setQueryData(['post', post.id], (oldData: any) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            isHighlighted: result.isHighlighted,
-          };
-        });
 
         // Update ALL posts caches - catches main feed and all placeId filters
         queryClient.setQueriesData(['posts'], (oldData: any) => {
@@ -242,13 +229,18 @@ export const PostDetail = () => {
 
         // Show success toast
         showSuccessToast(
-          result.isHighlighted ? t('highlight-success') : t('unhighlight-success'),
+          result.isHighlighted
+            ? t('highlight-success')
+            : t('unhighlight-success'),
           ''
         );
       } else {
         // Revert optimistic update on failure
         setLocalIsHighlighted(localIsHighlighted);
-        showErrorToast(t('highlight-error'), result.message || t('something-went-wrong'));
+        showErrorToast(
+          t('highlight-error'),
+          result.message || t('something-went-wrong')
+        );
       }
     } catch (error: any) {
       console.error('Error toggling highlight:', error);
@@ -284,7 +276,7 @@ export const PostDetail = () => {
           color={secondaryTextColor}
         />
         <Text style={styles.errorText}>{t('post-not-found')}</Text>
-        
+
         <HStack space="md" style={{ marginTop: 24 }}>
           <TouchableOpacity
             style={styles.secondaryButton}
@@ -306,10 +298,10 @@ export const PostDetail = () => {
             {isRefreshing ? (
               <ActivityIndicator size="small" color="#000" />
             ) : (
-              <FontAwesomeIcon 
-                icon={Icons.faRotateBack} 
-                size={16} 
-                color="#000" 
+              <FontAwesomeIcon
+                icon={Icons.faRotateBack}
+                size={16}
+                color="#000"
               />
             )}
             <Text style={styles.backButtonText}>
@@ -412,7 +404,9 @@ export const PostDetail = () => {
                         size={12}
                         color="#FFC107"
                       />
-                      <Text style={styles.highlightText}>{t('highlighted')}</Text>
+                      <Text style={styles.highlightText}>
+                        {t('highlighted')}
+                      </Text>
                     </View>
                   )}
                 </HStack>
@@ -457,6 +451,13 @@ export const PostDetail = () => {
               {post.placeAddress}
             </Text>
           </View>
+
+          {/* Inline Ad */}
+          {!isPremium() && (
+            <View style={styles.adContainer}>
+              <InlineAd />
+            </View>
+          )}
 
           {/* Quick Actions Bar */}
           <HStack style={styles.quickActions}>
@@ -710,6 +711,16 @@ const styles = StyleSheet.create({
     marginTop: 4,
     paddingLeft: 32,
   },
+  adContainer: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 8,
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
   quickActions: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -717,7 +728,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     marginHorizontal: 16,
-    marginTop: 16,
+    marginTop: 8,
     backgroundColor: 'rgba(255,255,255,0.03)',
     borderRadius: 16,
     borderWidth: 1,

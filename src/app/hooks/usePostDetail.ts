@@ -18,8 +18,11 @@ export const usePostDetail = (postId: string) => {
     },
     {
       enabled: !!postId,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 0, // Always fetch fresh data
+      cacheTime: 0, // Don't cache at all
       retry: 1,
+      refetchOnMount: true,
+      refetchOnWindowFocus: true,
     }
   );
 

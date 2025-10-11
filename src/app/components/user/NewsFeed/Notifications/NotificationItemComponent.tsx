@@ -71,7 +71,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
         icon: Icons.HeartSolid,
         color: '#FF6B85',
         bgGradient: ['rgba(255, 107, 133, 0.1)', 'rgba(255, 107, 133, 0.05)'],
-        actionable: false,
+        actionable: true,
       },
       [NotificationType.COMMENT]: {
         label: t('new-comment'),
@@ -79,7 +79,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
         icon: Icons.CommentSolid,
         color: '#4A90E2',
         bgGradient: ['rgba(74, 144, 226, 0.1)', 'rgba(74, 144, 226, 0.05)'],
-        actionable: false,
+        actionable: true,
       },
       [NotificationType.REQUEST]: {
         label: t('request'),
@@ -95,7 +95,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
         icon: Icons.Bell,
         color: successColor,
         bgGradient: [`rgba(76, 175, 80, 0.1)`, `rgba(76, 175, 80, 0.05)`],
-        actionable: false,
+        actionable: true,
       },
     };
 
@@ -228,6 +228,15 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
         }
 
         await openCamera(item.placeId, item.senderToken, navigation, item.id);
+      } else if (
+        item.notificationType === NotificationType.RESPONSE ||
+        item.notificationType === NotificationType.LIKE ||
+        item.notificationType === NotificationType.COMMENT
+      ) {
+        // Navigate to PostDetail for response/like/comment notifications
+        if (item.postId) {
+          (navigation as any).navigate('PostDetail', { postId: item.postId });
+        }
       }
     } catch (error) {
       console.error('Error handling notification:', error);
@@ -294,7 +303,9 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
                   {notificationConfig.actionable && !isExpired && (
                     <View style={styles.actionBadge}>
                       <Text style={styles.actionText}>
-                        {t('tap-to-respond')}
+                        {item.notificationType === NotificationType.REQUEST
+                          ? t('tap-to-respond')
+                          : t('tap-to-view')}
                       </Text>
                     </View>
                   )}

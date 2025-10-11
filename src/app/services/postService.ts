@@ -182,6 +182,20 @@ class PostService {
       return [];
     }
   }
+
+  // Delete post
+  async deletePost(postId: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      await apiUtils.delete(ENDPOINTS.POSTS.BY_ID(postId));
+      return { success: true };
+    } catch (error: any) {
+      console.error('Error deleting post:', error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || error?.message || 'Failed to delete post'
+      };
+    }
+  }
 }
 
 // Export singleton instance

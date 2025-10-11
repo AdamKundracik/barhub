@@ -290,6 +290,7 @@ const UserPost: React.FC<UserPostProps> = ({
           <PlaceNameSeparator
             placeNameLocal={trimmedPlaceName}
             placeIdLocal={folderId}
+            placeAddressLocal={placeAddress}
           />
         </View>
       )}

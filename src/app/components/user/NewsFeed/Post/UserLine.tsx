@@ -12,7 +12,6 @@ import Animated, {
 import { PostReportModal } from '@/src/app/components/shared/Modals/ReportPostModal';
 import { ReportReason } from '@/src/app/utils/types/Feed/PostTypes';
 import { useTranslation } from 'react-i18next';
-import { Post } from '@/common/types/postTypes';
 import { UserInfo } from '@/shared';
 import {
   postBgColor,
@@ -283,49 +282,17 @@ const UserLineComponent = ({
       if (!targetPostId) return;
 
       try {
-        const result = await postService.deletePost(targetPostId);
-        if (!result.success) throw new Error('Failed to delete post');
+        const result: { success: boolean; message?: string } = await postService.deletePost(targetPostId);
+        if (!result.success) {
+          throw new Error(result.message || 'Failed to delete post');
+        }
 
-        // Update main posts cache
-        queryClient.setQueryData(['posts'], (oldData: any) => {
-          if (!oldData || !oldData.pages) return oldData;
-
-          const newPages = oldData.pages.map((page: any) => {
-            if (!page || !Array.isArray(page.posts)) return page;
-
-            return {
-              ...page,
-              posts: page.posts.filter((p: Post) => p.id !== targetPostId),
-            };
-          });
-
-          return {
-            ...oldData,
-            pages: newPages,
-            pageParams: oldData.pageParams || [],
-          };
-        });
-
-        // Update place-specific cache if applicable
+        // Invalidate all related queries after delete
+        queryClient.invalidateQueries(['posts']); // Refresh main feed
+        queryClient.invalidateQueries(['userHighlights']); // Refresh highlights (in case deleted post was highlighted)
+        
         if (targetPlaceId) {
-          queryClient.setQueryData(['posts', targetPlaceId], (oldData: any) => {
-            if (!oldData || !oldData.pages) return oldData;
-
-            const newPages = oldData.pages.map((page: any) => {
-              if (!page || !Array.isArray(page.posts)) return page;
-
-              return {
-                ...page,
-                posts: page.posts.filter((p: Post) => p.id !== targetPostId),
-              };
-            });
-
-            return {
-              ...oldData,
-              pages: newPages,
-              pageParams: oldData.pageParams || [],
-            };
-          });
+          queryClient.invalidateQueries(['posts', targetPlaceId]); // Refresh place-specific feed
         }
 
         showSuccessToast(
@@ -382,16 +349,7 @@ const UserLineComponent = ({
         // Notify parent component
         onHighlightChange?.(result.isHighlighted);
 
-        // 1. Update individual post detail cache
-        queryClient.setQueryData(['post', postId], (oldData: any) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            isHighlighted: result.isHighlighted,
-          };
-        });
-
-        // 2. Update ALL posts feed caches - catches main feed and all placeId filters
+        // Update ALL posts feed caches - catches main feed and all placeId filters
         queryClient.setQueriesData(['posts'], (oldData: any) => {
           if (!oldData || !oldData.pages) return oldData;
 
@@ -485,7 +443,7 @@ const UserLineComponent = ({
               {localIsHighlighted && (
                 <View style={styles.highlightBadge}>
                   <FontAwesomeIcon
-                    icon={Icons.RankingStar}
+                    icon={Icons.Bolt}
                     size={14}
                     color="#FFC107"
                   />

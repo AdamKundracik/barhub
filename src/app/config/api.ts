@@ -57,6 +57,13 @@ export const ENDPOINTS = {
   HIGHLIGHTS: {
     BASE: '/highlights', // POST /highlights?postId=X&userId=Y, DELETE /highlights?postId=X&userId=Y
   },
+
+  // Favorite Places endpoints (userId from JWT token)
+  FAVORITES: {
+    BASE: '/favorites', // GET /favorites (get all), POST /favorites (add)
+    CHECK: '/favorites/check', // GET /favorites/check?placeId=Y
+    REMOVE: '/favorites', // DELETE /favorites?placeId=Y
+  },
   
   // Notification endpoints
   NOTIFICATIONS: {

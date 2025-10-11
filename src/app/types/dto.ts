@@ -289,3 +289,17 @@ export interface PostHighlightDTO extends AbstractAuditableEntityDTO {
   userId: number;
   post?: PostDTO; // Included post details
 }
+
+// Favorite Place DTOs
+export interface FavoritePlaceDTO {
+  placeId: string;
+  placeName: string;
+  placeAddress: string;
+  addedAt: string; // ISO string format
+}
+
+export interface AddFavoritePlaceRequestDTO {
+  placeId: string;
+  placeName: string;
+  placeAddress: string;
+}
