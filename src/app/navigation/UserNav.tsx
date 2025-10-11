@@ -12,6 +12,9 @@ import BottomTabs from '@/src/app/components/shared/BottomTabs';
 import { PasswordChangeScreen } from '@/src/app/screens/user/ChangePassword';
 import { AdminPanel } from '@/src/app/screens/user/AdminPanel';
 import { ReportsManagement } from '@/src/app/screens/user/ReportsManagement';
+import TermsOfService from '../screens/auth/LegalDocuments/TermsOfService';
+import PrivacyPolicy from '../screens/auth/LegalDocuments/PrivacyPolicy';
+import CommunityGuidelines from '../screens/auth/LegalDocuments/CommunityGuidelines';
 
 const RootStack = createNativeStackNavigator();
 
@@ -44,6 +47,11 @@ export function UserNav() {
       />
 
       <RootStack.Screen name="Licenses" component={Licenses} />
+
+      {/* Legal Documents */}
+      <RootStack.Screen name="TermsOfService" component={TermsOfService} />
+      <RootStack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
+      <RootStack.Screen name="CommunityGuidelines" component={CommunityGuidelines} />
 
       {/* Admin Panel for ADMIN/MODERATOR */}
       <RootStack.Screen name="AdminPanel" component={AdminPanel} />

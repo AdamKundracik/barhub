@@ -1,10 +1,4 @@
-import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AuthLayout from '../../components/auth/AuthLayout';
 import * as React from 'react';
@@ -103,14 +97,7 @@ export const Register = () => {
 
   return (
     <AuthLayout pageTitle={t('Register')}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        alwaysBounceVertical={false}
-        showsVerticalScrollIndicator={false}
-        automaticallyAdjustKeyboardInsets={true}
-        keyboardDismissMode="interactive"
-      >
+      <View style={styles.contentWrapper}>
         {/* Back Button */}
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -342,6 +329,7 @@ export const Register = () => {
             isReadOnly={false}
             isRequired={true}
             style={styles.formControl}
+            isInvalid={shouldShowError('dateOfBirth')}
           >
             <FormControlLabel>
               <FormControlLabelText style={styles.labelText}>
@@ -379,11 +367,23 @@ export const Register = () => {
               onConfirm={date => {
                 setDatePickerOpened(false);
                 updateField('dateOfBirth', date);
+                handleBlur('dateOfBirth');
               }}
               onCancel={() => {
                 setDatePickerOpened(false);
               }}
             />
+            {shouldShowError('dateOfBirth') && (
+              <FormControlError>
+                <FormControlErrorIcon
+                  as={AlertCircleIcon}
+                  className="text-red-500"
+                />
+                <FormControlErrorText className="text-red-500">
+                  {errors.dateOfBirth}
+                </FormControlErrorText>
+              </FormControlError>
+            )}
           </FormControl>
         </View>
 
@@ -541,8 +541,10 @@ export const Register = () => {
 
         <Divider style={styles.sectionDivider} />
 
-        {/* Terms Section */}
+        {/* Legal Section */}
         <View style={styles.formSection}>
+          <Text style={styles.sectionTitle}>{t('legal-agreements')}</Text>
+
           <FormControl
             size="md"
             isDisabled={false}
@@ -550,24 +552,125 @@ export const Register = () => {
             isRequired={true}
             style={[styles.formControl, styles.termsControl]}
           >
-            <BouncyCheckbox
-              style={styles.checkbox}
-              fillColor={primaryColor}
-              text={t('accept-terms')}
-              textStyle={styles.checkboxText}
-              isChecked={formData.acceptsTermsOfUse}
-              onPress={() =>
-                updateField('acceptsTermsOfUse', !formData.acceptsTermsOfUse)
-              }
-              useBuiltInState={false}
-            />
+            <View style={styles.checkboxRow}>
+              <BouncyCheckbox
+                style={styles.checkbox}
+                fillColor={primaryColor}
+                isChecked={formData.acceptsTermsOfUse}
+                onPress={() =>
+                  updateField('acceptsTermsOfUse', !formData.acceptsTermsOfUse)
+                }
+                useBuiltInState={false}
+                disableText
+              />
+              <View style={styles.checkboxTextContainer}>
+                <Text style={styles.checkboxText}>
+                  {t('i-accept')}{' '}
+                  <Text
+                    style={styles.linkText}
+                    onPress={() =>
+                      (navigation as any).navigate('TermsOfService')
+                    }
+                  >
+                    {t('terms-of-service-instrumental') ||
+                      t('terms-of-service')}
+                  </Text>
+                </Text>
+              </View>
+            </View>
             {submitted && !formData.acceptsTermsOfUse && (
               <Text style={styles.termsError}>
-                {t('accept-terms-required') ||
-                  'You must accept the terms of use'}
+                {t('accept-terms-required')}
               </Text>
             )}
           </FormControl>
+
+          <FormControl
+            size="md"
+            isDisabled={false}
+            isReadOnly={false}
+            isRequired={true}
+            style={[styles.formControl, styles.termsControl]}
+          >
+            <View style={styles.checkboxRow}>
+              <BouncyCheckbox
+                style={styles.checkbox}
+                fillColor={primaryColor}
+                isChecked={formData.acceptsPrivacyPolicy}
+                onPress={() =>
+                  updateField(
+                    'acceptsPrivacyPolicy',
+                    !formData.acceptsPrivacyPolicy
+                  )
+                }
+                useBuiltInState={false}
+                disableText
+              />
+              <View style={styles.checkboxTextContainer}>
+                <Text style={styles.checkboxText}>
+                  {t('i-accept')}{' '}
+                  <Text
+                    style={styles.linkText}
+                    onPress={() =>
+                      (navigation as any).navigate('PrivacyPolicy')
+                    }
+                  >
+                    {t('privacy-policy-instrumental') || t('privacy-policy')}
+                  </Text>
+                </Text>
+              </View>
+            </View>
+            {submitted && !formData.acceptsPrivacyPolicy && (
+              <Text style={styles.termsError}>
+                {t('accept-privacy-required')}
+              </Text>
+            )}
+          </FormControl>
+
+          <FormControl
+            size="md"
+            isDisabled={false}
+            isReadOnly={false}
+            isRequired={true}
+            style={[styles.formControl, styles.termsControl]}
+          >
+            <View style={styles.checkboxRow}>
+              <BouncyCheckbox
+                style={styles.checkbox}
+                fillColor={primaryColor}
+                isChecked={formData.acceptsCommunityGuidelines}
+                onPress={() =>
+                  updateField(
+                    'acceptsCommunityGuidelines',
+                    !formData.acceptsCommunityGuidelines
+                  )
+                }
+                useBuiltInState={false}
+                disableText
+              />
+              <View style={styles.checkboxTextContainer}>
+                <Text style={styles.checkboxText}>
+                  {t('i-accept')}{' '}
+                  <Text
+                    style={styles.linkText}
+                    onPress={() =>
+                      (navigation as any).navigate('CommunityGuidelines')
+                    }
+                  >
+                    {t('community-guidelines-instrumental') ||
+                      t('community-guidelines')}
+                  </Text>
+                </Text>
+              </View>
+            </View>
+            {submitted && !formData.acceptsCommunityGuidelines && (
+              <Text style={styles.termsError}>
+                {t('accept-community-required')}
+              </Text>
+            )}
+          </FormControl>
+
+          <Text style={styles.legalNotice}>{t('minimum-age-notice')}</Text>
         </View>
 
         {/* Submit Button */}
@@ -594,16 +697,14 @@ export const Register = () => {
         </Center>
 
         <View style={styles.bottomSpacing} />
-      </ScrollView>
+      </View>
     </AuthLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  scrollContent: {
-    paddingBottom: 100, // Increased for keyboard
-    paddingTop: 20,
-    flexGrow: 1,
+  contentWrapper: {
+    paddingBottom: 40,
   },
   backButton: {
     flexDirection: 'row',
@@ -695,20 +796,44 @@ const styles = StyleSheet.create({
   termsControl: {
     marginTop: 8,
   },
-  checkbox: {
-    padding: 8,
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 8,
+  },
+  checkbox: {
+    marginTop: 0,
+    marginRight: 0,
+  },
+  checkboxTextContainer: {
+    flex: 1,
+    marginLeft: 8,
+    justifyContent: 'center',
   },
   checkboxText: {
     color: primaryTextColor,
     fontSize: 14,
-    textDecorationLine: 'none',
+    lineHeight: 20,
+  },
+  linkText: {
+    color: primaryColor,
+    fontSize: 14,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
   termsError: {
     color: warningColor,
     fontSize: 12,
     marginTop: 4,
     marginLeft: 8,
+  },
+  legalNotice: {
+    color: secondaryTextColor,
+    fontSize: 12,
+    marginTop: 16,
+    marginHorizontal: 8,
+    lineHeight: 18,
+    fontStyle: 'italic',
   },
   buttonContainer: {
     marginTop: 24,

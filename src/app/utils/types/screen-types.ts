@@ -29,6 +29,12 @@ export type UserStackList = {
   Licenses: undefined;
 
   Leaderboard: undefined;
+
+  TermsOfService: undefined;
+
+  PrivacyPolicy: undefined;
+
+  CommunityGuidelines: undefined;
 };
 
 export type FeedsScreenProps = NativeStackScreenProps<
