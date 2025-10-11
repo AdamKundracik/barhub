@@ -429,6 +429,10 @@
   "share-post": "Compartir publicación",
   "tap-to-respond": "Toca para responder",
   "tap-to-view": "Toca para ver",
+  "sign-in-with-google": "Iniciar sesión con Google",
+  "sign-in-with-apple": "Iniciar sesión con Apple",
+  "google-signin-failed": "Error al iniciar sesión con Google",
+  "apple-signin-failed": "Error al iniciar sesión con Apple",
   "legal-documents": "Documentos Legales",
   "other": "Otros"
 }

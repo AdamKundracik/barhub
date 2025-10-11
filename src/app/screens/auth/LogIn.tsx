@@ -251,6 +251,7 @@ export const LogIn = ({ navigation }: any) => {
           onPress={onAppleButtonPress}
         />
 
+        {/* Google Sign-In Button */}
         <TouchableOpacity
           style={styles.socialButton}
           onPress={onGoogleButtonPress}

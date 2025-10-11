@@ -264,7 +264,6 @@
     "customReasonPlaceholder": "Schreiben Sie Ihren Grund für die Meldung...",
     "customReasonRequired": "Grund ist erforderlich"
   },
-  "or": "oder",
   "delete-post": "Beitrag löschen",
   "about-me": "Über mich",
   "change-password": "Passwort ändern",
@@ -429,6 +428,11 @@
   "share-post": "Beitrag teilen",
   "tap-to-respond": "Tippen zum Antworten",
   "tap-to-view": "Tippen zum Anzeigen",
+  "sign-in-with-google": "Mit Google anmelden",
+  "sign-in-with-apple": "Mit Apple anmelden",
+  "google-signin-failed": "Google-Anmeldung fehlgeschlagen",
+  "apple-signin-failed": "Apple-Anmeldung fehlgeschlagen",
+  "or": "oder",
   "legal-documents": "Rechtsdokumente",
   "other": "Sonstiges"
 }

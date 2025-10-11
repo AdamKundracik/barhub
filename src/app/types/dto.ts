@@ -75,6 +75,14 @@ export interface SignInRequestDTO {
   password: string;
 }
 
+export interface SocialLoginRequestDTO {
+  idToken: string;        // Google/Apple ID token
+  provider: 'google' | 'apple';  // "google" or "apple"
+  email: string;          // User email from provider
+  name: string;           // User name from provider
+  photoUrl?: string;      // User photo URL (optional)
+}
+
 export interface SignUpRequestDTO {
   name: string;
   email: string;

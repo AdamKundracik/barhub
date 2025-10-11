@@ -51,6 +51,7 @@
     "expo-datepicker": "^1.0.23",
     "expo-dev-client": "~5.1.1",
     "expo-device": "^7.1.4",
+    "expo-file-system": "~18.1.11",
     "expo-firebase-functions": "^2.0.0",
     "expo-font": "~13.3.1",
     "expo-gradle-ext-vars": "^0.1.2",
@@ -65,6 +66,7 @@
     "expo-modules-core": "~2.5.0",
     "expo-network": "^8.0.7",
     "expo-notifications": "~0.31.3",
+    "expo-sharing": "~13.1.5",
     "expo-status-bar": "~2.2.3",
     "expo-tracking-transparency": "~5.2.4",
     "expo-web-browser": "~14.2.0",
@@ -107,9 +109,7 @@
     "shared": "file:./modules/shared",
     "tailwind-variants": "^0.1.20",
     "tailwindcss": "^3.4.17",
-    "zustand": "^5.0.0",
-    "expo-file-system": "~18.1.11",
-    "expo-sharing": "~13.1.5"
+    "zustand": "^5.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

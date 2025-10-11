@@ -28,6 +28,8 @@ export const ENDPOINTS = {
     RESEND_VERIFICATION_EMAIL: '/auth/email/resend-verification',
     VERIFY_EMAIL: '/auth/email/verify',
     VALIDATE_EMAIL_TOKEN: '/auth/email/validate',
+    GOOGLE_SIGNIN: '/auth/google',
+    APPLE_SIGNIN: '/auth/apple',
   },
   
   // User endpoints
