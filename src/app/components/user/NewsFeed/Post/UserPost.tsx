@@ -14,6 +14,7 @@ import FastImage from 'react-native-fast-image';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { useUserStore } from '@/src/app/utils/store/userStore';
+import { usePlaceStore } from '@/src/app/utils/store/placesStore';
 import { Post } from '@/common/types/postTypes';
 import { postService } from '@/src/app/services/postService';
 import { trimPlaceName } from '@/src/app/utils/helper-functions/trimPlaceName';
@@ -234,6 +235,7 @@ const UserPost: React.FC<UserPostProps> = ({
     userId = '',
     commentsCount = 0,
     occupancy = '',
+    isHighlighted = false,
   } = post;
 
   // Custom hooks with safe values
@@ -297,11 +299,23 @@ const UserPost: React.FC<UserPostProps> = ({
         style={[
           styles.contentContainer,
           isTablet && tabletStyles.contentContainer,
+          isHighlighted && isFiltering && {
+            borderWidth: 2,
+            borderColor: '#FFC107',
+            shadowColor: '#FFC107',
+            shadowOpacity: 0.3,
+            shadowRadius: 16,
+            elevation: 12,
+          },
         ]}
       >
         {/* Subtle gradient overlay */}
         <LinearGradient
-          colors={['rgba(16, 217, 185, 0.02)', 'rgba(16, 217, 185, 0.0)']}
+          colors={
+            isHighlighted && isFiltering
+              ? ['rgba(255, 193, 7, 0.05)', 'rgba(255, 193, 7, 0.0)']
+              : ['rgba(16, 217, 185, 0.02)', 'rgba(16, 217, 185, 0.0)']
+          }
           style={styles.gradientOverlay}
         />
 
@@ -317,6 +331,7 @@ const UserPost: React.FC<UserPostProps> = ({
           canDelete={post.canDelete}
           canReport={post.canReport}
           canHighlight={post.canHighlight}
+          isHighlighted={isHighlighted}
           onPress={handleNavigateToDetail}
           onShare={handleShare}
         />
@@ -459,6 +474,7 @@ export default React.memo(UserPost, (prevProps, nextProps) => {
     prevProps.post.id === nextProps.post.id &&
     prevProps.post.isLiked === nextProps.post.isLiked &&
     prevProps.post.likesCount === nextProps.post.likesCount &&
+    prevProps.post.isHighlighted === nextProps.post.isHighlighted &&
     prevProps.isZoomed === nextProps.isZoomed &&
     prevProps.hasPremium === nextProps.hasPremium &&
     prevProps.isFiltering === nextProps.isFiltering

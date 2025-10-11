@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -130,8 +130,10 @@ type Props = {
   canDelete?: boolean; // Permission from backend
   canReport?: boolean; // Permission from backend
   canHighlight?: boolean; // Permission from backend
+  isHighlighted?: boolean; // Current highlight state
   onPress?: () => void; // Optional callback when UserLine is pressed
   onShare?: () => void; // Optional callback for sharing post
+  onHighlightChange?: (isHighlighted: boolean) => void; // Callback when highlight state changes
 };
 
 const UserLineComponent = ({
@@ -143,15 +145,23 @@ const UserLineComponent = ({
   canDelete = false,
   canReport = false,
   canHighlight = false,
+  isHighlighted = false,
   onPress,
   onShare,
+  onHighlightChange,
 }: Props) => {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
+  const [localIsHighlighted, setLocalIsHighlighted] = useState(isHighlighted);
   const queryClient = useQueryClient();
   const { placeId } = usePlaceStore();
   const { t } = useTranslation();
   const { showSuccessToast, showErrorToast } = useCustomToast();
+
+  // Sync local highlight state with prop when it changes
+  useEffect(() => {
+    setLocalIsHighlighted(isHighlighted);
+  }, [isHighlighted]);
 
   // --- ENHANCED TIME FORMATTING ---
   const formattedTime = useMemo(() => {
@@ -342,6 +352,110 @@ const UserLineComponent = ({
     [confirmDelete, deletePost, postId, placeId]
   );
 
+  const handleHighlight = useCallback(async () => {
+    if (!postId) return;
+
+    const userId = useUserStore.getState().getUserId();
+    if (!userId) {
+      showErrorToast(t('error'), t('user-not-found'));
+      return;
+    }
+
+    try {
+      const { postService: postServiceInstance } = await import(
+        '@/src/app/services/postService'
+      );
+
+      // Optimistic update
+      setLocalIsHighlighted(!localIsHighlighted);
+
+      // Call backend
+      const result = await postServiceInstance.toggleHighlight(
+        postId,
+        parseInt(userId, 10),
+        localIsHighlighted
+      );
+
+      if (result.success) {
+        setLocalIsHighlighted(result.isHighlighted);
+
+        // Notify parent component
+        onHighlightChange?.(result.isHighlighted);
+
+        // 1. Update individual post detail cache
+        queryClient.setQueryData(['post', postId], (oldData: any) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            isHighlighted: result.isHighlighted,
+          };
+        });
+
+        // 2. Update ALL posts feed caches - catches main feed and all placeId filters
+        queryClient.setQueriesData(['posts'], (oldData: any) => {
+          if (!oldData || !oldData.pages) return oldData;
+
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page: any) => {
+              if (!page || !Array.isArray(page.posts)) return page;
+
+              return {
+                ...page,
+                posts: page.posts.map((p: any) =>
+                  p.id === postId
+                    ? { ...p, isHighlighted: result.isHighlighted }
+                    : p
+                ),
+              };
+            }),
+            pageParams: oldData.pageParams || [],
+          };
+        });
+
+        // 3. Update userHighlights cache (for profile grid)
+        queryClient.invalidateQueries(['userHighlights']);
+
+        // Show success toast
+        showSuccessToast(
+          result.isHighlighted
+            ? t('highlight-success')
+            : t('unhighlight-success'),
+          ''
+        );
+      } else {
+        // Revert optimistic update on failure
+        setLocalIsHighlighted(localIsHighlighted);
+        showErrorToast(
+          t('highlight-error'),
+          result.message || t('something-went-wrong')
+        );
+      }
+    } catch (error: any) {
+      console.error('Error toggling highlight:', error);
+      // Revert optimistic update
+      setLocalIsHighlighted(localIsHighlighted);
+
+      // Show user-friendly error
+      const errorMessage = error?.message || t('something-went-wrong');
+      if (errorMessage.includes('limit')) {
+        showErrorToast(t('highlight-limit-reached'), '');
+      } else {
+        showErrorToast(t('highlight-error'), errorMessage);
+      }
+    } finally {
+      setIsOptionsModalOpen(false);
+    }
+  }, [
+    postId,
+    localIsHighlighted,
+    onHighlightChange,
+    queryClient,
+    showSuccessToast,
+    showErrorToast,
+    t,
+  ]);
+
   // Don't render if essential data is missing
   if (!postId) {
     return null;
@@ -364,9 +478,20 @@ const UserLineComponent = ({
           />
 
           <View style={styles.textContainer}>
-            <Text style={styles.name} numberOfLines={1}>
-              {safeUserName}
-            </Text>
+            <View style={styles.nameRow}>
+              <Text style={styles.name} numberOfLines={1}>
+                {safeUserName}
+              </Text>
+              {localIsHighlighted && (
+                <View style={styles.highlightBadge}>
+                  <FontAwesomeIcon
+                    icon={Icons.RankingStar}
+                    size={14}
+                    color="#FFC107"
+                  />
+                </View>
+              )}
+            </View>
 
             {/* Adresa na vlastnom riadku - bez ikony a bez marginLeft */}
             {safeAddress && (
@@ -391,6 +516,7 @@ const UserLineComponent = ({
         showDelete={canDelete}
         showReport={canReport}
         showHighlight={canHighlight}
+        isHighlighted={localIsHighlighted}
         visible={isOptionsModalOpen}
         onClose={() => setIsOptionsModalOpen(false)}
         onDelete={handleDelete}
@@ -398,11 +524,7 @@ const UserLineComponent = ({
           setIsOptionsModalOpen(false);
           setIsReportModalOpen(true);
         }}
-        onHighlight={() => {
-          // TODO: Implement highlight functionality
-          // console.log('Highlight post:', postId);
-          setIsOptionsModalOpen(false);
-        }}
+        onHighlight={handleHighlight}
         onShare={onShare}
       />
 
@@ -437,8 +559,10 @@ export const UserLine = React.memo(UserLineComponent, (prev, next) => {
     prev.canDelete === next.canDelete &&
     prev.canReport === next.canReport &&
     prev.canHighlight === next.canHighlight &&
+    prev.isHighlighted === next.isHighlighted &&
     prev.onPress === next.onPress &&
-    prev.onShare === next.onShare
+    prev.onShare === next.onShare &&
+    prev.onHighlightChange === next.onHighlightChange
   );
 });
 
@@ -490,12 +614,24 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   name: {
     fontSize: 17,
     fontWeight: '700',
     color: 'white',
-    // marginBottom: 4,
     letterSpacing: 0.3,
+  },
+  highlightBadge: {
+    backgroundColor: 'rgba(255, 193, 7, 0.15)',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 193, 7, 0.3)',
   },
   addressRow: {
     marginBottom: 2,

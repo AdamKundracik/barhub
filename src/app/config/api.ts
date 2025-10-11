@@ -49,6 +49,13 @@ export const ENDPOINTS = {
     LIKES_COUNT: (id: string) => `/posts/${id}/likes/count`,
     FRESH_CONTENT: '/posts/fresh-content',
     BY_PLACE: '/posts/placeId',
+    USER_HIGHLIGHTS_ACTIVE: (userId: string) => `/posts/user/${userId}/highlights/active`,
+    USER_HIGHLIGHTS_ALL: (userId: string) => `/posts/user/${userId}/highlights`,
+  },
+  
+  // Highlight endpoints
+  HIGHLIGHTS: {
+    BASE: '/highlights', // POST /highlights?postId=X&userId=Y, DELETE /highlights?postId=X&userId=Y
   },
   
   // Notification endpoints

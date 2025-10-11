@@ -9,7 +9,7 @@ import { Post } from '@/common/types/postTypes';
  *   userId: String,
  *   placeId: String,
  *   occupancy: OccupancyTypeEnum,
- *   isHighlighted: boolean,
+ *   highlighted: boolean,  // Backend uses "highlighted"
  *   liked: boolean,
  *   likesCount: int,
  *   createdAt: LocalDateTime (string "yyyy-MM-dd HH:mm:ss.SSSSSS"),
@@ -111,7 +111,7 @@ export const mapBackendPostToFrontend = (backendPost: any): Post => {
     photoUrl: backendPost.user.photoUrl || '',
   } : undefined;
   
-  return {
+  const mappedPost = {
     id: backendPost.id.toString(),
     userId: backendPost.userId?.toString() || '',
     folderId: backendPost.placeId || '',
@@ -131,11 +131,14 @@ export const mapBackendPostToFrontend = (backendPost: any): Post => {
     likesCount: backendPost.likesCount || 0,
     commentsCount: backendPost.commentsCount || 0,
     isLiked: backendPost.liked || false,
+    isHighlighted: backendPost.highlighted || backendPost.isHighlighted || false,
     canDelete: backendPost.canDelete || false,
     canReport: backendPost.canReport || false,
     canHighlight: backendPost.canHighlight || false,
     user: userInfo,
   };
+  
+  return mappedPost;
 };
 
 /**

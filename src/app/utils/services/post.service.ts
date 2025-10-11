@@ -101,10 +101,10 @@ export const getFreshContent = async (
     }
 
     const data = await response.json();
-    
+    console.log(data.posts);
     // Map backend posts to frontend format
     const mappedPosts = mapBackendPostsToFrontend(data.posts || []);
-    
+
     // Convert backend response to expected format
     return {
       status: ServiceStatusEnum.SUCCESS,
@@ -154,10 +154,9 @@ export const getPostsByPlaceId = async (
     }
 
     const data = await response.json();
-    
     // Map backend posts to frontend format
     const mappedPosts = mapBackendPostsToFrontend(data.posts || []);
-    
+
     // Convert backend response to expected format
     return {
       status: ServiceStatusEnum.SUCCESS,

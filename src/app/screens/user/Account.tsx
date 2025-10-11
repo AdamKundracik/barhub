@@ -35,6 +35,8 @@ import { useNotificationsHandler } from '@/src/app/components/user/NewsFeed/Noti
 import { userService } from '@/src/app/services/userService';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useUserRole } from '@/src/app/hooks/useUserRole';
+import { useUserHighlights } from '@/src/app/hooks/useUserHighlights';
+import { HighlightedPostsGrid } from '@/src/app/components/user/Profile/HighlightedPostsGrid';
 
 interface ActionButtonProps {
   icon: any;
@@ -178,8 +180,10 @@ export const Account = () => {
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { unsubscribeNotifications } = useNotificationsHandler();
-  const { currentPushToken } = useUserStore();
+  const { currentPushToken, getUserId } = useUserStore();
   const { isAdmin, isModerator } = useUserRole();
+  const userId = getUserId();
+  const { highlights, isLoading: isLoadingHighlights } = useUserHighlights(userId || undefined);
 
   const [isEditing, setIsEditing] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -452,6 +456,12 @@ export const Account = () => {
             />
           </View>
         </BlurView>
+
+        {/* Highlighted Posts Grid */}
+        <HighlightedPostsGrid
+          highlights={highlights}
+          isLoading={isLoadingHighlights}
+        />
 
         {/* Admin Panel Card (Admin/Moderator only) */}
         {(isAdmin || isModerator) && (

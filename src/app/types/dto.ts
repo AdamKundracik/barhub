@@ -114,10 +114,14 @@ export interface PostDTO extends AbstractAuditableEntityDTO {
   occupancy: OccupancyTypeEnum;
   userId: string;
   placeId: string;
-  isHighlighted: boolean;
+  highlighted?: boolean; // Backend returns "highlighted" (lowercase)
+  isHighlighted?: boolean; // Frontend uses "isHighlighted" (camelCase)
   liked: boolean; // indicates if current user has liked this post
   likesCount: number; // total number of likes for this post
   metadata: PostMetadataDTO;
+  canDelete?: boolean; // Current user can delete this post
+  canReport?: boolean; // Current user can report this post
+  canHighlight?: boolean; // Current user can highlight this post
 }
 
 export interface FreshContentRequestDTO {
@@ -277,4 +281,11 @@ export interface LikePostResponseDTO {
   liked: boolean;
   totalLikes: number;
   message: string;
+}
+
+// Highlight DTOs
+export interface PostHighlightDTO extends AbstractAuditableEntityDTO {
+  postId: number;
+  userId: number;
+  post?: PostDTO; // Included post details
 }
