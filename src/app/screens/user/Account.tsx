@@ -27,7 +27,11 @@ import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { useUserData } from '@/src/app/hooks/useUserQuery';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
-import FastImage from 'react-native-fast-image';
+import {
+  Avatar,
+  AvatarFallbackText,
+  AvatarImage,
+} from '@/components/ui/avatar';
 import * as MailComposer from 'expo-mail-composer';
 import { BlurView } from 'expo-blur';
 import { useAuth } from '../../providers/AuthProvider';
@@ -183,7 +187,9 @@ export const Account = () => {
   const { currentPushToken, getUserId } = useUserStore();
   const { isAdmin, isModerator } = useUserRole();
   const userId = getUserId();
-  const { highlights, isLoading: isLoadingHighlights } = useUserHighlights(userId || undefined);
+  const { highlights, isLoading: isLoadingHighlights } = useUserHighlights(
+    userId || undefined
+  );
 
   const [isEditing, setIsEditing] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -369,18 +375,18 @@ export const Account = () => {
                 end={{ x: 1, y: 1 }}
               />
             )}
-            <FastImage
-              source={
-                photoUrl
-                  ? {
-                      uri: photoUrl,
-                      priority: FastImage.priority.high,
-                    }
-                  : require('../../../../assets/userIcon.png')
-              }
-              style={styles.profileImage}
-              resizeMode={FastImage.resizeMode.cover}
-            />
+            <Avatar size="xl" style={styles.avatarContainer}>
+              {photoUrl ? (
+                <AvatarImage
+                  source={{ uri: photoUrl }}
+                  style={styles.avatarImage}
+                />
+              ) : (
+                <AvatarFallbackText style={styles.avatarFallback}>
+                  {userDisplayName}
+                </AvatarFallbackText>
+              )}
+            </Avatar>
           </View>
 
           <Text style={styles.displayName}>{userDisplayName}</Text>
@@ -622,13 +628,20 @@ const styles = StyleSheet.create({
     borderRadius: 75,
     zIndex: 1,
   },
-  profileImage: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
-    borderWidth: 4,
-    borderColor: primaryBgColor,
+  avatarContainer: {
+    width: 120,
+    height: 120,
+    borderWidth: 3,
+    borderColor: separatorColor,
     zIndex: 2,
+  },
+  avatarImage: {
+    borderWidth: 3,
+    borderColor: separatorColor,
+  },
+  avatarFallback: {
+    backgroundColor: 'transparent',
+    color: 'white',
   },
   premiumBadge: {
     position: 'absolute',

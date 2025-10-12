@@ -3,8 +3,9 @@ import { Platform } from 'react-native';
 
 export interface AppleSignInResult {
   idToken: string;
-  email: string;
+  email?: string;
   name: string;
+  appleUserId: string;
 }
 
 /**
@@ -38,26 +39,36 @@ export const signInWithApple = async (): Promise<AppleSignInResult | null> => {
     });
 
     // Extract user info
-    const { identityToken, email, fullName } = credential;
+    const { identityToken, email, fullName, user } = credential;
 
     if (!identityToken) {
       throw new Error('No identity token received from Apple');
     }
 
-    if (!email) {
-      throw new Error('No email received from Apple');
+    if (!user) {
+      throw new Error('No Apple User ID received from Apple');
     }
 
     // Construct full name (Apple only provides this on first sign-in)
     const name = fullName
       ? [fullName.givenName, fullName.familyName].filter(Boolean).join(' ')
-      : email.split('@')[0]; // Fallback to email username
+      : 'Apple User'; // Fallback name
 
-    return {
+    const result = {
       idToken: identityToken,
-      email: email,
-      name: name || 'User',
+      email: email || undefined, // Convert null to undefined for existing users
+      name: name || 'Apple User',
+      appleUserId: user, // Apple User ID
     };
+
+    console.log('[Apple Sign-In] Parsed result:', {
+      idToken: result.idToken.substring(0, 20) + '...',
+      email: result.email || 'No email (existing user)',
+      name: result.name,
+      appleUserId: result.appleUserId,
+    });
+
+    return result;
   } catch (error: any) {
     if (error.code === 'ERR_CANCELED') {
       console.log('Apple Sign-In was canceled by user');
@@ -68,4 +79,3 @@ export const signInWithApple = async (): Promise<AppleSignInResult | null> => {
     throw new Error(error?.message || 'Apple Sign-In failed');
   }
 };
-

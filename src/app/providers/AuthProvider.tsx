@@ -399,7 +399,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const authResponse = await socialAuthService.signInWithApple(
         appleUser.idToken,
         appleUser.email,
-        appleUser.name
+        appleUser.name,
+        appleUser.appleUserId
       );
 
       // Store tokens and user data

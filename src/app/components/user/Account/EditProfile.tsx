@@ -31,7 +31,11 @@ import { useLocales } from 'expo-localization';
 import { ClientDTO } from '@/src/app/types/dto';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useUserData } from '@/src/app/hooks/useUserQuery';
-import FastImage from 'react-native-fast-image';
+import {
+  Avatar,
+  AvatarFallbackText,
+  AvatarImage,
+} from '@/components/ui/avatar';
 import {
   FormControl,
   FormControlError,
@@ -211,23 +215,26 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
             style={styles.profileImageContainer}
             disabled={isUpdatingPhoto || isDeletingPhoto}
           >
-            <FastImage
-              source={
-                photoUrl
-                  ? {
-                      uri: photoUrl,
-                      priority: FastImage.priority.normal,
-                    }
-                  : require('../../../../../assets/userIcon.png')
-              }
+            <Avatar
+              size="xl"
               style={[
-                styles.profilePicture,
+                styles.avatarContainer,
                 isPremium && styles.premiumBorder,
                 (isUpdatingPhoto || isDeletingPhoto) &&
                   styles.profilePictureLoading,
               ]}
-              resizeMode={FastImage.resizeMode.cover}
-            />
+            >
+              {photoUrl ? (
+                <AvatarImage
+                  source={{ uri: photoUrl }}
+                  style={styles.avatarImage}
+                />
+              ) : (
+                <AvatarFallbackText style={styles.avatarFallback}>
+                  {username || 'User'}
+                </AvatarFallbackText>
+              )}
+            </Avatar>
 
             <View style={styles.editIconContainer}>
               {isUpdatingPhoto || isDeletingPhoto ? (
@@ -464,12 +471,19 @@ const styles = StyleSheet.create({
     position: 'relative',
     marginBottom: 12,
   },
-  profilePicture: {
+  avatarContainer: {
     width: 120,
     height: 120,
-    borderRadius: 60,
     borderWidth: 3,
     borderColor: separatorColor,
+  },
+  avatarImage: {
+    borderWidth: 3,
+    borderColor: separatorColor,
+  },
+  avatarFallback: {
+    backgroundColor: 'transparent',
+    color: 'white',
   },
   profilePictureLoading: {
     opacity: 0.6,

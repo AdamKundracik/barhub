@@ -44,13 +44,15 @@ class SocialAuthService {
   /**
    * Sign in with Apple
    * @param idToken Apple identity token from Apple Sign-In
-   * @param email User email from Apple
+   * @param email User email from Apple (optional for existing users)
    * @param name User display name from Apple
+   * @param appleUserId Apple User ID
    */
   async signInWithApple(
     idToken: string,
-    email: string,
-    name: string
+    email: string | undefined,
+    name: string,
+    appleUserId: string
   ): Promise<JwtAuthenticationResponseDTO> {
     try {
       const request: SocialLoginRequestDTO = {
@@ -58,13 +60,28 @@ class SocialAuthService {
         provider: 'apple',
         email,
         name,
+        appleUserId,
       };
 
-      return await apiUtils.post<JwtAuthenticationResponseDTO>(
+      console.log('[SocialAuthService] Apple Sign-In request body:', {
+        ...request,
+        idToken: request.idToken.substring(0, 20) + '...',
+      });
+
+      const response = await apiUtils.post<JwtAuthenticationResponseDTO>(
         ENDPOINTS.AUTH.APPLE_SIGNIN,
         request
       );
+
+      console.log('[SocialAuthService] Apple Sign-In response:', response);
+
+      return response;
     } catch (error: any) {
+      console.error('[SocialAuthService] Apple Sign-In error:', error);
+      console.error(
+        '[SocialAuthService] Error response:',
+        error?.response?.data
+      );
       throw new Error(
         error?.response?.data?.message ||
           error?.message ||
