@@ -277,7 +277,11 @@ export const PlaceSearch: React.FC = () => {
 
   const renderSearchHistory = useCallback(() => {
     if (searchHistory.length === 0) {
-      return null;
+      return (
+        <View style={styles.emptyHistoryContainer}>
+          <Text style={styles.emptyHistoryText}>{t('no-search-history')}</Text>
+        </View>
+      );
     }
 
     return (
@@ -551,6 +555,16 @@ const styles = StyleSheet.create({
     color: 'white',
     marginBottom: 12,
     paddingHorizontal: 4,
+  },
+  emptyHistoryContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  emptyHistoryText: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.5)',
+    textAlign: 'center',
   },
   emptyStateContainer: {
     alignItems: 'center',

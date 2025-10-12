@@ -161,6 +161,11 @@ class AuthService {
         formData.append('dateOfBirth', credentials.dateOfBirth);
       }
 
+      // Add consents as JSON string (FormData can't handle nested objects directly)
+      if (credentials.consents) {
+        formData.append('consents', JSON.stringify(credentials.consents));
+      }
+
       const uploadResponse = await fetch(
         `${API_CONFIG.BASE_URL}${ENDPOINTS.AUTH.SIGNUP_WITH_PHOTO}`,
         {

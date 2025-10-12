@@ -82,6 +82,7 @@ export interface SocialLoginRequestDTO {
   name: string;           // User name from provider
   photoUrl?: string;      // User photo URL (optional)
   appleUserId?: string;   // Apple User ID (required for Apple)
+  consents?: AcceptConsentRequestDTO; // User consents (for new users)
 }
 
 export interface SignUpRequestDTO {
@@ -90,16 +91,58 @@ export interface SignUpRequestDTO {
   password: string;
   dateOfBirth: string; // Format: YYYY-MM-DD
   photoUrl?: string;
+  consents?: AcceptConsentRequestDTO; // User consents during registration
+}
+
+export interface UserConsentDTO {
+  consentType: 'TERMS_OF_SERVICE' | 'PRIVACY_POLICY' | 'COMMUNITY_GUIDELINES';
+  currentVersion: string;
+  acceptedVersion: string | null;
+  accepted: boolean;
+  acceptedAt: string | null;
+  needsUpdate: boolean;
+}
+
+export interface ConsentStatusDTO {
+  userId: number;
+  consents: UserConsentDTO[];
+}
+
+export interface OutdatedConsentDTO {
+  consentType: 'TERMS_OF_SERVICE' | 'PRIVACY_POLICY' | 'COMMUNITY_GUIDELINES';
+  currentVersion: string;
+  userAcceptedVersion: string | null;
+  needsUpdate: boolean;
+}
+
+export interface AuthConsentStatusDTO {
+  consentsRequired: boolean;
+  outdatedConsents: OutdatedConsentDTO[];
 }
 
 export interface JwtAuthenticationResponseDTO {
   token: string;
   refreshToken: string;
   user?: ClientDTO; // User data included in login/register response
+  consentStatus?: AuthConsentStatusDTO; // Consent status included in auth response
 }
 
 export interface RefreshTokenRequestDTO {
   refreshToken: string;
+}
+
+export interface ConsentItemDTO {
+  consentType: 'TERMS_OF_SERVICE' | 'PRIVACY_POLICY' | 'COMMUNITY_GUIDELINES';
+  version: string;
+  accepted: boolean;
+}
+
+export interface AcceptConsentRequestDTO {
+  consents: ConsentItemDTO[];
+}
+
+export interface AcceptConsentsRequestDTO {
+  consentTypes: ('TERMS_OF_SERVICE' | 'PRIVACY_POLICY' | 'COMMUNITY_GUIDELINES')[];
 }
 
 // Post DTOs

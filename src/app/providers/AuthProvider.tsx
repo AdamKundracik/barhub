@@ -21,6 +21,8 @@ import { getCoords } from '../utils/helper-functions/get-coords';
 import { socialAuthService } from '../services/socialAuthService';
 import { signInWithGoogleRN } from '../services/auth/googleSignInRN';
 import { signInWithApple as appleSignIn, isAppleSignInAvailable } from '../services/auth/appleSignIn';
+import { consentService } from '../services/consentService';
+import { OutdatedConsentDTO, JwtAuthenticationResponseDTO } from '../types/dto';
 
 // Types
 interface AuthContextType {
@@ -37,6 +39,8 @@ interface AuthContextType {
   signInWithApple: () => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  pendingConsents: OutdatedConsentDTO[] | null;
+  setPendingConsents: (consents: OutdatedConsentDTO[] | null) => void;
 }
 
 interface AuthProviderProps {
@@ -50,6 +54,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [pendingConsents, setPendingConsents] = useState<OutdatedConsentDTO[] | null>(null);
+  
+  // Temporary state for social auth flow (before consents are accepted)
+  const [pendingSocialAuth, setPendingSocialAuth] = useState<{
+    provider: 'google' | 'apple';
+    idToken: string;
+    email?: string;
+    name: string;
+    photoUrl?: string;
+    appleUserId?: string;
+  } | null>(null);
+  
   const appState = useRef<AppStateStatus>(AppState.currentState);
 
   // Zustand stores
@@ -202,6 +218,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
           // Initialize push token service and save token to backend
           await pushTokenService.initialize(userData.id.toString());
+
+          // Check consent status on app reload
+          if (userData.id) {
+            try {
+              const consentStatus = await consentService.getConsentStatus(userData.id.toString());
+              console.log('[Auth Init] Consent status on reload:', consentStatus);
+              
+              // Transform backend ConsentStatusDTO to OutdatedConsentDTO[]
+              const outdated: OutdatedConsentDTO[] = consentStatus.consents
+                .filter(c => !c.accepted || c.needsUpdate)
+                .map(c => ({
+                  consentType: c.consentType,
+                  currentVersion: c.currentVersion,
+                  userAcceptedVersion: c.acceptedVersion,
+                  needsUpdate: c.needsUpdate,
+                }));
+              
+              if (outdated.length > 0) {
+                console.log('[Auth Init] Setting pending consents on reload:', outdated);
+                setPendingConsents(outdated);
+              }
+            } catch (error) {
+              console.error('Error checking consent status on reload:', error);
+            }
+          }
         } else {
           // If we can't get user data, logout
           await authService.logout();
@@ -222,8 +263,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
 
-      // Login and get tokens
-      await authService.login(credentials);
+      // Login and get tokens + consent status
+      const authResponse: JwtAuthenticationResponseDTO = await authService.login(credentials);
+
+      // Check if consents are required
+      if (authResponse.consentStatus?.consentsRequired && authResponse.consentStatus.outdatedConsents.length > 0) {
+        // Store pending consents - modal will be shown in UserNavWrapper
+        setPendingConsents(authResponse.consentStatus.outdatedConsents);
+      }
 
       // Get user data
       const userData = await authService.getCurrentUser();
@@ -354,12 +401,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       // Call backend with Google credentials
-      const authResponse = await socialAuthService.signInWithGoogle(
+      const authResponse: JwtAuthenticationResponseDTO = await socialAuthService.signInWithGoogle(
         googleUser.idToken,
         googleUser.email,
         googleUser.name,
         googleUser.photoUrl
       );
+
+      console.log('[Google Auth] Full response:', authResponse);
+      console.log('[Google Auth] Consent status:', authResponse.consentStatus);
+
+      // Check if consents are required
+      if (authResponse.consentStatus?.consentsRequired && authResponse.consentStatus.outdatedConsents.length > 0) {
+        console.log('[Google Auth] Setting pending consents:', authResponse.consentStatus.outdatedConsents);
+        setPendingConsents(authResponse.consentStatus.outdatedConsents);
+      }
 
       // Store tokens and user data
       await authService.handleSocialAuthResponse(authResponse);
@@ -396,12 +452,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       // Call backend with Apple credentials
-      const authResponse = await socialAuthService.signInWithApple(
+      const authResponse: JwtAuthenticationResponseDTO = await socialAuthService.signInWithApple(
         appleUser.idToken,
         appleUser.email,
         appleUser.name,
         appleUser.appleUserId
       );
+
+      console.log('[Apple Auth] Full response:', authResponse);
+      console.log('[Apple Auth] Consent status:', authResponse.consentStatus);
+
+      // Check if consents are required
+      if (authResponse.consentStatus?.consentsRequired && authResponse.consentStatus.outdatedConsents.length > 0) {
+        console.log('[Apple Auth] Setting pending consents:', authResponse.consentStatus.outdatedConsents);
+        setPendingConsents(authResponse.consentStatus.outdatedConsents);
+      }
 
       // Store tokens and user data
       await authService.handleSocialAuthResponse(authResponse);
@@ -448,6 +513,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signInWithApple,
     logout,
     refreshUser,
+    pendingConsents,
+    setPendingConsents,
   };
 
   return (

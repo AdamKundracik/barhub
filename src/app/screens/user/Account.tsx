@@ -500,6 +500,18 @@ export const Account = () => {
                   }
                   variant="warning"
                 />
+
+                {isAdmin && (
+                  <ActionButton
+                    icon={Icons.ShieldHalved}
+                    title={t('admin.consentManagement')}
+                    description={t('admin.consentManagementDesc')}
+                    onPress={() =>
+                      navigation.navigate('ConsentManagement' as never)
+                    }
+                    variant="default"
+                  />
+                )}
               </View>
             </View>
           </BlurView>
@@ -533,6 +545,13 @@ export const Account = () => {
                 title={t('info')}
                 description={t('app-information')}
                 onPress={() => navigation.navigate('Info')}
+              />
+
+              <ActionButton
+                icon={Icons.ShieldHalved}
+                title={t('privacy.privacy-and-data')}
+                description={t('privacy.privacy-data-description')}
+                onPress={() => navigation.navigate('PrivacyData' as never)}
               />
             </View>
           </View>

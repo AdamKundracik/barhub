@@ -26,6 +26,8 @@ import {
   faDownload,
   faEllipsisVertical,
   faEnvelope,
+  faFileContract,
+  faFileLines,
   faFilter,
   faGear,
   faHeart as faHeartSolid,
@@ -145,4 +147,6 @@ export const Icons = {
   Wifi: faWifi,
   ChevronUp: faChevronUp,
   Download: faDownload,
+  FileContract: faFileContract,
+  FileLines: faFileLines,
 };

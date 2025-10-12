@@ -4,10 +4,10 @@ import { getCurrentEnvConfig } from './environment';
 export const API_CONFIG = {
   // Base URL from environment
   BASE_URL: getCurrentEnvConfig().API_BASE_URL,
-  
+
   // Timeout settings
   REQUEST_TIMEOUT: 30000, // 30 seconds
-  
+
   // Token refresh settings
   TOKEN_REFRESH_THRESHOLD: 5 * 60 * 1000, // 5 minutes before expiry
 };
@@ -31,17 +31,18 @@ export const ENDPOINTS = {
     GOOGLE_SIGNIN: '/auth/google',
     APPLE_SIGNIN: '/auth/apple',
   },
-  
+
   // User endpoints
   USERS: {
     ME: '/users/me',
     DELETE_ME: '/users/me',
+    EXPORT_DATA: '/users/me/export',
     BY_ID: (id: string) => `/users/${id}`,
     PUSH_TOKENS: (id: string) => `/users/${id}/push-tokens`,
     LOCATION: (id: string) => `/users/${id}/update-location`,
     SEARCH_HISTORY: (id: string) => `/users/${id}/search-history`,
   },
-  
+
   // Post endpoints
   POSTS: {
     BASE: '/posts',
@@ -51,10 +52,11 @@ export const ENDPOINTS = {
     LIKES_COUNT: (id: string) => `/posts/${id}/likes/count`,
     FRESH_CONTENT: '/posts/fresh-content',
     BY_PLACE: '/posts/placeId',
-    USER_HIGHLIGHTS_ACTIVE: (userId: string) => `/posts/user/${userId}/highlights/active`,
+    USER_HIGHLIGHTS_ACTIVE: (userId: string) =>
+      `/posts/user/${userId}/highlights/active`,
     USER_HIGHLIGHTS_ALL: (userId: string) => `/posts/user/${userId}/highlights`,
   },
-  
+
   // Highlight endpoints
   HIGHLIGHTS: {
     BASE: '/highlights', // POST /highlights?postId=X&userId=Y, DELETE /highlights?postId=X&userId=Y
@@ -66,7 +68,7 @@ export const ENDPOINTS = {
     CHECK: '/favorites/check', // GET /favorites/check?placeId=Y
     REMOVE: '/favorites', // DELETE /favorites?placeId=Y
   },
-  
+
   // Notification endpoints
   NOTIFICATIONS: {
     BASE: '/notifications',
@@ -74,16 +76,17 @@ export const ENDPOINTS = {
     HAS_NEW: (userId: string) => `/notifications/user/${userId}/has-new`,
     COUNT: (userId: string) => `/notifications/user/${userId}/count`,
   },
-  
+
   // Leaderboard endpoints
   LEADERBOARDS: {
     BASE: '/leaderboards',
     BY_ID: (id: string) => `/leaderboards/${id}`,
     BY_TYPE: (type: string) => `/leaderboards/type/${type}`,
-    TOP_100: (type: string, userId: string) => `/leaderboards/type/${type}/top100?currentUserId=${userId}`,
+    TOP_100: (type: string, userId: string) =>
+      `/leaderboards/type/${type}/top100?currentUserId=${userId}`,
     BY_CLIENT: (clientId: string) => `/leaderboards/client/${clientId}`,
   },
-  
+
   // Report endpoints
   REPORTS: {
     BASE: '/reports',
@@ -96,5 +99,20 @@ export const ENDPOINTS = {
     UPLOAD_POST: '/images/upload/post',
     UPLOAD_PROFILE: '/images/upload/profile',
     DELETE: (imageId: string) => `/images/${imageId}`,
+  },
+
+  // Consent endpoints
+  CONSENTS: {
+    ACCEPT: '/consents',
+    STATUS: '/consents/status',
+    WITHDRAW: '/consents/withdraw',
+    VERSIONS: '/consents/versions',
+  },
+
+  // Admin endpoints
+  ADMIN: {
+    CONSENT_VERSIONS: '/admin/consents/versions',
+    CONSENT_CURRENT_VERSIONS: '/admin/consents/current-versions',
+    CONSENT_RELOAD_CACHE: '/admin/consents/reload-cache',
   },
 };

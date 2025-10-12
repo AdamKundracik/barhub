@@ -3,6 +3,7 @@ import { ENDPOINTS } from '../config/api';
 import {
   JwtAuthenticationResponseDTO,
   SocialLoginRequestDTO,
+  AcceptConsentRequestDTO,
 } from '../types/dto';
 
 class SocialAuthService {
@@ -12,12 +13,14 @@ class SocialAuthService {
    * @param email User email from Google
    * @param name User display name from Google
    * @param photoUrl User photo URL from Google (optional)
+   * @param consents User consents (for new users)
    */
   async signInWithGoogle(
     idToken: string,
     email: string,
     name: string,
-    photoUrl?: string
+    photoUrl?: string,
+    consents?: AcceptConsentRequestDTO
   ): Promise<JwtAuthenticationResponseDTO> {
     try {
       const request: SocialLoginRequestDTO = {
@@ -26,6 +29,7 @@ class SocialAuthService {
         email,
         name,
         photoUrl,
+        consents,
       };
 
       return await apiUtils.post<JwtAuthenticationResponseDTO>(
@@ -47,12 +51,14 @@ class SocialAuthService {
    * @param email User email from Apple (optional for existing users)
    * @param name User display name from Apple
    * @param appleUserId Apple User ID
+   * @param consents User consents (for new users)
    */
   async signInWithApple(
     idToken: string,
     email: string | undefined,
     name: string,
-    appleUserId: string
+    appleUserId: string,
+    consents?: AcceptConsentRequestDTO
   ): Promise<JwtAuthenticationResponseDTO> {
     try {
       const request: SocialLoginRequestDTO = {
@@ -61,6 +67,7 @@ class SocialAuthService {
         email,
         name,
         appleUserId,
+        consents,
       };
 
       console.log('[SocialAuthService] Apple Sign-In request body:', {

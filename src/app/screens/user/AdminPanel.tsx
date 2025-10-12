@@ -414,6 +414,21 @@ export const AdminPanel: React.FC = () => {
               <Text style={styles.statLabel}>{t('admin.disabled')}</Text>
             </View>
           </View>
+
+          {/* Admin Actions */}
+          {isAdmin && (
+            <View style={styles.adminActionsContainer}>
+              <TouchableOpacity
+                style={[styles.adminActionButton, { borderColor: primaryColor }]}
+                onPress={() => (navigation as any).navigate('ConsentManagement')}
+              >
+                <FontAwesomeIcon icon={Icons.ShieldHalved} size={20} color={primaryColor} />
+                <Text style={[styles.adminActionText, { color: primaryColor }]}>
+                  Consent Management
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
         {/* Search */}
@@ -635,6 +650,24 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 12,
     color: separatorColor,
+  },
+  adminActionsContainer: {
+    marginTop: 16,
+    gap: 12,
+  },
+  adminActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: 2,
+    backgroundColor: 'rgba(16, 217, 185, 0.1)',
+  },
+  adminActionText: {
+    fontSize: 15,
+    fontWeight: '600',
   },
   searchContainer: {
     flexDirection: 'row',

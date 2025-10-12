@@ -11,6 +11,8 @@ import Licenses from '@/src/app/screens/user/Info/Screens/LIcenses';
 import BottomTabs from '@/src/app/components/shared/BottomTabs';
 import { PasswordChangeScreen } from '@/src/app/screens/user/ChangePassword';
 import { AdminPanel } from '@/src/app/screens/user/AdminPanel';
+import ConsentManagement from '@/src/app/screens/admin/ConsentManagement';
+import { PrivacyData } from '@/src/app/screens/user/PrivacyData';
 import { ReportsManagement } from '@/src/app/screens/user/ReportsManagement';
 import TermsOfService from '../screens/auth/LegalDocuments/TermsOfService';
 import PrivacyPolicy from '../screens/auth/LegalDocuments/PrivacyPolicy';
@@ -55,6 +57,8 @@ export function UserNav() {
 
       {/* Admin Panel for ADMIN/MODERATOR */}
       <RootStack.Screen name="AdminPanel" component={AdminPanel} />
+      <RootStack.Screen name="ConsentManagement" component={ConsentManagement} />
+      <RootStack.Screen name="PrivacyData" component={PrivacyData} />
       <RootStack.Screen name="ReportsManagement" component={ReportsManagement} />
     </RootStack.Navigator>
   );

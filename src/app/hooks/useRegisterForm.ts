@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../providers/AuthProvider';
+import { consentService } from '../services/consentService';
+import { AcceptConsentRequestDTO } from '../types/dto';
 
 export interface RegisterFormData {
   email: string;
@@ -36,6 +38,29 @@ export const useRegisterForm = (t: (key: string, options?: any) => string) => {
     profileImage: null,
   });
 
+  const [consentVersions, setConsentVersions] = useState<
+    Record<string, string>
+  >({
+    TERMS_OF_SERVICE: '1.0',
+    PRIVACY_POLICY: '1.0',
+    COMMUNITY_GUIDELINES: '1.0',
+  });
+
+  // Fetch current consent versions on mount
+  useEffect(() => {
+    const fetchVersions = async () => {
+      try {
+        const versions = await consentService.getCurrentVersions();
+        setConsentVersions(versions);
+      } catch (error) {
+        console.error('Error fetching consent versions:', error);
+        // Keep default versions
+      }
+    };
+
+    fetchVersions();
+  }, []);
+
   const [errors, setErrors] = useState<FormErrors>({});
   const [touchedFields, setTouchedFields] = useState<
     Set<keyof RegisterFormData>
@@ -52,12 +77,12 @@ export const useRegisterForm = (t: (key: string, options?: any) => string) => {
     const age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
     const dayDiff = today.getDate() - birthDate.getDate();
-    
+
     // Check if birthday has occurred this year
     if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
       return age - 1 >= 13;
     }
-    
+
     return age >= 13;
   };
 
@@ -157,15 +182,40 @@ export const useRegisterForm = (t: (key: string, options?: any) => string) => {
     try {
       // Format date of birth to ISO LocalDateTime format for backend
       const year = formData.dateOfBirth.getFullYear();
-      const month = String(formData.dateOfBirth.getMonth() + 1).padStart(2, '0');
+      const month = String(formData.dateOfBirth.getMonth() + 1).padStart(
+        2,
+        '0'
+      );
       const day = String(formData.dateOfBirth.getDate()).padStart(2, '0');
       const formattedDateOfBirth = `${year}-${month}-${day}T00:00:00`;
-      
+
+      // Build consents object
+      const consents: AcceptConsentRequestDTO = {
+        consents: [
+          {
+            consentType: 'TERMS_OF_SERVICE',
+            version: consentVersions['TERMS_OF_SERVICE'],
+            accepted: formData.acceptsTermsOfUse,
+          },
+          {
+            consentType: 'PRIVACY_POLICY',
+            version: consentVersions['PRIVACY_POLICY'],
+            accepted: formData.acceptsPrivacyPolicy,
+          },
+          {
+            consentType: 'COMMUNITY_GUIDELINES',
+            version: consentVersions['COMMUNITY_GUIDELINES'],
+            accepted: formData.acceptsCommunityGuidelines,
+          },
+        ],
+      };
+
       const credentials = {
         name: formData.username,
         email: formData.email,
         password: formData.password,
         dateOfBirth: formattedDateOfBirth,
+        consents,
       };
 
       // Use registerWithPhoto if profile image is provided, otherwise use regular register
