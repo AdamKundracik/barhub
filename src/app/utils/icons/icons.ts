@@ -23,6 +23,7 @@ import {
   faCommenting,
   faComments,
   faCrown,
+  faDownload,
   faEllipsisVertical,
   faEnvelope,
   faFilter,
@@ -143,4 +144,5 @@ export const Icons = {
   ShieldHalved: faShieldHalved,
   Wifi: faWifi,
   ChevronUp: faChevronUp,
+  Download: faDownload,
 };

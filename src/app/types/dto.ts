@@ -180,9 +180,15 @@ export interface GetUserNotificationsResponseDTO {
 }
 
 // Leaderboard DTOs
+export interface LeaderboardClientDTO {
+  id: number;
+  name: string;
+  photoUrl?: string;
+}
+
 export interface LeaderboardDTO extends AbstractAuditableEntityDTO {
   points: number;
-  client: ClientDTO;
+  client: LeaderboardClientDTO;
   type: 'WEEKLY' | 'MONTHLY' | 'YEARLY';
 }
 
@@ -202,15 +208,6 @@ export interface CommentResponseDTO extends AbstractAuditableEntityDTO {
   content: string;
   userId: string;
   postId: string;
-  userDisplayName: string;
-  userPhotoUrl?: string;
-}
-
-// Leaderboard DTOs
-export interface LeaderboardDTO extends AbstractAuditableEntityDTO {
-  userId: string;
-  points: number;
-  rank: number;
   userDisplayName: string;
   userPhotoUrl?: string;
 }

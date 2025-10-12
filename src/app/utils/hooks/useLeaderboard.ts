@@ -9,14 +9,14 @@ const convertLeaderboardData = (
 ): {
   topUsers: Array<{
     userId: string;
-    displayName: string;
+    name: string;
     photoUrl: string;
     points: number;
     rank: number;
   }>;
   currentUser: {
     userId: string;
-    displayName: string;
+    name: string;
     photoUrl: string;
     points: number;
     rank: null;
@@ -24,8 +24,8 @@ const convertLeaderboardData = (
   currentUserInTop100: boolean;
 } => {
   const topUsers = data.top100.map((item, index) => ({
-    userId: item.client.id?.toString() || '',
-    displayName: item.client.name || 'Anonymous',
+    userId: item.client.id.toString(),
+    name: item.client.name || 'Anonymous',
     photoUrl: item.client.photoUrl || '',
     points: item.points,
     rank: index + 1,
@@ -33,8 +33,8 @@ const convertLeaderboardData = (
 
   const currentUser = data.currentUser
     ? {
-        userId: data.currentUser.client.id?.toString() || '',
-        displayName: data.currentUser.client.name || 'Anonymous',
+        userId: data.currentUser.client.id.toString(),
+        name: data.currentUser.client.name || 'Anonymous',
         photoUrl: data.currentUser.client.photoUrl || '',
         points: data.currentUser.points,
         rank: null, // Will be calculated separately
@@ -49,20 +49,20 @@ const convertLeaderboardData = (
 };
 
 export const useLeaderboard = (
-  period: 'week' | 'yearly'
+  period: 'week' | 'monthly' | 'yearly'
 ): {
   data:
     | {
         topUsers: Array<{
           userId: string;
-          displayName: string;
+          name: string;
           photoUrl: string;
           points: number;
           rank: number;
         }>;
         currentUser: {
           userId: string;
-          displayName: string;
+          name: string;
           photoUrl: string;
           points: number;
           rank: null;
@@ -77,7 +77,10 @@ export const useLeaderboard = (
   const { user } = useAuth();
 
   // Map frontend period to backend type
-  const backendType = period === 'week' ? 'WEEKLY' : 'YEARLY';
+  const backendType = 
+    period === 'week' ? 'WEEKLY' : 
+    period === 'monthly' ? 'MONTHLY' : 
+    'YEARLY';
 
   return useQuery(
     ['leaderboard', period],

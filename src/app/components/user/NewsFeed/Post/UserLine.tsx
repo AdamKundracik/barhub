@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   FadeIn,
   useAnimatedStyle,
@@ -28,60 +27,8 @@ import postService from '@/src/app/utils/services/post.service';
 import { useQueryClient } from 'react-query';
 import { usePlaceStore } from '@/src/app/utils/store/placesStore';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
-import FastImage from 'react-native-fast-image';
 import { useUserStore } from '@/src/app/utils/store/userStore';
-
-// Enhanced Avatar Component
-const UserAvatar: React.FC<{
-  photoUrl?: string | null;
-  displayName?: string;
-  size?: number;
-  showOnlineIndicator?: boolean;
-}> = ({
-  photoUrl,
-  displayName = 'Unknown',
-  size = 50,
-  showOnlineIndicator = false,
-}) => {
-  const initials = displayName
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .substring(0, 2);
-
-  if (photoUrl) {
-    return (
-      <View style={[styles.avatarContainer, { width: size, height: size }]}>
-        <FastImage
-          source={{ uri: photoUrl, priority: FastImage.priority.high }}
-          style={[
-            styles.avatar,
-            { width: size, height: size, borderRadius: size / 2 },
-          ]}
-        />
-        {showOnlineIndicator && <View style={styles.onlineIndicator} />}
-      </View>
-    );
-  }
-
-  return (
-    <View style={[styles.avatarContainer, { width: size, height: size }]}>
-      <LinearGradient
-        colors={[primaryColor, '#00B4A6']}
-        style={[
-          styles.avatarGradient,
-          { width: size, height: size, borderRadius: size / 2 },
-        ]}
-      >
-        <Text style={[styles.avatarInitials, { fontSize: size * 0.4 }]}>
-          {initials}
-        </Text>
-      </LinearGradient>
-      {showOnlineIndicator && <View style={styles.onlineIndicator} />}
-    </View>
-  );
-};
+import { Avatar, AvatarImage, AvatarFallbackText } from '@/components/ui/avatar';
 
 // Enhanced More Options Button
 const MoreOptionsButton: React.FC<{ onPress: () => void }> = ({ onPress }) => {
@@ -428,12 +375,18 @@ const UserLineComponent = ({
           activeOpacity={onPress ? 0.7 : 1}
           disabled={!onPress}
         >
-          <UserAvatar
-            photoUrl={user?.photoUrl}
-            displayName={safeUserName}
-            size={52}
-            showOnlineIndicator={false}
-          />
+          <Avatar size="md" style={styles.avatarContainer}>
+            {user?.photoUrl ? (
+              <AvatarImage
+                source={{ uri: user.photoUrl }}
+                style={styles.avatar}
+              />
+            ) : (
+              <AvatarFallbackText style={styles.avatarFallback}>
+                {safeUserName}
+              </AvatarFallbackText>
+            )}
+          </Avatar>
 
           <View style={styles.textContainer}>
             <View style={styles.nameRow}>
@@ -542,31 +495,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   avatarContainer: {
-    position: 'relative',
     marginRight: 14,
+    width: 48,
+    height: 48,
   },
   avatar: {
-    backgroundColor: '#333',
+    borderWidth: 0,
   },
-  avatarGradient: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarInitials: {
+  avatarFallback: {
+    backgroundColor: 'transparent',
     color: 'white',
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  onlineIndicator: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#4CAF50',
-    borderWidth: 2,
-    borderColor: postBgColor,
   },
   textContainer: {
     flex: 1,

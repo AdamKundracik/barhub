@@ -13,6 +13,7 @@ import * as Icons from '@fortawesome/free-solid-svg-icons';
 import FastImage from 'react-native-fast-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
+import { Avatar, AvatarImage, AvatarFallbackText } from '@/components/ui/avatar';
 import InteractionBar from '@/src/app/components/user/NewsFeed/Post/InteractionBar';
 import { PostOptionsModal } from '@/src/app/components/shared/Modals/PostOptionsModal';
 import { PostReportModal } from '@/src/app/components/shared/Modals/ReportPostModal';
@@ -380,18 +381,18 @@ export const PostDetail = () => {
           <View style={styles.userSection}>
             <HStack space="md" style={styles.userInfo}>
               <TouchableOpacity>
-                {post.user?.photoUrl ? (
-                  <FastImage
-                    source={{ uri: post.user.photoUrl }}
-                    style={styles.userAvatar}
-                  />
-                ) : (
-                  <View style={styles.userAvatarPlaceholder}>
-                    <Text style={styles.avatarInitials}>
-                      {post.user?.displayName?.charAt(0).toUpperCase()}
-                    </Text>
-                  </View>
-                )}
+                <Avatar size="md" style={styles.avatarContainer}>
+                  {post.user?.photoUrl ? (
+                    <AvatarImage
+                      source={{ uri: post.user.photoUrl }}
+                      style={styles.avatar}
+                    />
+                  ) : (
+                    <AvatarFallbackText style={styles.avatarFallback}>
+                      {post.user?.displayName || 'User'}
+                    </AvatarFallbackText>
+                  )}
+                </Avatar>
               </TouchableOpacity>
 
               <VStack style={{ flex: 1 }}>
@@ -639,25 +640,16 @@ const styles = StyleSheet.create({
   userInfo: {
     alignItems: 'center',
   },
-  userAvatar: {
+  avatarContainer: {
     width: 48,
     height: 48,
-    borderRadius: 24,
-    borderWidth: 2,
-    borderColor: primaryColor,
   },
-  userAvatarPlaceholder: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: primaryColor,
-    justifyContent: 'center',
-    alignItems: 'center',
+  avatar: {
+    borderWidth: 0,
   },
-  avatarInitials: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#000',
+  avatarFallback: {
+    backgroundColor: 'transparent',
+    color: 'white',
   },
   userName: {
     fontSize: 16,
