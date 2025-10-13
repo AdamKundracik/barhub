@@ -1,18 +1,16 @@
 // Environment Configuration
+// API URL is loaded from .env files via EXPO_PUBLIC_API_URL
 export const ENV = {
   // Development environment
-  //192.168.1.225
-  //api.barhubapp.com
-  //https://rotatably-earthy-larhonda.ngrok-free.dev/ap
   DEV: {
-    API_BASE_URL: 'https://api.barhubapp.com/api',
+    API_BASE_URL: process.env.EXPO_PUBLIC_API_URL,
     DEBUG: true,
     LOG_LEVEL: 'debug',
   },
 
   // Production environment
   PROD: {
-    API_BASE_URL: 'https://your-production-backend.com/api', // Update this with your production URL
+    API_BASE_URL: process.env.EXPO_PUBLIC_API_URL,
     DEBUG: false,
     LOG_LEVEL: 'error',
   },
