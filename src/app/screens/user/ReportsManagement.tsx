@@ -251,9 +251,9 @@ export const ReportsManagement: React.FC = () => {
           <View style={styles.headerTop}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
               <FontAwesomeIcon
-                icon={Icons.Back}
+                icon={Icons.ChevronLeft}
                 size={20}
-                color={primaryColor}
+                color={'white'}
               />
             </TouchableOpacity>
 

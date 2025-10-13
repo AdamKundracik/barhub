@@ -31,7 +31,11 @@ import { useLocales } from 'expo-localization';
 import { ClientDTO } from '@/src/app/types/dto';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useUserData } from '@/src/app/hooks/useUserQuery';
-import FastImage from 'react-native-fast-image';
+import {
+  Avatar,
+  AvatarFallbackText,
+  AvatarImage,
+} from '@/components/ui/avatar';
 import {
   FormControl,
   FormControlError,
@@ -75,10 +79,28 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
   );
   const [datePickerOpened, setDatePickerOpened] = useState(false);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
+  const [dateError, setDateError] = useState<string>('');
 
   function validateInputs(): boolean {
-    return !username || username.trim().length === 0;
+    return !username || username.trim().length === 0 || !!dateError;
   }
+
+  const isUsernameInvalid = (): boolean => {
+    return !username || username.trim().length === 0;
+  };
+
+  const validateAge = (date: Date): boolean => {
+    const today = new Date();
+    const age = today.getFullYear() - date.getFullYear();
+    const monthDiff = today.getMonth() - date.getMonth();
+    const dayDiff = today.getDate() - date.getDate();
+
+    // Calculate exact age
+    const exactAge =
+      monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+
+    return exactAge >= 13;
+  };
 
   const handleImageUpload = async (uri: string) => {
     try {
@@ -211,23 +233,26 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
             style={styles.profileImageContainer}
             disabled={isUpdatingPhoto || isDeletingPhoto}
           >
-            <FastImage
-              source={
-                photoUrl
-                  ? {
-                      uri: photoUrl,
-                      priority: FastImage.priority.normal,
-                    }
-                  : require('../../../../../assets/userIcon.png')
-              }
+            <Avatar
+              size="xl"
               style={[
-                styles.profilePicture,
+                styles.avatarContainer,
                 isPremium && styles.premiumBorder,
                 (isUpdatingPhoto || isDeletingPhoto) &&
                   styles.profilePictureLoading,
               ]}
-              resizeMode={FastImage.resizeMode.cover}
-            />
+            >
+              {photoUrl ? (
+                <AvatarImage
+                  source={{ uri: photoUrl }}
+                  style={styles.avatarImage}
+                />
+              ) : (
+                <AvatarFallbackText style={styles.avatarFallback}>
+                  {username || 'User'}
+                </AvatarFallbackText>
+              )}
+            </Avatar>
 
             <View style={styles.editIconContainer}>
               {isUpdatingPhoto || isDeletingPhoto ? (
@@ -254,17 +279,19 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
           {/* Email Field */}
           <FormControl size="md" isDisabled={true} style={styles.formControl}>
             <FormControlLabel>
-              <FormControlLabelText style={styles.labelText}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <FontAwesomeIcon
                   icon={Icons.Envelope}
                   size={14}
                   color={primaryColor}
-                  style={{ marginRight: 8 }}
+                  style={{ marginBottom: 4 }}
                 />
-                {t('email')}
-              </FormControlLabelText>
+                <FormControlLabelText style={styles.labelText}>
+                  {t('email')}
+                </FormControlLabelText>
+              </View>
             </FormControlLabel>
-            <Input variant="rounded" size="xl" style={styles.input}>
+            <Input variant="rounded" size="xl" style={[styles.input, styles.disabledInput]}>
               <InputField
                 type="text"
                 value={userEmail!}
@@ -277,19 +304,21 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
           {/* Username Field */}
           <FormControl
             size="md"
-            isInvalid={validateInputs()}
+            isInvalid={isUsernameInvalid()}
             style={styles.formControl}
           >
             <FormControlLabel>
-              <FormControlLabelText style={styles.labelText}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <FontAwesomeIcon
                   icon={Icons.User}
                   size={14}
                   color={primaryColor}
-                  style={{ marginRight: 8 }}
+                  style={{ marginBottom: 4 }}
                 />
-                {t('user-name')} <Text style={styles.requiredStar}>*</Text>
-              </FormControlLabelText>
+                <FormControlLabelText style={styles.labelText}>
+                  {t('user-name')} <Text style={styles.requiredStar}>*</Text>
+                </FormControlLabelText>
+              </View>
             </FormControlLabel>
             <Input
               variant="rounded"
@@ -297,7 +326,7 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
               style={[
                 styles.input,
                 focusedInput === 'username' && styles.inputFocused,
-                validateInputs() && styles.inputError,
+                isUsernameInvalid() && styles.inputError,
               ]}
             >
               <InputField
@@ -312,7 +341,7 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
               />
             </Input>
             <Text style={styles.charCount}>{username?.length || 0}/30</Text>
-            {validateInputs() && (
+            {isUsernameInvalid() && (
               <FormControlError>
                 <FormControlErrorIcon as={AlertCircleIcon} />
                 <FormControlErrorText style={styles.errorText}>
@@ -325,15 +354,17 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
           {/* Date of Birth Field */}
           <FormControl size="md" style={styles.formControl}>
             <FormControlLabel>
-              <FormControlLabelText style={styles.labelText}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <FontAwesomeIcon
                   icon={Icons.Calendar}
                   size={14}
                   color={primaryColor}
-                  style={{ marginRight: 8 }}
+                  style={{ marginBottom: 4 }}
                 />
-                {t('date-of-birth')}
-              </FormControlLabelText>
+                <FormControlLabelText style={styles.labelText}>
+                  {t('date-of-birth')}
+                </FormControlLabelText>
+              </View>
             </FormControlLabel>
             <TouchableOpacity
               onPress={() => setDatePickerOpened(true)}
@@ -341,6 +372,7 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
                 styles.input,
                 styles.dateInput,
                 focusedInput === 'dateOfBirth' && styles.inputFocused,
+                dateError && styles.inputError,
               ]}
             >
               <Text style={styles.inputField}>
@@ -356,6 +388,9 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
                 color={separatorColor}
               />
             </TouchableOpacity>
+            {dateError && (
+              <Text style={[styles.errorText, { marginTop: 8 }]}>{dateError}</Text>
+            )}
           </FormControl>
         </View>
 
@@ -395,6 +430,13 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
         onConfirm={date => {
           setDatePickerOpened(false);
           setBirthDate(date);
+          
+          // Validate age immediately after selection
+          if (!validateAge(date)) {
+            setDateError(t('minimum-age-required'));
+          } else {
+            setDateError('');
+          }
         }}
         onCancel={() => setDatePickerOpened(false)}
         title={t('select-birth-date')}
@@ -464,12 +506,19 @@ const styles = StyleSheet.create({
     position: 'relative',
     marginBottom: 12,
   },
-  profilePicture: {
+  avatarContainer: {
     width: 120,
     height: 120,
-    borderRadius: 60,
     borderWidth: 3,
     borderColor: separatorColor,
+  },
+  avatarImage: {
+    borderWidth: 3,
+    borderColor: separatorColor,
+  },
+  avatarFallback: {
+    backgroundColor: 'transparent',
+    color: 'white',
   },
   profilePictureLoading: {
     opacity: 0.6,
@@ -561,9 +610,12 @@ const styles = StyleSheet.create({
     color: primaryTextColor,
     fontSize: 16,
   },
+  disabledInput: {
+    opacity: 0.8,
+  },
   disabledText: {
     color: secondaryTextColor,
-    opacity: 0.6,
+    opacity: 1,
   },
   dateInput: {
     flexDirection: 'row',

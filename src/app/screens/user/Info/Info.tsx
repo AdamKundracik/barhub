@@ -52,25 +52,50 @@ const InfoScreen = () => {
 
         <View style={styles.separator} />
 
-        <TouchableOpacity style={styles.infoLink}>
-          <Text style={styles.infoText}>{t('terms-of-use')}</Text>
+        <Text style={styles.sectionHeader}>{t('legal-documents')}</Text>
+
+        <TouchableOpacity
+          style={styles.infoLink}
+          onPress={() => navigation.navigate('TermsOfService')}
+        >
+          <Text style={styles.infoText}>{t('terms-of-service')}</Text>
           <FontAwesomeIcon
             style={{ alignSelf: 'center' }}
             icon={Icons.ChevronRight}
             size={16}
             color={'white'}
-          ></FontAwesomeIcon>
+          />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.infoLink}>
-          <Text style={styles.infoText}>{t('gdpr')}</Text>
+        <TouchableOpacity
+          style={styles.infoLink}
+          onPress={() => navigation.navigate('PrivacyPolicy')}
+        >
+          <Text style={styles.infoText}>{t('privacy-policy')}</Text>
           <FontAwesomeIcon
             style={{ alignSelf: 'center' }}
             icon={Icons.ChevronRight}
             size={16}
             color={'white'}
-          ></FontAwesomeIcon>
+          />
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.infoLink}
+          onPress={() => navigation.navigate('CommunityGuidelines')}
+        >
+          <Text style={styles.infoText}>{t('community-guidelines')}</Text>
+          <FontAwesomeIcon
+            style={{ alignSelf: 'center' }}
+            icon={Icons.ChevronRight}
+            size={16}
+            color={'white'}
+          />
+        </TouchableOpacity>
+
+        <View style={styles.separator} />
+
+        <Text style={styles.sectionHeader}>{t('other')}</Text>
 
         <TouchableOpacity
           style={styles.infoLink}
@@ -82,7 +107,7 @@ const InfoScreen = () => {
             icon={Icons.ChevronRight}
             size={16}
             color={'white'}
-          ></FontAwesomeIcon>
+          />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -142,6 +167,16 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: primaryColor,
     marginVertical: 16,
+  },
+  sectionHeader: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: primaryColor,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: 8,
+    marginBottom: 12,
+    paddingHorizontal: 24,
   },
   infoLink: {
     paddingHorizontal: 24,

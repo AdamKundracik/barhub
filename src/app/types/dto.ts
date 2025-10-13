@@ -75,22 +75,74 @@ export interface SignInRequestDTO {
   password: string;
 }
 
+export interface SocialLoginRequestDTO {
+  idToken: string;        // Google/Apple ID token
+  provider: 'google' | 'apple';  // "google" or "apple"
+  email?: string;         // User email from provider (optional for Apple)
+  name: string;           // User name from provider
+  photoUrl?: string;      // User photo URL (optional)
+  appleUserId?: string;   // Apple User ID (required for Apple)
+  consents?: AcceptConsentRequestDTO; // User consents (for new users)
+}
+
 export interface SignUpRequestDTO {
   name: string;
   email: string;
   password: string;
   dateOfBirth: string; // Format: YYYY-MM-DD
   photoUrl?: string;
+  consents?: AcceptConsentRequestDTO; // User consents during registration
+}
+
+export interface UserConsentDTO {
+  consentType: 'TERMS_OF_SERVICE' | 'PRIVACY_POLICY' | 'COMMUNITY_GUIDELINES';
+  currentVersion: string;
+  acceptedVersion: string | null;
+  accepted: boolean;
+  acceptedAt: string | null;
+  needsUpdate: boolean;
+}
+
+export interface ConsentStatusDTO {
+  userId: number;
+  consents: UserConsentDTO[];
+}
+
+export interface OutdatedConsentDTO {
+  consentType: 'TERMS_OF_SERVICE' | 'PRIVACY_POLICY' | 'COMMUNITY_GUIDELINES';
+  currentVersion: string;
+  userAcceptedVersion: string | null;
+  needsUpdate: boolean;
+}
+
+export interface AuthConsentStatusDTO {
+  consentsRequired: boolean;
+  outdatedConsents: OutdatedConsentDTO[];
 }
 
 export interface JwtAuthenticationResponseDTO {
   token: string;
   refreshToken: string;
   user?: ClientDTO; // User data included in login/register response
+  consentStatus?: AuthConsentStatusDTO; // Consent status included in auth response
 }
 
 export interface RefreshTokenRequestDTO {
   refreshToken: string;
+}
+
+export interface ConsentItemDTO {
+  consentType: 'TERMS_OF_SERVICE' | 'PRIVACY_POLICY' | 'COMMUNITY_GUIDELINES';
+  version: string;
+  accepted: boolean;
+}
+
+export interface AcceptConsentRequestDTO {
+  consents: ConsentItemDTO[];
+}
+
+export interface AcceptConsentsRequestDTO {
+  consentTypes: ('TERMS_OF_SERVICE' | 'PRIVACY_POLICY' | 'COMMUNITY_GUIDELINES')[];
 }
 
 // Post DTOs
@@ -114,10 +166,14 @@ export interface PostDTO extends AbstractAuditableEntityDTO {
   occupancy: OccupancyTypeEnum;
   userId: string;
   placeId: string;
-  isHighlighted: boolean;
+  highlighted?: boolean; // Backend returns "highlighted" (lowercase)
+  isHighlighted?: boolean; // Frontend uses "isHighlighted" (camelCase)
   liked: boolean; // indicates if current user has liked this post
   likesCount: number; // total number of likes for this post
   metadata: PostMetadataDTO;
+  canDelete?: boolean; // Current user can delete this post
+  canReport?: boolean; // Current user can report this post
+  canHighlight?: boolean; // Current user can highlight this post
 }
 
 export interface FreshContentRequestDTO {
@@ -167,9 +223,15 @@ export interface GetUserNotificationsResponseDTO {
 }
 
 // Leaderboard DTOs
+export interface LeaderboardClientDTO {
+  id: number;
+  name: string;
+  photoUrl?: string;
+}
+
 export interface LeaderboardDTO extends AbstractAuditableEntityDTO {
   points: number;
-  client: ClientDTO;
+  client: LeaderboardClientDTO;
   type: 'WEEKLY' | 'MONTHLY' | 'YEARLY';
 }
 
@@ -189,15 +251,6 @@ export interface CommentResponseDTO extends AbstractAuditableEntityDTO {
   content: string;
   userId: string;
   postId: string;
-  userDisplayName: string;
-  userPhotoUrl?: string;
-}
-
-// Leaderboard DTOs
-export interface LeaderboardDTO extends AbstractAuditableEntityDTO {
-  userId: string;
-  points: number;
-  rank: number;
   userDisplayName: string;
   userPhotoUrl?: string;
 }
@@ -277,4 +330,25 @@ export interface LikePostResponseDTO {
   liked: boolean;
   totalLikes: number;
   message: string;
+}
+
+// Highlight DTOs
+export interface PostHighlightDTO extends AbstractAuditableEntityDTO {
+  postId: number;
+  userId: number;
+  post?: PostDTO; // Included post details
+}
+
+// Favorite Place DTOs
+export interface FavoritePlaceDTO {
+  placeId: string;
+  placeName: string;
+  placeAddress: string;
+  addedAt: string; // ISO string format
+}
+
+export interface AddFavoritePlaceRequestDTO {
+  placeId: string;
+  placeName: string;
+  placeAddress: string;
 }

@@ -7,6 +7,7 @@ import {
   LikePostResponseDTO,
   PaginatedPostsResponseDTO,
   PostDTO,
+  PostHighlightDTO,
   PostsByPlaceRequestDTO,
 } from '../types/dto';
 
@@ -124,6 +125,75 @@ class PostService {
     } catch (error) {
       console.error('Error checking if post is liked:', error);
       return false;
+    }
+  }
+
+  // Highlight/Pin post
+  async highlightPost(postId: string, userId: number): Promise<{ success: boolean; message?: string }> {
+    try {
+      const url = `${ENDPOINTS.HIGHLIGHTS.BASE}?postId=${postId}&userId=${userId}`;
+      await apiUtils.post(url, {});
+      return { success: true };
+    } catch (error: any) {
+      console.error('Error highlighting post:', error);
+      return { 
+        success: false, 
+        message: error?.response?.data?.message || error?.message || 'Failed to highlight post' 
+      };
+    }
+  }
+
+  // Un-highlight/Unpin post
+  async unhighlightPost(postId: string, userId: number): Promise<{ success: boolean; message?: string }> {
+    try {
+      const url = `${ENDPOINTS.HIGHLIGHTS.BASE}?postId=${postId}&userId=${userId}`;
+      await apiUtils.delete(url);
+      return { success: true };
+    } catch (error: any) {
+      console.error('Error unhighlighting post:', error);
+      return { 
+        success: false, 
+        message: error?.response?.data?.message || error?.message || 'Failed to unhighlight post' 
+      };
+    }
+  }
+
+  // Toggle highlight (convenience method)
+  async toggleHighlight(postId: string, userId: number, currentlyHighlighted: boolean): Promise<{ success: boolean; isHighlighted: boolean; message?: string }> {
+    const result = currentlyHighlighted 
+      ? await this.unhighlightPost(postId, userId)
+      : await this.highlightPost(postId, userId);
+    
+    return {
+      ...result,
+      isHighlighted: result.success ? !currentlyHighlighted : currentlyHighlighted,
+    };
+  }
+
+  // Get user's active highlighted posts (within 24h)
+  async getUserHighlightedPosts(userId: string): Promise<PostHighlightDTO[]> {
+    try {
+      const highlights = await apiUtils.get<PostHighlightDTO[]>(
+        ENDPOINTS.POSTS.USER_HIGHLIGHTS_ACTIVE(userId)
+      );
+      return highlights;
+    } catch (error) {
+      console.error('Error fetching user highlights:', error);
+      return [];
+    }
+  }
+
+  // Delete post
+  async deletePost(postId: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      await apiUtils.delete(ENDPOINTS.POSTS.BY_ID(postId));
+      return { success: true };
+    } catch (error: any) {
+      console.error('Error deleting post:', error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || error?.message || 'Failed to delete post'
+      };
     }
   }
 }

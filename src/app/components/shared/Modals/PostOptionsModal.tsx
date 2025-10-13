@@ -25,6 +25,7 @@ type PostOptionsModalProps = {
   showDelete?: boolean; // From backend canDelete permission
   showReport?: boolean; // From backend canReport permission
   showHighlight?: boolean; // From backend canHighlight permission
+  isHighlighted?: boolean; // Current highlight state
   onClose: () => void;
   onDelete: () => Promise<void> | void;
   onReport: () => void; // otvorí Report modal
@@ -42,6 +43,7 @@ export const PostOptionsModal = ({
   showDelete = false,
   showReport = true,
   showHighlight = false,
+  isHighlighted = false,
 }: PostOptionsModalProps) => {
   const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
@@ -110,17 +112,20 @@ export const PostOptionsModal = ({
           <TouchableOpacity
             style={styles.option}
             activeOpacity={0.7}
-            onPress={onHighlight}
+            onPress={() => {
+              onHighlight();
+              onClose();
+            }}
             disabled={loading}
           >
             <View style={styles.optionRow}>
-              <Text style={[styles.optionText, { color: '#FFC107' }]}>
-                {t('highlight-post') || 'Highlight Post'}
+              <Text style={[styles.optionText, { color: isHighlighted ? '#AAA' : '#FFC107' }]}>
+                {isHighlighted ? t('unhighlight-post') : t('highlight-post')}
               </Text>
               <FontAwesomeIcon
-                icon={Icons.RankingStar}
+                icon={Icons.Bolt}
                 size={16}
-                color="#FFC107"
+                color={isHighlighted ? '#AAA' : '#FFC107'}
               />
             </View>
           </TouchableOpacity>
@@ -134,8 +139,10 @@ export const PostOptionsModal = ({
             disabled={loading}
           >
             <View style={styles.optionRow}>
-              <Text style={styles.optionText}>{t('delete-post')}</Text>
-              <FontAwesomeIcon icon={Icons.TrashCan} size={16} color="white" />
+              <Text style={[styles.optionText, { color: warningColor }]}>
+                {t('delete-post')}
+              </Text>
+              <FontAwesomeIcon icon={Icons.TrashCan} size={16} color={warningColor} />
             </View>
           </TouchableOpacity>
         )}

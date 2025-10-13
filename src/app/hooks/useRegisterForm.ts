@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../providers/AuthProvider';
+import { consentService } from '../services/consentService';
+import { AcceptConsentRequestDTO } from '../types/dto';
 
 export interface RegisterFormData {
   email: string;
@@ -8,6 +10,8 @@ export interface RegisterFormData {
   repeatPassword: string;
   dateOfBirth: Date;
   acceptsTermsOfUse: boolean;
+  acceptsPrivacyPolicy: boolean;
+  acceptsCommunityGuidelines: boolean;
   profileImage: string | null;
 }
 
@@ -16,6 +20,7 @@ export interface FormErrors {
   username?: string;
   password?: string;
   repeatPassword?: string;
+  dateOfBirth?: string;
   general?: string;
 }
 
@@ -28,8 +33,33 @@ export const useRegisterForm = (t: (key: string, options?: any) => string) => {
     repeatPassword: '',
     dateOfBirth: new Date(2000, 0, 1),
     acceptsTermsOfUse: false,
+    acceptsPrivacyPolicy: false,
+    acceptsCommunityGuidelines: false,
     profileImage: null,
   });
+
+  const [consentVersions, setConsentVersions] = useState<
+    Record<string, string>
+  >({
+    TERMS_OF_SERVICE: '1.0',
+    PRIVACY_POLICY: '1.0',
+    COMMUNITY_GUIDELINES: '1.0',
+  });
+
+  // Fetch current consent versions on mount
+  useEffect(() => {
+    const fetchVersions = async () => {
+      try {
+        const versions = await consentService.getCurrentVersions();
+        setConsentVersions(versions);
+      } catch (error) {
+        console.error('Error fetching consent versions:', error);
+        // Keep default versions
+      }
+    };
+
+    fetchVersions();
+  }, []);
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [touchedFields, setTouchedFields] = useState<
@@ -40,6 +70,20 @@ export const useRegisterForm = (t: (key: string, options?: any) => string) => {
 
   const isValidEmail = (email: string): boolean => {
     return /[^\s@]+@[^\s@]+\.[^\s@]+/.test(email);
+  };
+
+  const isValidAge = (birthDate: Date): boolean => {
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    const dayDiff = today.getDate() - birthDate.getDate();
+
+    // Check if birthday has occurred this year
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+      return age - 1 >= 13;
+    }
+
+    return age >= 13;
   };
 
   const validateField = (
@@ -63,6 +107,10 @@ export const useRegisterForm = (t: (key: string, options?: any) => string) => {
         if (!value) return t('password-required');
         if (value !== formData.password) return t('noMatchingPasswords');
         break;
+      case 'dateOfBirth':
+        if (!value) return t('date-of-birth-required');
+        if (!isValidAge(value)) return t('minimum-age-required');
+        break;
     }
     return undefined;
   };
@@ -85,8 +133,19 @@ export const useRegisterForm = (t: (key: string, options?: any) => string) => {
     );
     if (repeatPasswordError) newErrors.repeatPassword = repeatPasswordError;
 
+    const dateOfBirthError = validateField('dateOfBirth', formData.dateOfBirth);
+    if (dateOfBirthError) newErrors.dateOfBirth = dateOfBirthError;
+
     if (!formData.acceptsTermsOfUse) {
       newErrors.general = t('accept-terms-required');
+    }
+
+    if (!formData.acceptsPrivacyPolicy) {
+      newErrors.general = t('accept-privacy-required');
+    }
+
+    if (!formData.acceptsCommunityGuidelines) {
+      newErrors.general = t('accept-community-required');
     }
 
     setErrors(newErrors);
@@ -123,15 +182,40 @@ export const useRegisterForm = (t: (key: string, options?: any) => string) => {
     try {
       // Format date of birth to ISO LocalDateTime format for backend
       const year = formData.dateOfBirth.getFullYear();
-      const month = String(formData.dateOfBirth.getMonth() + 1).padStart(2, '0');
+      const month = String(formData.dateOfBirth.getMonth() + 1).padStart(
+        2,
+        '0'
+      );
       const day = String(formData.dateOfBirth.getDate()).padStart(2, '0');
       const formattedDateOfBirth = `${year}-${month}-${day}T00:00:00`;
-      
+
+      // Build consents object
+      const consents: AcceptConsentRequestDTO = {
+        consents: [
+          {
+            consentType: 'TERMS_OF_SERVICE',
+            version: consentVersions['TERMS_OF_SERVICE'],
+            accepted: formData.acceptsTermsOfUse,
+          },
+          {
+            consentType: 'PRIVACY_POLICY',
+            version: consentVersions['PRIVACY_POLICY'],
+            accepted: formData.acceptsPrivacyPolicy,
+          },
+          {
+            consentType: 'COMMUNITY_GUIDELINES',
+            version: consentVersions['COMMUNITY_GUIDELINES'],
+            accepted: formData.acceptsCommunityGuidelines,
+          },
+        ],
+      };
+
       const credentials = {
         name: formData.username,
         email: formData.email,
         password: formData.password,
         dateOfBirth: formattedDateOfBirth,
+        consents,
       };
 
       // Use registerWithPhoto if profile image is provided, otherwise use regular register
@@ -171,8 +255,11 @@ export const useRegisterForm = (t: (key: string, options?: any) => string) => {
       formData.username !== '' &&
       formData.username.trim().length >= 3 &&
       formData.acceptsTermsOfUse &&
+      formData.acceptsPrivacyPolicy &&
+      formData.acceptsCommunityGuidelines &&
       formData.password === formData.repeatPassword &&
-      formData.dateOfBirth !== null
+      formData.dateOfBirth !== null &&
+      isValidAge(formData.dateOfBirth)
     );
   };
 

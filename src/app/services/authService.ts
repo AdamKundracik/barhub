@@ -161,6 +161,11 @@ class AuthService {
         formData.append('dateOfBirth', credentials.dateOfBirth);
       }
 
+      // Add consents as JSON string (FormData can't handle nested objects directly)
+      if (credentials.consents) {
+        formData.append('consents', JSON.stringify(credentials.consents));
+      }
+
       const uploadResponse = await fetch(
         `${API_CONFIG.BASE_URL}${ENDPOINTS.AUTH.SIGNUP_WITH_PHOTO}`,
         {
@@ -530,6 +535,30 @@ class AuthService {
     }
 
     return response;
+  }
+
+  /**
+   * Handle social auth response (Google/Apple)
+   * Stores tokens and user data
+   */
+  async handleSocialAuthResponse(authResponse: AuthResponse): Promise<void> {
+    try {
+      // Store tokens
+      await this.storeTokens(authResponse.token, authResponse.refreshToken);
+
+      // Store user data if available
+      if (authResponse.user) {
+        await AsyncStorage.setItem(
+          USER_DATA_KEY,
+          JSON.stringify(authResponse.user)
+        );
+        // Also update Zustand store
+        useUserStore.getState().setUserData(authResponse.user);
+      }
+    } catch (error) {
+      console.error('Error handling social auth response:', error);
+      throw error;
+    }
   }
 }
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -12,6 +13,7 @@ import * as Icons from '@fortawesome/free-solid-svg-icons';
 import FastImage from 'react-native-fast-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
+import { Avatar, AvatarImage, AvatarFallbackText } from '@/components/ui/avatar';
 import InteractionBar from '@/src/app/components/user/NewsFeed/Post/InteractionBar';
 import { PostOptionsModal } from '@/src/app/components/shared/Modals/PostOptionsModal';
 import { PostReportModal } from '@/src/app/components/shared/Modals/ReportPostModal';
@@ -36,6 +38,7 @@ import { Text } from '@/components/ui/text';
 import { HStack } from '@/components/ui/hstack';
 import { VStack } from '@/components/ui/vstack';
 import { Center } from '@/components/ui/center';
+import InlineAd from '@/src/app/components/user/InlineAd';
 
 export const PostDetail = () => {
   const route = useRoute();
@@ -43,26 +46,33 @@ export const PostDetail = () => {
   const { t } = useTranslation();
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const queryClient = useQueryClient();
-  const { getUserId } = useUserStore();
+  const { getUserId, isPremium } = useUserStore();
 
   const { postId } = route.params as { postId: string };
-  const { post, isLoading, error } = usePostDetail(postId);
+  const { post, isLoading, error, refetch } = usePostDetail(postId);
 
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isImageZoomed, setIsImageZoomed] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Local like state for optimistic updates
   const [localLiked, setLocalLiked] = useState(post?.isLiked || false);
   const [localLikeCount, setLocalLikeCount] = useState(post?.likesCount || 0);
+
+  // Local highlight state for optimistic updates
+  const [localIsHighlighted, setLocalIsHighlighted] = useState(
+    post?.isHighlighted || false
+  );
 
   // Sync local state with post data when it changes
   useEffect(() => {
     if (post) {
       setLocalLiked(post.isLiked);
       setLocalLikeCount(post.likesCount);
+      setLocalIsHighlighted(post.isHighlighted);
     }
-  }, [post?.isLiked, post?.likesCount]);
+  }, [post?.isLiked, post?.likesCount, post?.isHighlighted]);
 
   const handleShare = async () => {
     if (!post) return;
@@ -117,6 +127,17 @@ export const PostDetail = () => {
     }
   };
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refetch();
+    } catch (error) {
+      console.error('Error refreshing post:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const handleLikeToggle = async () => {
     if (!post) return;
 
@@ -145,18 +166,7 @@ export const PostDetail = () => {
         setLocalLiked(response.liked);
         setLocalLikeCount(response.totalLikes);
 
-        // Update local 'post' detail cache
-        queryClient.setQueryData(['post', post.id], (oldData: any) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            isLiked: response.liked,
-            likesCount: response.totalLikes,
-          };
-        });
-
         // Invalidate 'posts' feed cache to trigger refetch when user navigates back
-        // refetchActive: false means it won't refetch now, only when query becomes active again
         await queryClient.invalidateQueries(['posts'], {
           refetchActive: true,
         });
@@ -167,6 +177,86 @@ export const PostDetail = () => {
       setLocalLiked(!localLiked);
       setLocalLikeCount(prev => (localLiked ? prev - 1 : prev + 1));
       showErrorToast(t('error'), t('something-went-wrong'));
+    }
+  };
+
+  const handleHighlight = async () => {
+    if (!post) return;
+
+    const userId = getUserId();
+    if (!userId) {
+      showErrorToast(t('error'), t('user-not-found'));
+      return;
+    }
+
+    try {
+      // Optimistic update
+      setLocalIsHighlighted(!localIsHighlighted);
+
+      // Call backend
+      const result = await postService.toggleHighlight(
+        post.id,
+        parseInt(userId, 10),
+        localIsHighlighted
+      );
+
+      if (result.success) {
+        setLocalIsHighlighted(result.isHighlighted);
+
+        // Update ALL posts caches - catches main feed and all placeId filters
+        queryClient.setQueriesData(['posts'], (oldData: any) => {
+          if (!oldData || !oldData.pages) return oldData;
+
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page: any) => {
+              if (!page || !Array.isArray(page.posts)) return page;
+
+              return {
+                ...page,
+                posts: page.posts.map((p: any) =>
+                  p.id === post.id
+                    ? { ...p, isHighlighted: result.isHighlighted }
+                    : p
+                ),
+              };
+            }),
+            pageParams: oldData.pageParams || [],
+          };
+        });
+
+        // Update userHighlights cache (for profile grid)
+        queryClient.invalidateQueries(['userHighlights']);
+
+        // Show success toast
+        showSuccessToast(
+          result.isHighlighted
+            ? t('highlight-success')
+            : t('unhighlight-success'),
+          ''
+        );
+      } else {
+        // Revert optimistic update on failure
+        setLocalIsHighlighted(localIsHighlighted);
+        showErrorToast(
+          t('highlight-error'),
+          result.message || t('something-went-wrong')
+        );
+      }
+    } catch (error: any) {
+      console.error('Error toggling highlight:', error);
+      // Revert optimistic update
+      setLocalIsHighlighted(localIsHighlighted);
+
+      // Show user-friendly error
+      const errorMessage = error?.message || t('something-went-wrong');
+      if (errorMessage.includes('limit')) {
+        showErrorToast(t('highlight-limit-reached'), '');
+      } else {
+        showErrorToast(t('highlight-error'), errorMessage);
+      }
+    } finally {
+      setIsOptionsModalOpen(false);
     }
   };
 
@@ -187,12 +277,39 @@ export const PostDetail = () => {
           color={secondaryTextColor}
         />
         <Text style={styles.errorText}>{t('post-not-found')}</Text>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={styles.backButtonText}>{t('go-back')}</Text>
-        </TouchableOpacity>
+
+        <HStack space="md" style={{ marginTop: 24 }}>
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={() => navigation.goBack()}
+          >
+            <FontAwesomeIcon icon={Icons.faArrowLeft} size={16} color="#fff" />
+            <Text style={styles.secondaryButtonText}>{t('go-back')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={async () => {
+              setIsRefreshing(true);
+              await refetch();
+              setIsRefreshing(false);
+            }}
+            disabled={isRefreshing}
+          >
+            {isRefreshing ? (
+              <ActivityIndicator size="small" color="#000" />
+            ) : (
+              <FontAwesomeIcon
+                icon={Icons.faRotateBack}
+                size={16}
+                color="#000"
+              />
+            )}
+            <Text style={styles.backButtonText}>
+              {isRefreshing ? t('loading') : t('retry')}
+            </Text>
+          </TouchableOpacity>
+        </HStack>
       </View>
     );
   }
@@ -235,7 +352,17 @@ export const PostDetail = () => {
         </HStack>
       </LinearGradient>
 
-      <ScrollView style={styles.scrollView}>
+      <ScrollView
+        style={styles.scrollView}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={primaryColor}
+            colors={[primaryColor]}
+          />
+        }
+      >
         {/* Post Image */}
         <TouchableOpacity
           activeOpacity={0.9}
@@ -254,22 +381,36 @@ export const PostDetail = () => {
           <View style={styles.userSection}>
             <HStack space="md" style={styles.userInfo}>
               <TouchableOpacity>
-                {post.user?.photoUrl ? (
-                  <FastImage
-                    source={{ uri: post.user.photoUrl }}
-                    style={styles.userAvatar}
-                  />
-                ) : (
-                  <View style={styles.userAvatarPlaceholder}>
-                    <Text style={styles.avatarInitials}>
-                      {post.user?.displayName?.charAt(0).toUpperCase()}
-                    </Text>
-                  </View>
-                )}
+                <Avatar size="md" style={styles.avatarContainer}>
+                  {post.user?.photoUrl ? (
+                    <AvatarImage
+                      source={{ uri: post.user.photoUrl }}
+                      style={styles.avatar}
+                    />
+                  ) : (
+                    <AvatarFallbackText style={styles.avatarFallback}>
+                      {post.user?.displayName || 'User'}
+                    </AvatarFallbackText>
+                  )}
+                </Avatar>
               </TouchableOpacity>
 
               <VStack style={{ flex: 1 }}>
-                <Text style={styles.userName}>{post.user?.displayName}</Text>
+                <HStack space="sm" style={{ alignItems: 'center' }}>
+                  <Text style={styles.userName}>{post.user?.displayName}</Text>
+                  {localIsHighlighted && (
+                    <View style={styles.highlightBadge}>
+                      <FontAwesomeIcon
+                        icon={Icons.faStar}
+                        size={12}
+                        color="#FFC107"
+                      />
+                      <Text style={styles.highlightText}>
+                        {t('highlighted')}
+                      </Text>
+                    </View>
+                  )}
+                </HStack>
                 <Text style={styles.postTime}>
                   {new Date(post.creationTime).toLocaleString('sk-SK', {
                     day: 'numeric',
@@ -311,6 +452,13 @@ export const PostDetail = () => {
               {post.placeAddress}
             </Text>
           </View>
+
+          {/* Inline Ad */}
+          {!isPremium() && (
+            <View style={styles.adContainer}>
+              <InlineAd />
+            </View>
+          )}
 
           {/* Quick Actions Bar */}
           <HStack style={styles.quickActions}>
@@ -369,6 +517,7 @@ export const PostDetail = () => {
           showDelete={post.canDelete}
           showReport={post.canReport}
           showHighlight={post.canHighlight}
+          isHighlighted={localIsHighlighted}
           onDelete={() => {
             // TODO: Implement delete
             console.log('Delete post:', post.id);
@@ -377,10 +526,7 @@ export const PostDetail = () => {
             setIsOptionsModalOpen(false);
             setIsReportModalOpen(true);
           }}
-          onHighlight={() => {
-            // TODO: Implement highlight
-            console.log('Highlight post:', post.id);
-          }}
+          onHighlight={handleHighlight}
           onShare={handleShare}
         />
       )}
@@ -426,9 +572,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   backButtonText: {
     color: '#000',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  secondaryButton: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  secondaryButtonText: {
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -475,30 +640,37 @@ const styles = StyleSheet.create({
   userInfo: {
     alignItems: 'center',
   },
-  userAvatar: {
+  avatarContainer: {
     width: 48,
     height: 48,
-    borderRadius: 24,
-    borderWidth: 2,
-    borderColor: primaryColor,
   },
-  userAvatarPlaceholder: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: primaryColor,
-    justifyContent: 'center',
-    alignItems: 'center',
+  avatar: {
+    borderWidth: 0,
   },
-  avatarInitials: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#000',
+  avatarFallback: {
+    backgroundColor: 'transparent',
+    color: 'white',
   },
   userName: {
     fontSize: 16,
     fontWeight: '700',
     color: primaryTextColor,
+  },
+  highlightBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 193, 7, 0.15)',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 193, 7, 0.3)',
+    gap: 4,
+  },
+  highlightText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#FFC107',
   },
   postTime: {
     fontSize: 13,
@@ -531,6 +703,16 @@ const styles = StyleSheet.create({
     marginTop: 4,
     paddingLeft: 32,
   },
+  adContainer: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 8,
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
   quickActions: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -538,7 +720,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     marginHorizontal: 16,
-    marginTop: 16,
+    marginTop: 8,
     backgroundColor: 'rgba(255,255,255,0.03)',
     borderRadius: 16,
     borderWidth: 1,

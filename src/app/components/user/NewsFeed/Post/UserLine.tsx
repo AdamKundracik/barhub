@@ -1,7 +1,6 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   FadeIn,
   useAnimatedStyle,
@@ -12,7 +11,6 @@ import Animated, {
 import { PostReportModal } from '@/src/app/components/shared/Modals/ReportPostModal';
 import { ReportReason } from '@/src/app/utils/types/Feed/PostTypes';
 import { useTranslation } from 'react-i18next';
-import { Post } from '@/common/types/postTypes';
 import { UserInfo } from '@/shared';
 import {
   postBgColor,
@@ -29,60 +27,8 @@ import postService from '@/src/app/utils/services/post.service';
 import { useQueryClient } from 'react-query';
 import { usePlaceStore } from '@/src/app/utils/store/placesStore';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
-import FastImage from 'react-native-fast-image';
 import { useUserStore } from '@/src/app/utils/store/userStore';
-
-// Enhanced Avatar Component
-const UserAvatar: React.FC<{
-  photoUrl?: string | null;
-  displayName?: string;
-  size?: number;
-  showOnlineIndicator?: boolean;
-}> = ({
-  photoUrl,
-  displayName = 'Unknown',
-  size = 50,
-  showOnlineIndicator = false,
-}) => {
-  const initials = displayName
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .substring(0, 2);
-
-  if (photoUrl) {
-    return (
-      <View style={[styles.avatarContainer, { width: size, height: size }]}>
-        <FastImage
-          source={{ uri: photoUrl, priority: FastImage.priority.high }}
-          style={[
-            styles.avatar,
-            { width: size, height: size, borderRadius: size / 2 },
-          ]}
-        />
-        {showOnlineIndicator && <View style={styles.onlineIndicator} />}
-      </View>
-    );
-  }
-
-  return (
-    <View style={[styles.avatarContainer, { width: size, height: size }]}>
-      <LinearGradient
-        colors={[primaryColor, '#00B4A6']}
-        style={[
-          styles.avatarGradient,
-          { width: size, height: size, borderRadius: size / 2 },
-        ]}
-      >
-        <Text style={[styles.avatarInitials, { fontSize: size * 0.4 }]}>
-          {initials}
-        </Text>
-      </LinearGradient>
-      {showOnlineIndicator && <View style={styles.onlineIndicator} />}
-    </View>
-  );
-};
+import { Avatar, AvatarImage, AvatarFallbackText } from '@/components/ui/avatar';
 
 // Enhanced More Options Button
 const MoreOptionsButton: React.FC<{ onPress: () => void }> = ({ onPress }) => {
@@ -130,8 +76,10 @@ type Props = {
   canDelete?: boolean; // Permission from backend
   canReport?: boolean; // Permission from backend
   canHighlight?: boolean; // Permission from backend
+  isHighlighted?: boolean; // Current highlight state
   onPress?: () => void; // Optional callback when UserLine is pressed
   onShare?: () => void; // Optional callback for sharing post
+  onHighlightChange?: (isHighlighted: boolean) => void; // Callback when highlight state changes
 };
 
 const UserLineComponent = ({
@@ -143,15 +91,23 @@ const UserLineComponent = ({
   canDelete = false,
   canReport = false,
   canHighlight = false,
+  isHighlighted = false,
   onPress,
   onShare,
+  onHighlightChange,
 }: Props) => {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
+  const [localIsHighlighted, setLocalIsHighlighted] = useState(isHighlighted);
   const queryClient = useQueryClient();
   const { placeId } = usePlaceStore();
   const { t } = useTranslation();
   const { showSuccessToast, showErrorToast } = useCustomToast();
+
+  // Sync local highlight state with prop when it changes
+  useEffect(() => {
+    setLocalIsHighlighted(isHighlighted);
+  }, [isHighlighted]);
 
   // --- ENHANCED TIME FORMATTING ---
   const formattedTime = useMemo(() => {
@@ -273,49 +229,17 @@ const UserLineComponent = ({
       if (!targetPostId) return;
 
       try {
-        const result = await postService.deletePost(targetPostId);
-        if (!result.success) throw new Error('Failed to delete post');
+        const result: { success: boolean; message?: string } = await postService.deletePost(targetPostId);
+        if (!result.success) {
+          throw new Error(result.message || 'Failed to delete post');
+        }
 
-        // Update main posts cache
-        queryClient.setQueryData(['posts'], (oldData: any) => {
-          if (!oldData || !oldData.pages) return oldData;
-
-          const newPages = oldData.pages.map((page: any) => {
-            if (!page || !Array.isArray(page.posts)) return page;
-
-            return {
-              ...page,
-              posts: page.posts.filter((p: Post) => p.id !== targetPostId),
-            };
-          });
-
-          return {
-            ...oldData,
-            pages: newPages,
-            pageParams: oldData.pageParams || [],
-          };
-        });
-
-        // Update place-specific cache if applicable
+        // Invalidate all related queries after delete
+        queryClient.invalidateQueries(['posts']); // Refresh main feed
+        queryClient.invalidateQueries(['userHighlights']); // Refresh highlights (in case deleted post was highlighted)
+        
         if (targetPlaceId) {
-          queryClient.setQueryData(['posts', targetPlaceId], (oldData: any) => {
-            if (!oldData || !oldData.pages) return oldData;
-
-            const newPages = oldData.pages.map((page: any) => {
-              if (!page || !Array.isArray(page.posts)) return page;
-
-              return {
-                ...page,
-                posts: page.posts.filter((p: Post) => p.id !== targetPostId),
-              };
-            });
-
-            return {
-              ...oldData,
-              pages: newPages,
-              pageParams: oldData.pageParams || [],
-            };
-          });
+          queryClient.invalidateQueries(['posts', targetPlaceId]); // Refresh place-specific feed
         }
 
         showSuccessToast(
@@ -342,6 +266,101 @@ const UserLineComponent = ({
     [confirmDelete, deletePost, postId, placeId]
   );
 
+  const handleHighlight = useCallback(async () => {
+    if (!postId) return;
+
+    const userId = useUserStore.getState().getUserId();
+    if (!userId) {
+      showErrorToast(t('error'), t('user-not-found'));
+      return;
+    }
+
+    try {
+      const { postService: postServiceInstance } = await import(
+        '@/src/app/services/postService'
+      );
+
+      // Optimistic update
+      setLocalIsHighlighted(!localIsHighlighted);
+
+      // Call backend
+      const result = await postServiceInstance.toggleHighlight(
+        postId,
+        parseInt(userId, 10),
+        localIsHighlighted
+      );
+
+      if (result.success) {
+        setLocalIsHighlighted(result.isHighlighted);
+
+        // Notify parent component
+        onHighlightChange?.(result.isHighlighted);
+
+        // Update ALL posts feed caches - catches main feed and all placeId filters
+        queryClient.setQueriesData(['posts'], (oldData: any) => {
+          if (!oldData || !oldData.pages) return oldData;
+
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page: any) => {
+              if (!page || !Array.isArray(page.posts)) return page;
+
+              return {
+                ...page,
+                posts: page.posts.map((p: any) =>
+                  p.id === postId
+                    ? { ...p, isHighlighted: result.isHighlighted }
+                    : p
+                ),
+              };
+            }),
+            pageParams: oldData.pageParams || [],
+          };
+        });
+
+        // 3. Update userHighlights cache (for profile grid)
+        queryClient.invalidateQueries(['userHighlights']);
+
+        // Show success toast
+        showSuccessToast(
+          result.isHighlighted
+            ? t('highlight-success')
+            : t('unhighlight-success'),
+          ''
+        );
+      } else {
+        // Revert optimistic update on failure
+        setLocalIsHighlighted(localIsHighlighted);
+        showErrorToast(
+          t('highlight-error'),
+          result.message || t('something-went-wrong')
+        );
+      }
+    } catch (error: any) {
+      console.error('Error toggling highlight:', error);
+      // Revert optimistic update
+      setLocalIsHighlighted(localIsHighlighted);
+
+      // Show user-friendly error
+      const errorMessage = error?.message || t('something-went-wrong');
+      if (errorMessage.includes('limit')) {
+        showErrorToast(t('highlight-limit-reached'), '');
+      } else {
+        showErrorToast(t('highlight-error'), errorMessage);
+      }
+    } finally {
+      setIsOptionsModalOpen(false);
+    }
+  }, [
+    postId,
+    localIsHighlighted,
+    onHighlightChange,
+    queryClient,
+    showSuccessToast,
+    showErrorToast,
+    t,
+  ]);
+
   // Don't render if essential data is missing
   if (!postId) {
     return null;
@@ -356,17 +375,34 @@ const UserLineComponent = ({
           activeOpacity={onPress ? 0.7 : 1}
           disabled={!onPress}
         >
-          <UserAvatar
-            photoUrl={user?.photoUrl}
-            displayName={safeUserName}
-            size={52}
-            showOnlineIndicator={false}
-          />
+          <Avatar size="md" style={styles.avatarContainer}>
+            {user?.photoUrl ? (
+              <AvatarImage
+                source={{ uri: user.photoUrl }}
+                style={styles.avatar}
+              />
+            ) : (
+              <AvatarFallbackText style={styles.avatarFallback}>
+                {safeUserName}
+              </AvatarFallbackText>
+            )}
+          </Avatar>
 
           <View style={styles.textContainer}>
-            <Text style={styles.name} numberOfLines={1}>
-              {safeUserName}
-            </Text>
+            <View style={styles.nameRow}>
+              <Text style={styles.name} numberOfLines={1}>
+                {safeUserName}
+              </Text>
+              {localIsHighlighted && (
+                <View style={styles.highlightBadge}>
+                  <FontAwesomeIcon
+                    icon={Icons.Bolt}
+                    size={14}
+                    color="#FFC107"
+                  />
+                </View>
+              )}
+            </View>
 
             {/* Adresa na vlastnom riadku - bez ikony a bez marginLeft */}
             {safeAddress && (
@@ -391,6 +427,7 @@ const UserLineComponent = ({
         showDelete={canDelete}
         showReport={canReport}
         showHighlight={canHighlight}
+        isHighlighted={localIsHighlighted}
         visible={isOptionsModalOpen}
         onClose={() => setIsOptionsModalOpen(false)}
         onDelete={handleDelete}
@@ -398,11 +435,7 @@ const UserLineComponent = ({
           setIsOptionsModalOpen(false);
           setIsReportModalOpen(true);
         }}
-        onHighlight={() => {
-          // TODO: Implement highlight functionality
-          // console.log('Highlight post:', postId);
-          setIsOptionsModalOpen(false);
-        }}
+        onHighlight={handleHighlight}
         onShare={onShare}
       />
 
@@ -437,8 +470,10 @@ export const UserLine = React.memo(UserLineComponent, (prev, next) => {
     prev.canDelete === next.canDelete &&
     prev.canReport === next.canReport &&
     prev.canHighlight === next.canHighlight &&
+    prev.isHighlighted === next.isHighlighted &&
     prev.onPress === next.onPress &&
-    prev.onShare === next.onShare
+    prev.onShare === next.onShare &&
+    prev.onHighlightChange === next.onHighlightChange
   );
 });
 
@@ -460,42 +495,39 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   avatarContainer: {
-    position: 'relative',
     marginRight: 14,
+    width: 48,
+    height: 48,
   },
   avatar: {
-    backgroundColor: '#333',
+    borderWidth: 0,
   },
-  avatarGradient: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarInitials: {
+  avatarFallback: {
+    backgroundColor: 'transparent',
     color: 'white',
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  onlineIndicator: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#4CAF50',
-    borderWidth: 2,
-    borderColor: postBgColor,
   },
   textContainer: {
     flex: 1,
     justifyContent: 'center',
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   name: {
     fontSize: 17,
     fontWeight: '700',
     color: 'white',
-    // marginBottom: 4,
     letterSpacing: 0.3,
+  },
+  highlightBadge: {
+    backgroundColor: 'rgba(255, 193, 7, 0.15)',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 193, 7, 0.3)',
   },
   addressRow: {
     marginBottom: 2,

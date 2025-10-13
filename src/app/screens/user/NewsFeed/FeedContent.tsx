@@ -64,6 +64,7 @@ export const FeedContent: React.FC<FeedContentProps> = ({
     <>
       <ScrollView
         contentContainerStyle={styles.scrollViewContent}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}

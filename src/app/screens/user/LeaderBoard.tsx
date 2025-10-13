@@ -7,6 +7,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { primaryColor } from '../../utils/styles/colors';
@@ -14,12 +15,18 @@ import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { useTranslation } from 'react-i18next';
 import { useLeaderboard } from '@/src/app/utils/hooks/useLeaderboard';
 import { BlurView } from 'expo-blur';
-import { FlashList } from '@shopify/flash-list'; // Define LeaderboardUser interface locally to match backend data
+import { FlashList } from '@shopify/flash-list';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { Icons } from '../../utils/icons/icons';
+import { faDownload } from '@fortawesome/free-solid-svg-icons';
+import { useUserRole } from '@/src/app/hooks/useUserRole'; // Define LeaderboardUser interface locally to match backend data
 
 // Define LeaderboardUser interface locally to match backend data
 interface LeaderboardUser {
   userId: string;
-  displayName: string;
+  name: string;
   photoUrl: string;
   points: number;
   rank?: number | null;
@@ -157,7 +164,7 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
             },
           ]}
         >
-          {user.displayName}
+          {user.name}
         </Text>
       </View>
 
@@ -178,9 +185,12 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
 };
 
 const LeaderboardScreen = () => {
-  const [selectedTab, setSelectedTab] = useState<'week' | 'yearly'>('week');
+  const [selectedTab, setSelectedTab] = useState<'week' | 'monthly' | 'yearly'>(
+    'week'
+  );
   const [animationKey, setAnimationKey] = useState('0'); // Kľúč pre resetovanie animácií
   const { data, isLoading, error, refetch } = useLeaderboard(selectedTab);
+  const { isAdmin, isModerator } = useUserRole();
 
   const { t } = useTranslation();
 
@@ -191,7 +201,7 @@ const LeaderboardScreen = () => {
   // Výška bottom tabs (rovnaká logika ako v BottomTabs.tsx)
   const bottomTabsHeight = Platform.OS === 'ios' ? 90 : 80;
 
-  const handleTabChange = async (tab: 'week' | 'yearly') => {
+  const handleTabChange = async (tab: 'week' | 'monthly' | 'yearly') => {
     // Ak je už vybraná tá istá možnosť, nerob nič
     if (selectedTab === tab) {
       return;
@@ -200,6 +210,56 @@ const LeaderboardScreen = () => {
     // Resetovanie animačného kľúča pre nové animácie
     setAnimationKey(prev => (parseInt(prev) + 1).toString());
     await refetch();
+  };
+
+  const exportToCSV = async () => {
+    try {
+      if (!topUsers || topUsers.length === 0) {
+        Alert.alert('No Data', 'No leaderboard data to export');
+        return;
+      }
+
+      // CSV Header
+      const header = 'Rank,ID,Username,Points\n';
+      
+      // CSV Rows - len id, name, points (bez photoUrl)
+      const rows = topUsers
+        .map((user, index) => {
+          const rank = index + 1;
+          const id = user.userId;
+          const name = user.name.replace(/,/g, ''); // Remove commas from name
+          const points = user.points;
+          return `${rank},${id},"${name}",${points}`;
+        })
+        .join('\n');
+
+      const csvContent = header + rows;
+
+      // Create filename with period and date
+      const periodLabel = selectedTab === 'week' ? 'Weekly' : selectedTab === 'monthly' ? 'Monthly' : 'Yearly';
+      const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      const filename = `Leaderboard_${periodLabel}_${date}.csv`;
+
+      // Save to file system
+      const fileUri = `${FileSystem.documentDirectory}${filename}`;
+      await FileSystem.writeAsStringAsync(fileUri, csvContent, {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
+
+      // Share the file
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, {
+          mimeType: 'text/csv',
+          dialogTitle: 'Export Leaderboard',
+          UTI: 'public.comma-separated-values-text',
+        });
+      } else {
+        Alert.alert('Success', `File saved to: ${fileUri}`);
+      }
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      Alert.alert('Error', 'Failed to export CSV');
+    }
   };
 
   // Resetovanie animácií pri zmene dát
@@ -216,8 +276,22 @@ const LeaderboardScreen = () => {
         <Text style={styles.subtitle}>
           {selectedTab === 'week'
             ? t('leaderboard.week')
-            : t('leaderboard.yearly')}
+            : selectedTab === 'monthly'
+              ? t('leaderboard.monthly')
+              : t('leaderboard.yearly')}
         </Text>
+        
+        {/* Export Button - Only for Admin/Moderator */}
+        {(isAdmin || isModerator) && (
+          <TouchableOpacity
+            style={styles.exportButton}
+            onPress={exportToCSV}
+            activeOpacity={0.7}
+          >
+            <FontAwesomeIcon icon={faDownload} size={18} color="black" />
+            <Text style={styles.exportButtonText}>Export CSV</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Tab Switcher */}
@@ -239,6 +313,25 @@ const LeaderboardScreen = () => {
               ]}
             >
               {t('leaderboard.week')}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              selectedTab === 'monthly' && styles.tabButtonActive,
+            ]}
+            onPress={() => handleTabChange('monthly')}
+            activeOpacity={selectedTab === 'monthly' ? 1 : 0.7}
+            disabled={selectedTab === 'monthly'}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                selectedTab === 'monthly' && styles.tabTextActive,
+              ]}
+            >
+              {t('leaderboard.monthly')}
             </Text>
           </TouchableOpacity>
 
@@ -340,6 +433,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
     paddingHorizontal: 20,
+  },
+  exportButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: primaryColor,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    marginTop: 12,
+    gap: 8,
+  },
+  exportButtonText: {
+    color: 'black',
+    fontWeight: '600',
+    fontSize: 14,
   },
   mainTitle: {
     fontSize: 28,

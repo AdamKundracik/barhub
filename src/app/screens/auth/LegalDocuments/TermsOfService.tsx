@@ -1,0 +1,54 @@
+import React from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
+import { Text } from '@/components/ui/text';
+import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
+import { primaryTextColor } from '@/src/app/utils/styles/colors';
+import { getLegalDocumentContent } from '@/src/app/utils/constants/legalDocuments';
+
+export const TermsOfService = () => {
+  const navigation = useNavigation();
+  const { t } = useTranslation();
+
+  const content = getLegalDocumentContent('TERMS_OF_SERVICE');
+
+  return (
+    <ScreenLayout
+      title={t('terms-of-service') || 'Terms of Service'}
+      showTitle
+      showBackButton
+      onBackPress={() => navigation.goBack()}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.content}>{content}</Text>
+
+        <View style={styles.bottomSpacing} />
+      </ScrollView>
+    </ScreenLayout>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  contentContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  content: {
+    fontSize: 14,
+    color: primaryTextColor,
+    lineHeight: 22,
+  },
+  bottomSpacing: {
+    height: 20,
+  },
+});
+
+export default TermsOfService;

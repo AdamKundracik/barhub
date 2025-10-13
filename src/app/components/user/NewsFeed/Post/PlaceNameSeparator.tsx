@@ -5,14 +5,16 @@ import { usePlaceStore } from '@/src/app/utils/store/placesStore';
 type Props = {
   placeNameLocal: string;
   placeIdLocal: string;
+  placeAddressLocal?: string;
 };
 
 export const PlaceNameSeparator = (props: Props) => {
-  const { setPlaceId, setPlaceName } = usePlaceStore();
+  const { setPlaceId, setPlaceName, setPlaceAddress } = usePlaceStore();
 
   const navigateToBar = () => {
     setPlaceName(props.placeNameLocal);
     setPlaceId(props.placeIdLocal);
+    setPlaceAddress(props.placeAddressLocal || '');
   };
 
   return (

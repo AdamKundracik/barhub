@@ -46,6 +46,7 @@ export interface Post {
   canDelete: boolean; // Current user can delete this post
   canReport: boolean; // Current user can report this post
   canHighlight: boolean; // Current user can highlight this post
+  isHighlighted: boolean; // Post is currently highlighted (pinned)
   
   // User info (PostAuthorDTO: id, name, photoUrl)
   user?: {
