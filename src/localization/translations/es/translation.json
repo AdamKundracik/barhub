@@ -151,6 +151,7 @@
   "search-place": "Ingrese el nombre del negocio / bar",
   "search-surrounding": "Buscar alrededores",
   "searching-places": "Buscando lugares...",
+  "outside-allowed-area": "Te has alejado demasiado de tu ubicación. Máximo 30km permitido.",
   "comments": "Comentarios",
   "no-comments": "Sin comentarios",
   "add-comment": "Añadir un comentario...",

@@ -237,7 +237,7 @@ export const Account = () => {
     }
 
     await MailComposer.composeAsync({
-      recipients: ['support@example.com'],
+      recipients: ['support@barhubapp.com'],
       subject: t('help-request'),
       body: t('please-describe-your-issue'),
     });

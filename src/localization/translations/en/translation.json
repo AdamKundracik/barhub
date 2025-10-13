@@ -165,6 +165,7 @@
   "search-place": "Enter the name of the business / bar",
   "search-surrounding": "Search surrounding",
   "searching-places": "Searching places...",
+  "outside-allowed-area": "You moved too far from your location. Maximum 30km allowed.",
   "comments": "Comments",
   "no-comments": "No comments",
   "add-comment": "Add a comment... ",

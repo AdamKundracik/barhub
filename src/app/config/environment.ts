@@ -3,8 +3,9 @@ export const ENV = {
   // Development environment
   //192.168.1.225
   //api.barhubapp.com
+  //https://rotatably-earthy-larhonda.ngrok-free.dev/ap
   DEV: {
-    API_BASE_URL: 'http://localhost:8080/api',
+    API_BASE_URL: 'https://api.barhubapp.com/api',
     DEBUG: true,
     LOG_LEVEL: 'debug',
   },
