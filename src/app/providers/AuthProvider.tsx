@@ -7,6 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
+import { useQueryClient } from 'react-query';
 import {
   authService,
   LoginCredentials,
@@ -67,6 +68,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   } | null>(null);
   
   const appState = useRef<AppStateStatus>(AppState.currentState);
+
+  // React Query client for cache management
+  const queryClient = useQueryClient();
 
   // Zustand stores
   const { setUserData, updateCanSeeContent } = useUserStore();
@@ -181,10 +185,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUseFakeLocation(appUserData.usingFakeLocation);
         }
 
-        setInitialized(true);
-
         // Save current location to backend immediately after auth
+        // This must happen BEFORE setInitialized to ensure location is in store
+        // when useLocation hook activates
         await saveCurrentLocationToBackend(userData.id.toString());
+
+        // Set initialized AFTER location is set so posts can be fetched
+        setInitialized(true);
       }
     } catch (error) {
       console.error('Error loading user data:', error);
@@ -383,6 +390,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Clear push token service
       pushTokenService.clearToken();
+
+      // Clear React Query cache to prevent stale data on next login
+      queryClient.clear();
     } catch (error) {
       console.error('Logout error:', error);
     } finally {

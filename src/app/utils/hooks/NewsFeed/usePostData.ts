@@ -27,6 +27,10 @@ export const useNewsFeedData = () => {
     ? Math.round(currentLocation.longitude * 10000) / 10000 
     : null;
 
+  const queryKey = placeId 
+    ? ['posts', placeId, roundedLat, roundedLong, distance] 
+    : ['posts', roundedLat, roundedLong, distance];
+
   const {
     data: postsData,
     isFetchingNextPage,
@@ -36,16 +40,14 @@ export const useNewsFeedData = () => {
     refetch,
     isRefetching,
   } = useInfiniteQuery(
-    placeId 
-      ? ['posts', placeId, roundedLat, roundedLong, distance] 
-      : ['posts', roundedLat, roundedLong, distance],
+    queryKey,
     ({ pageParam = null }) =>
       handleFreshContent(distance, pageParam, placeId, currentLocation!),
     {
       getNextPageParam: lastPage => lastPage?.lastVisible || null, // lastVisible is mapped from nextCursor
       enabled: !!currentLocation && isAuthenticated, // Wait for both location and authentication
       refetchOnWindowFocus: false, // Don't refetch when app comes to foreground
-      refetchOnMount: false, // Don't refetch on component mount if data exists
+      refetchOnMount: false, // Don't refetch on mount if data exists (cache is cleared on logout)
       staleTime: 5 * 60 * 1000, // Data is fresh for 5 minutes
     }
   );
