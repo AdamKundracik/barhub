@@ -81,12 +81,23 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
   const [dateError, setDateError] = useState<string>('');
 
+  // Track original values to detect changes
+  const originalUsername = displayName;
+  const originalBirthDate = user?.dateOfBirth ? new Date(user.dateOfBirth) : new Date();
+
   function validateInputs(): boolean {
     return !username || username.trim().length === 0 || !!dateError;
   }
 
   const isUsernameInvalid = (): boolean => {
     return !username || username.trim().length === 0;
+  };
+
+  // Check if any data has changed
+  const hasChanges = (): boolean => {
+    const usernameChanged = username?.trim() !== originalUsername?.trim();
+    const dateChanged = birthDate.toISOString().split('T')[0] !== originalBirthDate.toISOString().split('T')[0];
+    return usernameChanged || dateChanged;
   };
 
   const validateAge = (date: Date): boolean => {
@@ -401,11 +412,11 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
             size="lg"
             style={[
               buttonStyles.primary,
-              (isUpdatingProfile || validateInputs()) &&
+              (isUpdatingProfile || validateInputs() || !hasChanges()) &&
                 buttonStyles.primaryDisabled,
             ]}
             onPress={handleUpdateUser}
-            isDisabled={isUpdatingProfile || validateInputs()}
+            isDisabled={isUpdatingProfile || validateInputs() || !hasChanges()}
           >
             {isUpdatingProfile ? (
               <ButtonSpinner color="#000" />

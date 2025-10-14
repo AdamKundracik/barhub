@@ -1,30 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  RefreshControl,
-  TextInput,
   Alert,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import {
-  primaryBgColor,
   postBgColor,
+  primaryBgColor,
+  primaryColor,
   primaryTextColor,
   secondaryTextColor,
-  primaryColor,
-  separatorColor,
   warningColor,
 } from '@/src/app/utils/styles/colors';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
 import { consentService } from '@/src/app/services/consentService';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
+import { useUserRole } from '@/src/app/hooks/useUserRole';
 
 interface ConsentVersion {
   type: 'TERMS_OF_SERVICE' | 'PRIVACY_POLICY' | 'COMMUNITY_GUIDELINES';
@@ -35,6 +35,7 @@ export const ConsentManagement = () => {
   const { t } = useTranslation();
   const navigation = useNavigation();
   const { showSuccessToast, showErrorToast } = useCustomToast();
+  const { isAdmin } = useUserRole();
 
   const [versions, setVersions] = useState<ConsentVersion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,15 +43,44 @@ export const ConsentManagement = () => {
   const [newVersion, setNewVersion] = useState('');
   const [description, setDescription] = useState('');
 
+  // Protect screen - only admins can access
+  if (!isAdmin) {
+    return (
+      <ScreenLayout
+        title={t('admin.consentManagement')}
+        showTitle
+        showBackButton
+        onBackPress={() => navigation.goBack()}
+      >
+        <View style={styles.accessDeniedContainer}>
+          <FontAwesomeIcon icon={Icons.Lock} size={64} color={warningColor} />
+          <Text style={styles.accessDeniedTitle}>
+            {t('admin.accessDenied')}
+          </Text>
+          <Text style={styles.accessDeniedText}>{t('admin.noPermission')}</Text>
+        </View>
+      </ScreenLayout>
+    );
+  }
+
   const loadVersions = async () => {
     try {
       setIsLoading(true);
       const versionsData = await consentService.getCurrentVersions();
-      
+
       const versionsList: ConsentVersion[] = [
-        { type: 'TERMS_OF_SERVICE', currentVersion: versionsData['TERMS_OF_SERVICE'] || '1.0' },
-        { type: 'PRIVACY_POLICY', currentVersion: versionsData['PRIVACY_POLICY'] || '1.0' },
-        { type: 'COMMUNITY_GUIDELINES', currentVersion: versionsData['COMMUNITY_GUIDELINES'] || '1.0' },
+        {
+          type: 'TERMS_OF_SERVICE',
+          currentVersion: versionsData['TERMS_OF_SERVICE'] || '1.0',
+        },
+        {
+          type: 'PRIVACY_POLICY',
+          currentVersion: versionsData['PRIVACY_POLICY'] || '1.0',
+        },
+        {
+          type: 'COMMUNITY_GUIDELINES',
+          currentVersion: versionsData['COMMUNITY_GUIDELINES'] || '1.0',
+        },
       ];
 
       setVersions(versionsList);
@@ -81,7 +111,7 @@ export const ConsentManagement = () => {
 
   const handleUpdateVersion = async (type: string) => {
     if (!newVersion || !newVersion.trim()) {
-      Alert.alert('Error', 'Please enter a new version');
+      Alert.alert(t('error'), t('consent.enterNewVersion'));
       return;
     }
 
@@ -89,30 +119,39 @@ export const ConsentManagement = () => {
       // Call backend to update version
       // Note: This requires a new endpoint on backend
       Alert.alert(
-        'Confirm Update',
-        `Update ${getConsentTitle(type)} to version ${newVersion}?\n\nAll users will need to accept this new version on their next login.`,
+        t('consent.confirmUpdate'),
+        t('consent.confirmUpdateMessage', {
+          type: getConsentTitle(type),
+          version: newVersion,
+        }),
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: t('cancel'), style: 'cancel' },
           {
-            text: 'Update',
+            text: t('consent.update'),
             style: 'destructive',
             onPress: async () => {
               try {
                 const result = await consentService.updateConsentVersion(
-                  type as 'TERMS_OF_SERVICE' | 'PRIVACY_POLICY' | 'COMMUNITY_GUIDELINES',
+                  type as
+                    | 'TERMS_OF_SERVICE'
+                    | 'PRIVACY_POLICY'
+                    | 'COMMUNITY_GUIDELINES',
                   newVersion,
                   description
                 );
 
                 if (result.success) {
                   showSuccessToast(
-                    'Version Updated',
-                    `${getConsentTitle(type)} updated to v${newVersion}`
+                    t('consent.versionUpdated'),
+                    t('consent.versionUpdatedMessage', {
+                      type: getConsentTitle(type),
+                      version: newVersion,
+                    })
                   );
-                  
+
                   // Reload cache
                   await consentService.reloadCache();
-                  
+
                   setEditingType(null);
                   setNewVersion('');
                   setDescription('');
@@ -121,7 +160,10 @@ export const ConsentManagement = () => {
                   throw new Error(result.message || 'Failed to update version');
                 }
               } catch (error: any) {
-                showErrorToast('Error', error?.message || 'Failed to update version');
+                showErrorToast(
+                  t('error'),
+                  error?.message || t('consent.failedToUpdate')
+                );
               }
             },
           },
@@ -146,7 +188,7 @@ export const ConsentManagement = () => {
 
   return (
     <ScreenLayout
-      title="Consent Management"
+      title={t('admin.consentManagement')}
       showTitle
       showBackButton
       onBackPress={() => navigation.goBack()}
@@ -164,16 +206,23 @@ export const ConsentManagement = () => {
       >
         {/* Header */}
         <View style={styles.headerCard}>
-          <FontAwesomeIcon icon={Icons.ShieldHalved} size={32} color={primaryColor} />
-          <Text style={styles.headerTitle}>Legal Documents</Text>
+          <FontAwesomeIcon
+            icon={Icons.ShieldHalved}
+            size={32}
+            color={primaryColor}
+          />
+          <Text style={styles.headerTitle}>{t('consent.legalDocuments')}</Text>
           <Text style={styles.headerSubtitle}>
-            Manage consent versions for Terms, Privacy, and Guidelines
+            {t('consent.manageVersions')}
           </Text>
         </View>
 
         {/* Versions List */}
-        {versions.map((item) => (
-          <View key={item.type} style={[styles.card, { backgroundColor: postBgColor }]}>
+        {versions.map(item => (
+          <View
+            key={item.type}
+            style={[styles.card, { backgroundColor: postBgColor }]}
+          >
             {/* Title */}
             <View style={styles.cardHeader}>
               <Text style={[styles.cardTitle, { color: primaryTextColor }]}>
@@ -190,15 +239,17 @@ export const ConsentManagement = () => {
               // Edit Mode
               <View style={styles.editContainer}>
                 <View style={styles.inputGroup}>
-                  <Text style={[styles.inputLabel, { color: secondaryTextColor }]}>
-                    New Version
+                  <Text
+                    style={[styles.inputLabel, { color: secondaryTextColor }]}
+                  >
+                    {t('consent.newVersion')}
                   </Text>
                   <TextInput
                     style={[
                       styles.input,
                       { color: primaryTextColor, borderColor: primaryColor },
                     ]}
-                    placeholder="e.g., 2.0"
+                    placeholder={t('consent.versionPlaceholder')}
                     placeholderTextColor={secondaryTextColor}
                     value={newVersion}
                     onChangeText={setNewVersion}
@@ -207,8 +258,10 @@ export const ConsentManagement = () => {
                 </View>
 
                 <View style={styles.inputGroup}>
-                  <Text style={[styles.inputLabel, { color: secondaryTextColor }]}>
-                    Description (optional)
+                  <Text
+                    style={[styles.inputLabel, { color: secondaryTextColor }]}
+                  >
+                    {t('consent.description')}
                   </Text>
                   <TextInput
                     style={[
@@ -216,7 +269,7 @@ export const ConsentManagement = () => {
                       styles.textArea,
                       { color: primaryTextColor, borderColor: primaryColor },
                     ]}
-                    placeholder="e.g., Updated for GDPR compliance"
+                    placeholder={t('consent.descriptionPlaceholder')}
                     placeholderTextColor={secondaryTextColor}
                     value={description}
                     onChangeText={setDescription}
@@ -227,20 +280,28 @@ export const ConsentManagement = () => {
 
                 <View style={styles.editButtons}>
                   <TouchableOpacity
-                    style={[styles.button, styles.cancelButton, { borderColor: warningColor }]}
+                    style={[
+                      styles.button,
+                      styles.cancelButton,
+                      { borderColor: warningColor },
+                    ]}
                     onPress={cancelEditing}
                   >
                     <Text style={[styles.buttonText, { color: warningColor }]}>
-                      Cancel
+                      {t('cancel')}
                     </Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={[styles.button, styles.saveButton, { backgroundColor: primaryColor }]}
+                    style={[
+                      styles.button,
+                      styles.saveButton,
+                      { backgroundColor: primaryColor },
+                    ]}
                     onPress={() => handleUpdateVersion(item.type)}
                   >
                     <Text style={[styles.buttonText, { color: 'black' }]}>
-                      Update
+                      {t('consent.update')}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -252,9 +313,15 @@ export const ConsentManagement = () => {
                   style={[styles.actionButton, { borderColor: primaryColor }]}
                   onPress={() => startEditing(item.type, item.currentVersion)}
                 >
-                  <FontAwesomeIcon icon={Icons.Pencil} size={16} color={primaryColor} />
-                  <Text style={[styles.actionButtonText, { color: primaryColor }]}>
-                    Update Version
+                  <FontAwesomeIcon
+                    icon={Icons.Pencil}
+                    size={16}
+                    color={primaryColor}
+                  />
+                  <Text
+                    style={[styles.actionButtonText, { color: primaryColor }]}
+                  >
+                    {t('consent.updateVersion')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -263,10 +330,15 @@ export const ConsentManagement = () => {
         ))}
 
         {/* Info Card */}
-        <View style={[styles.infoCard, { backgroundColor: 'rgba(16, 217, 185, 0.1)' }]}>
+        <View
+          style={[
+            styles.infoCard,
+            { backgroundColor: 'rgba(16, 217, 185, 0.1)' },
+          ]}
+        >
           <FontAwesomeIcon icon={Icons.Info} size={20} color={primaryColor} />
           <Text style={[styles.infoText, { color: primaryTextColor }]}>
-            When you update a version, all users will be required to accept the new terms on their next login.
+            {t('consent.updateInfo')}
           </Text>
         </View>
       </ScrollView>
@@ -399,7 +471,24 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 20,
   },
+  accessDeniedContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+    gap: 16,
+  },
+  accessDeniedTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: primaryTextColor,
+    textAlign: 'center',
+  },
+  accessDeniedText: {
+    fontSize: 16,
+    color: secondaryTextColor,
+    textAlign: 'center',
+  },
 });
 
 export default ConsentManagement;
-

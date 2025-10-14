@@ -25,6 +25,7 @@ import { useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 import { ReportDTO, reportService } from '../../services/reportService';
 import { useTranslation } from 'react-i18next';
+import { getLocales } from 'expo-localization';
 
 interface ReportItemProps {
   report: ReportDTO;
@@ -47,6 +48,30 @@ const ReportItem = ({ report, onReportPress }: ReportItemProps) => {
   const reasonStr = String(report.reason);
   const reasonColor = getReasonColor(report.reason);
   const isOtherReason = reasonStr.toUpperCase() === 'OTHER';
+
+  // Format timestamp with proper UTC parsing
+  const formatTimestamp = (dateString: string | undefined) => {
+    if (!dateString) return '';
+    
+    // Add Z suffix if missing to ensure UTC parsing
+    let isoString = dateString.replace(' ', 'T');
+    if (!isoString.endsWith('Z') && !isoString.includes('+') && !isoString.includes('-', 10)) {
+      isoString = isoString + 'Z';
+    }
+    
+    const date = new Date(isoString);
+    const locales = getLocales();
+    const userLocale = locales[0]?.languageTag || 'en-US';
+    
+    return date.toLocaleString(userLocale, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+  };
 
   return (
     <TouchableOpacity
@@ -93,7 +118,7 @@ const ReportItem = ({ report, onReportPress }: ReportItemProps) => {
 
           {report.createdAt && (
             <Text style={styles.reportTimestamp}>
-              {new Date(report.createdAt).toLocaleString()}
+              {formatTimestamp(report.createdAt)}
             </Text>
           )}
         </View>
@@ -114,6 +139,30 @@ export const ReportsManagement: React.FC = () => {
   const queryClient = useQueryClient();
   const navigation = useNavigation();
   const { t } = useTranslation();
+
+  // Format timestamp with proper UTC parsing
+  const formatTimestamp = (dateString: string | undefined) => {
+    if (!dateString) return '';
+    
+    // Add Z suffix if missing to ensure UTC parsing
+    let isoString = dateString.replace(' ', 'T');
+    if (!isoString.endsWith('Z') && !isoString.includes('+') && !isoString.includes('-', 10)) {
+      isoString = isoString + 'Z';
+    }
+    
+    const date = new Date(isoString);
+    const locales = getLocales();
+    const userLocale = locales[0]?.languageTag || 'en-US';
+    
+    return date.toLocaleString(userLocale, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+  };
 
   const [selectedReport, setSelectedReport] = useState<ReportDTO | null>(null);
   const [selectedFilter, setSelectedFilter] = useState<string>('ALL');
@@ -481,7 +530,7 @@ export const ReportsManagement: React.FC = () => {
                       {t('admin.reportedAt')}:
                     </Text>
                     <Text style={styles.detailValue}>
-                      {new Date(selectedReport.createdAt).toLocaleString()}
+                      {formatTimestamp(selectedReport.createdAt)}
                     </Text>
                   </View>
                 )}

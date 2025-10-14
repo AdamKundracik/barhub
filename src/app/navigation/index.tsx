@@ -15,7 +15,7 @@ import { OfflineScreen } from '../screens/shared/OfflineScreen';
 
 // Deep linking configuration for NotVerified navigator
 const notVerifiedLinking = {
-  prefixes: ['barhub://', 'https://barhub.app'],
+  prefixes: ['barhub://', 'https://barhubapp.com', 'https://www.barhubapp.com'],
   config: {
     screens: {
       EmailNotVerified: 'email-not-verified',
@@ -34,7 +34,7 @@ const notVerifiedLinking = {
 
 // Deep linking configuration for Auth navigator
 const authLinking = {
-  prefixes: ['barhub://', 'https://barhub.app'],
+  prefixes: ['barhub://', 'https://barhubapp.com', 'https://www.barhubapp.com'],
   config: {
     screens: {
       Login: 'login',
@@ -64,9 +64,18 @@ const authLinking = {
 
 // Deep linking configuration for main app
 const mainLinking = {
-  prefixes: ['barhub://', 'https://barhub.app'],
+  prefixes: ['barhub://', 'https://barhubapp.com', 'https://www.barhubapp.com'],
   config: {
     screens: {
+      MainTabs: {
+        path: '',
+        screens: {
+          Feed: 'feed',
+          PlaceSearch: 'search',
+          Account: 'account',
+          NotificationsScreen: 'notifications',
+        },
+      },
       PostDetail: {
         path: 'post/:postId',
         parse: {

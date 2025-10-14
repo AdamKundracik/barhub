@@ -382,6 +382,23 @@
     "info": "Wenn Sie glauben, dass dies ein Fehler ist, kontaktieren Sie bitte unser Support-Team.",
     "contact": "Kontaktieren Sie uns: support@barhub.com"
   },
+  "consent": {
+    "legalDocuments": "Rechtsdokumente",
+    "manageVersions": "Verwalten Sie Zustimmungsversionen für Bedingungen, Datenschutz und Richtlinien",
+    "newVersion": "Neue Version",
+    "versionPlaceholder": "z.B. 2.0",
+    "description": "Beschreibung (optional)",
+    "descriptionPlaceholder": "z.B. Aktualisiert für DSGVO",
+    "updateVersion": "Version Aktualisieren",
+    "update": "Aktualisieren",
+    "confirmUpdate": "Update Bestätigen",
+    "confirmUpdateMessage": "{{type}} auf Version {{version}} aktualisieren?\n\nAlle Benutzer müssen diese neue Version bei ihrer nächsten Anmeldung akzeptieren.",
+    "versionUpdated": "Version Aktualisiert",
+    "versionUpdatedMessage": "{{type}} auf v{{version}} aktualisiert",
+    "enterNewVersion": "Bitte geben Sie eine neue Version ein",
+    "failedToUpdate": "Fehler beim Aktualisieren der Version",
+    "updateInfo": "Wenn Sie eine Version aktualisieren, müssen alle Benutzer die neuen Bedingungen bei ihrer nächsten Anmeldung akzeptieren."
+  },
   "admin": {
     "panel": "Admin-Panel",
     "userManagement": "Benutzerverwaltung",

@@ -36,7 +36,9 @@ class PostService {
     }
   };
 
-  public deletePost = async (postId: string): Promise<{ success: boolean; message?: string }> => {
+  public deletePost = async (
+    postId: string
+  ): Promise<{ success: boolean; message?: string }> => {
     try {
       const response = await authService.makeAuthenticatedRequest(
         `${API_CONFIG.BASE_URL}${ENDPOINTS.POSTS.BY_ID(postId)}`,
@@ -62,7 +64,8 @@ class PostService {
       console.error('Error deleting post:', error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : 'Failed to delete post'
+        message:
+          error instanceof Error ? error.message : 'Failed to delete post',
       };
     }
   };
@@ -103,6 +106,7 @@ export const getFreshContent = async (
     }
 
     const data = await response.json();
+    console.log(data);
     // Map backend posts to frontend format
     const mappedPosts = mapBackendPostsToFrontend(data.posts || []);
 

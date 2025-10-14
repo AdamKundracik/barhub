@@ -73,6 +73,7 @@ export function useNotificationsHandler() {
           sentAt,
           notificationType,
           id,
+          postId,
         } = response.notification.request.content.data as {
           placeId: string;
           senderToken: string;
@@ -80,6 +81,7 @@ export function useNotificationsHandler() {
           sentAt: string;
           notificationType: string;
           id: string;
+          postId?: string;
         };
 
         // Prevent duplicate processing of the same notification
@@ -98,7 +100,12 @@ export function useNotificationsHandler() {
         switch (notificationType as NotificationType) {
           case NotificationType.LIKE:
           case NotificationType.COMMENT:
-            navigation.navigate('NotificationsList');
+            // Navigate to PostDetail if postId is available
+            if (postId) {
+              navigation.navigate('PostDetail', { postId });
+            } else {
+              navigation.navigate('NotificationsList');
+            }
             break;
 
           case NotificationType.REQUEST:
@@ -113,7 +120,12 @@ export function useNotificationsHandler() {
             break;
 
           case NotificationType.RESPONSE:
-            // prípadne spracovanie
+            // Navigate to PostDetail if postId is available
+            if (postId) {
+              navigation.navigate('PostDetail', { postId });
+            } else {
+              navigation.navigate('NotificationsList');
+            }
             break;
         }
       });

@@ -53,10 +53,19 @@ export const mapBackendPostToFrontend = (backendPost: any): Post => {
       timestamp = backendPost.createdAt;
       createdAtDate = new Date(timestamp);
     } 
-    // If it's a string (ISO format or LocalDateTime format "yyyy-MM-dd HH:mm:ss.SSSSSS")
+    // If it's a string (ISO format or LocalDateTime format)
     else if (typeof backendPost.createdAt === 'string') {
+      // Backend sends UTC time
       // Replace space with T if needed for proper ISO format
-      const isoString = backendPost.createdAt.replace(' ', 'T');
+      let isoString = backendPost.createdAt.replace(' ', 'T');
+      
+      // IMPORTANT: If backend sends UTC time WITHOUT 'Z' suffix, add it
+      // This ensures JavaScript parses it as UTC, not local time
+      if (!isoString.endsWith('Z') && !isoString.includes('+') && !isoString.includes('-', 10)) {
+        isoString = isoString + 'Z';
+      }
+      
+      // Parse as UTC time
       createdAtDate = new Date(isoString);
       timestamp = createdAtDate.getTime();
     }

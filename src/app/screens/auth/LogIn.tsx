@@ -104,7 +104,6 @@ export const LogIn = ({ navigation }: any) => {
         size="md"
         isDisabled={false}
         isReadOnly={false}
-        isRequired={true}
         style={styles.formControl}
         isInvalid={touched.email && !!errors.email}
       >
@@ -160,7 +159,6 @@ export const LogIn = ({ navigation }: any) => {
         size="md"
         isDisabled={false}
         isReadOnly={false}
-        isRequired={true}
         style={styles.formControl}
         isInvalid={touched.password && !!errors.password}
       >

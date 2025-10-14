@@ -16,7 +16,8 @@
     "ios": {
       "bundleIdentifier": "com.barhub.barhub",
       "associatedDomains": [
-        "applinks:expo.dev"
+        "applinks:barhubapp.com",
+        "applinks:www.barhubapp.com"
       ],
       "usesAppleSignIn": true,
       "googleServicesFile": "./GoogleService-Info.plist",
@@ -112,8 +113,13 @@
           "data": [
             {
               "scheme": "https",
-              "host": "*.myapp.io",
-              "pathPrefix": "/records"
+              "host": "barhubapp.com",
+              "pathPrefix": "/post"
+            },
+            {
+              "scheme": "https",
+              "host": "www.barhubapp.com",
+              "pathPrefix": "/post"
             }
           ],
           "category": [

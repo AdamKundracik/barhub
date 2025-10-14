@@ -414,21 +414,6 @@ export const AdminPanel: React.FC = () => {
               <Text style={styles.statLabel}>{t('admin.disabled')}</Text>
             </View>
           </View>
-
-          {/* Admin Actions */}
-          {isAdmin && (
-            <View style={styles.adminActionsContainer}>
-              <TouchableOpacity
-                style={[styles.adminActionButton, { borderColor: primaryColor }]}
-                onPress={() => (navigation as any).navigate('ConsentManagement')}
-              >
-                <FontAwesomeIcon icon={Icons.ShieldHalved} size={20} color={primaryColor} />
-                <Text style={[styles.adminActionText, { color: primaryColor }]}>
-                  Consent Management
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
         </View>
 
         {/* Search */}

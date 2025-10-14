@@ -11,6 +11,7 @@ import Animated, {
 import { PostReportModal } from '@/src/app/components/shared/Modals/ReportPostModal';
 import { ReportReason } from '@/src/app/utils/types/Feed/PostTypes';
 import { useTranslation } from 'react-i18next';
+import { getLocales } from 'expo-localization';
 import { UserInfo } from '@/shared';
 import {
   postBgColor,
@@ -28,7 +29,11 @@ import { useQueryClient } from 'react-query';
 import { usePlaceStore } from '@/src/app/utils/store/placesStore';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useUserStore } from '@/src/app/utils/store/userStore';
-import { Avatar, AvatarImage, AvatarFallbackText } from '@/components/ui/avatar';
+import {
+  Avatar,
+  AvatarFallbackText,
+  AvatarImage,
+} from '@/components/ui/avatar';
 
 // Enhanced More Options Button
 const MoreOptionsButton: React.FC<{ onPress: () => void }> = ({ onPress }) => {
@@ -87,7 +92,6 @@ const UserLineComponent = ({
   user,
   date,
   address,
-  postUserId,
   canDelete = false,
   canReport = false,
   canHighlight = false,
@@ -119,6 +123,8 @@ const UserLineComponent = ({
       if (date instanceof Date) {
         dateObj = date;
       } else if (typeof date === 'string' || typeof date === 'number') {
+        // Parse date string - if it has Z suffix, it's already UTC
+        // JavaScript will correctly convert to local time
         dateObj = new Date(date);
       } else if (
         typeof date === 'object' &&
@@ -136,6 +142,7 @@ const UserLineComponent = ({
         return '';
       }
 
+      // Calculate difference in current user's timezone
       const now = new Date();
       const diffInMinutes = Math.floor(
         (now.getTime() - dateObj.getTime()) / (1000 * 60)
@@ -146,22 +153,28 @@ const UserLineComponent = ({
       // Ak je menej ako 1 deň, používaj relatívny čas
       if (diffInDays < 1) {
         if (diffInMinutes < 1) {
-          return 'práve teraz';
+          return t('just-now') || 'práve teraz';
         } else if (diffInMinutes < 60) {
-          return `pred ${diffInMinutes} min`;
+          return `${t('ago')} ${diffInMinutes} min`;
         } else {
-          return `pred ${diffInHours}h`;
+          return `${t('ago')} ${diffInHours}h`;
         }
       }
 
-      // Ak je viac ako 1 deň, zobraz dátum a čas
-      const day = dateObj.getDate().toString().padStart(2, '0');
-      const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
-      const year = dateObj.getFullYear();
-      const hours = dateObj.getHours().toString().padStart(2, '0');
-      const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+      // Ak je viac ako 1 deň, zobraz dátum a čas v lokálnej časovej zóne
+      const locales = getLocales();
+      const userLocale = locales[0]?.languageTag || 'en-US';
 
-      return `${day}.${month}.${year}  ${hours}:${minutes}`;
+      const formattedDate = dateObj.toLocaleString(userLocale, {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+
+      return formattedDate;
     } catch (error) {
       console.error('Error formatting date:', error, date);
       return '';
@@ -229,7 +242,8 @@ const UserLineComponent = ({
       if (!targetPostId) return;
 
       try {
-        const result: { success: boolean; message?: string } = await postService.deletePost(targetPostId);
+        const result: { success: boolean; message?: string } =
+          await postService.deletePost(targetPostId);
         if (!result.success) {
           throw new Error(result.message || 'Failed to delete post');
         }
@@ -237,7 +251,7 @@ const UserLineComponent = ({
         // Invalidate all related queries after delete
         queryClient.invalidateQueries(['posts']); // Refresh main feed
         queryClient.invalidateQueries(['userHighlights']); // Refresh highlights (in case deleted post was highlighted)
-        
+
         if (targetPlaceId) {
           queryClient.invalidateQueries(['posts', targetPlaceId]); // Refresh place-specific feed
         }

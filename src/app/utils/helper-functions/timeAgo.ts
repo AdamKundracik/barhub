@@ -1,6 +1,10 @@
 export const timeAgo = (date: string): string => {
+  // Parse UTC date string (with Z suffix)
+  // JavaScript Date constructor correctly converts UTC to local time
   const creationDate = new Date(date);
   const now = new Date();
+  
+  // Calculate difference in seconds (works correctly across all timezones)
   const diffInSeconds = Math.floor(
     (now.getTime() - creationDate?.getTime()) / 1000
   );

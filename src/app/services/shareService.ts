@@ -3,7 +3,8 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { Post } from '@/common/types/postTypes';
 
 class ShareService {
-  private readonly BASE_URL = 'https://barhub.app';
+  // Use custom scheme for DEV, web URL for PROD (without trailing slash)
+  private readonly BASE_URL = __DEV__ ? 'barhub:/' : 'https://barhubapp.com';
   private readonly DEEP_LINK_SCHEME = 'barhub://';
 
   /**
@@ -12,11 +13,14 @@ class ShareService {
   async sharePost(post: Post): Promise<void> {
     try {
       const shareUrl = this.getPostUrl(post.id);
-      const message = this.buildShareMessage(post, shareUrl);
+      
+      // iOS automatically appends the URL from 'url' property, so don't include it in message
+      const messageWithUrl = this.buildShareMessage(post, shareUrl);
+      const messageWithoutUrl = this.buildShareMessage(post, '');
 
       const result = await Share.share(
         {
-          message: Platform.OS === 'ios' ? message : message,
+          message: Platform.OS === 'ios' ? messageWithoutUrl : messageWithUrl,
           url: Platform.OS === 'ios' ? shareUrl : undefined,
           title: `${post.placeName} - Barhub`,
         },
@@ -54,24 +58,19 @@ class ShareService {
   }
 
   /**
-   * Get deep link URL for a post
+   * Get deep link URL for a post (custom scheme)
    */
   getDeepLink(postId: string): string {
     return `${this.DEEP_LINK_SCHEME}post/${postId}`;
   }
 
   /**
-   * Get web URL for a post
+   * Get URL for a post (environment-aware)
+   * DEV: barhub://post/123
+   * PROD: https://barhubapp.com/post/123
    */
   getPostUrl(postId: string): string {
     return `${this.BASE_URL}/post/${postId}`;
-  }
-
-  /**
-   * Get short URL for a post (alternative format)
-   */
-  getShortUrl(postId: string): string {
-    return `${this.BASE_URL}/p/${postId}`;
   }
 
   /**
@@ -85,13 +84,15 @@ class ShareService {
     });
     const authorName = post.user?.displayName || 'Unknown';
 
-    return `📍 ${post.placeName}
+    const baseMessage = `📍 ${post.placeName}
 ${occupancyEmoji}
 📸 Photo by ${authorName}
 🕐 ${timestamp}
 
-Check out this photo on Barhub!
-${url}`;
+Check out this photo on Barhub!`;
+
+    // Add URL only if provided (Android needs it in message, iOS adds it separately)
+    return url ? `${baseMessage}\n${url}` : baseMessage;
   }
 
   /**

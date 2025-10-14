@@ -383,6 +383,23 @@
     "info": "Si crees que esto es un error, por favor contacta a nuestro equipo de soporte.",
     "contact": "Contáctanos: support@barhub.com"
   },
+  "consent": {
+    "legalDocuments": "Documentos Legales",
+    "manageVersions": "Administrar versiones de consentimientos para Términos, Privacidad y Directrices",
+    "newVersion": "Nueva Versión",
+    "versionPlaceholder": "ej., 2.0",
+    "description": "Descripción (opcional)",
+    "descriptionPlaceholder": "ej., Actualizado para GDPR",
+    "updateVersion": "Actualizar Versión",
+    "update": "Actualizar",
+    "confirmUpdate": "Confirmar Actualización",
+    "confirmUpdateMessage": "¿Actualizar {{type}} a versión {{version}}?\n\nTodos los usuarios deberán aceptar esta nueva versión en su próximo inicio de sesión.",
+    "versionUpdated": "Versión Actualizada",
+    "versionUpdatedMessage": "{{type}} actualizado a v{{version}}",
+    "enterNewVersion": "Por favor ingrese una nueva versión",
+    "failedToUpdate": "Error al actualizar versión",
+    "updateInfo": "Cuando actualice una versión, todos los usuarios deberán aceptar los nuevos términos en su próximo inicio de sesión."
+  },
   "admin": {
     "panel": "Panel de Administración",
     "userManagement": "Gestión de Usuarios",

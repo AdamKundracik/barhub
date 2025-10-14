@@ -380,7 +380,6 @@
   "no-data": "No data",
   "explore": "Explore",
   "search": "Search",
-  "no-search-history": "No search history",
   "yearly": "Year",
   "camera": {
     "fakeLocationBlocked": "Cannot open camera with fake location",
@@ -434,6 +433,23 @@
     "message": "Your account has been disabled by an administrator.",
     "info": "If you believe this is an error, please contact our support team.",
     "contact": "Contact us: support@barhub.com"
+  },
+  "consent": {
+    "legalDocuments": "Legal Documents",
+    "manageVersions": "Manage consent versions for Terms, Privacy, and Guidelines",
+    "newVersion": "New Version",
+    "versionPlaceholder": "e.g., 2.0",
+    "description": "Description (optional)",
+    "descriptionPlaceholder": "e.g., Updated for GDPR compliance",
+    "updateVersion": "Update Version",
+    "update": "Update",
+    "confirmUpdate": "Confirm Update",
+    "confirmUpdateMessage": "Update {{type}} to version {{version}}?\n\nAll users will need to accept this new version on their next login.",
+    "versionUpdated": "Version Updated",
+    "versionUpdatedMessage": "{{type}} updated to v{{version}}",
+    "enterNewVersion": "Please enter a new version",
+    "failedToUpdate": "Failed to update version",
+    "updateInfo": "When you update a version, all users will be required to accept the new terms on their next login."
   },
   "admin": {
     "panel": "Admin Panel",
