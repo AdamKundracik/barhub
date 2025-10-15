@@ -58,10 +58,11 @@ export const usePermissions = () => {
     try {
       const granted = await permissionRequestMap[type]();
 
+      const finalValue = type === 'tracking' ? Platform.OS === 'android' || granted : granted;
+
       setPermissions(prev => ({
         ...prev,
-        [type]:
-          type === 'tracking' ? Platform.OS === 'android' || granted : granted,
+        [type]: finalValue,
       }));
 
       return granted;

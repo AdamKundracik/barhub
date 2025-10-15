@@ -235,7 +235,21 @@
     "alreadyGranted": "Bereits Gewährt",
     "continue": "Weiter",
     "granted": "Gewährt",
-    "check-for-permissions": "Berechtigungen überprüfen"
+    "check-for-permissions": "Berechtigungen überprüfen",
+    "welcome": "Willkommen bei Barhub!",
+    "subtitle": "Wir benötigen Ihre Berechtigungen für die beste Erfahrung",
+    "step": "Schritt",
+    "of": "von",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "skipForNow": "Vorerst überspringen",
+    "readyToUse": "Die App ist bereit zur Nutzung!",
+    "openSettings": "Einstellungen öffnen",
+    "allowInSettings": "Bitte erlauben Sie diese Berechtigung in den App-Einstellungen",
+    "skipTitle": "Berechtigungen überspringen?",
+    "skipMessage": "Einige App-Funktionen funktionieren ohne diese Berechtigungen nicht ordnungsgemäß.",
+    "skipConfirm": "Überspringen",
+    "getStarted": "Loslegen"
   },
   "uploadPost": {
     "successTitle": "Beitrag gespeichert",

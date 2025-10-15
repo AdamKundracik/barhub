@@ -21,6 +21,7 @@ import { useAppInitialization } from './src/app/utils/hooks/useInitializationApp
 import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
 import '@/global.css';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
@@ -33,26 +34,28 @@ export default function App() {
   useAppInitialization();
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <GluestackUIProvider mode="dark">
-        <QueryClientProvider client={queryClient}>
-          <I18nextProvider i18n={i18n}>
-            <AuthProvider>
-              <NetworkProvider>
-                <AppStateProvider>
-                  <PermissionsProvider>
-                    <RevenueCatProvider>
-                      <BottomSheetModalProvider>
-                        <Navigation />
-                      </BottomSheetModalProvider>
-                    </RevenueCatProvider>
-                  </PermissionsProvider>
-                </AppStateProvider>
-              </NetworkProvider>
-            </AuthProvider>
-          </I18nextProvider>
-        </QueryClientProvider>
-      </GluestackUIProvider>
-    </GestureHandlerRootView>
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <GluestackUIProvider mode="dark">
+          <QueryClientProvider client={queryClient}>
+            <I18nextProvider i18n={i18n}>
+              <AuthProvider>
+                <NetworkProvider>
+                  <AppStateProvider>
+                    <PermissionsProvider>
+                      <RevenueCatProvider>
+                        <BottomSheetModalProvider>
+                          <Navigation />
+                        </BottomSheetModalProvider>
+                      </RevenueCatProvider>
+                    </PermissionsProvider>
+                  </AppStateProvider>
+                </NetworkProvider>
+              </AuthProvider>
+            </I18nextProvider>
+          </QueryClientProvider>
+        </GluestackUIProvider>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }

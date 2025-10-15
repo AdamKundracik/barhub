@@ -7,6 +7,12 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "scheme": "barhub",
+    "linking": {
+      "prefixes": [
+        "https://barhubapp.com",
+        "https://www.barhubapp.com"
+      ]
+    },
     "entryPoint": "./index.js",
     "splash": {
       "image": "./assets/splash.png",

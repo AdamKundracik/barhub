@@ -333,6 +333,7 @@ const UserPost: React.FC<UserPostProps> = ({
           canReport={post.canReport}
           canHighlight={post.canHighlight}
           isHighlighted={isHighlighted}
+          imageUrl={photoUrl}
           onPress={handleNavigateToDetail}
           onShare={handleShare}
         />

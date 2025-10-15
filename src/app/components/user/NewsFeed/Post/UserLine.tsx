@@ -82,6 +82,7 @@ type Props = {
   canReport?: boolean; // Permission from backend
   canHighlight?: boolean; // Permission from backend
   isHighlighted?: boolean; // Current highlight state
+  imageUrl?: string; // Post image URL for saving to gallery
   onPress?: () => void; // Optional callback when UserLine is pressed
   onShare?: () => void; // Optional callback for sharing post
   onHighlightChange?: (isHighlighted: boolean) => void; // Callback when highlight state changes
@@ -96,6 +97,7 @@ const UserLineComponent = ({
   canReport = false,
   canHighlight = false,
   isHighlighted = false,
+  imageUrl,
   onPress,
   onShare,
   onHighlightChange,
@@ -452,6 +454,7 @@ const UserLineComponent = ({
         showReport={canReport}
         showHighlight={canHighlight}
         isHighlighted={localIsHighlighted}
+        imageUrl={imageUrl}
         visible={isOptionsModalOpen}
         onClose={() => setIsOptionsModalOpen(false)}
         onDelete={handleDelete}

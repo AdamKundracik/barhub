@@ -16,7 +16,7 @@ import { setGlobalUnsubscribeNotifications } from '../providers/AuthProvider';
 
 // Deep linking configuration for NotVerified navigator
 const notVerifiedLinking = {
-  prefixes: ['barhub://', 'https://barhubapp.com'],
+  prefixes: ['https://barhubapp.com', 'https://www.barhubapp.com'],
   config: {
     screens: {
       EmailNotVerified: 'email-not-verified',
@@ -35,7 +35,7 @@ const notVerifiedLinking = {
 
 // Deep linking configuration for Auth navigator
 const authLinking = {
-  prefixes: ['barhub://', 'https://barhubapp.com', 'https://www.barhubapp.com'],
+  prefixes: ['https://barhubapp.com', 'https://www.barhubapp.com'],
   config: {
     screens: {
       Login: 'login',
@@ -65,7 +65,7 @@ const authLinking = {
 
 // Deep linking configuration for main app
 const mainLinking = {
-  prefixes: ['barhub://', 'https://barhubapp.com', 'https://www.barhubapp.com'],
+  prefixes: ['https://barhubapp.com', 'https://www.barhubapp.com'],
   config: {
     screens: {
       MainTabs: {
@@ -73,8 +73,7 @@ const mainLinking = {
         screens: {
           Feed: 'feed',
           PlaceSearch: 'search',
-          Account: 'account',
-          NotificationsScreen: 'notifications',
+          Profile: 'profile',
         },
       },
       PostDetail: {
@@ -83,6 +82,11 @@ const mainLinking = {
           postId: (postId: string) => postId,
         },
       },
+      PhotoResolver: 'photo-resolver',
+      PostSummary: 'post-summary',
+      NotificationsList: 'notifications',
+      Info: 'info',
+      AdminPanel: 'admin',
     },
   },
 };

@@ -7,6 +7,12 @@ export enum RoleEnum {
   ADMIN = 'ADMIN'
 }
 
+export enum AuthTypeEnum {
+  GOOGLE = 'GOOGLE',
+  APPLE = 'APPLE',
+  EMAIL_PASSWORD = 'EMAIL_PASSWORD',
+}
+
 // Base types
 export interface AbstractEntityDTO {
   id: number;
@@ -37,6 +43,7 @@ export interface ClientDTO extends AbstractAuditableEntityDTO {
   photoUrl?: string;
   premium: boolean;
   role: RoleEnum;
+  authType: AuthTypeEnum;
   pushTokens: string[];
   searchHistory: SearchHistoryItemEmbeddable[];
 }

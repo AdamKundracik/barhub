@@ -26,6 +26,7 @@ import EditProfile from '../../components/user/Account/EditProfile';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { useUserData } from '@/src/app/hooks/useUserQuery';
+import { AuthTypeEnum } from '@/src/app/types/dto';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import {
   Avatar,
@@ -214,6 +215,11 @@ export const Account = () => {
     if (!userData?.dateOfBirth) return t('date-of-birth-not-set');
     return new Date(userData.dateOfBirth).toLocaleDateString();
   }, [userData?.dateOfBirth, t]);
+
+  // Check if user can change password (only for EMAIL_PASSWORD auth type)
+  const canChangePassword = useMemo(() => {
+    return userData?.authType === AuthTypeEnum.EMAIL_PASSWORD;
+  }, [userData?.authType]);
 
   const confirmSignOut = () => {
     Alert.alert(
@@ -520,12 +526,14 @@ export const Account = () => {
 
           <View style={styles.cardContent}>
             <View style={{ gap: 16 }}>
-              <ActionButton
-                icon={Icons.Lock}
-                title={t('change-password-title')}
-                description={t('update-password')}
-                onPress={() => navigation.navigate('PasswordChangeScreen')}
-              />
+              {canChangePassword && (
+                <ActionButton
+                  icon={Icons.Lock}
+                  title={t('change-password-title')}
+                  description={t('update-password')}
+                  onPress={() => navigation.navigate('PasswordChangeScreen')}
+                />
+              )}
 
               <ActionButton
                 icon={Icons.Help}

@@ -19,6 +19,7 @@ import {
   bottomModalBgColor,
   warningColor,
 } from '@/src/app/utils/styles/colors';
+import { saveImageToGallery, showSaveResultAlert } from '@/src/app/utils/helper-functions/saveImageToGallery';
 
 type PostOptionsModalProps = {
   visible: boolean;
@@ -26,6 +27,7 @@ type PostOptionsModalProps = {
   showReport?: boolean; // From backend canReport permission
   showHighlight?: boolean; // From backend canHighlight permission
   isHighlighted?: boolean; // Current highlight state
+  imageUrl?: string; // URL of the post image for saving
   onClose: () => void;
   onDelete: () => Promise<void> | void;
   onReport: () => void; // otvorí Report modal
@@ -40,6 +42,7 @@ export const PostOptionsModal = ({
   onReport,
   onHighlight,
   onShare,
+  imageUrl,
   showDelete = false,
   showReport = true,
   showHighlight = false,
@@ -80,10 +83,23 @@ export const PostOptionsModal = ({
     }
   };
 
+  const handleSaveToGallery = async () => {
+    if (!imageUrl) return;
+    
+    try {
+      setLoading(true);
+      const result = await saveImageToGallery(imageUrl);
+      showSaveResultAlert(result, t);
+    } finally {
+      setLoading(false);
+      onClose();
+    }
+  };
+
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
-      snapPoints={['35%']}
+      snapPoints={['40%']}
       backdropComponent={renderBackdrop}
       onDismiss={onClose}
       backgroundStyle={styles.container}
@@ -104,6 +120,20 @@ export const PostOptionsModal = ({
             <View style={styles.optionRow}>
               <Text style={styles.optionText}>{t('share-post')}</Text>
               <FontAwesomeIcon icon={Icons.Share} size={16} color="white" />
+            </View>
+          </TouchableOpacity>
+        )}
+
+        {imageUrl && (
+          <TouchableOpacity
+            style={styles.option}
+            activeOpacity={0.7}
+            onPress={handleSaveToGallery}
+            disabled={loading}
+          >
+            <View style={styles.optionRow}>
+              <Text style={styles.optionText}>{t('save-to-gallery')}</Text>
+              <FontAwesomeIcon icon={Icons.Download} size={16} color="white" />
             </View>
           </TouchableOpacity>
         )}
