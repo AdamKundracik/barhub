@@ -26,7 +26,8 @@ import { Post } from '@/common/types/postTypes';
  *   user: {
  *     id: Long,
  *     name: String,
- *     photoUrl: String
+ *     photoUrl: String,
+ *     role: RoleEnum
  *   }
  * }
  */
@@ -113,11 +114,12 @@ export const mapBackendPostToFrontend = (backendPost: any): Post => {
     timestamp = Date.now();
   }
   
-  // Map user info (PostAuthorDTO: id, name, photoUrl)
+  // Map user info (PostAuthorDTO: id, name, photoUrl, role)
   const userInfo = backendPost.user ? {
     id: backendPost.user.id?.toString() || '',
     displayName: backendPost.user.name || 'Unknown',
     photoUrl: backendPost.user.photoUrl || '',
+    role: backendPost.user.role || 'USER', // Default to USER if not specified
   } : undefined;
   
   const mappedPost = {

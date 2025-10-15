@@ -26,14 +26,12 @@ import { Divider } from '@/components/ui/divider';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import * as Icons from '@fortawesome/free-solid-svg-icons';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
-import { useNotificationsHandler } from '@/src/app/components/user/NewsFeed/NotificationHandler';
 
 const EmailNotVerified = () => {
   const { t } = useTranslation();
   const [resending, setResending] = useState(false);
   const [checking, setChecking] = useState(false);
   const { showSuccessToast, showErrorToast } = useCustomToast();
-  const { unsubscribeNotifications } = useNotificationsHandler();
   const { user, refreshUser, logout } = useAuth();
 
   const userEmail = user?.email || '';
@@ -126,9 +124,6 @@ const EmailNotVerified = () => {
         style: 'destructive',
         onPress: async () => {
           try {
-            // Unsubscribe from notifications
-            unsubscribeNotifications();
-
             // Sign out using AuthProvider (push token removal is handled there)
             await logout();
 

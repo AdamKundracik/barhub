@@ -35,7 +35,6 @@ import {
 import * as MailComposer from 'expo-mail-composer';
 import { BlurView } from 'expo-blur';
 import { useAuth } from '../../providers/AuthProvider';
-import { useNotificationsHandler } from '@/src/app/components/user/NewsFeed/NotificationHandler';
 import { userService } from '@/src/app/services/userService';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useUserRole } from '@/src/app/hooks/useUserRole';
@@ -183,7 +182,6 @@ export const Account = () => {
   const { t } = useTranslation();
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
-  const { unsubscribeNotifications } = useNotificationsHandler();
   const { currentPushToken, getUserId } = useUserStore();
   const { isAdmin, isModerator } = useUserRole();
   const userId = getUserId();
@@ -245,8 +243,6 @@ export const Account = () => {
 
   const handleSignOut = async () => {
     try {
-      unsubscribeNotifications();
-
       // Use new backend logout (push token removal is handled in AuthProvider)
       await logout();
       showSuccessToast(t('you-have-been-signed-out'));
@@ -258,8 +254,6 @@ export const Account = () => {
 
   const handleDeleteAccount = async () => {
     try {
-      unsubscribeNotifications();
-
       // First remove push token from backend (before account deletion)
       if (currentPushToken && userData?.id) {
         try {

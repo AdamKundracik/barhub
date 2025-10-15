@@ -1,5 +1,6 @@
 import { API_CONFIG, ENDPOINTS } from '../config/api';
 import { authService } from './authService';
+import { useUserStore } from '../utils/store/userStore';
 
 class EmailVerificationService {
   /**
@@ -38,10 +39,20 @@ class EmailVerificationService {
    */
   async resendVerificationEmail(): Promise<void> {
     try {
+      // Get current user email from store
+      const userEmail = useUserStore.getState().getEmail();
+      if (!userEmail) {
+        throw new Error('User email not found');
+      }
+
       const response = await authService.makeAuthenticatedRequest(
         `${API_CONFIG.BASE_URL}${ENDPOINTS.AUTH.RESEND_VERIFICATION_EMAIL}`,
         {
           method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email: userEmail }),
         }
       );
 

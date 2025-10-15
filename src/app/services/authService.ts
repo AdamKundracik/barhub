@@ -117,6 +117,7 @@ class AuthService {
           } catch (emailError) {
             console.error('Failed to send verification email:', emailError);
             // Don't throw - registration was successful even if email fails
+            // User can manually request verification email later
           }
         }
       }
@@ -202,6 +203,7 @@ class AuthService {
           } catch (emailError) {
             console.error('Failed to send verification email:', emailError);
             // Don't throw - registration was successful even if email fails
+            // User can manually request verification email later
           }
         }
       }

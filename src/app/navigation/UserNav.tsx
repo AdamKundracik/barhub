@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import PhotoResolver from '../screens/user/Post/PhotoResolver';
 import Subscription from '../screens/user/Subscription';
@@ -17,10 +17,23 @@ import { ReportsManagement } from '@/src/app/screens/user/ReportsManagement';
 import TermsOfService from '../screens/auth/LegalDocuments/TermsOfService';
 import PrivacyPolicy from '../screens/auth/LegalDocuments/PrivacyPolicy';
 import CommunityGuidelines from '../screens/auth/LegalDocuments/CommunityGuidelines';
+import { useNotificationsHandler } from '../components/user/NewsFeed/NotificationHandler';
+import { setGlobalUnsubscribeNotifications } from '../providers/AuthProvider';
 
 const RootStack = createNativeStackNavigator();
 
 export function UserNav() {
+  // Initialize notifications handler for authenticated users
+  const { unsubscribeNotifications } = useNotificationsHandler();
+  
+  // Set global reference for AuthProvider to use during logout
+  useEffect(() => {
+    setGlobalUnsubscribeNotifications(unsubscribeNotifications);
+    return () => {
+      setGlobalUnsubscribeNotifications(null);
+    };
+  }, [unsubscribeNotifications]);
+
   return (
     <RootStack.Navigator
       initialRouteName="MainTabs"

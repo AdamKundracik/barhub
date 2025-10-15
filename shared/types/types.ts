@@ -52,6 +52,7 @@ export interface UserInfo {
   displayName: string;
   photoUrl: string;
   expoPushToken?: string;
+  role?: 'USER' | 'MODERATOR' | 'ADMIN';
 }
 
 // Legacy type - use Post from @/common/types/postTypes instead

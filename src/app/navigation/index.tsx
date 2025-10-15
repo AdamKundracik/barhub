@@ -12,10 +12,11 @@ import { useAuth } from '../providers/AuthProvider';
 import { useNetwork } from '../providers/NetworkProvider';
 import { NetworkTopBar } from '../components/shared/NetworkTopBar';
 import { OfflineScreen } from '../screens/shared/OfflineScreen';
+import { setGlobalUnsubscribeNotifications } from '../providers/AuthProvider';
 
 // Deep linking configuration for NotVerified navigator
 const notVerifiedLinking = {
-  prefixes: ['barhub://', 'https://barhubapp.com', 'https://www.barhubapp.com'],
+  prefixes: ['barhub://', 'https://barhubapp.com'],
   config: {
     screens: {
       EmailNotVerified: 'email-not-verified',
@@ -93,6 +94,7 @@ export const Navigation = () => {
   const { hasAllPermissions, checkAllPermissions } = usePermissionsContext();
   const { appState } = useAppState();
   const { isConnected, isLoading: isNetworkLoading } = useNetwork();
+
 
   // Check if email is verified
   const isEmailVerified = user?.emailVerified ?? false;

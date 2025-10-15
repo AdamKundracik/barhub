@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../providers/AuthProvider';
 import { consentService } from '../services/consentService';
 import { AcceptConsentRequestDTO } from '../types/dto';
+import { isValidUnicodeUsername, getUnicodeValidationMessage } from '../utils/validation/unicodeValidation';
 
 export interface RegisterFormData {
   email: string;
@@ -98,6 +99,11 @@ export const useRegisterForm = (t: (key: string, options?: any) => string) => {
       case 'username':
         if (!value) return t('username-required');
         if (value.trim().length < 3) return t('too-short');
+        if (!isValidUnicodeUsername(value)) {
+          return getUnicodeValidationMessage(value).includes('emoji') 
+            ? t('username-invalid-characters')
+            : t('username-standard-chars-only');
+        }
         break;
       case 'password':
         if (!value) return t('password-required');
@@ -254,6 +260,7 @@ export const useRegisterForm = (t: (key: string, options?: any) => string) => {
       formData.repeatPassword !== '' &&
       formData.username !== '' &&
       formData.username.trim().length >= 3 &&
+      isValidUnicodeUsername(formData.username) &&
       formData.acceptsTermsOfUse &&
       formData.acceptsPrivacyPolicy &&
       formData.acceptsCommunityGuidelines &&

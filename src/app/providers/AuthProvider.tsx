@@ -25,6 +25,13 @@ import { signInWithApple as appleSignIn, isAppleSignInAvailable } from '../servi
 import { consentService } from '../services/consentService';
 import { OutdatedConsentDTO, JwtAuthenticationResponseDTO } from '../types/dto';
 
+// Global reference to unsubscribe function (set by Navigation component)
+let globalUnsubscribeNotifications: (() => void) | null = null;
+
+export const setGlobalUnsubscribeNotifications = (fn: (() => void) | null) => {
+  globalUnsubscribeNotifications = fn;
+};
+
 // Types
 interface AuthContextType {
   user: User | null;
@@ -366,6 +373,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     try {
       setIsLoading(true);
+
+      // Unsubscribe from notifications first
+      if (globalUnsubscribeNotifications) {
+        globalUnsubscribeNotifications();
+      }
 
       // Remove push token from backend BEFORE clearing auth tokens
       if (user) {

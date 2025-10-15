@@ -31,6 +31,7 @@ import { useLocales } from 'expo-localization';
 import { ClientDTO } from '@/src/app/types/dto';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useUserData } from '@/src/app/hooks/useUserQuery';
+import { isValidUnicodeUsername, getUnicodeValidationMessage } from '@/src/app/utils/validation/unicodeValidation';
 import {
   Avatar,
   AvatarFallbackText,
@@ -80,17 +81,34 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
   const [datePickerOpened, setDatePickerOpened] = useState(false);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
   const [dateError, setDateError] = useState<string>('');
+  const [usernameError, setUsernameError] = useState<string>('');
 
   // Track original values to detect changes
   const originalUsername = displayName;
   const originalBirthDate = user?.dateOfBirth ? new Date(user.dateOfBirth) : new Date();
 
   function validateInputs(): boolean {
-    return !username || username.trim().length === 0 || !!dateError;
+    return !username || username.trim().length === 0 || !!dateError || !!usernameError;
   }
 
   const isUsernameInvalid = (): boolean => {
-    return !username || username.trim().length === 0;
+    return !username || username.trim().length === 0 || !!usernameError;
+  };
+
+  const validateUsername = (value: string): void => {
+    if (!value || value.trim().length === 0) {
+      setUsernameError('');
+      return;
+    }
+    
+    if (!isValidUnicodeUsername(value)) {
+      const errorMsg = getUnicodeValidationMessage(value);
+      setUsernameError(errorMsg.includes('emoji') 
+        ? t('username-invalid-characters')
+        : t('username-standard-chars-only'));
+    } else {
+      setUsernameError('');
+    }
   };
 
   // Check if any data has changed
@@ -344,7 +362,10 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
                 type="text"
                 placeholder={t('enter-username')}
                 value={username || ''}
-                onChangeText={setUsername}
+                onChangeText={(value) => {
+                  setUsername(value);
+                  validateUsername(value);
+                }}
                 style={styles.inputField}
                 maxLength={30}
                 onFocus={() => setFocusedInput('username')}
@@ -356,7 +377,7 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
               <FormControlError>
                 <FormControlErrorIcon as={AlertCircleIcon} />
                 <FormControlErrorText style={styles.errorText}>
-                  {t('username-required')}
+                  {usernameError || t('username-required')}
                 </FormControlErrorText>
               </FormControlError>
             )}

@@ -133,7 +133,7 @@ export function useNotificationsHandler() {
     return () => {
       unsubscribeNotifications(); // iba cleanup listenerov
     };
-  }, []);
+  }, [refetch, navigation, t]);
 
   return { expoPushToken, unsubscribeNotifications, removePushToken };
 }

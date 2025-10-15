@@ -290,6 +290,7 @@ export const Register = () => {
                 autoComplete="username"
                 returnKeyType="next"
                 blurOnSubmit={false}
+                maxLength={30}
               />
             </Input>
             {!shouldShowError('username') && formData.username.length === 0 && (
@@ -299,6 +300,7 @@ export const Register = () => {
                 </FormControlHelperText>
               </FormControlHelper>
             )}
+            <Text style={styles.charCount}>{formData.username?.length || 0}/30</Text>
             {!shouldShowError('username') &&
               formData.username.length > 0 &&
               formData.username.length < 3 && (
@@ -834,6 +836,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
     lineHeight: 18,
     fontStyle: 'italic',
+  },
+  charCount: {
+    fontSize: 12,
+    color: secondaryTextColor,
+    textAlign: 'right',
+    marginTop: 6,
   },
   buttonContainer: {
     marginTop: 24,

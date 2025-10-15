@@ -407,6 +407,16 @@ const UserLineComponent = ({
               <Text style={styles.name} numberOfLines={1}>
                 {safeUserName}
               </Text>
+              {user?.role === 'ADMIN' && (
+                <View style={styles.roleBadge}>
+                  <View style={[styles.roleDot, { backgroundColor: '#FF6B6B' }]} />
+                </View>
+              )}
+              {user?.role === 'MODERATOR' && (
+                <View style={styles.roleBadge}>
+                  <View style={[styles.roleDot, { backgroundColor: '#007AFF' }]} />
+                </View>
+              )}
               {localIsHighlighted && (
                 <View style={styles.highlightBadge}>
                   <FontAwesomeIcon
@@ -542,6 +552,16 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderWidth: 1,
     borderColor: 'rgba(255, 193, 7, 0.3)',
+  },
+  roleBadge: {
+    marginLeft: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  roleDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   addressRow: {
     marginBottom: 2,

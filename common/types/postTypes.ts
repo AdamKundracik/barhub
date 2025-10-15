@@ -48,12 +48,13 @@ export interface Post {
   canHighlight: boolean; // Current user can highlight this post
   isHighlighted: boolean; // Post is currently highlighted (pinned)
   
-  // User info (PostAuthorDTO: id, name, photoUrl)
+  // User info (PostAuthorDTO: id, name, photoUrl, role)
   user?: {
     id: string;
     displayName: string; // Maps to 'name' from PostAuthorDTO
     photoUrl: string;
     expoPushToken?: string; // Optional, for notifications
+    role?: 'USER' | 'MODERATOR' | 'ADMIN'; // From PostAuthorDTO.role
   };
   
   // Legacy/Frontend-only fields
