@@ -285,6 +285,22 @@
     "customReasonPlaceholder": "Escribe tu motivo para reportar...",
     "customReasonRequired": "El motivo es requerido"
   },
+  "reportUser": {
+    "title": "Reportar usuario",
+    "chooseReason": "Elige un motivo para reportar este usuario",
+    "spam": "Spam",
+    "inappropriate": "Comportamiento inapropiado",
+    "harassment": "Acoso",
+    "other": "Otro",
+    "submit": "Reportar",
+    "successTitle": "Reporte enviado",
+    "successDescription": "Gracias por su reporte, nuestro equipo lo revisará.",
+    "confirmTitle": "Confirmar reporte",
+    "confirmMessage": "¿Realmente quieres reportar este usuario como {{reason}}?",
+    "customReasonTitle": "Motivo Personalizado",
+    "customReasonPlaceholder": "Escribe tu motivo para reportar este usuario...",
+    "customReasonRequired": "El motivo es requerido"
+  },
   "uploadPost": {
     "successTitle": "Publicación guardada",
     "successDescription": "¡La publicación se ha guardado con éxito! Gracias por contribuir"
@@ -451,6 +467,7 @@
     "deleteReport": "Eliminar reporte",
     "deleteReportConfirm": "¿Estás seguro de que quieres eliminar este reporte?",
     "reportDeleted": "Reporte eliminado con éxito",
+    "viewPost": "Ver publicación",
     "spam": "Spam",
     "inappropriate": "Inapropiado",
     "harassment": "Acoso",
@@ -458,7 +475,13 @@
     "all": "Todos",
     "reportReason": "Razón",
     "postId": "ID de publicación",
+    "reportedUserId": "ID de usuario reportado",
+    "reportedUser": "Usuario reportado",
+    "postReports": "Publicaciones",
+    "userReports": "Usuarios",
+    "reporter": "Reportero",
     "reporterId": "ID del reportero",
+    "reportedAt": "Reportado el",
     "description": "Descripción",
     "noDescription": "Sin descripción"
   },

@@ -21,7 +21,8 @@ import { ScreenLayout } from '../../components/shared/Layouts/ScreenLayout';
 import { BlurView } from 'expo-blur';
 import { useCustomToast } from '../../components/shared/Toaster';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { UserStackList } from '../../utils/types/screen-types';
 import { FlashList } from '@shopify/flash-list';
 import { ReportDTO, reportService } from '../../services/reportService';
 import { useTranslation } from 'react-i18next';
@@ -48,6 +49,10 @@ const ReportItem = ({ report, onReportPress }: ReportItemProps) => {
   const reasonStr = String(report.reason);
   const reasonColor = getReasonColor(report.reason);
   const isOtherReason = reasonStr.toUpperCase() === 'OTHER';
+  
+  // Determine report type
+  const isUserReport = !!report.reportedUserId;
+  const isPostReport = !!report.postId;
 
   // Format timestamp with proper UTC parsing
   const formatTimestamp = (dateString: string | undefined) => {
@@ -81,7 +86,11 @@ const ReportItem = ({ report, onReportPress }: ReportItemProps) => {
     >
       <View style={styles.reportItemLeft}>
         <View style={styles.reportIcon}>
-          <FontAwesomeIcon icon={Icons.Warning} size={20} color={reasonColor} />
+          <FontAwesomeIcon 
+            icon={isUserReport ? Icons.User : Icons.Warning} 
+            size={20} 
+            color={reasonColor} 
+          />
         </View>
 
         <View style={styles.reportInfo}>
@@ -109,7 +118,16 @@ const ReportItem = ({ report, onReportPress }: ReportItemProps) => {
           )}
 
           <View style={styles.reportMeta}>
-            <Text style={styles.metaText}>Post ID: {report.postId}</Text>
+            {isUserReport ? (
+              <>
+                <Text style={styles.metaText}>
+                  User: {report.reportedUserName || `User #${report.reportedUserId}`}
+                </Text>
+                <Text style={styles.metaText}>(ID: {report.reportedUserId})</Text>
+              </>
+            ) : (
+              <Text style={styles.metaText}>Post ID: {report.postId}</Text>
+            )}
             <Text style={styles.metaText}>•</Text>
             <Text style={styles.metaText}>
               Reporter: {report.userName || `User #${report.userId}`}
@@ -137,7 +155,7 @@ export const ReportsManagement: React.FC = () => {
   const { isAdmin, isModerator } = useUserRole();
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const queryClient = useQueryClient();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
 
   // Format timestamp with proper UTC parsing
@@ -228,38 +246,43 @@ export const ReportsManagement: React.FC = () => {
     ]);
   }, [selectedReport, deleteReportMutation, t]);
 
+  const handleViewPost = useCallback(() => {
+    if (!selectedReport?.postId) return;
+    
+    // Navigate to post detail
+    navigation.navigate('PostDetail', { postId: selectedReport.postId.toString() });
+    setSelectedReport(null);
+  }, [selectedReport, navigation]);
+
   // Filter reports by selected type
   const filteredReports = useMemo(() => {
-    // console.log('[ReportsManagement] === FILTERING ===');
-    // console.log('[ReportsManagement] Total reports:', reports.length);
-    // console.log(
-    //   '[ReportsManagement] Reports data:',
-    // JSON.stringify(reports, null, 2)
-    // );
-    // console.log('[ReportsManagement] Selected filter:', selectedFilter);
-
     if (selectedFilter === 'ALL') {
-      // console.log('[ReportsManagement] Returning all reports:', reports);
       return reports;
     }
 
+    // Filter by report type (POST/USER)
+    if (selectedFilter === 'POST') {
+      return reports.filter(r => !!r.postId);
+    }
+    
+    if (selectedFilter === 'USER') {
+      return reports.filter(r => !!r.reportedUserId);
+    }
+
+    // Filter by reason type
     const filtered = reports.filter(r => {
       const reasonStr = r.reason;
-      const matches = reasonStr.toUpperCase() === selectedFilter.toUpperCase();
-      // console.log(
-      //   `[ReportsManagement] Report ${r.id}: reason=${reasonStr}, matches=${matches}`
-      // );
-      return matches;
+      return reasonStr.toUpperCase() === selectedFilter.toUpperCase();
     });
 
-    // console.log('[ReportsManagement] Filtered reports count:', filtered.length);
-    // console.log('[ReportsManagement] Filtered reports:', filtered);
     return filtered;
   }, [reports, selectedFilter]);
 
   const stats = useMemo(() => {
     return {
       total: reports.length,
+      postReports: reports.filter(r => !!r.postId).length,
+      userReports: reports.filter(r => !!r.reportedUserId).length,
       spam: reports.filter(r => r.reason.toUpperCase() === 'SPAM').length,
       inappropriate: reports.filter(
         r => r.reason.toUpperCase() === 'INAPPROPRIATE'
@@ -272,6 +295,8 @@ export const ReportsManagement: React.FC = () => {
 
   const FILTER_TYPES = [
     { key: 'ALL', label: t('admin.all'), color: primaryColor },
+    { key: 'POST', label: t('admin.postReports'), color: '#3B82F6' },
+    { key: 'USER', label: t('admin.userReports'), color: '#8B5CF6' },
     { key: 'SPAM', label: t('admin.spam'), color: '#EF4444' },
     { key: 'INAPPROPRIATE', label: t('admin.inappropriate'), color: '#F59E0B' },
     { key: 'HARASSMENT', label: t('admin.harassment'), color: '#EF4444' },
@@ -329,6 +354,30 @@ export const ReportsManagement: React.FC = () => {
               <Text style={styles.statLabel}>{t('admin.total')}</Text>
             </View>
             <View style={styles.statItem}>
+              <Text style={[styles.statValue, { color: '#3B82F6' }]}>
+                {stats.postReports}
+              </Text>
+              <Text
+                style={styles.statLabel}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
+                {t('admin.postReports')}
+              </Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={[styles.statValue, { color: '#8B5CF6' }]}>
+                {stats.userReports}
+              </Text>
+              <Text
+                style={styles.statLabel}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
+                {t('admin.userReports')}
+              </Text>
+            </View>
+            <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: '#EF4444' }]}>
                 {stats.spam}
               </Text>
@@ -350,30 +399,6 @@ export const ReportsManagement: React.FC = () => {
                 adjustsFontSizeToFit
               >
                 {t('admin.inappropriate')}
-              </Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: '#EF4444' }]}>
-                {stats.harassment}
-              </Text>
-              <Text
-                style={styles.statLabel}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-              >
-                {t('admin.harassment')}
-              </Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: '#6B7280' }]}>
-                {stats.other}
-              </Text>
-              <Text
-                style={styles.statLabel}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-              >
-                {t('admin.other')}
               </Text>
             </View>
           </View>
@@ -503,12 +528,21 @@ export const ReportsManagement: React.FC = () => {
                     {selectedReport?.reason && String(selectedReport.reason)}
                   </Text>
                 </View>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>{t('admin.postId')}:</Text>
-                  <Text style={styles.detailValue}>
-                    {selectedReport?.postId}
-                  </Text>
-                </View>
+                {selectedReport?.reportedUserId ? (
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>{t('admin.reportedUser')}:</Text>
+                    <Text style={styles.detailValue}>
+                      {selectedReport.reportedUserName || `User #${selectedReport.reportedUserId}`} (ID: {selectedReport.reportedUserId})
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>{t('admin.postId')}:</Text>
+                    <Text style={styles.detailValue}>
+                      {selectedReport?.postId}
+                    </Text>
+                  </View>
+                )}
                 <View style={styles.detailRow}>
                   <Text style={styles.detailLabel}>{t('admin.reporter')}:</Text>
                   <Text style={styles.detailValue}>
@@ -549,6 +583,23 @@ export const ReportsManagement: React.FC = () => {
 
               {/* Actions */}
               <View style={styles.modalActions}>
+                {selectedReport?.postId && (
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.viewButton]}
+                    onPress={handleViewPost}
+                  >
+                    <FontAwesomeIcon
+                      icon={Icons.Eye}
+                      size={18}
+                      color={primaryColor}
+                    />
+                    <Text
+                      style={[styles.actionButtonText, { color: primaryColor }]}
+                    >
+                      {t('admin.viewPost')}
+                    </Text>
+                  </TouchableOpacity>
+                )}
                 <TouchableOpacity
                   style={[styles.actionButton, styles.deleteButton]}
                   onPress={handleDeleteReport}
@@ -726,11 +777,13 @@ const styles = StyleSheet.create({
   reportMeta: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
     gap: 8,
   },
   metaText: {
     fontSize: 12,
     color: separatorColor,
+    flexShrink: 1,
   },
   reportTimestamp: {
     fontSize: 11,
@@ -843,6 +896,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: 'rgba(16, 217, 185, 0.1)',
     borderWidth: 1,
+    borderColor: 'rgba(16, 217, 185, 0.2)',
+  },
+  viewButton: {
+    backgroundColor: 'rgba(16, 217, 185, 0.1)',
     borderColor: 'rgba(16, 217, 185, 0.2)',
   },
   deleteButton: {

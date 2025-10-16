@@ -1,9 +1,9 @@
 import { apiUtils } from '../utils/api/apiClient';
-import { ReasonTypeEnum, ReportDTO } from '../types/dto';
+import { ReasonTypeEnum, ReportDTO, ReportUserDTO } from '../types/dto';
 
 // Export ReasonTypeEnum for backward compatibility
 export { ReasonTypeEnum } from '../types/dto';
-export type { ReportDTO } from '../types/dto';
+export type { ReportDTO, ReportUserDTO } from '../types/dto';
 
 class ReportService {
   // Get all reports (Admin/Moderator only)
@@ -66,6 +66,27 @@ class ReportService {
       return await apiUtils.post<ReportDTO>('/reports', reportData);
     } catch (error) {
       console.error('Error creating report:', error);
+      throw error;
+    }
+  }
+
+  // Report a user
+  async reportUser(
+    reportedUserId: number,
+    reason: ReasonTypeEnum,
+    otherReasonMessage?: string
+  ): Promise<ReportDTO> {
+    try {
+      const reportData: ReportUserDTO = {
+        reportedUserId,
+        reason,
+        otherReasonMessage,
+      };
+
+      // console.log('[ReportService] Reporting user:', reportData);
+      return await apiUtils.post<ReportDTO>('/reports/user', reportData);
+    } catch (error) {
+      console.error('Error reporting user:', error);
       throw error;
     }
   }

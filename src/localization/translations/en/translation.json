@@ -351,6 +351,22 @@
     "customReasonPlaceholder": "Write your reason for reporting...",
     "customReasonRequired": "Reason is required"
   },
+  "reportUser": {
+    "title": "Report User",
+    "chooseReason": "Choose a reason for reporting this user",
+    "spam": "Spam",
+    "inappropriate": "Inappropriate behavior",
+    "harassment": "Harassment",
+    "other": "Other",
+    "submit": "Report",
+    "successTitle": "Report Sent",
+    "successDescription": "Thank you for your report, our team will review it.",
+    "confirmTitle": "Confirm Report",
+    "confirmMessage": "Do you really want to report this user as {{reason}}?",
+    "customReasonTitle": "Custom Reason",
+    "customReasonPlaceholder": "Write your reason for reporting this user...",
+    "customReasonRequired": "Reason is required"
+  },
   "uploadPost": {
     "successTitle": "Post saved",
     "successDescription": "The post was successfully saved! Thank you for contributing"
@@ -526,6 +542,7 @@
     "deleteReport": "Delete Report",
     "deleteReportConfirm": "Are you sure you want to delete this report?",
     "reportDeleted": "Report deleted successfully",
+    "viewPost": "View Post",
     "spam": "Spam",
     "inappropriate": "Inappropriate",
     "harassment": "Harassment",
@@ -533,6 +550,10 @@
     "all": "All",
     "reportReason": "Reason",
     "postId": "Post ID",
+    "reportedUserId": "Reported User ID",
+    "reportedUser": "Reported User",
+    "postReports": "Posts",
+    "userReports": "Users",
     "reporter": "Reporter",
     "reporterId": "Reporter ID",
     "reportedAt": "Reported At",

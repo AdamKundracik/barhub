@@ -331,6 +331,7 @@ const UserPost: React.FC<UserPostProps> = ({
           postUserId={userId}
           canDelete={post.canDelete}
           canReport={post.canReport}
+          canReportUser={post.canReportUser}
           canHighlight={post.canHighlight}
           isHighlighted={isHighlighted}
           imageUrl={photoUrl}

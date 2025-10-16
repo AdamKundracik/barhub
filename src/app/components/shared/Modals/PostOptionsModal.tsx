@@ -25,12 +25,14 @@ type PostOptionsModalProps = {
   visible: boolean;
   showDelete?: boolean; // From backend canDelete permission
   showReport?: boolean; // From backend canReport permission
+  showReportUser?: boolean; // From backend canReportUser permission
   showHighlight?: boolean; // From backend canHighlight permission
   isHighlighted?: boolean; // Current highlight state
   imageUrl?: string; // URL of the post image for saving
   onClose: () => void;
   onDelete: () => Promise<void> | void;
   onReport: () => void; // otvorí Report modal
+  onReportUser?: () => void; // otvorí User Report modal
   onHighlight?: () => void; // highlight/unhighlight post
   onShare?: () => void; // share post
 };
@@ -40,11 +42,13 @@ export const PostOptionsModal = ({
   onClose,
   onDelete,
   onReport,
+  onReportUser,
   onHighlight,
   onShare,
   imageUrl,
   showDelete = false,
   showReport = true,
+  showReportUser = false,
   showHighlight = false,
   isHighlighted = false,
 }: PostOptionsModalProps) => {
@@ -187,6 +191,26 @@ export const PostOptionsModal = ({
             <View style={styles.optionRow}>
               <Text style={[styles.optionText, { color: warningColor }]}>
                 {t('reportPost.title')}
+              </Text>
+              <FontAwesomeIcon
+                icon={Icons.Flag}
+                size={16}
+                color={warningColor}
+              />
+            </View>
+          </TouchableOpacity>
+        )}
+
+        {showReportUser && onReportUser && (
+          <TouchableOpacity
+            style={styles.option}
+            activeOpacity={0.7}
+            onPress={onReportUser}
+            disabled={loading}
+          >
+            <View style={styles.optionRow}>
+              <Text style={[styles.optionText, { color: warningColor }]}>
+                {t('reportUser.title')}
               </Text>
               <FontAwesomeIcon
                 icon={Icons.Flag}

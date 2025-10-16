@@ -145,6 +145,7 @@ export const mapBackendPostToFrontend = (backendPost: any): Post => {
     isHighlighted: backendPost.highlighted || backendPost.isHighlighted || false,
     canDelete: backendPost.canDelete || false,
     canReport: backendPost.canReport || false,
+    canReportUser: backendPost.canReportUser || false,
     canHighlight: backendPost.canHighlight || false,
     user: userInfo,
   };

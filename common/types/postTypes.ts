@@ -45,6 +45,7 @@ export interface Post {
   // Permissions (from PostDTO)
   canDelete: boolean; // Current user can delete this post
   canReport: boolean; // Current user can report this post
+  canReportUser: boolean; // Current user can report the post author
   canHighlight: boolean; // Current user can highlight this post
   isHighlighted: boolean; // Post is currently highlighted (pinned)
   

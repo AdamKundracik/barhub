@@ -9,6 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { PostReportModal } from '@/src/app/components/shared/Modals/ReportPostModal';
+import { UserReportModal } from '@/src/app/components/shared/Modals/UserReportModal';
 import { ReportReason } from '@/src/app/utils/types/Feed/PostTypes';
 import { useTranslation } from 'react-i18next';
 import { getLocales } from 'expo-localization';
@@ -80,6 +81,7 @@ type Props = {
   postUserId: string | undefined;
   canDelete?: boolean; // Permission from backend
   canReport?: boolean; // Permission from backend
+  canReportUser?: boolean; // Permission from backend to report user
   canHighlight?: boolean; // Permission from backend
   isHighlighted?: boolean; // Current highlight state
   imageUrl?: string; // Post image URL for saving to gallery
@@ -95,6 +97,7 @@ const UserLineComponent = ({
   address,
   canDelete = false,
   canReport = false,
+  canReportUser = false,
   canHighlight = false,
   isHighlighted = false,
   imageUrl,
@@ -103,6 +106,7 @@ const UserLineComponent = ({
   onHighlightChange,
 }: Props) => {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isUserReportModalOpen, setIsUserReportModalOpen] = useState(false);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
   const [localIsHighlighted, setLocalIsHighlighted] = useState(isHighlighted);
   const queryClient = useQueryClient();
@@ -232,6 +236,39 @@ const UserLineComponent = ({
       }
     },
     [postId, showSuccessToast, showErrorToast, t]
+  );
+
+  const handleReportUser = useCallback(
+    async (reason: ReportReason, customReason?: string) => {
+      const currentUserId = useUserStore.getState().getUserId();
+
+      if (!user?.id || !currentUserId) {
+        showErrorToast(t('error'), 'Missing user information');
+        return;
+      }
+
+      try {
+        // Convert ReportReason to ReasonTypeEnum (they match now after enum update)
+        const backendReason = reason as unknown as ReasonTypeEnum;
+
+        await reportService.reportUser(
+          parseInt(user.id, 10),
+          backendReason,
+          customReason
+        );
+
+        showSuccessToast(
+          t('reportUser.successTitle'),
+          t('reportUser.successDescription')
+        );
+      } catch (error: any) {
+        console.error('Failed to report user:', error);
+        showErrorToast(t('error'), error.message || t('something-went-wrong'));
+      } finally {
+        setIsUserReportModalOpen(false);
+      }
+    },
+    [user?.id, showSuccessToast, showErrorToast, t]
   );
 
   const confirmDelete = useCallback(
@@ -462,6 +499,7 @@ const UserLineComponent = ({
       <PostOptionsModal
         showDelete={canDelete}
         showReport={canReport}
+        showReportUser={canReportUser}
         showHighlight={canHighlight}
         isHighlighted={localIsHighlighted}
         imageUrl={imageUrl}
@@ -472,6 +510,10 @@ const UserLineComponent = ({
           setIsOptionsModalOpen(false);
           setIsReportModalOpen(true);
         }}
+        onReportUser={() => {
+          setIsOptionsModalOpen(false);
+          setIsUserReportModalOpen(true);
+        }}
         onHighlight={handleHighlight}
         onShare={onShare}
       />
@@ -480,6 +522,12 @@ const UserLineComponent = ({
         visible={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
         onSave={handleReport}
+      />
+
+      <UserReportModal
+        visible={isUserReportModalOpen}
+        onClose={() => setIsUserReportModalOpen(false)}
+        onSave={handleReportUser}
       />
     </>
   );

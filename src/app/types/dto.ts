@@ -181,6 +181,7 @@ export interface PostDTO extends AbstractAuditableEntityDTO {
   metadata: PostMetadataDTO;
   canDelete?: boolean; // Current user can delete this post
   canReport?: boolean; // Current user can report this post
+  canReportUser?: boolean; // Current user can report the post author
   canHighlight?: boolean; // Current user can highlight this post
 }
 
@@ -274,8 +275,16 @@ export enum ReasonTypeEnum {
 export interface ReportDTO extends AbstractAuditableEntityDTO {
   userId: number;
   userName: string; // Name of user who created the report
-  postId: number;
+  postId?: number; // Optional for post reports
+  reportedUserId?: number; // Optional for user reports
+  reportedUserName?: string; // Name of reported user (for user reports)
   reason: ReasonTypeEnum | string; // Backend may return string
+  otherReasonMessage?: string;
+}
+
+export interface ReportUserDTO {
+  reportedUserId: number;
+  reason: ReasonTypeEnum;
   otherReasonMessage?: string;
 }
 
