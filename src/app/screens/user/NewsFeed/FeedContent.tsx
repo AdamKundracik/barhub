@@ -10,6 +10,7 @@ interface FeedContentProps {
   posts: any[];
   isRefetching: boolean;
   onRefresh: () => Promise<void>;
+  onForceRefresh?: () => Promise<void>;
   // Post list props
   hasNextPage?: boolean;
   zoomedPost: string | null;
@@ -27,6 +28,7 @@ export const FeedContent: React.FC<FeedContentProps> = ({
   posts,
   isRefetching,
   onRefresh,
+  onForceRefresh,
   hasNextPage,
   zoomedPost,
   setZoomedPost,
@@ -53,6 +55,7 @@ export const FeedContent: React.FC<FeedContentProps> = ({
         onCommentPress={onCommentPress}
         isFiltering={isFiltering}
         onRefresh={onRefresh}
+        onForceRefresh={onForceRefresh}
         loading={isRefetching}
         isFetchingNextPage={isFetchingNextPage}
         fetchMorePosts={fetchMorePosts}

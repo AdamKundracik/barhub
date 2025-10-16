@@ -27,6 +27,7 @@ export const NewsFeed = () => {
     isFetchingNextPage,
     hasNextPage,
     refetch,
+    forceRefetch,
     fetchMorePosts,
   } = useNewsFeedData();
   const { requestPhoto } = usePhotoRequest();
@@ -38,6 +39,10 @@ export const NewsFeed = () => {
     await refetch();
   };
 
+  const handleForceRefresh = async () => {
+    await forceRefetch();
+  };
+
   return (
     <Layout pageTitle={t('feed')}>
       <FeedHeader placeName={placeName} />
@@ -46,6 +51,7 @@ export const NewsFeed = () => {
         posts={posts}
         isRefetching={isRefetching}
         onRefresh={handleRefresh}
+        onForceRefresh={handleForceRefresh}
         hasNextPage={hasNextPage}
         zoomedPost={zoomedPost}
         setZoomedPost={setZoomedPost}

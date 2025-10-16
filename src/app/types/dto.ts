@@ -41,6 +41,7 @@ export interface ClientDTO extends AbstractAuditableEntityDTO {
   lastUploadedPostAt: string; // ISO string format
   lastCheckedNotifications: string; // ISO string format
   photoUrl?: string;
+  bio?: string; // User bio, max 120 characters
   premium: boolean;
   role: RoleEnum;
   authType: AuthTypeEnum;

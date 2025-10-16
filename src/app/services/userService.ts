@@ -50,6 +50,10 @@ class UserService {
         backendUpdates.dateOfBirth = updates.dateOfBirth;
       }
 
+      if (updates.bio !== undefined) {
+        backendUpdates.bio = updates.bio;
+      }
+
       // ADD THIS: Premium field mapping
       if (updates.premium !== undefined) {
         backendUpdates.premium = updates.premium;
@@ -102,6 +106,22 @@ class UserService {
       return await this.updateUser(userId, { photoUrl: null as any });
     } catch (error) {
       console.error('Error deleting photo:', error);
+      throw error;
+    }
+  }
+
+  // Update user bio
+  async updateBio(bio: string): Promise<ClientDTO | null> {
+    try {
+      const { useUserStore } = await import('../utils/store/userStore');
+      const userId = useUserStore.getState().getUserId();
+      if (!userId) {
+        throw new Error('User ID not found');
+      }
+      
+      return await this.updateUser(userId, { bio });
+    } catch (error) {
+      console.error('Error updating bio:', error);
       throw error;
     }
   }

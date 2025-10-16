@@ -559,6 +559,18 @@
     "consent-withdrawal-explanation": "Máte právo kedykoľvek odvolať svoj súhlas so spracovaním vašich osobných údajov. Ak súhlas odvoláte, budete musieť buď opätovne akceptovať naše podmienky na pokračovanie používania aplikácie, alebo odstrániť svoj účet. Túto akciu nie je možné vrátiť späť.",
     "your-gdpr-rights": "Vaše práva podľa GDPR",
     "gdpr-rights-explanation": "Podľa GDPR máte právo na prístup, opravu, vymazanie, obmedzenie spracovania, prenosnosť údajov a právo namietať proti spracovaniu vašich osobných údajov. Máte tiež právo podať sťažnosť dozornému orgánu."
+  },
+  "bio": {
+    "label": "Bio",
+    "no-bio": "Žiadne bio",
+    "edit-title": "Upraviť Bio",
+    "description": "Povedzte ostatným niečo o sebe v niekoľkých slovách.",
+    "placeholder": "Napíšte svoje bio tu...",
+    "too-long": "Bio nemôže presiahnuť 120 znakov",
+    "save-success-title": "Úspech",
+    "save-success-message": "Bio bolo úspešne aktualizované!",
+    "save-error-title": "Chyba",
+    "save-error-message": "Nepodarilo sa uložiť bio. Skúste to znova."
   }
 }
 

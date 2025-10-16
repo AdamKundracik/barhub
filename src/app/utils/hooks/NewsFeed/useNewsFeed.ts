@@ -28,12 +28,17 @@ export const useNewsFeed = () => {
     await feedData.refetch();
   };
 
+  const handleForceRefresh = async () => {
+    await feedData.forceRefetch();
+  };
+
   const feedProps = useMemo(
     () => ({
       isLoading: feedData.isLoading,
       posts: feedData.posts,
       isRefetching: feedData.isRefetching,
       onRefresh: handleRefresh,
+      onForceRefresh: handleForceRefresh,
       hasNextPage: feedData.hasNextPage,
       zoomedPost: postZoom.zoomedPost,
       setZoomedPost: postZoom.setZoomedPost,

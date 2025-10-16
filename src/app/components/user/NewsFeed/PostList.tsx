@@ -21,6 +21,7 @@ interface PostsListProps {
   requestPhoto: () => void;
   fetchMorePosts: () => Promise<void>;
   onRefresh: () => Promise<void>;
+  onForceRefresh?: () => Promise<void>;
   loading: boolean;
   isFiltering: boolean;
   isFetchingNextPage: boolean;
@@ -39,6 +40,7 @@ const PostsList = ({
   requestPhoto,
   fetchMorePosts,
   onRefresh,
+  onForceRefresh,
   loading,
   isFiltering,
   onCommentPress,
@@ -196,7 +198,7 @@ const PostsList = ({
         refreshControl={
           <RefreshControl
             refreshing={loading}
-            onRefresh={onRefresh}
+            onRefresh={onForceRefresh || onRefresh}
             tintColor={primaryColor}
             colors={[primaryColor]}
           />

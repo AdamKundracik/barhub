@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useInfiniteQuery } from 'react-query';
+import { useInfiniteQuery, useQueryClient } from 'react-query';
 import { handleFreshContent } from '../../functions/posts-functions';
 import { useFiltersStore } from '../../store/filtersStorage';
 import { useLocationStore } from '../../store/locationStore';
@@ -15,6 +15,7 @@ export const useNewsFeedData = () => {
   const { location, fakeLocation, useFakeLocation } = useLocationStore();
   const { placeId } = usePlaceStore();
   const { isAuthenticated } = useAuth();
+  const queryClient = useQueryClient();
 
   const currentLocation = useFakeLocation ? fakeLocation : location;
 
@@ -48,7 +49,9 @@ export const useNewsFeedData = () => {
       enabled: !!currentLocation && isAuthenticated, // Wait for both location and authentication
       refetchOnWindowFocus: false, // Don't refetch when app comes to foreground
       refetchOnMount: false, // Don't refetch on mount if data exists (cache is cleared on logout)
-      staleTime: 5 * 60 * 1000, // Data is fresh for 5 minutes
+      staleTime: 1 * 60 * 1000, // 1 minute - data considered fresh for 1 minute
+      cacheTime: 15 * 60 * 1000, // 15 minutes - keep in cache for 15 minutes
+      refetchInterval: 3 * 60 * 1000, // Automatic refetch every 3 minutes
     }
   );
 
@@ -85,6 +88,15 @@ export const useNewsFeedData = () => {
     }
   };
 
+  // Force refetch that bypasses cache by invalidating the query first
+  const forceRefetch = async () => {
+    // Invalidate the query to force fresh data fetch
+    await queryClient.invalidateQueries(queryKey);
+    
+    // Then refetch
+    await refetch();
+  };
+
   return {
     posts: filteredPosts,
     isLoading,
@@ -92,6 +104,7 @@ export const useNewsFeedData = () => {
     isFetchingNextPage,
     hasNextPage,
     refetch,
+    forceRefetch,
     fetchMorePosts,
   };
 };

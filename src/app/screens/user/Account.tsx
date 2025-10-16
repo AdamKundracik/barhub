@@ -41,6 +41,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useUserRole } from '@/src/app/hooks/useUserRole';
 import { useUserHighlights } from '@/src/app/hooks/useUserHighlights';
 import { HighlightedPostsGrid } from '@/src/app/components/user/Profile/HighlightedPostsGrid';
+import BioEditModal from '@/src/app/components/shared/Modals/BioEditModal';
 
 interface ActionButtonProps {
   icon: any;
@@ -192,6 +193,8 @@ export const Account = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [isBioModalOpen, setIsBioModalOpen] = useState(false);
+  const [isUpdatingBio, setIsUpdatingBio] = useState(false);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -201,6 +204,28 @@ export const Account = () => {
       console.error('Error refreshing user data:', error);
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  const handleBioSave = async (newBio: string) => {
+    setIsUpdatingBio(true);
+    try {
+      // Update bio via userService
+      await userService.updateBio(newBio);
+      
+      // Update local user data
+      const { updateUserData } = useUserStore.getState();
+      updateUserData({ bio: newBio });
+      
+      showSuccessToast(
+        t('bio.save-success-title') || 'Success',
+        t('bio.save-success-message') || 'Bio updated successfully!'
+      );
+    } catch (error) {
+      console.error('Error updating bio:', error);
+      throw error; // Re-throw to be handled by modal
+    } finally {
+      setIsUpdatingBio(false);
     }
   };
 
@@ -460,6 +485,24 @@ export const Account = () => {
               label={t('date-of-birth')}
               value={formattedBirthDate}
             />
+
+            {/* Bio Section */}
+            <View style={styles.bioSection}>
+              <View style={styles.bioHeader}>
+                <Text style={styles.bioLabel}>{t('bio.label') || 'Bio'}</Text>
+                <TouchableOpacity
+                  style={styles.editBioButton}
+                  onPress={() => setIsBioModalOpen(true)}
+                >
+                  <Text style={styles.editBioText}>Edit</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.bioContent}>
+                <Text style={styles.bioText}>
+                  {userData?.bio || t('bio.no-bio') || 'No bio yet'}
+                </Text>
+              </View>
+            </View>
           </View>
         </BlurView>
 
@@ -577,6 +620,15 @@ export const Account = () => {
         {/* Bottom Spacing */}
         <View style={styles.bottomSpacing} />
       </ScrollView>
+
+      {/* Bio Edit Modal */}
+      <BioEditModal
+        visible={isBioModalOpen}
+        currentBio={userData?.bio || ''}
+        onClose={() => setIsBioModalOpen(false)}
+        onSave={handleBioSave}
+        isLoading={isUpdatingBio}
+      />
     </SafeAreaView>
   );
 };
@@ -820,6 +872,52 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '400',
     lineHeight: 16,
+  },
+
+  // Bio Section
+  bioSection: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: separatorColor,
+  },
+  bioHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  bioLabel: {
+    color: separatorColor,
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  editBioButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: 'rgba(16, 217, 185, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(16, 217, 185, 0.3)',
+  },
+  editBioText: {
+    color: primaryColor,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+  },
+  bioContent: {
+    marginLeft: 0,
+  },
+  bioText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '400',
+    lineHeight: 24,
+    fontStyle: 'italic',
+    opacity: 0.9,
   },
 
   // Bottom Spacing

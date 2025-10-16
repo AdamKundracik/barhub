@@ -7,9 +7,9 @@ export const createQueryClientWithPersistence = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 10 * 60 * 1000,
-        cacheTime: 10 * 60 * 1000, // 15 minutes
-        refetchInterval: 10 * 60 * 1000,
+        staleTime: 1 * 60 * 1000, // 1 minute - data considered fresh for 1 minute
+        cacheTime: 15 * 60 * 1000, // 15 minutes - keep in cache for 15 minutes
+        refetchInterval: 3 * 60 * 1000, // Automatic refetch every 3 minutes
         refetchOnWindowFocus: false,
         refetchOnReconnect: false,
       },
@@ -25,7 +25,7 @@ export const createQueryClientWithPersistence = () => {
   persistQueryClient({
     queryClient,
     persistor: asyncStoragePersistor,
-    maxAge: 1000 * 60 * 5, // Cache for 15 minutes
+    maxAge: 1000 * 60 * 15, // Cache for 15 minutes (matches cacheTime)
   });
 
   return queryClient;

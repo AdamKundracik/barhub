@@ -485,5 +485,17 @@
   "google-signin-failed": "Error al iniciar sesión con Google",
   "apple-signin-failed": "Error al iniciar sesión con Apple",
   "legal-documents": "Documentos Legales",
-  "other": "Otros"
+  "other": "Otros",
+  "bio": {
+    "label": "Bio",
+    "no-bio": "Sin bio aún",
+    "edit-title": "Editar Bio",
+    "description": "Cuéntales a otros algo sobre ti en pocas palabras.",
+    "placeholder": "Escribe tu bio aquí...",
+    "too-long": "El bio no puede exceder 120 caracteres",
+    "save-success-title": "Éxito",
+    "save-success-message": "¡Bio actualizado exitosamente!",
+    "save-error-title": "Error",
+    "save-error-message": "No se pudo guardar el bio. Por favor, inténtalo de nuevo."
+  }
 }

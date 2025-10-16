@@ -320,6 +320,18 @@
   "delete-photo-info": "Once confirmed, your photo will be permanently deleted",
   "delete-account-title": "Do you really want to delete this account?",
   "delete-account-info": "Once confirmed, your account will be permanently deleted",
+  "bio": {
+    "label": "Bio",
+    "no-bio": "No bio yet",
+    "edit-title": "Edit Bio",
+    "description": "Tell others about yourself in a few words.",
+    "placeholder": "Write your bio here...",
+    "too-long": "Bio cannot exceed 120 characters",
+    "save-success-title": "Success",
+    "save-success-message": "Bio updated successfully!",
+    "save-error-title": "Error",
+    "save-error-message": "Failed to save bio. Please try again."
+  },
   "password-too-short": "Password is too short",
   "thats-it": "That`s it",
   "forgot-password": "Forgot password",

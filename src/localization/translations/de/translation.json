@@ -485,5 +485,17 @@
   "apple-signin-failed": "Apple-Anmeldung fehlgeschlagen",
   "or": "oder",
   "legal-documents": "Rechtsdokumente",
-  "other": "Sonstiges"
+  "other": "Sonstiges",
+  "bio": {
+    "label": "Bio",
+    "no-bio": "Noch kein Bio",
+    "edit-title": "Bio bearbeiten",
+    "description": "Erzählen Sie anderen in wenigen Worten etwas über sich.",
+    "placeholder": "Schreiben Sie Ihr Bio hier...",
+    "too-long": "Bio darf nicht mehr als 120 Zeichen haben",
+    "save-success-title": "Erfolg",
+    "save-success-message": "Bio wurde erfolgreich aktualisiert!",
+    "save-error-title": "Fehler",
+    "save-error-message": "Bio konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
+  }
 }

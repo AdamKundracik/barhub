@@ -115,7 +115,18 @@ const UserLineComponent = ({
     setLocalIsHighlighted(isHighlighted);
   }, [isHighlighted]);
 
-  // --- ENHANCED TIME FORMATTING ---
+  // --- ENHANCED TIME FORMATTING WITH AUTO-UPDATE ---
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update current time every minute for live time display
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, []);
+
   const formattedTime = useMemo(() => {
     if (!date) return '';
 
@@ -144,10 +155,9 @@ const UserLineComponent = ({
         return '';
       }
 
-      // Calculate difference in current user's timezone
-      const now = new Date();
+      // Calculate difference using current time (updates every minute)
       const diffInMinutes = Math.floor(
-        (now.getTime() - dateObj.getTime()) / (1000 * 60)
+        (currentTime.getTime() - dateObj.getTime()) / (1000 * 60)
       );
       const diffInHours = Math.floor(diffInMinutes / 60);
       const diffInDays = Math.floor(diffInHours / 24);
@@ -181,7 +191,7 @@ const UserLineComponent = ({
       console.error('Error formatting date:', error, date);
       return '';
     }
-  }, [date]);
+  }, [date, currentTime, t]);
 
   // Use permissions from backend instead of calculating locally
   // Backend already handles ownership and role checks
