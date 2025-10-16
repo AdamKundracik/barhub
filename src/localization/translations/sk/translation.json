@@ -106,24 +106,24 @@
   "select-date-of-birth": "Vybrať dátum narodenia",
   "email-not-verified": "Email nie je overený",
   "email-verification-required": "Prosím, overte svoj email",
-  "verification-email-sent": "Posielajeme vám verifikačný email na:",
-  "check-inbox": "Skontrolujte svoju schránku a kliknite na odkaz v emaili pre overenie vašej emailovej adresy.",
+  "verification-email-sent": "Poslali sme vám overovací email na:",
+  "check-inbox": "Skontrolujte svoju schránku a kliknite na odkaz v emaile pre overenie vašej emailovej adresy.",
   "didnt-receive-email": "Nedostali ste email?",
-  "resend-verification": "Poslať znova verifikacny email",
-  "verification-email-resent": "Verificačný email odoslaný",
-  "verification-email-resent-desc": "Skontrolujte svoju emailovú schránku (aj spam).",
-  "check-spam": "Nezabudnite skontrolovať aj složku Spam/Nevyžiadananá pošta.",
-  "email-verification-error": "Chyba pri odesílaní emailu",
+  "resend-verification": "Poslať znova overovací email",
+  "verification-email-resent": "Overovací email odoslaný",
+  "verification-email-resent-desc": "Skontrolujte svoju emailovú schránku (vrátane spam priečinka).",
+  "check-spam": "Nezabudnite skontrolovať aj priečinok Spam/Nevyžiadaná pošta.",
+  "email-verification-error": "Chyba pri odosielaní emailu",
   "please-try-again-later": "Skúste to prosím neskôr.",
   "too-many-requests": "Príliš veľa pokusov. Počkajte chvíľu pred opätovným pokusom.",
   "network-error": "Chyba siete. Skontrolujte svoje pripojenie.",
   "email-verified": "Email overený!",
   "redirecting": "Presmerovávame vás do aplikácie...",
-  "checking-status": "Kontroluje sa stav verifikcie...",
+  "checking-status": "Kontroluje sa stav overenia...",
   "check-verification": "Overil som svoj email",
   "checking": "Kontroluje sa...",
   "not-verified-yet": "Ešte nie je overený",
-  "please-check-email": "Prosím, skontrolujte email a kliknite na verifikacný odkaz.",
+  "please-check-email": "Prosím, skontrolujte email a kliknite na overovací odkaz.",
   "forgot-password-desc": "Zadajte svoj email a pošleme vám odkaz na obnovenie hesla",
   "reset-email-sent": "Email na obnovenie odoslaný!",
   "reset-email-sent-desc": "Skontrolujte svoju schránku pre inštrukcie na obnovenie hesla.",
@@ -140,10 +140,10 @@
   "password-reset-success-desc": "Vaše heslo bolo úspešne resetované. Teraz sa môžete prihlásiť.",
   "reset-token-expired": "Link na reset hesla expiroval. Požiadajte o nový.",
   "reset-token-invalid": "Neplatný reset link.",
-  "verification-failed": "Verifikácia zlyhala",
+  "verification-failed": "Overenie zlyhalo",
   "verification-error-message": "Nepodarilo sa overiť váš email. Link možno expiroval.",
-  "verification-token-expired": "Verifikačný link expiroval.",
-  "verification-token-invalid": "Neplatný verifikačný link.",
+  "verification-token-expired": "Overovací link expiroval.",
+  "verification-token-invalid": "Neplatný overovací link.",
   "please-wait": "Prosím čakajte...",
   "invalid-form": "Neplatný formulár",
   "min-characters": "Minimálne {{count}} znaky",
@@ -191,6 +191,11 @@
   "date-of-birth-not-set": "Dátum narodenia nie je nastavený",
   "delete-account": "Vymazať účet",
   "delete-account-warning": "Naozaj chcete vymazať svoj účet? Táto akcia je nevratná a všetky vaše dáta budú natrvalo odstránené.",
+  "delete-account-confirm-title": "Potvrdiť vymazanie účtu",
+  "delete-account-confirm-subtitle": "Táto akcia sa nedá vrátiť späť. Všetky vaše údaje budú trvalo vymazané.",
+  "delete-account-type-text": "Napíšte nasledujúci text na potvrdenie:",
+  "delete-account-type-here": "Napíšte sem...",
+  "delete-account-text-mismatch": "Text sa nezhoduje",
   "contact-us": "Neváhaj sa nám ozvať ohľadom pripomienok a želaní",
   "input-email": "Zadaj svoj email",
   "any-questions": "Pripomienka alebo dotaz",
@@ -414,10 +419,8 @@
   "search": "Hľadaj",
   "no-search-history": "Žiadna história vyhľadávania",
   "yearly": "Rok",
-  "camera": {
-    "fakeLocationBlocked": "Nie je možné otvoriť kameru pri falošnej lokalizácii",
-    "waitBeforeNextUpload": "Počkajte ešte {{time}}s pred ďalším uploadom"
-  },
+  "camera-fake-location": "Nie je možné otvoriť kameru pri falošnej lokalizácii",
+  "camera-wait-upload": "Počkajte ešte {{time}}s pred ďalším uploadom",
   "no-available-places": "Žiadne dostupné miesta vo vašom okolí",
   "anonymous-user": "Anonymný používateľ",
   "no-email": "Žiadny e-mail",
@@ -447,9 +450,7 @@
   "total": "Celkom",
   "unread": "Neprečítané",
   "use-travel-mode": "Použiť cestovný režim",
-  "camera": {
-    "fakeLocationBlocked": "Kamera nie je dostupná v cestovnom režime. Vypnite cestovný režim pre prístup ku kamere."
-  },
+  "camera-travel-mode": "Kamera nie je dostupná v cestovnom režime. Vypnite cestovný režim pre prístup ku kamere.",
   "no_internet_connection": "Žiadne internetové pripojenie",
   "no_internet_title": "Žiadne internetové pripojenie",
   "no_internet_description": "Skontrolujte svoje pripojenie a skúste to znova. Barhub vyžaduje internetové pripojenie na správne fungovanie.",
@@ -548,6 +549,60 @@
     "reportedAt": "Nahlásené",
     "description": "Popis",
     "noDescription": "Bez popisu"
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Vitajte v BarHub! 🍻",
+      "description": "Objavte najlepšie bary, reštaurácie a nočné podniky vo vašom meste. Zdieľajte svoje zážitky a spojte sa s ostatnými nadšencami barov!"
+    },
+    "feed": {
+      "title": "Objavujte bary",
+      "description": "Prehliadajte príspevky od ostatných používateľov a objavte úžasné bary, reštaurácie a nočné podniky vo vašej oblasti."
+    },
+    "posts": {
+      "title": "Zdieľajte aktuálnu obsadenosť",
+      "description": "Fotografujte a zdieľajte aktuálnu obsadenosť barov a reštaurácií v reálnom čase. Ukážte, ako to tam žije a pomôžte ostatným vedieť, čo sa práve deje!"
+    },
+    "leaderboard": {
+      "title": "Rebríček a body",
+      "description": "Zarábajte body za svoje príspevky! Za každý príspevok získate 10 bodov a za každý lajk 1 bod. Pozrite si najlepších prispievateľov v rebríčku."
+    },
+    "search": {
+      "title": "Nájdite to, čo potrebujete",
+      "description": "Použite vyhľadávanie na nájdenie konkrétnych barov, reštaurácií alebo prehliadajte podľa lokality a preferencií."
+    },
+    "profile": {
+      "title": "Váš profil",
+      "description": "Spravujte svoj profil, zobrazujte svoje príspevky a prispôsobte si zážitok v aplikácii."
+    },
+    "complete": {
+      "title": "Všetko je pripravené! 🎉",
+      "description": "Ste pripravení objavovať najlepšie bary a nočný život vo vašom meste. Užite si objavovanie nových miest!"
+    },
+    "skip": "Preskočiť",
+    "back": "Späť",
+    "next": "Ďalej",
+    "getStarted": "Začať",
+    "completed": "Tutoriál dokončený!",
+    "welcomeMessage": "Vitajte v BarHub!",
+    "saveProgressError": "Nepodarilo sa uložiť pokrok v tutoriáli",
+    "skipError": "Nepodarilo sa preskočiť tutoriál"
+  },
+  "errors": {
+    "missingPostUserInfo": "Chýbajú informácie o príspevku alebo používateľovi",
+    "missingUserInfo": "Chýbajú informácie o používateľovi",
+    "failedToDeletePost": "Nepodarilo sa vymazať príspevok",
+    "failedToSavePost": "Nepodarilo sa uložiť príspevok",
+    "failedToUpdateUser": "Nepodarilo sa aktualizovať používateľa",
+    "failedToHighlightPost": "Nepodarilo sa zvýrazniť príspevok",
+    "failedToUnhighlightPost": "Nepodarilo sa odstrániť zvýraznenie príspevku",
+    "failedToUploadImage": "Nepodarilo sa nahrať obrázok a uložiť príspevok",
+    "failedToUpdateRole": "Nepodarilo sa aktualizovať rolu",
+    "failedToUpdateUserStatus": "Nepodarilo sa aktualizovať stav používateľa",
+    "failedToUpdatePremiumStatus": "Nepodarilo sa aktualizovať prémiový stav",
+    "failedToLoadConsentVersions": "Nepodarilo sa načítať verzie súhlasu",
+    "failedToUpdateVersion": "Nepodarilo sa aktualizovať verziu",
+    "failedToDeleteReport": "Nepodarilo sa vymazať report"
   },
   "privacy": {
     "privacy-and-data": "Súkromie a dáta",

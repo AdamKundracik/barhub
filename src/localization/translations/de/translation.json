@@ -484,6 +484,60 @@
     "description": "Beschreibung",
     "noDescription": "Keine Beschreibung"
   },
+  "tutorial": {
+    "welcome": {
+      "title": "Willkommen bei BarHub! 🍻",
+      "description": "Entdecken Sie die besten Bars, Restaurants und Nachtleben in Ihrer Stadt. Teilen Sie Ihre Erfahrungen und verbinden Sie sich mit anderen Bar-Enthusiasten!"
+    },
+    "feed": {
+      "title": "Bars entdecken",
+      "description": "Durchsuchen Sie Beiträge von anderen Benutzern, um erstaunliche Bars, Restaurants und Nachtleben in Ihrer Nähe zu entdecken."
+    },
+    "posts": {
+      "title": "Teilen Sie aktuelle Auslastung",
+      "description": "Machen Sie Fotos und teilen Sie die aktuelle Auslastung von Bars und Restaurants in Echtzeit. Zeigen Sie, wie lebendig es ist und helfen Sie anderen zu wissen, was gerade passiert!"
+    },
+    "leaderboard": {
+      "title": "Bestenliste & Punkte",
+      "description": "Verdienen Sie Punkte für Ihre Beiträge! Erhalten Sie 10 Punkte für jeden Beitrag und 1 Punkt für jeden Like. Sehen Sie die besten Beitragenden in der Bestenliste."
+    },
+    "search": {
+      "title": "Finden Sie, was Sie brauchen",
+      "description": "Nutzen Sie die Suchfunktion, um bestimmte Bars, Restaurants zu finden oder nach Standort und Präferenzen zu durchsuchen."
+    },
+    "profile": {
+      "title": "Ihr Profil",
+      "description": "Verwalten Sie Ihr Profil, sehen Sie Ihre Beiträge an und passen Sie Ihre App-Erfahrung an."
+    },
+    "complete": {
+      "title": "Sie sind bereit! 🎉",
+      "description": "Sie sind bereit, die besten Bars und das Nachtleben in Ihrer Stadt zu erkunden. Viel Spaß beim Entdecken neuer Orte!"
+    },
+    "skip": "Überspringen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "getStarted": "Loslegen",
+    "completed": "Tutorial abgeschlossen!",
+    "welcomeMessage": "Willkommen bei BarHub!",
+    "saveProgressError": "Fehler beim Speichern des Tutorial-Fortschritts",
+    "skipError": "Fehler beim Überspringen des Tutorials"
+  },
+  "errors": {
+    "missingPostUserInfo": "Fehlende Post- oder Benutzerinformationen",
+    "missingUserInfo": "Fehlende Benutzerinformationen",
+    "failedToDeletePost": "Fehler beim Löschen des Posts",
+    "failedToSavePost": "Fehler beim Speichern des Posts",
+    "failedToUpdateUser": "Fehler beim Aktualisieren des Benutzers",
+    "failedToHighlightPost": "Fehler beim Hervorheben des Posts",
+    "failedToUnhighlightPost": "Fehler beim Entfernen der Hervorhebung",
+    "failedToUploadImage": "Fehler beim Hochladen des Bildes und Speichern des Posts",
+    "failedToUpdateRole": "Fehler beim Aktualisieren der Rolle",
+    "failedToUpdateUserStatus": "Fehler beim Aktualisieren des Benutzerstatus",
+    "failedToUpdatePremiumStatus": "Fehler beim Aktualisieren des Premium-Status",
+    "failedToLoadConsentVersions": "Fehler beim Laden der Einverständnisversionen",
+    "failedToUpdateVersion": "Fehler beim Aktualisieren der Version",
+    "failedToDeleteReport": "Fehler beim Löschen des Reports"
+  },
   "highlight-post": "Beitrag hervorheben",
   "unhighlight-post": "Hervorhebung entfernen",
   "highlight-success": "Beitrag erfolgreich hervorgehoben",

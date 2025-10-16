@@ -57,6 +57,29 @@ export const PostOptionsModal = ({
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
 
+  // Calculate number of visible options
+  const getVisibleOptionsCount = useCallback(() => {
+    let count = 0;
+    if (onShare) count++;
+    if (imageUrl) count++;
+    if (showHighlight && onHighlight) count++;
+    if (showDelete) count++;
+    if (showReport) count++;
+    if (showReportUser && onReportUser) count++;
+    return count;
+  }, [onShare, imageUrl, showHighlight, onHighlight, showDelete, showReport, showReportUser, onReportUser]);
+
+  // Calculate dynamic snap points based on number of options
+  const getSnapPoints = useCallback(() => {
+    const optionCount = getVisibleOptionsCount();
+    const baseHeight = 60; // Base height for handle and padding
+    const optionHeight = 60; // Height per option
+    const totalHeight = baseHeight + (optionCount * optionHeight);
+    const screenHeight = 100; // Percentage of screen height
+    const calculatedPercentage = Math.min(Math.max((totalHeight / 800) * 100, 25), 70); // Min 25%, Max 70%
+    return [`${calculatedPercentage}%`];
+  }, [getVisibleOptionsCount]);
+
   useEffect(() => {
     if (visible) {
       bottomSheetRef.current?.present();
@@ -103,7 +126,7 @@ export const PostOptionsModal = ({
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
-      snapPoints={['40%']}
+      snapPoints={getSnapPoints()}
       backdropComponent={renderBackdrop}
       onDismiss={onClose}
       backgroundStyle={styles.container}

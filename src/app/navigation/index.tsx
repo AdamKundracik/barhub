@@ -12,7 +12,6 @@ import { useAuth } from '../providers/AuthProvider';
 import { useNetwork } from '../providers/NetworkProvider';
 import { NetworkTopBar } from '../components/shared/NetworkTopBar';
 import { OfflineScreen } from '../screens/shared/OfflineScreen';
-import { setGlobalUnsubscribeNotifications } from '../providers/AuthProvider';
 
 // Deep linking configuration for NotVerified navigator
 const notVerifiedLinking = {
@@ -59,6 +58,12 @@ const authLinking = {
           token: (token: string) => token,
         },
       },
+      PostDetail: {
+        path: 'post/:postId',
+        parse: {
+          postId: (postId: string) => postId,
+        },
+      },
     },
   },
 };
@@ -82,6 +87,12 @@ const mainLinking = {
           postId: (postId: string) => postId,
         },
       },
+      VerifyEmail: {
+        path: 'verify-email',
+        parse: {
+          token: (token: string) => token,
+        },
+      },
       PhotoResolver: 'photo-resolver',
       PostSummary: 'post-summary',
       NotificationsList: 'notifications',
@@ -98,7 +109,6 @@ export const Navigation = () => {
   const { hasAllPermissions, checkAllPermissions } = usePermissionsContext();
   const { appState } = useAppState();
   const { isConnected, isLoading: isNetworkLoading } = useNetwork();
-
 
   // Check if email is verified
   const isEmailVerified = user?.emailVerified ?? false;

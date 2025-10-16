@@ -3,8 +3,8 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { Post } from '@/common/types/postTypes';
 
 class ShareService {
-  // Use custom scheme for DEV, web URL for PROD (without trailing slash)
-  private readonly BASE_URL = __DEV__ ? 'barhub:/' : 'https://barhubapp.com';
+  // Always use PROD web URL for deep linking (without trailing slash)
+  private readonly BASE_URL = 'https://barhubapp.com';
   private readonly DEEP_LINK_SCHEME = 'barhub://';
 
   /**
@@ -65,9 +65,8 @@ class ShareService {
   }
 
   /**
-   * Get URL for a post (environment-aware)
-   * DEV: barhub://post/123
-   * PROD: https://barhubapp.com/post/123
+   * Get URL for a post (always PROD)
+   * Always: https://barhubapp.com/post/123
    */
   getPostUrl(postId: string): string {
     return `${this.BASE_URL}/post/${postId}`;

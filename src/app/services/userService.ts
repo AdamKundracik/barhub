@@ -126,6 +126,16 @@ class UserService {
     }
   }
 
+  // Mark tutorial as viewed
+  async markTutorialAsViewed(): Promise<void> {
+    try {
+      await apiUtils.put(ENDPOINTS.USERS.TUTORIAL_VIEWED);
+    } catch (error) {
+      console.error('Error marking tutorial as viewed:', error);
+      throw error;
+    }
+  }
+
   // Delete current user account
   async deleteCurrentUser(): Promise<boolean> {
     try {

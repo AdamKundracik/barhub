@@ -86,7 +86,7 @@ export const ConsentManagement = () => {
       setVersions(versionsList);
     } catch (error) {
       console.error('Error loading versions:', error);
-      showErrorToast(t('error'), 'Failed to load consent versions');
+      showErrorToast(t('error'), t('errors.failedToLoadConsentVersions'));
     } finally {
       setIsLoading(false);
     }

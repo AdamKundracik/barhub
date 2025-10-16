@@ -42,6 +42,7 @@ import { useUserRole } from '@/src/app/hooks/useUserRole';
 import { useUserHighlights } from '@/src/app/hooks/useUserHighlights';
 import { HighlightedPostsGrid } from '@/src/app/components/user/Profile/HighlightedPostsGrid';
 import BioEditModal from '@/src/app/components/shared/Modals/BioEditModal';
+import { DeleteAccountConfirmModal } from '@/src/app/components/shared/Modals/DeleteAccountConfirmModal';
 
 interface ActionButtonProps {
   icon: any;
@@ -195,6 +196,7 @@ export const Account = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [isBioModalOpen, setIsBioModalOpen] = useState(false);
   const [isUpdatingBio, setIsUpdatingBio] = useState(false);
+  const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] = useState(false);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -283,7 +285,7 @@ export const Account = () => {
     }
   };
 
-  const handleDeleteAccount = async () => {
+  const handleDeleteAccount = async (confirmationText: string) => {
     try {
       // First remove push token from backend (before account deletion)
       if (currentPushToken && userData?.id) {
@@ -302,7 +304,8 @@ export const Account = () => {
       // Delete account via backend API
       await deleteAccountAsync();
 
-      // Logout after successful deletion (this will clear local state)
+      // Close modal and logout after successful deletion
+      setIsDeleteAccountModalOpen(false);
       await logout();
       showSuccessToast(t('account-deleted-successfully'));
     } catch (error) {
@@ -312,19 +315,7 @@ export const Account = () => {
   };
 
   const confirmDeleteAccount = () => {
-    Alert.alert(
-      t('delete-account'),
-      t('delete-account-warning'),
-      [
-        { text: t('cancel'), style: 'cancel' },
-        {
-          text: t('delete'),
-          style: 'destructive',
-          onPress: handleDeleteAccount,
-        },
-      ],
-      { cancelable: true }
-    );
+    setIsDeleteAccountModalOpen(true);
   };
 
   if (isEditing) {
@@ -628,6 +619,15 @@ export const Account = () => {
         onClose={() => setIsBioModalOpen(false)}
         onSave={handleBioSave}
         isLoading={isUpdatingBio}
+      />
+
+      {/* Delete Account Confirm Modal */}
+      <DeleteAccountConfirmModal
+        visible={isDeleteAccountModalOpen}
+        onClose={() => setIsDeleteAccountModalOpen(false)}
+        onConfirm={handleDeleteAccount}
+        confirmationText="DELETE"
+        loading={isDeletingAccount}
       />
     </SafeAreaView>
   );

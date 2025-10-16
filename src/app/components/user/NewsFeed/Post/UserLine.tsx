@@ -209,7 +209,7 @@ const UserLineComponent = ({
       const currentUserId = useUserStore.getState().getUserId();
 
       if (!postId || !currentUserId) {
-        showErrorToast(t('error'), 'Missing post or user information');
+        showErrorToast(t('error'), t('errors.missingPostUserInfo'));
         return;
       }
 
@@ -243,7 +243,7 @@ const UserLineComponent = ({
       const currentUserId = useUserStore.getState().getUserId();
 
       if (!user?.id || !currentUserId) {
-        showErrorToast(t('error'), 'Missing user information');
+        showErrorToast(t('error'), t('errors.missingUserInfo'));
         return;
       }
 
@@ -311,7 +311,7 @@ const UserLineComponent = ({
         );
       } catch (error: any) {
         console.error('Failed to delete post:', error);
-        showErrorToast('Failed to delete post', error.message);
+        showErrorToast(t('errors.failedToDeletePost'), error.message);
       } finally {
         setIsOptionsModalOpen(false);
       }

@@ -218,4 +218,6 @@ export const userSelectors = {
   isUser: (state: ReturnType<typeof useUserStore.getState>) => state.isUser(),
   hasAdminAccess: (state: ReturnType<typeof useUserStore.getState>) =>
     state.hasAdminAccess(),
+  tutorialViewed: (state: ReturnType<typeof useUserStore.getState>) =>
+    state.userData?.tutorialViewed || false,
 };

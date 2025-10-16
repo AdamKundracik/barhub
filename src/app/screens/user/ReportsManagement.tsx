@@ -21,7 +21,7 @@ import { ScreenLayout } from '../../components/shared/Layouts/ScreenLayout';
 import { BlurView } from 'expo-blur';
 import { useCustomToast } from '../../components/shared/Toaster';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
 import { FlashList } from '@shopify/flash-list';
 import { ReportDTO, reportService } from '../../services/reportService';
@@ -49,25 +49,28 @@ const ReportItem = ({ report, onReportPress }: ReportItemProps) => {
   const reasonStr = String(report.reason);
   const reasonColor = getReasonColor(report.reason);
   const isOtherReason = reasonStr.toUpperCase() === 'OTHER';
-  
+
   // Determine report type
   const isUserReport = !!report.reportedUserId;
-  const isPostReport = !!report.postId;
 
   // Format timestamp with proper UTC parsing
   const formatTimestamp = (dateString: string | undefined) => {
     if (!dateString) return '';
-    
+
     // Add Z suffix if missing to ensure UTC parsing
     let isoString = dateString.replace(' ', 'T');
-    if (!isoString.endsWith('Z') && !isoString.includes('+') && !isoString.includes('-', 10)) {
+    if (
+      !isoString.endsWith('Z') &&
+      !isoString.includes('+') &&
+      !isoString.includes('-', 10)
+    ) {
       isoString = isoString + 'Z';
     }
-    
+
     const date = new Date(isoString);
     const locales = getLocales();
     const userLocale = locales[0]?.languageTag || 'en-US';
-    
+
     return date.toLocaleString(userLocale, {
       day: '2-digit',
       month: '2-digit',
@@ -86,10 +89,10 @@ const ReportItem = ({ report, onReportPress }: ReportItemProps) => {
     >
       <View style={styles.reportItemLeft}>
         <View style={styles.reportIcon}>
-          <FontAwesomeIcon 
-            icon={isUserReport ? Icons.User : Icons.Warning} 
-            size={20} 
-            color={reasonColor} 
+          <FontAwesomeIcon
+            icon={isUserReport ? Icons.User : Icons.Warning}
+            size={20}
+            color={reasonColor}
           />
         </View>
 
@@ -121,9 +124,12 @@ const ReportItem = ({ report, onReportPress }: ReportItemProps) => {
             {isUserReport ? (
               <>
                 <Text style={styles.metaText}>
-                  User: {report.reportedUserName || `User #${report.reportedUserId}`}
+                  User:{' '}
+                  {report.reportedUserName || `User #${report.reportedUserId}`}
                 </Text>
-                <Text style={styles.metaText}>(ID: {report.reportedUserId})</Text>
+                <Text style={styles.metaText}>
+                  (ID: {report.reportedUserId})
+                </Text>
               </>
             ) : (
               <Text style={styles.metaText}>Post ID: {report.postId}</Text>
@@ -161,17 +167,21 @@ export const ReportsManagement: React.FC = () => {
   // Format timestamp with proper UTC parsing
   const formatTimestamp = (dateString: string | undefined) => {
     if (!dateString) return '';
-    
+
     // Add Z suffix if missing to ensure UTC parsing
     let isoString = dateString.replace(' ', 'T');
-    if (!isoString.endsWith('Z') && !isoString.includes('+') && !isoString.includes('-', 10)) {
+    if (
+      !isoString.endsWith('Z') &&
+      !isoString.includes('+') &&
+      !isoString.includes('-', 10)
+    ) {
       isoString = isoString + 'Z';
     }
-    
+
     const date = new Date(isoString);
     const locales = getLocales();
     const userLocale = locales[0]?.languageTag || 'en-US';
-    
+
     return date.toLocaleString(userLocale, {
       day: '2-digit',
       month: '2-digit',
@@ -199,8 +209,6 @@ export const ReportsManagement: React.FC = () => {
     ['admin', 'reports'],
     async () => {
       const data = await reportService.getAllReports();
-      // console.log('[ReportsManagement] Fetched reports:', data);
-      // console.log('[ReportsManagement] Reports count:', data?.length || 0);
       return data;
     },
     {
@@ -222,7 +230,10 @@ export const ReportsManagement: React.FC = () => {
         setSelectedReport(null);
       },
       onError: (error: any) => {
-        showErrorToast(t('error'), error.message || 'Failed to delete report');
+        showErrorToast(
+          t('error'),
+          error.message || t('errors.failedToDeleteReport')
+        );
       },
     }
   );
@@ -248,9 +259,11 @@ export const ReportsManagement: React.FC = () => {
 
   const handleViewPost = useCallback(() => {
     if (!selectedReport?.postId) return;
-    
+
     // Navigate to post detail
-    navigation.navigate('PostDetail', { postId: selectedReport.postId.toString() });
+    navigation.navigate('PostDetail', {
+      postId: selectedReport.postId.toString(),
+    });
     setSelectedReport(null);
   }, [selectedReport, navigation]);
 
@@ -264,7 +277,7 @@ export const ReportsManagement: React.FC = () => {
     if (selectedFilter === 'POST') {
       return reports.filter(r => !!r.postId);
     }
-    
+
     if (selectedFilter === 'USER') {
       return reports.filter(r => !!r.reportedUserId);
     }
@@ -530,9 +543,13 @@ export const ReportsManagement: React.FC = () => {
                 </View>
                 {selectedReport?.reportedUserId ? (
                   <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>{t('admin.reportedUser')}:</Text>
+                    <Text style={styles.detailLabel}>
+                      {t('admin.reportedUser')}:
+                    </Text>
                     <Text style={styles.detailValue}>
-                      {selectedReport.reportedUserName || `User #${selectedReport.reportedUserId}`} (ID: {selectedReport.reportedUserId})
+                      {selectedReport.reportedUserName ||
+                        `User #${selectedReport.reportedUserId}`}{' '}
+                      (ID: {selectedReport.reportedUserId})
                     </Text>
                   </View>
                 ) : (

@@ -192,6 +192,11 @@
   "date-of-birth-not-set": "Date of birth not set",
   "delete-account": "Delete account",
   "delete-account-warning": "Are you sure you want to delete your account? This action is irreversible and all your data will be permanently removed.",
+  "delete-account-confirm-title": "Confirm Account Deletion",
+  "delete-account-confirm-subtitle": "This action cannot be undone. All your data will be permanently deleted.",
+  "delete-account-type-text": "Type the following text to confirm:",
+  "delete-account-type-here": "Type here...",
+  "delete-account-text-mismatch": "Text does not match",
   "contact-us": "Don't hesitate to contact us regarding suggestions and requests",
   "input-email": "Enter your email",
   "any-questions": "Suggestion or question",
@@ -559,6 +564,60 @@
     "reportedAt": "Reported At",
     "description": "Description",
     "noDescription": "No description provided"
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Welcome to BarHub! 🍻",
+      "description": "Discover the best bars, restaurants, and nightlife spots in your city. Share your experiences and connect with fellow bar enthusiasts!"
+    },
+    "feed": {
+      "title": "Discover Bars",
+      "description": "Browse through posts from other users to discover amazing bars, restaurants, and nightlife spots in your area."
+    },
+    "posts": {
+      "title": "Share Current Occupancy",
+      "description": "Take photos and share the current occupancy of bars and restaurants in real-time. Show how lively it is and help others know what's happening right now!"
+    },
+    "leaderboard": {
+      "title": "Leaderboard & Points",
+      "description": "Earn points for your posts! Get 10 points for each post and 1 point for every like you receive. See the top contributors in the leaderboard."
+    },
+    "search": {
+      "title": "Find What You Need",
+      "description": "Use the search feature to find specific bars, restaurants, or browse by location and preferences."
+    },
+    "profile": {
+      "title": "Your Profile",
+      "description": "Manage your profile, view your posts, and customize your experience in the app."
+    },
+    "complete": {
+      "title": "You're All Set! 🎉",
+      "description": "You're ready to explore the best bars and nightlife in your city. Have fun discovering new places!"
+    },
+    "skip": "Skip",
+    "back": "Back",
+    "next": "Next",
+    "getStarted": "Get Started",
+    "completed": "Tutorial completed!",
+    "welcomeMessage": "Welcome to BarHub!",
+    "saveProgressError": "Failed to save tutorial progress",
+    "skipError": "Failed to skip tutorial"
+  },
+  "errors": {
+    "missingPostUserInfo": "Missing post or user information",
+    "missingUserInfo": "Missing user information",
+    "failedToDeletePost": "Failed to delete post",
+    "failedToSavePost": "Failed to save post",
+    "failedToUpdateUser": "Failed to update user",
+    "failedToHighlightPost": "Failed to highlight post",
+    "failedToUnhighlightPost": "Failed to unhighlight post",
+    "failedToUploadImage": "Failed to upload image and save post",
+    "failedToUpdateRole": "Failed to update role",
+    "failedToUpdateUserStatus": "Failed to update user status",
+    "failedToUpdatePremiumStatus": "Failed to update premium status",
+    "failedToLoadConsentVersions": "Failed to load consent versions",
+    "failedToUpdateVersion": "Failed to update version",
+    "failedToDeleteReport": "Failed to delete report"
   },
   "privacy": {
     "privacy-and-data": "Privacy & Data",

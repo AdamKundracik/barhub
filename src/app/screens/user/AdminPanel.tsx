@@ -194,7 +194,7 @@ export const AdminPanel: React.FC = () => {
         setSelectedUser(null);
       },
       onError: (error: any) => {
-        showErrorToast(t('error'), error.message || 'Failed to update role');
+        showErrorToast(t('error'), error.message || t('errors.failedToUpdateRole'));
       },
     }
   );
@@ -216,7 +216,7 @@ export const AdminPanel: React.FC = () => {
       onError: (error: any) => {
         showErrorToast(
           t('error'),
-          error.message || 'Failed to update user status'
+          error.message || t('errors.failedToUpdateUserStatus')
         );
       },
     }
@@ -236,7 +236,7 @@ export const AdminPanel: React.FC = () => {
       onError: (error: any) => {
         showErrorToast(
           t('error'),
-          error.message || 'Failed to update premium status'
+          error.message || t('errors.failedToUpdatePremiumStatus')
         );
       },
     }

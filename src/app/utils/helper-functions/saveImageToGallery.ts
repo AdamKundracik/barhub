@@ -1,6 +1,6 @@
 import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system';
-import { Alert, Platform } from 'react-native';
+import { Alert } from 'react-native';
 
 export interface SaveImageResult {
   success: boolean;
@@ -21,32 +21,32 @@ export const saveImageToGallery = async (
   try {
     // Request media library permissions
     const { status } = await MediaLibrary.requestPermissionsAsync();
-    
+
     if (status !== 'granted') {
       return {
         success: false,
-        error: 'Permission to access media library is required'
+        error: 'Permission to access media library is required',
       };
     }
 
     // Generate filename if not provided
     const finalFilename = filename || `barhub_${Date.now()}.jpg`;
-    
+
     // Download image to temporary directory
     const fileUri = `${FileSystem.documentDirectory}${finalFilename}`;
-    
+
     const downloadResult = await FileSystem.downloadAsync(imageUrl, fileUri);
-    
+
     if (downloadResult.status !== 200) {
       return {
         success: false,
-        error: 'Failed to download image'
+        error: 'Failed to download image',
       };
     }
 
     // Save to media library
     const asset = await MediaLibrary.createAssetAsync(downloadResult.uri);
-    
+
     // Clean up temporary file
     try {
       await FileSystem.deleteAsync(fileUri);
@@ -68,15 +68,14 @@ export const saveImageToGallery = async (
 
     return {
       success: true,
-      message: 'Image saved to gallery successfully'
+      message: 'Image saved to gallery successfully',
     };
-
   } catch (error) {
     console.error('Error saving image to gallery:', error);
-    
+
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
     };
   }
 };
@@ -84,13 +83,14 @@ export const saveImageToGallery = async (
 /**
  * Shows alert with save result
  */
-export const showSaveResultAlert = (result: SaveImageResult, t: (key: string) => string) => {
+export const showSaveResultAlert = (
+  result: SaveImageResult,
+  t: (key: string) => string
+) => {
   if (result.success) {
-    Alert.alert(
-      t('saveImage.success'),
-      t('saveImage.successMessage'),
-      [{ text: t('ok') }]
-    );
+    Alert.alert(t('saveImage.success'), t('saveImage.successMessage'), [
+      { text: t('ok') },
+    ]);
   } else {
     Alert.alert(
       t('saveImage.error'),

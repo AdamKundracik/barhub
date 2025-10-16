@@ -22,32 +22,7 @@ import { setGlobalUnsubscribeNotifications } from '../providers/AuthProvider';
 
 const RootStack = createNativeStackNavigator();
 
-// Deep linking configuration for User navigator
-const userLinking = {
-  prefixes: ['https://barhubapp.com', 'https://www.barhubapp.com'],
-  config: {
-    screens: {
-      MainTabs: {
-        screens: {
-          Feed: 'feed',
-          PlaceSearch: 'search',
-          Profile: 'profile',
-        },
-      },
-      PostDetail: {
-        path: 'post/:postId',
-        parse: {
-          postId: (postId: string) => postId,
-        },
-      },
-      PhotoResolver: 'photo-resolver',
-      PostSummary: 'post-summary',
-      NotificationsList: 'notifications',
-      Info: 'info',
-      AdminPanel: 'admin',
-    },
-  },
-};
+// Deep linking configuration is handled in main navigation (index.tsx)
 
 export function UserNav() {
   // Initialize notifications handler for authenticated users

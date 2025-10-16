@@ -25,6 +25,8 @@ import { usePostsStore } from '@/src/app/utils/store/postStore';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { useNewsFeedData } from '@/src/app/utils/hooks/NewsFeed/usePostData';
 import { useUserRole } from '@/src/app/hooks/useUserRole';
+import { TutorialWizard } from './TutorialWizard';
+import { useTutorial } from '@/src/app/utils/hooks/useTutorial';
 
 const Tab = createBottomTabNavigator();
 
@@ -36,6 +38,9 @@ const BottomTabs = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
   const { hasAdminAccess } = useUserRole();
+  const { showTutorial, markTutorialAsViewed, skipTutorial } = useTutorial();
+  
+  console.log('[BottomTabs] showTutorial:', showTutorial);
 
   const handleOpenCamera = async () => {
     // 1️⃣ Block if using fake location
@@ -75,20 +80,21 @@ const BottomTabs = () => {
   };
 
   return (
-    <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarShowLabel: true,
-        tabBarBackground: () => (
-          <BlurView intensity={80} tint="dark" style={styles.blurBackground} />
-        ),
-        tabBarStyle: styles.tabBar,
-        tabBarLabelStyle: styles.tabBarLabel,
-        tabBarItemStyle: { paddingVertical: 0 },
-        tabBarActiveTintColor: 'white',
-        tabBarInactiveTintColor: separatorColor,
-      }}
-    >
+    <>
+      <Tab.Navigator
+        screenOptions={{
+          headerShown: false,
+          tabBarShowLabel: true,
+          tabBarBackground: () => (
+            <BlurView intensity={80} tint="dark" style={styles.blurBackground} />
+          ),
+          tabBarStyle: styles.tabBar,
+          tabBarLabelStyle: styles.tabBarLabel,
+          tabBarItemStyle: { paddingVertical: 0 },
+          tabBarActiveTintColor: 'white',
+          tabBarInactiveTintColor: separatorColor,
+        }}
+      >
       <Tab.Screen
         name="Feed"
         component={NewsFeed}
@@ -165,7 +171,14 @@ const BottomTabs = () => {
           ),
         }}
       />
-    </Tab.Navigator>
+      </Tab.Navigator>
+      
+      <TutorialWizard
+        visible={showTutorial}
+        onComplete={markTutorialAsViewed}
+        onSkip={skipTutorial}
+      />
+    </>
   );
 };
 

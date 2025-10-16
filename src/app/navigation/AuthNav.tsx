@@ -8,6 +8,7 @@ import VerifyEmail from '../screens/auth/VerifyEmail';
 import TermsOfService from '../screens/auth/LegalDocuments/TermsOfService';
 import PrivacyPolicy from '../screens/auth/LegalDocuments/PrivacyPolicy';
 import CommunityGuidelines from '../screens/auth/LegalDocuments/CommunityGuidelines';
+import PostDetail from '../screens/user/Post/PostDetail';
 
 const AuthStack = createNativeStackNavigator();
 
@@ -25,6 +26,7 @@ const AuthNav = () => {
       <AuthStack.Screen name="TermsOfService" component={TermsOfService} />
       <AuthStack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
       <AuthStack.Screen name="CommunityGuidelines" component={CommunityGuidelines} />
+      <AuthStack.Screen name="PostDetail" component={PostDetail} />
     </AuthStack.Navigator>
   );
 };

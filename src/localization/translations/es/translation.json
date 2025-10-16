@@ -485,6 +485,60 @@
     "description": "Descripción",
     "noDescription": "Sin descripción"
   },
+  "tutorial": {
+    "welcome": {
+      "title": "¡Bienvenido a BarHub! 🍻",
+      "description": "Descubre los mejores bares, restaurantes y vida nocturna en tu ciudad. ¡Comparte tus experiencias y conéctate con otros entusiastas de los bares!"
+    },
+    "feed": {
+      "title": "Descubre bares",
+      "description": "Navega por publicaciones de otros usuarios para descubrir bares, restaurantes y vida nocturna increíbles en tu área."
+    },
+    "posts": {
+      "title": "Comparte la ocupación actual",
+      "description": "Toma fotos y comparte la ocupación actual de bares y restaurantes en tiempo real. ¡Muestra qué tan animado está y ayuda a otros a saber qué está pasando ahora mismo!"
+    },
+    "leaderboard": {
+      "title": "Tabla de clasificación y puntos",
+      "description": "¡Gana puntos por tus publicaciones! Obtén 10 puntos por cada publicación y 1 punto por cada like que recibas. Ve a los mejores contribuidores en la tabla de clasificación."
+    },
+    "search": {
+      "title": "Encuentra lo que necesitas",
+      "description": "Usa la función de búsqueda para encontrar bares específicos, restaurantes o navegar por ubicación y preferencias."
+    },
+    "profile": {
+      "title": "Tu perfil",
+      "description": "Gestiona tu perfil, ve tus publicaciones y personaliza tu experiencia en la aplicación."
+    },
+    "complete": {
+      "title": "¡Estás listo! 🎉",
+      "description": "Estás listo para explorar los mejores bares y vida nocturna en tu ciudad. ¡Disfruta descubriendo nuevos lugares!"
+    },
+    "skip": "Omitir",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "getStarted": "Comenzar",
+    "completed": "¡Tutorial completado!",
+    "welcomeMessage": "¡Bienvenido a BarHub!",
+    "saveProgressError": "Error al guardar el progreso del tutorial",
+    "skipError": "Error al omitir el tutorial"
+  },
+  "errors": {
+    "missingPostUserInfo": "Faltan información del post o usuario",
+    "missingUserInfo": "Faltan información del usuario",
+    "failedToDeletePost": "Error al eliminar el post",
+    "failedToSavePost": "Error al guardar el post",
+    "failedToUpdateUser": "Error al actualizar el usuario",
+    "failedToHighlightPost": "Error al destacar el post",
+    "failedToUnhighlightPost": "Error al quitar el destacado del post",
+    "failedToUploadImage": "Error al subir la imagen y guardar el post",
+    "failedToUpdateRole": "Error al actualizar el rol",
+    "failedToUpdateUserStatus": "Error al actualizar el estado del usuario",
+    "failedToUpdatePremiumStatus": "Error al actualizar el estado premium",
+    "failedToLoadConsentVersions": "Error al cargar las versiones de consentimiento",
+    "failedToUpdateVersion": "Error al actualizar la versión",
+    "failedToDeleteReport": "Error al eliminar el reporte"
+  },
   "highlight-post": "Destacar publicación",
   "unhighlight-post": "Quitar destacado",
   "highlight-success": "Publicación destacada exitosamente",
