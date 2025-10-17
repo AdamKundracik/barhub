@@ -102,77 +102,64 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
     return configs[item.notificationType] || configs[NotificationType.REQUEST];
   }, [item.notificationType, item.senderName, t]);
 
-  // Format timestamp
+  // Format timestamp - same logic as UserLine
   const formattedTime = useMemo(() => {
     if (!item.creationTime) {
       return '';
     }
 
-    // Parse LocalDateTime string: "2025-10-07T22:29:23.517475"
-    let timestamp: number;
     try {
-      const dateStr = item.creationTime.includes('T')
+      // Parse LocalDateTime string: "2025-10-07T22:29:23.517475"
+      // Backend sends UTC time but without 'Z' suffix, so we need to treat it as UTC
+      let dateStr = item.creationTime.includes('T')
         ? item.creationTime
         : item.creationTime.replace(' ', 'T');
-      timestamp = new Date(dateStr).getTime();
-    } catch (error) {
-      console.error('Error parsing notification time:', error);
-      return '';
-    }
-
-    const now = Date.now();
-    const diff = now - timestamp;
-
-    // Less than 1 minute
-    if (diff < 60000) {
-      return t('just-now');
-    }
-
-    // Less than 1 hour
-    if (diff < 3600000) {
-      const minutes = Math.floor(diff / 60000);
-      const timeUnit = getTimeUnit(minutes, 'minute');
-      const currentLanguage = locales[0]?.languageCode || 'sk';
-
-      // Different word order for different languages
-      if (currentLanguage === 'es') {
-        return `${t('ago')} ${minutes} ${timeUnit}`;
-      } else if (currentLanguage === 'en') {
-        return `${minutes} ${timeUnit} ${t('ago')}`;
-      } else {
-        // Slovak and German: "pred X minútami/vor X Minuten"
-        return `${t('ago')} ${minutes} ${timeUnit}`;
+      
+      // Add 'Z' suffix to indicate UTC time
+      if (!dateStr.endsWith('Z') && !dateStr.includes('+') && !dateStr.includes('-', 10)) {
+        dateStr += 'Z';
       }
-    }
-
-    // Less than 1 day
-    if (diff < 86400000) {
-      const hours = Math.floor(diff / 3600000);
-      const timeUnit = getTimeUnit(hours, 'hour');
-      const currentLanguage = locales[0]?.languageCode || 'sk';
-
-      // Different word order for different languages
-      if (currentLanguage === 'es') {
-        return `${t('ago')} ${hours} ${timeUnit}`;
-      } else if (currentLanguage === 'en') {
-        return `${hours} ${timeUnit} ${t('ago')}`;
-      } else {
-        // Slovak and German: "pred X hodinami/vor X Stunden"
-        return `${t('ago')} ${hours} ${timeUnit}`;
+      
+      const dateObj = new Date(dateStr);
+      
+      // Validate date
+      if (isNaN(dateObj.getTime())) {
+        return '';
       }
-    }
 
-    // Format full date
-    return new Date(timestamp).toLocaleDateString(
-      locales[0]?.languageCode ?? 'sk-SK',
-      {
+      const now = new Date();
+      const diffInMinutes = Math.floor((now.getTime() - dateObj.getTime()) / (1000 * 60));
+      const diffInHours = Math.floor(diffInMinutes / 60);
+      const diffInDays = Math.floor(diffInHours / 24);
+
+      // Ak je menej ako 1 deň, používaj relatívny čas
+      if (diffInDays < 1) {
+        if (diffInMinutes < 1) {
+          return t('just-now') || 'práve teraz';
+        } else if (diffInMinutes < 60) {
+          return `${t('ago')} ${diffInMinutes} min`;
+        } else {
+          return `${t('ago')} ${diffInHours}h`;
+        }
+      }
+
+      // Ak je viac ako 1 deň, zobraz dátum a čas v lokálnej časovej zóne
+      const userLocale = locales[0]?.languageTag || 'en-US';
+
+      const formattedDate = dateObj.toLocaleString(userLocale, {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      }
-    );
+        hour12: false,
+      });
+
+      return formattedDate;
+    } catch (error) {
+      console.error('Error formatting notification time:', error, item.creationTime);
+      return '';
+    }
   }, [item.creationTime, locales, t]);
 
   // Check if notification is expired (for requests)
@@ -181,13 +168,27 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
 
     if (!item.creationTime) return true;
 
-    // Parse LocalDateTime string: "2025-10-07T22:29:23.517475"
-    let timestamp: number;
     try {
-      const dateStr = item.creationTime.includes('T')
+      // Parse LocalDateTime string: "2025-10-07T22:29:23.517475"
+      // Backend sends UTC time but without 'Z' suffix, so we need to treat it as UTC
+      let dateStr = item.creationTime.includes('T')
         ? item.creationTime
         : item.creationTime.replace(' ', 'T');
-      timestamp = new Date(dateStr).getTime();
+      
+      // Add 'Z' suffix to indicate UTC time
+      if (!dateStr.endsWith('Z') && !dateStr.includes('+') && !dateStr.includes('-', 10)) {
+        dateStr += 'Z';
+      }
+      
+      const dateObj = new Date(dateStr);
+      
+      // Validate date
+      if (isNaN(dateObj.getTime())) {
+        return true;
+      }
+
+      const expirationTime = 180 * 1000; // 3 minutes
+      return Date.now() > dateObj.getTime() + expirationTime;
     } catch (error) {
       console.error(
         'Error parsing notification time for expiration check:',
@@ -195,9 +196,6 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
       );
       return true;
     }
-
-    const expirationTime = 180 * 1000; // 3 minutes
-    return Date.now() > timestamp + expirationTime;
   }, [item.creationTime, item.notificationType]);
 
   // Animation styles

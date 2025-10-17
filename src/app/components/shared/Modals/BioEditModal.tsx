@@ -1,5 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -43,6 +46,7 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
   const { showErrorToast } = useCustomToast();
   const [bio, setBio] = useState(currentBio);
   const [error, setError] = useState('');
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 
   const MAX_BIO_LENGTH = 120;
@@ -58,6 +62,27 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
       bottomSheetRef.current?.dismiss();
     }
   }, [visible, currentBio]);
+
+  // Handle keyboard visibility
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true);
+      }
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setKeyboardVisible(false);
+      }
+    );
+
+    return () => {
+      keyboardDidShowListener?.remove();
+      keyboardDidHideListener?.remove();
+    };
+  }, []);
 
   const renderBackdrop = useCallback(
     (props: any) => (
@@ -112,49 +137,52 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
     }
   };
 
+  // Dynamic snap points based on keyboard visibility
+  const snapPoints = keyboardVisible ? ['85%', '95%'] : ['60%', '80%'];
+
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
       index={0}
-      snapPoints={['60%', '80%']}
+      snapPoints={snapPoints}
       backdropComponent={renderBackdrop}
       onDismiss={handleClose}
       enablePanDownToClose={!isLoading}
       backgroundStyle={styles.modalBackground}
       handleIndicatorStyle={styles.handleIndicator}
     >
-      <BottomSheetView style={styles.content}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>{t('bio.edit-title') || 'Edit Bio'}</Text>
-        </View>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <BottomSheetView style={styles.content}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>{t('bio.edit-title') || 'Edit Bio'}</Text>
+          </View>
 
-        {/* Description */}
-        <Text style={styles.description}>
-          {t('bio.description') || 'Tell others about yourself in a few words.'}
-        </Text>
+          {/* Description */}
+          <Text style={styles.description}>
+            {t('bio.description') || 'Tell others about yourself in a few words.'}
+          </Text>
 
-        {/* Text Input */}
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={[styles.textInput, error ? styles.textInputError : null]}
-            value={bio}
-            onChangeText={handleBioChange}
-            placeholder={t('bio.placeholder') || 'Write your bio here...'}
-            placeholderTextColor={secondaryTextColor}
-            multiline
-            numberOfLines={4}
-            maxLength={MAX_BIO_LENGTH}
-            editable={!isLoading}
-            autoFocus
-            returnKeyType="done"
-            blurOnSubmit={true}
-            onSubmitEditing={() => {
-              if (!error && bio !== currentBio) {
-                handleSave();
-              }
-            }}
-          />
+          {/* Text Input */}
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={[styles.textInput, error ? styles.textInputError : null]}
+              value={bio}
+              onChangeText={handleBioChange}
+              placeholder={t('bio.placeholder') || 'Write your bio here...'}
+              placeholderTextColor={secondaryTextColor}
+              multiline
+              numberOfLines={4}
+              maxLength={MAX_BIO_LENGTH}
+              editable={!isLoading}
+              autoFocus
+              returnKeyType="default"
+              blurOnSubmit={false}
+            />
 
           {/* Character counter */}
           <View style={styles.counterContainer}>
@@ -188,34 +216,35 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
           ) : null}
         </View>
 
-        {/* Save Button */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={[
-              styles.button,
-              styles.saveButton,
-              (isLoading || !!error || bio === currentBio) &&
-                styles.saveButtonDisabled,
-            ]}
-            onPress={handleSave}
-            disabled={isLoading || !!error || bio === currentBio}
-          >
-            {isLoading ? (
-              <ButtonSpinner color="white" />
-            ) : (
-              <Text
-                style={[
-                  styles.saveButtonText,
-                  (isLoading || !!error || bio === currentBio) &&
-                    styles.saveButtonTextDisabled,
-                ]}
-              >
-                {t('save') || 'Save'}
-              </Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </BottomSheetView>
+          {/* Save Button */}
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={[
+                styles.button,
+                styles.saveButton,
+                (isLoading || !!error || bio === currentBio) &&
+                  styles.saveButtonDisabled,
+              ]}
+              onPress={handleSave}
+              disabled={isLoading || !!error || bio === currentBio}
+            >
+              {isLoading ? (
+                <ButtonSpinner color="white" />
+              ) : (
+                <Text
+                  style={[
+                    styles.saveButtonText,
+                    (isLoading || !!error || bio === currentBio) &&
+                      styles.saveButtonTextDisabled,
+                  ]}
+                >
+                  {t('save') || 'Save'}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </BottomSheetView>
+      </KeyboardAvoidingView>
     </BottomSheetModal>
   );
 };
@@ -233,6 +262,9 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     alignSelf: 'center',
     marginVertical: 10,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   content: {
     paddingHorizontal: 16,
