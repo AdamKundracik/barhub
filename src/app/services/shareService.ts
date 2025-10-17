@@ -31,11 +31,8 @@ class ShareService {
       );
 
       if (result.action === Share.sharedAction) {
-        console.log('[ShareService] Post shared successfully');
         // TODO: Track analytics event
         // await this.trackShare(post.id, result.activityType);
-      } else if (result.action === Share.dismissedAction) {
-        console.log('[ShareService] Share dismissed');
       }
     } catch (error) {
       console.error('[ShareService] Error sharing post:', error);
@@ -50,7 +47,6 @@ class ShareService {
     try {
       const shareUrl = this.getPostUrl(postId);
       Clipboard.setString(shareUrl);
-      console.log('[ShareService] Link copied to clipboard:', shareUrl);
     } catch (error) {
       console.error('[ShareService] Error copying link:', error);
       throw error;

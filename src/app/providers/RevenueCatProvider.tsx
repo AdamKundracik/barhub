@@ -25,7 +25,6 @@ export const RevenueCatProvider = ({ children }: { children: ReactNode }) => {
   // Pass refetch function to RevenueCat hook for manual refresh after purchase
   const revenueCatHook = useRevenueCat({
     onCustomerInfoUpdated: async () => {
-      // console.log('[RevenueCatProvider] Refreshing user data from backend after purchase...');
       await refetchUserData();
     },
   });

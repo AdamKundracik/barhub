@@ -17,9 +17,6 @@ export const useTutorial = () => {
 
   // Check if tutorial should be shown
   useEffect(() => {
-    console.log('[useTutorial] User data:', user);
-    console.log('[useTutorial] Tutorial viewed:', tutorialViewed);
-    console.log('[useTutorial] Pending consents:', pendingConsents);
 
     if (user) {
       // Tutorial should be shown only when:
@@ -31,15 +28,9 @@ export const useTutorial = () => {
       const hasNoPendingConsents = !pendingConsents || pendingConsents.length === 0;
       const shouldShow = !user.tutorialViewed && hasDateOfBirth && hasNoPendingConsents;
       
-      console.log('[useTutorial] Should show tutorial:', shouldShow, {
-        tutorialViewed: user.tutorialViewed,
-        hasDateOfBirth,
-        hasNoPendingConsents
-      });
       
       setShowTutorial(shouldShow);
     } else {
-      console.log('[useTutorial] No user data found');
       setShowTutorial(false);
     }
   }, [user, tutorialViewed, pendingConsents]);

@@ -520,7 +520,6 @@ export const PostDetail = () => {
           isHighlighted={localIsHighlighted}
           onDelete={() => {
             // TODO: Implement delete
-            console.log('Delete post:', post.id);
           }}
           onReport={() => {
             setIsOptionsModalOpen(false);

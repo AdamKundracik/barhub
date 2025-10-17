@@ -61,17 +61,10 @@ export const signInWithApple = async (): Promise<AppleSignInResult | null> => {
       appleUserId: user, // Apple User ID
     };
 
-    console.log('[Apple Sign-In] Parsed result:', {
-      idToken: result.idToken.substring(0, 20) + '...',
-      email: result.email || 'No email (existing user)',
-      name: result.name,
-      appleUserId: result.appleUserId,
-    });
 
     return result;
   } catch (error: any) {
     if (error.code === 'ERR_CANCELED') {
-      console.log('Apple Sign-In was canceled by user');
       return null;
     }
 

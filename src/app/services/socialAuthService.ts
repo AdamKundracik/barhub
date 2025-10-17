@@ -70,17 +70,12 @@ class SocialAuthService {
         consents,
       };
 
-      console.log('[SocialAuthService] Apple Sign-In request body:', {
-        ...request,
-        idToken: request.idToken.substring(0, 20) + '...',
-      });
 
       const response = await apiUtils.post<JwtAuthenticationResponseDTO>(
         ENDPOINTS.AUTH.APPLE_SIGNIN,
         request
       );
 
-      console.log('[SocialAuthService] Apple Sign-In response:', response);
 
       return response;
     } catch (error: any) {

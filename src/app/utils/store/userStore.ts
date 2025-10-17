@@ -139,7 +139,6 @@ export const useUserStore = create<UserStore>()(
       // Update local state only
       // Backend is updated automatically via RevenueCat webhook
       get().updateUserData({ premium });
-      // console.log('[UserStore] Premium status updated locally:', premium);
     },
 
     getDisplayName: () => {

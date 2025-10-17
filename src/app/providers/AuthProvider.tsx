@@ -24,6 +24,7 @@ import { signInWithGoogleRN } from '../services/auth/googleSignInRN';
 import { signInWithApple as appleSignIn, isAppleSignInAvailable } from '../services/auth/appleSignIn';
 import { consentService } from '../services/consentService';
 import { OutdatedConsentDTO, JwtAuthenticationResponseDTO } from '../types/dto';
+import { useJwtTokenManager } from '../utils/hooks/useJwtTokenManager';
 
 // Global reference to unsubscribe function (set by Navigation component)
 let globalUnsubscribeNotifications: (() => void) | null = null;
@@ -84,6 +85,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { setUseFakeLocation, setFakeLocationName, setInitialized } =
     useLocationStore();
 
+  // JWT Token Manager
+  const { initializeTokenManagement, stopTokenManagement } = useJwtTokenManager();
+
   // Google Sign-In hook
   // Google Sign-In is now handled directly in signInWithGoogle function
 
@@ -92,71 +96,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth();
   }, []);
 
-  // Handle app state changes - refresh token when app comes to foreground
+  // Initialize JWT token management when user is authenticated
   useEffect(() => {
-    const subscription = AppState.addEventListener(
-      'change',
-      async nextAppState => {
-        // App came to foreground from background
-        if (
-          appState.current.match(/inactive|background/) &&
-          nextAppState === 'active'
-        ) {
-          // console.log('[AuthProvider] App came to foreground, checking token validity');
-
-          // Only refresh if user is authenticated
-          if (user) {
-            try {
-              // getValidAccessToken will automatically refresh if expired
-              const token = await authService.getValidAccessToken();
-              if (!token) {
-                // console.log('[AuthProvider] Token refresh failed, logging out');
-                await logout();
-              } else {
-                // console.log('[AuthProvider] Token is valid or was refreshed successfully');
-              }
-            } catch (error) {
-              console.error(
-                '[AuthProvider] Error checking token on foreground:',
-                error
-              );
-            }
-          }
-        }
-
-        appState.current = nextAppState;
-      }
-    );
-
-    return () => {
-      subscription.remove();
-    };
-  }, [user]);
-
-  // Periodic token check - refresh token every 4 minutes if user is active
-  useEffect(() => {
-    if (!user) return;
-
-    const interval = setInterval(
-      async () => {
-        try {
-          // console.log('[AuthProvider] Periodic token check');
-          const token = await authService.getValidAccessToken();
-          if (!token) {
-            // console.log('[AuthProvider] Periodic check: Token refresh failed, logging out');
-            await logout();
-          }
-        } catch (error) {
-          console.error('[AuthProvider] Error in periodic token check:', error);
-        }
-      },
-      4 * 60 * 1000
-    ); // Check every 4 minutes
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [user]);
+    if (user) {
+      // Initialize automatic token refresh management
+      initializeTokenManagement();
+    } else {
+      // Stop token management when user logs out
+      stopTokenManagement();
+    }
+  }, [user, initializeTokenManagement, stopTokenManagement]);
 
   // Save current location to backend
   const saveCurrentLocationToBackend = async (
@@ -237,7 +186,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (userData.id) {
             try {
               const consentStatus = await consentService.getConsentStatus(userData.id.toString());
-              console.log('[Auth Init] Consent status on reload:', consentStatus);
               
               // Transform backend ConsentStatusDTO to OutdatedConsentDTO[]
               const outdated: OutdatedConsentDTO[] = consentStatus.consents
@@ -250,7 +198,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 }));
               
               if (outdated.length > 0) {
-                console.log('[Auth Init] Setting pending consents on reload:', outdated);
                 setPendingConsents(outdated);
               }
             } catch (error) {
@@ -374,6 +321,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
 
+      // Stop JWT token management first
+      stopTokenManagement();
+
       // Unsubscribe from notifications first
       if (globalUnsubscribeNotifications) {
         globalUnsubscribeNotifications();
@@ -430,12 +380,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         googleUser.photoUrl
       );
 
-      console.log('[Google Auth] Full response:', authResponse);
-      console.log('[Google Auth] Consent status:', authResponse.consentStatus);
 
       // Check if consents are required
       if (authResponse.consentStatus?.consentsRequired && authResponse.consentStatus.outdatedConsents.length > 0) {
-        console.log('[Google Auth] Setting pending consents:', authResponse.consentStatus.outdatedConsents);
         setPendingConsents(authResponse.consentStatus.outdatedConsents);
       }
 
@@ -481,12 +428,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         appleUser.appleUserId
       );
 
-      console.log('[Apple Auth] Full response:', authResponse);
-      console.log('[Apple Auth] Consent status:', authResponse.consentStatus);
 
       // Check if consents are required
       if (authResponse.consentStatus?.consentsRequired && authResponse.consentStatus.outdatedConsents.length > 0) {
-        console.log('[Apple Auth] Setting pending consents:', authResponse.consentStatus.outdatedConsents);
         setPendingConsents(authResponse.consentStatus.outdatedConsents);
       }
 

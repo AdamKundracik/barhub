@@ -308,6 +308,11 @@ class AuthService {
     }
   }
 
+  // Get current access token without automatic refresh
+  getCurrentAccessToken(): string | null {
+    return this.accessToken;
+  }
+
   // Get valid access token (refresh if needed)
   async getValidAccessToken(): Promise<string | null> {
     if (!this.accessToken) {
