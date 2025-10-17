@@ -144,6 +144,7 @@
   "verification-error-message": "Nepodarilo sa overiť váš email. Link možno expiroval.",
   "verification-token-expired": "Overovací link expiroval.",
   "verification-token-invalid": "Neplatný overovací link.",
+  "verification-token-used": "Overovací token už bol použitý",
   "please-wait": "Prosím čakajte...",
   "invalid-form": "Neplatný formulár",
   "min-characters": "Minimálne {{count}} znaky",

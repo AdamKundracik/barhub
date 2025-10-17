@@ -20,9 +20,18 @@ const notVerifiedLinking = {
     screens: {
       EmailNotVerified: 'email-not-verified',
       VerifyEmail: {
-        path: 'verify-email',
+        path: 'verify-email/:token',
         parse: {
-          token: (token: string) => `${token}`,
+          token: (token: string) => token,
+        },
+        stringify: {
+          token: (token: string) => token,
+        },
+      },
+      ResetPassword: {
+        path: 'reset-password/:token',
+        parse: {
+          token: (token: string) => token,
         },
         stringify: {
           token: (token: string) => token,
@@ -41,18 +50,18 @@ const authLinking = {
       Register: 'register',
       ForgotPassword: 'forgot-password',
       ResetPassword: {
-        path: 'reset-password',
+        path: 'reset-password/:token',
         parse: {
-          token: (token: string) => `${token}`,
+          token: (token: string) => token,
         },
         stringify: {
           token: (token: string) => token,
         },
       },
       VerifyEmail: {
-        path: 'verify-email',
+        path: 'verify-email/:token',
         parse: {
-          token: (token: string) => `${token}`,
+          token: (token: string) => token,
         },
         stringify: {
           token: (token: string) => token,
@@ -88,7 +97,13 @@ const mainLinking = {
         },
       },
       VerifyEmail: {
-        path: 'verify-email',
+        path: 'verify-email/:token',
+        parse: {
+          token: (token: string) => token,
+        },
+      },
+      ResetPassword: {
+        path: 'reset-password/:token',
         parse: {
           token: (token: string) => token,
         },

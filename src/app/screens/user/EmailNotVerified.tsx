@@ -295,7 +295,9 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: postBgColor,
     borderRadius: 20,
-    padding: 24,
+    paddingTop: 32,
+    paddingHorizontal: 24,
+    paddingBottom: 24,
     borderWidth: 1,
     borderColor: '#333',
     shadowColor: '#000',
@@ -309,7 +311,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: primaryTextColor,
     textAlign: 'center',
+    marginTop: 16,
     marginBottom: 8,
+    paddingTop: 8,
   },
   checkingText: {
     fontSize: 12,

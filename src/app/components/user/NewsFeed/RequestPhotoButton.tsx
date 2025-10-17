@@ -37,7 +37,7 @@ const RequestPhotoButton = ({ requestPhoto }: RequestPhotoButtonProps) => {
           pressed ? (
             <Text
               style={[
-                commonAppStyles.textSecondary,
+                { color: '#fff' },
                 { fontSize: 16, fontWeight: 'bold' },
               ]}
             >

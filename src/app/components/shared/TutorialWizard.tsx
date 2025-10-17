@@ -209,7 +209,7 @@ export const TutorialWizard: React.FC<TutorialWizardProps> = ({
               style={[styles.navButton, styles.nextButton]}
               onPress={handleNext}
             >
-              <Text style={[styles.navButtonText, { color: '#FFF' }]}>
+              <Text style={[styles.navButtonText, { color: '#000' }]}>
                 {isLastStep ? t('tutorial.getStarted') : t('tutorial.next')}
               </Text>
               {!isLastStep && (

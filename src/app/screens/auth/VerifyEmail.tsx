@@ -73,6 +73,9 @@ export const VerifyEmail = ({ navigation }: any) => {
       } else if (error.message?.includes('invalid')) {
         errorMessage =
           t('verification-token-invalid') || 'Invalid verification link.';
+      } else if (error.message?.includes('already been used') || error.message?.includes('used')) {
+        errorMessage =
+          t('verification-token-used') || 'Verification token has already been used';
       } else if (error.message) {
         errorMessage = error.message;
       }
@@ -202,7 +205,9 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: postBgColor,
     borderRadius: 20,
-    padding: 24,
+    paddingTop: 32,
+    paddingHorizontal: 24,
+    paddingBottom: 24,
     borderWidth: 1,
     borderColor: '#333',
     shadowColor: '#000',
@@ -216,7 +221,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: primaryTextColor,
     textAlign: 'center',
+    marginTop: 16,
     marginBottom: 8,
+    paddingTop: 8,
   },
   message: {
     fontSize: 16,

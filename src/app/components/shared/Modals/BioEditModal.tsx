@@ -1,12 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   StyleSheet,
   Text,
-  View,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
   TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
@@ -15,13 +13,16 @@ import {
   primaryColor,
   primaryTextColor,
   secondaryTextColor,
-  separatorColor,
   warningColor,
 } from '../../../utils/styles/colors';
 import { useTranslation } from 'react-i18next';
-import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
+import { ButtonSpinner } from '@/components/ui/button';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
-import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
+import {
+  BottomSheetBackdrop,
+  BottomSheetModal,
+  BottomSheetView,
+} from '@gorhom/bottom-sheet';
 
 interface BioEditModalProps {
   visible: boolean;
@@ -73,7 +74,9 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
 
   const validateBio = (text: string): string => {
     if (text.length > MAX_BIO_LENGTH) {
-      return t('bio.too-long') || `Bio cannot exceed ${MAX_BIO_LENGTH} characters`;
+      return (
+        t('bio.too-long') || `Bio cannot exceed ${MAX_BIO_LENGTH} characters`
+      );
     }
     return '';
   };
@@ -123,9 +126,7 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
       <BottomSheetView style={styles.content}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>
-            {t('bio.edit-title') || 'Edit Bio'}
-          </Text>
+          <Text style={styles.title}>{t('bio.edit-title') || 'Edit Bio'}</Text>
         </View>
 
         {/* Description */}
@@ -136,10 +137,7 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
         {/* Text Input */}
         <View style={styles.inputContainer}>
           <TextInput
-            style={[
-              styles.textInput,
-              error ? styles.textInputError : null,
-            ]}
+            style={[styles.textInput, error ? styles.textInputError : null]}
             value={bio}
             onChangeText={handleBioChange}
             placeholder={t('bio.placeholder') || 'Write your bio here...'}
@@ -164,12 +162,13 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
               style={[
                 styles.counter,
                 {
-                  color: remainingChars < 0 
-                    ? warningColor 
-                    : remainingChars < 20 
-                    ? '#F59E0B' 
-                    : secondaryTextColor
-                }
+                  color:
+                    remainingChars < 0
+                      ? warningColor
+                      : remainingChars < 20
+                        ? '#F59E0B'
+                        : secondaryTextColor,
+                },
               ]}
             >
               {bio.length}/{MAX_BIO_LENGTH}
@@ -193,9 +192,10 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[
-              styles.button, 
+              styles.button,
               styles.saveButton,
-              (isLoading || !!error || bio === currentBio) && styles.saveButtonDisabled
+              (isLoading || !!error || bio === currentBio) &&
+                styles.saveButtonDisabled,
             ]}
             onPress={handleSave}
             disabled={isLoading || !!error || bio === currentBio}
@@ -203,10 +203,13 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
             {isLoading ? (
               <ButtonSpinner color="white" />
             ) : (
-              <Text style={[
-                styles.saveButtonText,
-                (isLoading || !!error || bio === currentBio) && styles.saveButtonTextDisabled
-              ]}>
+              <Text
+                style={[
+                  styles.saveButtonText,
+                  (isLoading || !!error || bio === currentBio) &&
+                    styles.saveButtonTextDisabled,
+                ]}
+              >
                 {t('save') || 'Save'}
               </Text>
             )}
@@ -309,7 +312,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   saveButtonText: {
-    color: 'white',
+    color: '#000',
     fontSize: 16,
     fontWeight: '600',
   },

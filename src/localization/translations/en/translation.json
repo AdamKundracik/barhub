@@ -1,6 +1,5 @@
 {
   "email": "Email",
-  "resetPassword": "Reset password",
   "register": "Register",
   "password": "Password",
   "login": "Log In",
@@ -145,6 +144,7 @@
   "verification-error-message": "Unable to verify your email. The link may have expired.",
   "verification-token-expired": "Verification link has expired.",
   "verification-token-invalid": "Invalid verification link.",
+  "verification-token-used": "Verification token has already been used",
   "please-wait": "Please wait...",
   "invalid-form": "Invalid form",
   "too-short": "Too short (min. 3 characters)",
@@ -468,9 +468,6 @@
   "total": "Total",
   "unread": "Unread",
   "use-travel-mode": "Use travel mode",
-  "camera": {
-    "fakeLocationBlocked": "Camera is not available in travel mode. Turn off travel mode to access the camera."
-  },
   "no_internet_connection": "No internet connection",
   "no_internet_title": "No Internet Connection",
   "no_internet_description": "Please check your connection and try again. Barhub requires an internet connection to work properly.",

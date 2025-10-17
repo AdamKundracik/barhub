@@ -64,9 +64,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   buttonText: {
-    color: '#FFF',
+    color: '#000',
     fontSize: 16,
     fontWeight: '600',
   },
 });
+
 
