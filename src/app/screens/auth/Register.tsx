@@ -300,7 +300,9 @@ export const Register = () => {
                 </FormControlHelperText>
               </FormControlHelper>
             )}
-            <Text style={styles.charCount}>{formData.username?.length || 0}/30</Text>
+            <Text style={styles.charCount}>
+              {formData.username?.length || 0}/30
+            </Text>
             {!shouldShowError('username') &&
               formData.username.length > 0 &&
               formData.username.length < 3 && (
@@ -520,11 +522,9 @@ export const Register = () => {
               formData.repeatPassword.length > 0 &&
               formData.repeatPassword !== formData.password && (
                 <FormControlHelper>
-                  <FormControlHelperText
-                    style={[styles.helperText, { color: warningColor }]}
-                  >
+                  <FormControlErrorText className="text-red-500">
                     {t('noMatchingPasswords')}
-                  </FormControlHelperText>
+                  </FormControlErrorText>
                 </FormControlHelper>
               )}
             {shouldShowError('repeatPassword') && (

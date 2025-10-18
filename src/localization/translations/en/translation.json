@@ -152,6 +152,8 @@
   "min-characters_one": "Minimum {{count}} character",
   "min-characters_other": "Minimum {{count}} characters",
   "enter-valid-email": "Enter a valid email address",
+  "email-required": "Email is required",
+  "password-required": "Password is required",
   "username-min-length": "Username must be at least 3 characters",
   "username-invalid-characters": "Username cannot contain emojis or special symbols",
   "username-standard-chars-only": "Username can only contain letters, numbers, and basic punctuation",

@@ -89,6 +89,8 @@
   "min-characters_one": "Mínimo {{count}} carácter",
   "min-characters_other": "Mínimo {{count}} caracteres",
   "enter-valid-email": "Ingrese una dirección de correo electrónico válida",
+  "email-required": "El correo electrónico es obligatorio",
+  "password-required": "La contraseña es obligatoria",
   "username-min-length": "El nombre de usuario debe tener al menos 3 caracteres",
   "username-invalid-characters": "El nombre de usuario no puede contener emojis o símbolos especiales",
   "username-standard-chars-only": "El nombre de usuario solo puede contener letras, números y puntuación básica",
