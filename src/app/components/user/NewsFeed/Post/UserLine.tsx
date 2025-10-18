@@ -9,7 +9,6 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { PostReportModal } from '@/src/app/components/shared/Modals/ReportPostModal';
-import { UserReportModal } from '@/src/app/components/shared/Modals/UserReportModal';
 import { ReportReason } from '@/src/app/utils/types/Feed/PostTypes';
 import { useTranslation } from 'react-i18next';
 import { getLocales } from 'expo-localization';
@@ -86,8 +85,10 @@ type Props = {
   isHighlighted?: boolean; // Current highlight state
   imageUrl?: string; // Post image URL for saving to gallery
   onPress?: () => void; // Optional callback when UserLine is pressed
+  onUserPress?: () => void; // Optional callback when user avatar/name is pressed
   onShare?: () => void; // Optional callback for sharing post
   onHighlightChange?: (isHighlighted: boolean) => void; // Callback when highlight state changes
+  onViewDetail?: () => void; // Optional callback for viewing post detail
 };
 
 const UserLineComponent = ({
@@ -102,11 +103,12 @@ const UserLineComponent = ({
   isHighlighted = false,
   imageUrl,
   onPress,
+  onUserPress,
   onShare,
   onHighlightChange,
+  onViewDetail,
 }: Props) => {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
-  const [isUserReportModalOpen, setIsUserReportModalOpen] = useState(false);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
   const [localIsHighlighted, setLocalIsHighlighted] = useState(isHighlighted);
   const queryClient = useQueryClient();
@@ -238,38 +240,6 @@ const UserLineComponent = ({
     [postId, showSuccessToast, showErrorToast, t]
   );
 
-  const handleReportUser = useCallback(
-    async (reason: ReportReason, customReason?: string) => {
-      const currentUserId = useUserStore.getState().getUserId();
-
-      if (!user?.id || !currentUserId) {
-        showErrorToast(t('error'), t('errors.missingUserInfo'));
-        return;
-      }
-
-      try {
-        // Convert ReportReason to ReasonTypeEnum (they match now after enum update)
-        const backendReason = reason as unknown as ReasonTypeEnum;
-
-        await reportService.reportUser(
-          parseInt(user.id, 10),
-          backendReason,
-          customReason
-        );
-
-        showSuccessToast(
-          t('reportUser.successTitle'),
-          t('reportUser.successDescription')
-        );
-      } catch (error: any) {
-        console.error('Failed to report user:', error);
-        showErrorToast(t('error'), error.message || t('something-went-wrong'));
-      } finally {
-        setIsUserReportModalOpen(false);
-      }
-    },
-    [user?.id, showSuccessToast, showErrorToast, t]
-  );
 
   const confirmDelete = useCallback(
     (onConfirm: () => void) => {
@@ -438,24 +408,33 @@ const UserLineComponent = ({
           activeOpacity={onPress ? 0.7 : 1}
           disabled={!onPress}
         >
-          <Avatar size="md" style={styles.avatarContainer}>
-            {user?.photoUrl ? (
-              <AvatarImage
-                source={{ uri: user.photoUrl }}
-                style={styles.avatar}
-              />
-            ) : (
-              <AvatarFallbackText style={styles.avatarFallback}>
-                {safeUserName}
-              </AvatarFallbackText>
-            )}
-          </Avatar>
+          <TouchableOpacity
+            style={styles.userSection}
+            onPress={onUserPress}
+            activeOpacity={onUserPress ? 0.7 : 1}
+            disabled={!onUserPress}
+          >
+            <Avatar size="md" style={styles.avatarContainer}>
+              {user?.photoUrl ? (
+                <AvatarImage
+                  source={{ uri: user.photoUrl }}
+                  style={styles.avatar}
+                />
+              ) : (
+                <AvatarFallbackText style={styles.avatarFallback}>
+                  {safeUserName}
+                </AvatarFallbackText>
+              )}
+            </Avatar>
+          </TouchableOpacity>
 
           <View style={styles.textContainer}>
             <View style={styles.nameRow}>
-              <Text style={styles.name} numberOfLines={1}>
-                {safeUserName}
-              </Text>
+              <TouchableOpacity onPress={onUserPress} disabled={!onUserPress}>
+                <Text style={styles.name} numberOfLines={1}>
+                  {safeUserName}
+                </Text>
+              </TouchableOpacity>
               {user?.role === 'ADMIN' && (
                 <View style={styles.roleBadge}>
                   <View style={[styles.roleDot, { backgroundColor: '#FF6B6B' }]} />
@@ -499,7 +478,6 @@ const UserLineComponent = ({
       <PostOptionsModal
         showDelete={canDelete}
         showReport={canReport}
-        showReportUser={canReportUser}
         showHighlight={canHighlight}
         isHighlighted={localIsHighlighted}
         imageUrl={imageUrl}
@@ -510,12 +488,9 @@ const UserLineComponent = ({
           setIsOptionsModalOpen(false);
           setIsReportModalOpen(true);
         }}
-        onReportUser={() => {
-          setIsOptionsModalOpen(false);
-          setIsUserReportModalOpen(true);
-        }}
         onHighlight={handleHighlight}
         onShare={onShare}
+        onViewDetail={onViewDetail}
       />
 
       <PostReportModal
@@ -524,11 +499,6 @@ const UserLineComponent = ({
         onSave={handleReport}
       />
 
-      <UserReportModal
-        visible={isUserReportModalOpen}
-        onClose={() => setIsUserReportModalOpen(false)}
-        onSave={handleReportUser}
-      />
     </>
   );
 };
@@ -557,6 +527,7 @@ export const UserLine = React.memo(UserLineComponent, (prev, next) => {
     prev.canHighlight === next.canHighlight &&
     prev.isHighlighted === next.isHighlighted &&
     prev.onPress === next.onPress &&
+    prev.onUserPress === next.onUserPress &&
     prev.onShare === next.onShare &&
     prev.onHighlightChange === next.onHighlightChange
   );
@@ -578,6 +549,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+  },
+  userSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   avatarContainer: {
     marginRight: 14,

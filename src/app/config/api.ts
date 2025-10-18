@@ -39,6 +39,7 @@ export const ENDPOINTS = {
     EXPORT_DATA: '/users/me/export',
     TUTORIAL_VIEWED: '/users/tutorial-viewed',
     BY_ID: (id: string) => `/users/${id}`,
+    PROFILE: (id: string) => `/users/${id}/profile`,
     PUSH_TOKENS: (id: string) => `/users/${id}/push-tokens`,
     LOCATION: (id: string) => `/users/${id}/update-location`,
     SEARCH_HISTORY: (id: string) => `/users/${id}/search-history`,

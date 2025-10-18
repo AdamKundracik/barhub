@@ -12,29 +12,30 @@ import {
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
 import {
   bottomModalBgColor,
   warningColor,
 } from '@/src/app/utils/styles/colors';
-import { saveImageToGallery, showSaveResultAlert } from '@/src/app/utils/helper-functions/saveImageToGallery';
+import {
+  saveImageToGallery,
+  showSaveResultAlert,
+} from '@/src/app/utils/helper-functions/saveImageToGallery';
 
 type PostOptionsModalProps = {
   visible: boolean;
   showDelete?: boolean; // From backend canDelete permission
   showReport?: boolean; // From backend canReport permission
-  showReportUser?: boolean; // From backend canReportUser permission
   showHighlight?: boolean; // From backend canHighlight permission
   isHighlighted?: boolean; // Current highlight state
   imageUrl?: string; // URL of the post image for saving
   onClose: () => void;
   onDelete: () => Promise<void> | void;
   onReport: () => void; // otvorí Report modal
-  onReportUser?: () => void; // otvorí User Report modal
   onHighlight?: () => void; // highlight/unhighlight post
   onShare?: () => void; // share post
+  onViewDetail?: () => void; // zobrazí detail príspevku
 };
 
 export const PostOptionsModal = ({
@@ -42,19 +43,17 @@ export const PostOptionsModal = ({
   onClose,
   onDelete,
   onReport,
-  onReportUser,
   onHighlight,
   onShare,
+  onViewDetail,
   imageUrl,
   showDelete = false,
   showReport = true,
-  showReportUser = false,
   showHighlight = false,
   isHighlighted = false,
 }: PostOptionsModalProps) => {
   const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
-  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
 
   // Calculate number of visible options
@@ -65,18 +64,28 @@ export const PostOptionsModal = ({
     if (showHighlight && onHighlight) count++;
     if (showDelete) count++;
     if (showReport) count++;
-    if (showReportUser && onReportUser) count++;
+    if (onViewDetail) count++;
     return count;
-  }, [onShare, imageUrl, showHighlight, onHighlight, showDelete, showReport, showReportUser, onReportUser]);
+  }, [
+    onShare,
+    imageUrl,
+    showHighlight,
+    onHighlight,
+    showDelete,
+    showReport,
+    onViewDetail,
+  ]);
 
   // Calculate dynamic snap points based on number of options
   const getSnapPoints = useCallback(() => {
     const optionCount = getVisibleOptionsCount();
     const baseHeight = 60; // Base height for handle and padding
     const optionHeight = 60; // Height per option
-    const totalHeight = baseHeight + (optionCount * optionHeight);
-    const screenHeight = 100; // Percentage of screen height
-    const calculatedPercentage = Math.min(Math.max((totalHeight / 800) * 100, 25), 70); // Min 25%, Max 70%
+    const totalHeight = baseHeight + optionCount * optionHeight;
+    const calculatedPercentage = Math.min(
+      Math.max((totalHeight / 800) * 100, 25),
+      70
+    ); // Min 25%, Max 70%
     return [`${calculatedPercentage}%`];
   }, [getVisibleOptionsCount]);
 
@@ -112,7 +121,7 @@ export const PostOptionsModal = ({
 
   const handleSaveToGallery = async () => {
     if (!imageUrl) return;
-    
+
     try {
       setLoading(true);
       const result = await saveImageToGallery(imageUrl);
@@ -134,6 +143,23 @@ export const PostOptionsModal = ({
       enablePanDownToClose
     >
       <BottomSheetView style={styles.content}>
+        {onViewDetail && (
+          <TouchableOpacity
+            style={styles.option}
+            activeOpacity={0.7}
+            onPress={() => {
+              onViewDetail();
+              onClose();
+            }}
+            disabled={loading}
+          >
+            <View style={styles.optionRow}>
+              <Text style={styles.optionText}>{t('view-post-detail')}</Text>
+              <FontAwesomeIcon icon={Icons.Info} size={16} color="white" />
+            </View>
+          </TouchableOpacity>
+        )}
+
         {onShare && (
           <TouchableOpacity
             style={styles.option}
@@ -176,7 +202,12 @@ export const PostOptionsModal = ({
             disabled={loading}
           >
             <View style={styles.optionRow}>
-              <Text style={[styles.optionText, { color: isHighlighted ? '#AAA' : '#FFC107' }]}>
+              <Text
+                style={[
+                  styles.optionText,
+                  { color: isHighlighted ? '#AAA' : '#FFC107' },
+                ]}
+              >
                 {isHighlighted ? t('unhighlight-post') : t('highlight-post')}
               </Text>
               <FontAwesomeIcon
@@ -199,7 +230,11 @@ export const PostOptionsModal = ({
               <Text style={[styles.optionText, { color: warningColor }]}>
                 {t('delete-post')}
               </Text>
-              <FontAwesomeIcon icon={Icons.TrashCan} size={16} color={warningColor} />
+              <FontAwesomeIcon
+                icon={Icons.TrashCan}
+                size={16}
+                color={warningColor}
+              />
             </View>
           </TouchableOpacity>
         )}
@@ -214,26 +249,6 @@ export const PostOptionsModal = ({
             <View style={styles.optionRow}>
               <Text style={[styles.optionText, { color: warningColor }]}>
                 {t('reportPost.title')}
-              </Text>
-              <FontAwesomeIcon
-                icon={Icons.Flag}
-                size={16}
-                color={warningColor}
-              />
-            </View>
-          </TouchableOpacity>
-        )}
-
-        {showReportUser && onReportUser && (
-          <TouchableOpacity
-            style={styles.option}
-            activeOpacity={0.7}
-            onPress={onReportUser}
-            disabled={loading}
-          >
-            <View style={styles.optionRow}>
-              <Text style={[styles.optionText, { color: warningColor }]}>
-                {t('reportUser.title')}
               </Text>
               <FontAwesomeIcon
                 icon={Icons.Flag}

@@ -6,6 +6,7 @@ import {
   RoleEnum,
   SearchHistoryItemEmbeddable,
   UploadLocationRequestDTO,
+  UserProfileDTO,
 } from '../types/dto';
 
 // Use exact backend DTO types
@@ -131,6 +132,17 @@ class UserService {
       await apiUtils.put(ENDPOINTS.USERS.TUTORIAL_VIEWED);
     } catch (error) {
       console.error('Error marking tutorial as viewed:', error);
+      throw error;
+    }
+  }
+
+  // Get user profile by ID
+  async getUserProfile(userId: string): Promise<UserProfileDTO | null> {
+    try {
+      const profile = await apiUtils.get<UserProfileDTO>(ENDPOINTS.USERS.PROFILE(userId));
+      return profile;
+    } catch (error) {
+      console.error('Error getting user profile:', error);
       throw error;
     }
   }

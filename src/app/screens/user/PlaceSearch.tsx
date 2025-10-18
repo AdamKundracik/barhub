@@ -19,7 +19,6 @@ import { useTranslation } from 'react-i18next';
 import { useQuery } from 'react-query';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { ClockIcon, MapPinIcon, XIcon } from 'lucide-react-native';
-import { FavoritePlaceDTO } from '../../types/dto';
 
 // UI Components
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
@@ -36,8 +35,10 @@ import { fetchPlaceAutocomplete } from '../../utils/helper-functions/fetchPlaces
 import { generateUID } from '@/src/app/utils/helper-functions/generateUID';
 import { Icons } from '../../utils/icons/icons';
 import { primaryColor, primaryDeepColor } from '../../utils/styles/colors';
-import { favoriteService } from '../../services/favoriteService';
 import { useUserFavorites } from '@/src/app/hooks/useUserFavorites';
+
+// Constants
+const MAX_FAVORITE_PLACES = 10;
 
 // Types
 interface PlaceSuggestion {
@@ -110,7 +111,10 @@ const PlaceItem: React.FC<{
   <Pressable style={placeItemStyle.placeItem} onPress={onPress}>
     {({ pressed }) => (
       <View
-        style={[placeItemStyle.placeItemContent, pressed && placeItemStyle.placeItemPressed]}
+        style={[
+          placeItemStyle.placeItemContent,
+          pressed && placeItemStyle.placeItemPressed,
+        ]}
       >
         <View style={placeItemStyle.placeIconContainer}>
           {isHistory ? (
@@ -120,7 +124,12 @@ const PlaceItem: React.FC<{
           )}
         </View>
         <View style={placeItemStyle.placeTextContainer}>
-          <Text style={[placeItemStyle.placeMainText, pressed && placeItemStyle.textPressed]}>
+          <Text
+            style={[
+              placeItemStyle.placeMainText,
+              pressed && placeItemStyle.textPressed,
+            ]}
+          >
             {mainText}
           </Text>
           <Text
@@ -178,7 +187,8 @@ export const PlaceSearch: React.FC = () => {
   const insets = useSafeAreaInsets();
 
   const { setPlaceId, setPlaceName, setPlaceAddress } = usePlaceStore();
-  const { addSearchHistoryItemAsync, userData, isPremium, userId } = useUserData();
+  const { addSearchHistoryItemAsync, userData, isPremium, userId } =
+    useUserData();
   const { favorites } = useUserFavorites(userId);
 
   // Get search history from userData
@@ -257,18 +267,28 @@ export const PlaceSearch: React.FC = () => {
       <View style={styles.sectionContainer}>
         <View style={styles.favoritesHeader}>
           <FontAwesomeIcon icon={Icons.HeartSolid} size={18} color="#FF6B6B" />
-          <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Obľúbené miesta</Text>
+          <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
+            Obľúbené miesta
+          </Text>
+          <Text style={styles.favoritesCount}>
+            {favorites.length}/{MAX_FAVORITE_PLACES}
+          </Text>
         </View>
-        {favorites.slice(0, 5).map((favorite, index) => (
+        {favorites.slice(0, MAX_FAVORITE_PLACES).map((favorite, index) => (
           <PlaceItem
             key={`favorite-${index}`}
             mainText={favorite.placeName}
             secondaryText={favorite.placeAddress}
-            onPress={() => handlePlaceSelect({
-              placeId: favorite.placeId,
-              mainText: favorite.placeName,
-              secondaryText: favorite.placeAddress,
-            }, true)}
+            onPress={() =>
+              handlePlaceSelect(
+                {
+                  placeId: favorite.placeId,
+                  mainText: favorite.placeName,
+                  secondaryText: favorite.placeAddress,
+                },
+                true
+              )
+            }
           />
         ))}
       </View>
@@ -548,6 +568,16 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 12,
     paddingHorizontal: 4,
+  },
+  favoritesCount: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.6)',
+    backgroundColor: 'rgba(255, 107, 107, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 107, 107, 0.3)',
   },
   sectionTitle: {
     fontSize: 18,

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  Alert,
   Animated,
   Platform,
   RefreshControl,
@@ -7,11 +8,16 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Alert,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import FastImage from 'react-native-fast-image';
 import { primaryColor } from '../../utils/styles/colors';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
+import {
+  Avatar,
+  AvatarFallbackText,
+  AvatarImage,
+} from '@/components/ui/avatar';
 import { useTranslation } from 'react-i18next';
 import { useLeaderboard } from '@/src/app/utils/hooks/useLeaderboard';
 import { BlurView } from 'expo-blur';
@@ -19,7 +25,6 @@ import { FlashList } from '@shopify/flash-list';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { Icons } from '../../utils/icons/icons';
 import { faDownload } from '@fortawesome/free-solid-svg-icons';
 import { useUserRole } from '@/src/app/hooks/useUserRole'; // Define LeaderboardUser interface locally to match backend data
 
@@ -53,6 +58,7 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
   index,
   animationKey,
 }) => {
+  const navigation = useNavigation();
   const isTopThree = rank !== null && rank < 3;
 
   // Animácia pre každý riadok - použitie useRef pre perzistentnosť
@@ -108,79 +114,89 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
 
   const topThreeColors = isTopThree ? getTopThreeColors(rank!) : null;
 
+  const handleUserPress = () => {
+    (navigation as any).navigate('UserDetail', { userId: user.userId });
+  };
+
   return (
-    <Animated.View
-      style={[
-        styles.row,
-        highlight && styles.currentUserHighlight,
-        isTopThree && {
-          backgroundColor: topThreeColors?.background,
-          borderWidth: 1,
-          borderColor: topThreeColors?.border,
-        },
-        {
-          transform: [{ translateY }],
-          opacity,
-        },
-      ]}
-    >
-      {/* Medal/Rank section */}
-      <View style={styles.medalContainer}>
-        {isTopThree ? (
-          <FastImage source={medalMap[rank]} style={styles.medal} />
-        ) : (
-          <View style={styles.rankBadge}>
-            <Text style={styles.rank}>
-              {rank !== null ? `${rank + 1}` : '?'}
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* Avatar */}
-      <FastImage
-        source={
-          user.photoUrl
-            ? { uri: user.photoUrl }
-            : require('../../../../assets/userIcon.png')
-        }
+    <TouchableOpacity onPress={handleUserPress} activeOpacity={0.7}>
+      <Animated.View
         style={[
-          styles.avatar,
+          styles.row,
+          highlight && styles.currentUserHighlight,
           isTopThree && {
+            backgroundColor: topThreeColors?.background,
+            borderWidth: 1,
             borderColor: topThreeColors?.border,
-            borderWidth: 2.5,
           },
-        ]}
-      />
-
-      {/* User info */}
-      <View style={styles.userInfo}>
-        <Text
-          style={[
-            styles.username,
-            isTopThree && {
-              color: topThreeColors?.text,
-              fontWeight: 'bold',
-            },
-          ]}
-        >
-          {user.name}
-        </Text>
-      </View>
-
-      {/* Points */}
-      <Text
-        style={[
-          styles.points,
-          isTopThree && {
-            color: topThreeColors?.text,
-            fontSize: 17,
+          {
+            transform: [{ translateY }],
+            opacity,
           },
         ]}
       >
-        {user.points} pts
-      </Text>
-    </Animated.View>
+        {/* Medal/Rank section */}
+        <View style={styles.medalContainer}>
+          {isTopThree ? (
+            <FastImage source={medalMap[rank]} style={styles.medal} />
+          ) : (
+            <View style={styles.rankBadge}>
+              <Text style={styles.rank}>
+                {rank !== null ? `${rank + 1}` : '?'}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Avatar */}
+        <Avatar
+          size="lg"
+          style={[
+            styles.avatar,
+            isTopThree && {
+              borderColor: topThreeColors?.border,
+              borderWidth: 2.5,
+            },
+          ]}
+        >
+          {user.photoUrl ? (
+            <AvatarImage source={{ uri: user.photoUrl }} />
+          ) : (
+            <AvatarFallbackText style={styles.avatarFallback}>
+              {user.name}
+            </AvatarFallbackText>
+          )}
+        </Avatar>
+
+        {/* User info */}
+        <View style={styles.userInfo}>
+          <Text
+            style={[
+              styles.username,
+              isTopThree && {
+                color: topThreeColors?.text,
+                fontWeight: 'bold',
+              },
+            ]}
+          >
+            {user.name}
+          </Text>
+        </View>
+
+        {/* Points */}
+        <Text
+          style={[
+            styles.points,
+            isTopThree && {
+              color: topThreeColors?.text,
+              fontSize: 17,
+            },
+          ]}
+        >
+          {user.points} pts
+        </Text>
+      </Animated.View>
+    </TouchableOpacity>
   );
 };
 
@@ -221,7 +237,7 @@ const LeaderboardScreen = () => {
 
       // CSV Header
       const header = 'Rank,ID,Username,Points\n';
-      
+
       // CSV Rows - len id, name, points (bez photoUrl)
       const rows = topUsers
         .map((user, index) => {
@@ -236,7 +252,12 @@ const LeaderboardScreen = () => {
       const csvContent = header + rows;
 
       // Create filename with period and date
-      const periodLabel = selectedTab === 'week' ? 'Weekly' : selectedTab === 'monthly' ? 'Monthly' : 'Yearly';
+      const periodLabel =
+        selectedTab === 'week'
+          ? 'Weekly'
+          : selectedTab === 'monthly'
+            ? 'Monthly'
+            : 'Yearly';
       const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
       const filename = `Leaderboard_${periodLabel}_${date}.csv`;
 
@@ -280,7 +301,7 @@ const LeaderboardScreen = () => {
               ? t('leaderboard.monthly')
               : t('leaderboard.yearly')}
         </Text>
-        
+
         {/* Export Button - Only for Admin/Moderator */}
         {(isAdmin || isModerator) && (
           <TouchableOpacity
@@ -549,6 +570,10 @@ const styles = StyleSheet.create({
     marginRight: 12,
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  avatarFallback: {
+    backgroundColor: 'transparent',
+    color: 'white',
   },
 
   // User info

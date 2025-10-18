@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Device from 'react-native-device-info';
@@ -14,7 +20,6 @@ import FastImage from 'react-native-fast-image';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { useUserStore } from '@/src/app/utils/store/userStore';
-import { usePlaceStore } from '@/src/app/utils/store/placesStore';
 import { Post } from '@/common/types/postTypes';
 import { postService } from '@/src/app/services/postService';
 import { trimPlaceName } from '@/src/app/utils/helper-functions/trimPlaceName';
@@ -67,7 +72,7 @@ const usePostLike = (
     setLiked(initialLiked);
     setLikeCount(initialCount);
     backendLikedState.current = initialLiked;
-    
+
     // Clear any pending debounce timer when post changes
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
@@ -89,7 +94,10 @@ const usePostLike = (
         }
 
         // Call backend API to toggle
-        const response = await postService.toggleLike(postId, parseInt(userId, 10));
+        const response = await postService.toggleLike(
+          postId,
+          parseInt(userId, 10)
+        );
 
         if (response) {
           // Update backend state tracker
@@ -211,6 +219,11 @@ const UserPost: React.FC<UserPostProps> = ({
     (navigation as any).navigate('PostDetail', { postId: post.id });
   }, [navigation, post.id]);
 
+  // Navigate to UserDetail screen
+  const handleNavigateToUser = useCallback(() => {
+    (navigation as any).navigate('UserDetail', { userId: post.userId });
+  }, [navigation, post.userId]);
+
   // Share post
   const handleShare = useCallback(async () => {
     try {
@@ -300,14 +313,15 @@ const UserPost: React.FC<UserPostProps> = ({
         style={[
           styles.contentContainer,
           isTablet && tabletStyles.contentContainer,
-          isHighlighted && isFiltering && {
-            borderWidth: 2,
-            borderColor: '#FFC107',
-            shadowColor: '#FFC107',
-            shadowOpacity: 0.3,
-            shadowRadius: 16,
-            elevation: 12,
-          },
+          isHighlighted &&
+            isFiltering && {
+              borderWidth: 2,
+              borderColor: '#FFC107',
+              shadowColor: '#FFC107',
+              shadowOpacity: 0.3,
+              shadowRadius: 16,
+              elevation: 12,
+            },
         ]}
       >
         {/* Subtle gradient overlay */}
@@ -336,7 +350,9 @@ const UserPost: React.FC<UserPostProps> = ({
           isHighlighted={isHighlighted}
           imageUrl={photoUrl}
           onPress={handleNavigateToDetail}
+          onUserPress={handleNavigateToUser}
           onShare={handleShare}
+          onViewDetail={handleNavigateToDetail}
         />
 
         {/* Enhanced Image Container */}

@@ -5,6 +5,7 @@ import Subscription from '../screens/user/Subscription';
 import Info from '../screens/user/Info/Info';
 import PostSummary from '../screens/user/Post/PostSummary';
 import PostDetail from '../screens/user/Post/PostDetail';
+import UserDetail from '../screens/user/UserDetail';
 import NotificationsList from '../screens/user/Notifications/NotificationsList';
 import SelectFakeLocation from '../screens/user/SelectFakeLocation';
 import Licenses from '@/src/app/screens/user/Info/Screens/LIcenses';
@@ -49,6 +50,7 @@ export function UserNav() {
       <RootStack.Screen name="Subscription" component={Subscription} />
       <RootStack.Screen name="PostSummary" component={PostSummary} />
       <RootStack.Screen name="PostDetail" component={PostDetail} />
+      <RootStack.Screen name="UserDetail" component={UserDetail} />
       <RootStack.Screen
         name="NotificationsList"
         component={NotificationsList}

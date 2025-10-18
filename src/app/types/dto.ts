@@ -357,6 +357,38 @@ export interface PostHighlightDTO extends AbstractAuditableEntityDTO {
   post?: PostDTO; // Included post details
 }
 
+// User Profile DTO
+export interface UserProfileDTO extends AbstractAuditableEntityDTO {
+  name: string;
+  photoUrl?: string;
+  bio?: string;
+  dateOfBirth: string;
+  premium: boolean;
+  role: string;
+  authType: string;
+  
+  // Activity Stats
+  totalPosts: number;
+  totalLikes: number;
+  totalHighlights: number;
+  lastUploadedPostAt?: string;
+  
+  // Leaderboard
+  leaderboardPoints: number;
+  leaderboardRank?: number;
+  
+  // Highlights
+  recentHighlights: PostHighlightDTO[];
+  
+  // Additional
+  favoritePlacesCount: number;
+  favoritePlaces: FavoritePlaceDTO[];
+  
+  // Privacy Settings (only for own profile)
+  emailVerified?: boolean;
+  usingFakeLocation?: boolean;
+}
+
 // Favorite Place DTOs
 export interface FavoritePlaceDTO {
   placeId: string;

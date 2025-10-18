@@ -494,6 +494,16 @@ export const Account = () => {
                 </Text>
               </View>
             </View>
+
+            {/* View Profile Detail Button */}
+            <View style={{ marginTop: 16 }}>
+              <ActionButton
+                icon={Icons.Info}
+                title={t('user.profile')}
+                description={t('view-profile-detail')}
+                onPress={() => (navigation as any).navigate('UserDetail', { userId: userId })}
+              />
+            </View>
           </View>
         </BlurView>
 

@@ -96,6 +96,11 @@ export const PostDetail = () => {
     }
   };
 
+  const handleNavigateToUser = () => {
+    if (!post?.userId) return;
+    (navigation as any).navigate('UserDetail', { userId: post.userId });
+  };
+
   const handleReport = async (reason: ReportReason, customReason?: string) => {
     if (!post) return;
 
@@ -380,7 +385,7 @@ export const PostDetail = () => {
           {/* User Info - Only name and time */}
           <View style={styles.userSection}>
             <HStack space="md" style={styles.userInfo}>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={handleNavigateToUser}>
                 <Avatar size="md" style={styles.avatarContainer}>
                   {post.user?.photoUrl ? (
                     <AvatarImage
@@ -397,7 +402,9 @@ export const PostDetail = () => {
 
               <VStack style={{ flex: 1 }}>
                 <HStack space="sm" style={{ alignItems: 'center' }}>
-                  <Text style={styles.userName}>{post.user?.displayName}</Text>
+                  <TouchableOpacity onPress={handleNavigateToUser}>
+                    <Text style={styles.userName}>{post.user?.displayName}</Text>
+                  </TouchableOpacity>
                   {localIsHighlighted && (
                     <View style={styles.highlightBadge}>
                       <FontAwesomeIcon
@@ -527,6 +534,10 @@ export const PostDetail = () => {
           }}
           onHighlight={handleHighlight}
           onShare={handleShare}
+          onViewDetail={() => {
+            // Already in post detail, do nothing or close modal
+            setIsOptionsModalOpen(false);
+          }}
         />
       )}
 

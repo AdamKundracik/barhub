@@ -73,6 +73,12 @@ const authLinking = {
           postId: (postId: string) => postId,
         },
       },
+      UserDetail: {
+        path: 'user/:userId',
+        parse: {
+          userId: (userId: string) => userId,
+        },
+      },
     },
   },
 };
@@ -94,6 +100,12 @@ const mainLinking = {
         path: 'post/:postId',
         parse: {
           postId: (postId: string) => postId,
+        },
+      },
+      UserDetail: {
+        path: 'user/:userId',
+        parse: {
+          userId: (userId: string) => userId,
         },
       },
       VerifyEmail: {
