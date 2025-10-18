@@ -113,6 +113,7 @@ export const UserDetail = () => {
     [userProfile?.id, currentUserId, showErrorToast, t]
   );
 
+
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
@@ -244,6 +245,7 @@ export const UserDetail = () => {
             />
           </TouchableOpacity>
         )}
+
       </View>
 
       <ScrollView
@@ -269,6 +271,14 @@ export const UserDetail = () => {
             <View style={styles.heroContent}>
               {/* Avatar with glow effect */}
               <View style={styles.avatarWrapper}>
+                {userProfile.premium && (
+                  <LinearGradient
+                    colors={['#FFD700', '#FFA500', '#FF6347']}
+                    style={styles.premiumRing}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  />
+                )}
                 <View style={styles.avatarGlow}>
                   <Avatar size="2xl" style={styles.heroAvatar}>
                     {userProfile.photoUrl ? (
@@ -280,15 +290,6 @@ export const UserDetail = () => {
                     )}
                   </Avatar>
                 </View>
-                {userProfile.premium && (
-                  <View style={styles.premiumBadge}>
-                    <FontAwesomeIcon
-                      icon={Icons.Crown}
-                      size={14}
-                      color="#FFD700"
-                    />
-                  </View>
-                )}
               </View>
 
               {/* User Info */}
@@ -797,15 +798,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     color: primaryTextColor,
   },
-  premiumBadge: {
+  premiumRing: {
     position: 'absolute',
-    top: -5,
-    right: -5,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    borderRadius: 15,
-    padding: 6,
-    borderWidth: 2,
-    borderColor: '#FFD700',
+    top: -6,
+    left: -6,
+    right: -6,
+    bottom: -6,
+    borderRadius: 75,
+    zIndex: 1,
   },
   heroName: {
     fontSize: 24,

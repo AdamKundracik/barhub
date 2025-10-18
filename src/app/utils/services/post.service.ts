@@ -106,7 +106,7 @@ export const getFreshContent = async (
     }
 
     const data = await response.json();
-    console.log(data);
+    // console.log(data);
     // Map backend posts to frontend format
     const mappedPosts = mapBackendPostsToFrontend(data.posts || []);
 

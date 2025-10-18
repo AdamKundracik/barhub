@@ -133,7 +133,7 @@ export const UserReportModal = ({
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
-      snapPoints={['60%']}
+      snapPoints={showCustomReason ? ['90%'] : ['60%']}
       backdropComponent={renderBackdrop}
       onDismiss={onClose}
       backgroundStyle={styles.container}

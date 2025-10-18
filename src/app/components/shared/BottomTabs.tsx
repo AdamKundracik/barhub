@@ -39,8 +39,8 @@ const BottomTabs = () => {
   const { t } = useTranslation();
   const { hasAdminAccess } = useUserRole();
   const { showTutorial, markTutorialAsViewed, skipTutorial } = useTutorial();
-  
-  console.log('[BottomTabs] showTutorial:', showTutorial);
+
+  // console.log('[BottomTabs] showTutorial:', showTutorial);
 
   const handleOpenCamera = async () => {
     // 1️⃣ Block if using fake location
@@ -86,7 +86,11 @@ const BottomTabs = () => {
           headerShown: false,
           tabBarShowLabel: true,
           tabBarBackground: () => (
-            <BlurView intensity={80} tint="dark" style={styles.blurBackground} />
+            <BlurView
+              intensity={80}
+              tint="dark"
+              style={styles.blurBackground}
+            />
           ),
           tabBarStyle: styles.tabBar,
           tabBarLabelStyle: styles.tabBarLabel,
@@ -95,84 +99,88 @@ const BottomTabs = () => {
           tabBarInactiveTintColor: separatorColor,
         }}
       >
-      <Tab.Screen
-        name="Feed"
-        component={NewsFeed}
-        options={{
-          tabBarLabel: t('explore'),
-          tabBarIcon: ({ color }) => (
-            <FontAwesomeIcon icon={Icons.House} size={26} color={color} />
-          ),
-        }}
-        listeners={({ navigation }) => ({
-          tabPress: async () => {
-            const state = navigation.getState();
-            const focused = state.routes[state.index].name;
+        <Tab.Screen
+          name="Feed"
+          component={NewsFeed}
+          options={{
+            tabBarLabel: t('explore'),
+            tabBarIcon: ({ color }) => (
+              <FontAwesomeIcon icon={Icons.House} size={26} color={color} />
+            ),
+          }}
+          listeners={({ navigation }) => ({
+            tabPress: async () => {
+              const state = navigation.getState();
+              const focused = state.routes[state.index].name;
 
-            if (focused === 'Feed') {
-              scrollOnTop();
-              await refetch();
-            }
-          },
-        })}
-      />
+              if (focused === 'Feed') {
+                scrollOnTop();
+                await refetch();
+              }
+            },
+          })}
+        />
 
-      <Tab.Screen
-        name="PlaceSearch"
-        component={PlaceSearch}
-        options={{
-          tabBarLabel: t('search'),
-          tabBarIcon: ({ color }) => (
-            <FontAwesomeIcon icon={Icons.Search} size={26} color={color} />
-          ),
-        }}
-      />
+        <Tab.Screen
+          name="PlaceSearch"
+          component={PlaceSearch}
+          options={{
+            tabBarLabel: t('search'),
+            tabBarIcon: ({ color }) => (
+              <FontAwesomeIcon icon={Icons.Search} size={26} color={color} />
+            ),
+          }}
+        />
 
-      <Tab.Screen
-        name="CameraButton"
-        component={View}
-        options={{
-          tabBarIcon: () => null,
-          tabBarButton: () => (
-            <TouchableOpacity
-              onPress={handleOpenCamera}
-              style={styles.cameraButton}
-              activeOpacity={0.5}
-            >
+        <Tab.Screen
+          name="CameraButton"
+          component={View}
+          options={{
+            tabBarIcon: () => null,
+            tabBarButton: () => (
+              <TouchableOpacity
+                onPress={handleOpenCamera}
+                style={styles.cameraButton}
+                activeOpacity={0.5}
+              >
+                <FontAwesomeIcon
+                  icon={Icons.Camera}
+                  size={26}
+                  color={primaryBgColor}
+                />
+              </TouchableOpacity>
+            ),
+          }}
+          listeners={{ tabPress: e => e.preventDefault() }}
+        />
+
+        <Tab.Screen
+          name="LeaderboardScreen"
+          component={LeaderboardScreen}
+          options={{
+            tabBarLabel: t('leaderboard.title'),
+            tabBarIcon: ({ color }) => (
               <FontAwesomeIcon
-                icon={Icons.Camera}
+                icon={Icons.RankingStar}
                 size={26}
-                color={primaryBgColor}
+                color={color}
               />
-            </TouchableOpacity>
-          ),
-        }}
-        listeners={{ tabPress: e => e.preventDefault() }}
-      />
+            ),
+          }}
+        />
 
-      <Tab.Screen
-        name="LeaderboardScreen"
-        component={LeaderboardScreen}
-        options={{
-          tabBarLabel: t('leaderboard.title'),
-          tabBarIcon: ({ color }) => (
-            <FontAwesomeIcon icon={Icons.RankingStar} size={26} color={color} />
-          ),
-        }}
-      />
-
-      <Tab.Screen
-        name="Account"
-        component={Account}
-        options={{
-          tabBarLabel: t('account'),
-          tabBarIcon: ({ color }) => (
-            <FontAwesomeIcon icon={Icons.User} size={26} color={color} />
-          ),
-        }}
-      />
+        <Tab.Screen
+          name="Account"
+          component={Account}
+          options={{
+            tabBarLabel: t('account'),
+            tabBarIcon: ({ color }) => (
+              <FontAwesomeIcon icon={Icons.User} size={26} color={color} />
+            ),
+          }}
+        />
       </Tab.Navigator>
-      
+
       <TutorialWizard
         visible={showTutorial}
         onComplete={markTutorialAsViewed}
