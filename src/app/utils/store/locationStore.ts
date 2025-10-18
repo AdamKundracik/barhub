@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { LocationType } from '../types/types';
-import { setUser } from '../services/functions';
 import { userService } from '@/src/app/services/userService';
 import { useUserStore as useNewUserStore } from '@/src/app/utils/store/userStore';
 
@@ -46,10 +45,23 @@ export const useLocationStore = create<LocationStore>()(
 // ✅ Subscribe – vždy update do DB
 useLocationStore.subscribe(
   state => state.useFakeLocation,
-  (newVal, prevVal) => {
+  async (newVal, prevVal) => {
     if (newVal !== prevVal) {
+      // Update local store
       useNewUserStore.getState().updateUserData({ usingFakeLocation: newVal });
-      setUser({ isUsingFakeLocation: newVal });
+      
+      // Update backend using new userService
+      const newUserStore = useNewUserStore.getState();
+      const userId = newUserStore.getUserId();
+      
+      if (userId) {
+        try {
+          await userService.updateUser(userId, { usingFakeLocation: newVal });
+          console.log('[LocationStore] Fake location preference updated successfully in backend');
+        } catch (error) {
+          console.error('[LocationStore] Error updating fake location preference in backend:', error);
+        }
+      }
     }
   }
 );
@@ -92,9 +104,9 @@ useLocationStore.subscribe(
   state => state.fakeLocation,
   (newVal, prevVal) => {
     if (newVal !== prevVal && newVal) {
-      setUser({
-        fakeLocation: newVal,
-      });
+      // Fake location coordinates are stored locally only
+      // The backend only tracks the usingFakeLocation boolean flag
+      console.log('[LocationStore] Fake location coordinates updated locally');
     }
   }
 );
@@ -103,7 +115,9 @@ useLocationStore.subscribe(
   state => state.fakeLocationName,
   (newVal, prevVal) => {
     if (newVal !== prevVal) {
-      setUser({ fakeLocationName: newVal });
+      // Fake location name is stored locally only
+      // The backend only tracks the usingFakeLocation boolean flag
+      console.log('[LocationStore] Fake location name updated locally');
     }
   }
 );

@@ -534,10 +534,6 @@ export const PostDetail = () => {
           }}
           onHighlight={handleHighlight}
           onShare={handleShare}
-          onViewDetail={() => {
-            // Already in post detail, do nothing or close modal
-            setIsOptionsModalOpen(false);
-          }}
         />
       )}
 

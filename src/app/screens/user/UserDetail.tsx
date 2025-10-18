@@ -249,7 +249,12 @@ export const UserDetail = () => {
       <ScrollView
         style={styles.scrollView}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh}
+            tintColor={primaryColor}
+            colors={[primaryColor]}
+          />
         }
         showsVerticalScrollIndicator={false}
       >
@@ -672,6 +677,7 @@ export const UserDetail = () => {
           onSave={handleReportUser}
         />
       )}
+
     </View>
   );
 };
@@ -812,13 +818,13 @@ const styles = StyleSheet.create({
   },
   bioSection: {
     paddingHorizontal: 20,
-    marginTop: 16,
-    marginBottom: 32,
+    marginTop: 12,
+    marginBottom: 20,
   },
   bioHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
     gap: 8,
   },
   bioSectionTitle: {
@@ -912,14 +918,14 @@ const styles = StyleSheet.create({
   // Modern Stats Styles
   detailedStatsContainer: {
     paddingHorizontal: 20,
-    marginBottom: 32,
+    marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 22,
     fontWeight: '700',
     color: primaryTextColor,
     marginBottom: 20,
-    marginTop: 32,
+    marginTop: 20,
     paddingHorizontal: 4,
   },
   modernStatsGrid: {
@@ -980,17 +986,17 @@ const styles = StyleSheet.create({
   // Highlights Styles
   highlightsSection: {
     paddingHorizontal: 20,
-    marginBottom: 32,
+    marginBottom: 20,
   },
   // Favorite Places Styles
   favoritePlacesSection: {
     paddingHorizontal: 20,
-    marginBottom: 32,
+    marginBottom: 20,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
     gap: 8,
   },
   sectionBadge: {
@@ -1049,7 +1055,7 @@ const styles = StyleSheet.create({
   // Privacy Styles
   privacySection: {
     paddingHorizontal: 20,
-    marginBottom: 32,
+    marginBottom: 20,
   },
   modernPrivacyGrid: {
     flexDirection: 'row',
