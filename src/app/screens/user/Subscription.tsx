@@ -12,7 +12,7 @@ export const Subscription = () => {
   const { refetch } = useUserData();
   const { currentSubscriptionType, currentOffering, offerings } =
     useRevenueCat();
-  const [showWelcomeModal, setShowWelcomeModal] = useState(true);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   // If user has yearly premium subscription, show thank you screen
   if (currentSubscriptionType === 'barhub_premium_1y') {
