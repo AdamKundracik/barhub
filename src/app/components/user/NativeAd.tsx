@@ -1,11 +1,12 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import {
   BannerAd,
   BannerAdSize,
   TestIds,
 } from 'react-native-google-mobile-ads';
 import { osName } from 'expo-device';
+import { primaryColor } from '@/src/app/utils/styles/colors';
 
 const productionID =
   osName === 'Android'
@@ -13,13 +14,24 @@ const productionID =
     : process.env.EXPO_PUBLIC_IOS_ADMOB_BANNER_ID;
 
 const BannerAdComponent = () => {
+  const [isLoaded, setIsLoaded] = useState(false);
+
   return (
     <View style={styles.adContainer}>
+      {!isLoaded && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="small" color={primaryColor} />
+        </View>
+      )}
       <BannerAd
         unitId={__DEV__ ? TestIds.ADAPTIVE_BANNER : productionID}
-        size={BannerAdSize.INLINE_ADAPTIVE_BANNER} // Big size: 320x100
+        size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
         requestOptions={{
-          requestNonPersonalizedAdsOnly: true, // Optional: Set based on your needs
+          requestNonPersonalizedAdsOnly: true,
+        }}
+        onAdLoaded={() => setIsLoaded(true)}
+        onAdFailedToLoad={() => {
+          setIsLoaded(true);
         }}
       />
     </View>
@@ -29,6 +41,7 @@ const BannerAdComponent = () => {
 const styles = StyleSheet.create({
   adContainer: {
     width: '100%',
+    minHeight: 100, // Fixed minimum height to prevent layout shift
     backgroundColor: '#fff',
     padding: 12,
     marginVertical: 8,
@@ -37,6 +50,15 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.2,
     shadowRadius: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingContainer: {
+    position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    height: '100%',
   },
 });
 

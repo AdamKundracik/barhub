@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  Alert,
   Animated,
   Platform,
   RefreshControl,
@@ -8,14 +9,33 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import FastImage from 'react-native-fast-image';
 import { primaryColor } from '../../utils/styles/colors';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
+import {
+  Avatar,
+  AvatarFallbackText,
+  AvatarImage,
+} from '@/components/ui/avatar';
 import { useTranslation } from 'react-i18next';
-import { LeaderboardUser } from '@/src/app/utils/services/leaderboard-service';
 import { useLeaderboard } from '@/src/app/utils/hooks/useLeaderboard';
-import { FlashList } from '@shopify/flash-list';
 import { BlurView } from 'expo-blur';
+import { FlashList } from '@shopify/flash-list';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faDownload } from '@fortawesome/free-solid-svg-icons';
+import { useUserRole } from '@/src/app/hooks/useUserRole'; // Define LeaderboardUser interface locally to match backend data
+
+// Define LeaderboardUser interface locally to match backend data
+interface LeaderboardUser {
+  userId: string;
+  name: string;
+  photoUrl: string;
+  points: number;
+  rank?: number | null;
+}
 
 const medalMap = [
   require('../../../../assets/gold-medal.png'),
@@ -38,6 +58,7 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
   index,
   animationKey,
 }) => {
+  const navigation = useNavigation();
   const isTopThree = rank !== null && rank < 3;
 
   // Animácia pre každý riadok - použitie useRef pre perzistentnosť
@@ -93,97 +114,173 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
 
   const topThreeColors = isTopThree ? getTopThreeColors(rank!) : null;
 
+  const handleUserPress = () => {
+    (navigation as any).navigate('UserDetail', { userId: user.userId });
+  };
+
   return (
-    <Animated.View
-      style={[
-        styles.row,
-        highlight && styles.currentUserHighlight,
-        isTopThree && {
-          backgroundColor: topThreeColors?.background,
-          borderWidth: 1,
-          borderColor: topThreeColors?.border,
-        },
-        {
-          transform: [{ translateY }],
-          opacity,
-        },
-      ]}
-    >
-      {/* Medal/Rank section */}
-      <View style={styles.medalContainer}>
-        {isTopThree ? (
-          <FastImage source={medalMap[rank]} style={styles.medal} />
-        ) : (
-          <View style={styles.rankBadge}>
-            <Text style={styles.rank}>
-              {rank !== null ? `${rank + 1}` : '?'}
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* Avatar */}
-      <FastImage
-        source={{ uri: user.photoUrl }}
+    <TouchableOpacity onPress={handleUserPress} activeOpacity={0.7}>
+      <Animated.View
         style={[
-          styles.avatar,
+          styles.row,
+          highlight && styles.currentUserHighlight,
           isTopThree && {
+            backgroundColor: topThreeColors?.background,
+            borderWidth: 1,
             borderColor: topThreeColors?.border,
-            borderWidth: 2.5,
           },
-        ]}
-      />
-
-      {/* User info */}
-      <View style={styles.userInfo}>
-        <Text
-          style={[
-            styles.username,
-            isTopThree && {
-              color: topThreeColors?.text,
-              fontWeight: 'bold',
-            },
-          ]}
-        >
-          {user.displayName}
-        </Text>
-      </View>
-
-      {/* Points */}
-      <Text
-        style={[
-          styles.points,
-          isTopThree && {
-            color: topThreeColors?.text,
-            fontSize: 17,
+          {
+            transform: [{ translateY }],
+            opacity,
           },
         ]}
       >
-        {user.points} pts
-      </Text>
-    </Animated.View>
+        {/* Medal/Rank section */}
+        <View style={styles.medalContainer}>
+          {isTopThree ? (
+            <FastImage source={medalMap[rank]} style={styles.medal} />
+          ) : (
+            <View style={styles.rankBadge}>
+              <Text style={styles.rank}>
+                {rank !== null ? `${rank + 1}` : '?'}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Avatar */}
+        <Avatar
+          size="lg"
+          style={[
+            styles.avatar,
+            isTopThree && {
+              borderColor: topThreeColors?.border,
+              borderWidth: 2.5,
+            },
+          ]}
+        >
+          {user.photoUrl ? (
+            <AvatarImage source={{ uri: user.photoUrl }} />
+          ) : (
+            <AvatarFallbackText style={styles.avatarFallback}>
+              {user.name}
+            </AvatarFallbackText>
+          )}
+        </Avatar>
+
+        {/* User info */}
+        <View style={styles.userInfo}>
+          <Text
+            style={[
+              styles.username,
+              isTopThree && {
+                color: topThreeColors?.text,
+                fontWeight: 'bold',
+              },
+            ]}
+          >
+            {user.name}
+          </Text>
+        </View>
+
+        {/* Points */}
+        <Text
+          style={[
+            styles.points,
+            isTopThree && {
+              color: topThreeColors?.text,
+              fontSize: 17,
+            },
+          ]}
+        >
+          {user.points} pts
+        </Text>
+      </Animated.View>
+    </TouchableOpacity>
   );
 };
 
 const LeaderboardScreen = () => {
-  const [selectedTab, setSelectedTab] = useState<'week' | 'all'>('week');
+  const [selectedTab, setSelectedTab] = useState<'week' | 'monthly' | 'yearly'>(
+    'week'
+  );
   const [animationKey, setAnimationKey] = useState('0'); // Kľúč pre resetovanie animácií
   const { data, isLoading, error, refetch } = useLeaderboard(selectedTab);
+  const { isAdmin, isModerator } = useUserRole();
 
   const { t } = useTranslation();
 
   const topUsers: LeaderboardUser[] = data?.topUsers || [];
   const currentUser: LeaderboardUser | null = data?.currentUser || null;
-  const isCurrentInTop = topUsers.some(u => u.userId === currentUser?.userId);
+  const isCurrentInTop = data?.currentUserInTop100 || false;
 
   // Výška bottom tabs (rovnaká logika ako v BottomTabs.tsx)
   const bottomTabsHeight = Platform.OS === 'ios' ? 90 : 80;
 
-  const handleTabChange = async (tab: 'week' | 'all') => {
+  const handleTabChange = async (tab: 'week' | 'monthly' | 'yearly') => {
+    // Ak je už vybraná tá istá možnosť, nerob nič
+    if (selectedTab === tab) {
+      return;
+    }
     setSelectedTab(tab);
     // Resetovanie animačného kľúča pre nové animácie
     setAnimationKey(prev => (parseInt(prev) + 1).toString());
     await refetch();
+  };
+
+  const exportToCSV = async () => {
+    try {
+      if (!topUsers || topUsers.length === 0) {
+        Alert.alert('No Data', 'No leaderboard data to export');
+        return;
+      }
+
+      // CSV Header
+      const header = 'Rank,ID,Username,Points\n';
+
+      // CSV Rows - len id, name, points (bez photoUrl)
+      const rows = topUsers
+        .map((user, index) => {
+          const rank = index + 1;
+          const id = user.userId;
+          const name = user.name.replace(/,/g, ''); // Remove commas from name
+          const points = user.points;
+          return `${rank},${id},"${name}",${points}`;
+        })
+        .join('\n');
+
+      const csvContent = header + rows;
+
+      // Create filename with period and date
+      const periodLabel =
+        selectedTab === 'week'
+          ? 'Weekly'
+          : selectedTab === 'monthly'
+            ? 'Monthly'
+            : 'Yearly';
+      const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      const filename = `Leaderboard_${periodLabel}_${date}.csv`;
+
+      // Save to file system
+      const fileUri = `${FileSystem.documentDirectory}${filename}`;
+      await FileSystem.writeAsStringAsync(fileUri, csvContent, {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
+
+      // Share the file
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, {
+          mimeType: 'text/csv',
+          dialogTitle: 'Export Leaderboard',
+          UTI: 'public.comma-separated-values-text',
+        });
+      } else {
+        Alert.alert('Success', `File saved to: ${fileUri}`);
+      }
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      Alert.alert('Error', 'Failed to export CSV');
+    }
   };
 
   // Resetovanie animácií pri zmene dát
@@ -200,8 +297,22 @@ const LeaderboardScreen = () => {
         <Text style={styles.subtitle}>
           {selectedTab === 'week'
             ? t('leaderboard.week')
-            : t('leaderboard.allTime')}
+            : selectedTab === 'monthly'
+              ? t('leaderboard.monthly')
+              : t('leaderboard.yearly')}
         </Text>
+
+        {/* Export Button - Only for Admin/Moderator */}
+        {(isAdmin || isModerator) && (
+          <TouchableOpacity
+            style={styles.exportButton}
+            onPress={exportToCSV}
+            activeOpacity={0.7}
+          >
+            <FontAwesomeIcon icon={faDownload} size={18} color="black" />
+            <Text style={styles.exportButtonText}>Export CSV</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Tab Switcher */}
@@ -213,7 +324,8 @@ const LeaderboardScreen = () => {
               selectedTab === 'week' && styles.tabButtonActive,
             ]}
             onPress={() => handleTabChange('week')}
-            activeOpacity={0.7}
+            activeOpacity={selectedTab === 'week' ? 1 : 0.7}
+            disabled={selectedTab === 'week'}
           >
             <Text
               style={[
@@ -228,24 +340,43 @@ const LeaderboardScreen = () => {
           <TouchableOpacity
             style={[
               styles.tabButton,
-              selectedTab === 'all' && styles.tabButtonActive,
+              selectedTab === 'monthly' && styles.tabButtonActive,
             ]}
-            onPress={() => handleTabChange('all')}
-            activeOpacity={0.7}
+            onPress={() => handleTabChange('monthly')}
+            activeOpacity={selectedTab === 'monthly' ? 1 : 0.7}
+            disabled={selectedTab === 'monthly'}
           >
             <Text
               style={[
                 styles.tabText,
-                selectedTab === 'all' && styles.tabTextActive,
+                selectedTab === 'monthly' && styles.tabTextActive,
               ]}
             >
-              {t('leaderboard.allTime')}
+              {t('leaderboard.monthly')}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              selectedTab === 'yearly' && styles.tabButtonActive,
+            ]}
+            onPress={() => handleTabChange('yearly')}
+            activeOpacity={selectedTab === 'yearly' ? 1 : 0.7}
+            disabled={selectedTab === 'yearly'}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                selectedTab === 'yearly' && styles.tabTextActive,
+              ]}
+            >
+              {t('leaderboard.yearly')}
             </Text>
           </TouchableOpacity>
         </BlurView>
       </View>
 
-      {/* FlatList */}
       <FlashList
         contentContainerStyle={{
           paddingBottom:
@@ -254,7 +385,12 @@ const LeaderboardScreen = () => {
               : bottomTabsHeight,
         }}
         refreshControl={
-          <RefreshControl refreshing={isLoading} onRefresh={refetch} />
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={refetch}
+            tintColor={primaryColor}
+            colors={[primaryColor]}
+          />
         }
         data={topUsers}
         keyExtractor={item => item.userId}
@@ -290,7 +426,9 @@ const LeaderboardScreen = () => {
       {/* Error handling */}
       {error && (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Error: {error.message}</Text>
+          <Text style={styles.errorText}>
+            Error: {error instanceof Error ? error.message : 'Unknown error'}
+          </Text>
         </View>
       )}
     </ScreenLayout>
@@ -316,6 +454,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
     paddingHorizontal: 20,
+  },
+  exportButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: primaryColor,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    marginTop: 12,
+    gap: 8,
+  },
+  exportButtonText: {
+    color: 'black',
+    fontWeight: '600',
+    fontSize: 14,
   },
   mainTitle: {
     fontSize: 28,
@@ -417,6 +570,10 @@ const styles = StyleSheet.create({
     marginRight: 12,
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  avatarFallback: {
+    backgroundColor: 'transparent',
+    color: 'white',
   },
 
   // User info

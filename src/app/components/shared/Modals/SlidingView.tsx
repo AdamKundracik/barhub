@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import {
+  ActivityIndicator,
   Dimensions,
   ScrollView,
   StyleSheet,
@@ -21,6 +22,9 @@ type SlidingViewProps = {
   openGallery: () => void;
   openCamera: () => void;
   removePicture: () => void;
+  isOpeningGallery?: boolean;
+  isOpeningCamera?: boolean;
+  isDeletingPhoto?: boolean;
 };
 
 export const SlidingView = ({
@@ -29,6 +33,9 @@ export const SlidingView = ({
   openGallery,
   openCamera,
   removePicture,
+  isOpeningGallery = false,
+  isOpeningCamera = false,
+  isDeletingPhoto = false,
 }: SlidingViewProps) => {
   const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
@@ -68,18 +75,42 @@ export const SlidingView = ({
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <TouchableOpacity style={styles.option} onPress={openGallery}>
-          <FontAwesomeIcon icon={Icons.Image} size={24} color={'white'} />
+        <TouchableOpacity 
+          style={[styles.option, isOpeningGallery && styles.disabledOption]} 
+          onPress={openGallery}
+          disabled={isOpeningGallery}
+        >
+          {isOpeningGallery ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <FontAwesomeIcon icon={Icons.Image} size={24} color={'white'} />
+          )}
           <Text style={styles.text}>{t('pick-from-gallery')}</Text>
         </TouchableOpacity>
         <View style={styles.separator}></View>
-        <TouchableOpacity style={styles.option} onPress={openCamera}>
-          <FontAwesomeIcon icon={Icons.Camera} size={24} color={'white'} />
+        <TouchableOpacity 
+          style={[styles.option, isOpeningCamera && styles.disabledOption]} 
+          onPress={openCamera}
+          disabled={isOpeningCamera}
+        >
+          {isOpeningCamera ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <FontAwesomeIcon icon={Icons.Camera} size={24} color={'white'} />
+          )}
           <Text style={styles.text}>{t('take-new-picture')}</Text>
         </TouchableOpacity>
         <View style={styles.separator}></View>
-        <TouchableOpacity style={styles.option} onPress={removePicture}>
-          <FontAwesomeIcon icon={Icons.Ban} size={24} color={'white'} />
+        <TouchableOpacity 
+          style={[styles.option, isDeletingPhoto && styles.disabledOption]} 
+          onPress={removePicture}
+          disabled={isDeletingPhoto}
+        >
+          {isDeletingPhoto ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <FontAwesomeIcon icon={Icons.Ban} size={24} color={'white'} />
+          )}
           <Text style={styles.text}>{t('remove-picture')}</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -97,6 +128,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+  },
+  disabledOption: {
+    opacity: 0.6,
   },
   separator: {
     height: 1,

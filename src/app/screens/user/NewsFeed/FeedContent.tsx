@@ -1,17 +1,16 @@
 import React from 'react';
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import PostsList from '../../../components/user/NewsFeed/PostList';
 import PostLoaderView from '../../../components/user/NewsFeed/Post/Loaders/PostLoaderView';
 import EmptyState from '../../../components/user/NewsFeed/EmptyState';
-import InlineAd from '@/src/app/components/user/InlineAd';
-import { useUserStore } from '@/src/app/utils/store/userStore';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { primaryColor } from '../../../utils/styles/colors';
 
 interface FeedContentProps {
   isLoading: boolean;
   posts: any[];
   isRefetching: boolean;
   onRefresh: () => Promise<void>;
+  onForceRefresh?: () => Promise<void>;
   // Post list props
   hasNextPage?: boolean;
   zoomedPost: string | null;
@@ -29,6 +28,7 @@ export const FeedContent: React.FC<FeedContentProps> = ({
   posts,
   isRefetching,
   onRefresh,
+  onForceRefresh,
   hasNextPage,
   zoomedPost,
   setZoomedPost,
@@ -39,9 +39,6 @@ export const FeedContent: React.FC<FeedContentProps> = ({
   isFetchingNextPage,
   fetchMorePosts,
 }) => {
-  const { premium } = useUserStore();
-  const tabBarHeight = useBottomTabBarHeight();
-
   if (isLoading) {
     return <PostLoaderView />;
   }
@@ -58,6 +55,7 @@ export const FeedContent: React.FC<FeedContentProps> = ({
         onCommentPress={onCommentPress}
         isFiltering={isFiltering}
         onRefresh={onRefresh}
+        onForceRefresh={onForceRefresh}
         loading={isRefetching}
         isFetchingNextPage={isFetchingNextPage}
         fetchMorePosts={fetchMorePosts}
@@ -69,12 +67,17 @@ export const FeedContent: React.FC<FeedContentProps> = ({
     <>
       <ScrollView
         contentContainerStyle={styles.scrollViewContent}
+        showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={onRefresh}
+            tintColor={primaryColor}
+            colors={[primaryColor]}
+          />
         }
       >
         <EmptyState requestPhoto={requestPhoto} />
-
       </ScrollView>
     </>
   );

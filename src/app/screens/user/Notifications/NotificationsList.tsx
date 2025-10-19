@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Pressable,
   RefreshControl,
@@ -33,16 +33,14 @@ import {
 const NotificationsList: React.FC = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
-  const { premium } = useUserStore();
+  const { isPremium } = useUserStore();
   const { data: storeData, markAllAsSeen } = useNotificationsStore();
 
   const { isLoading, refetch, isFetching } = useNotificationsQuery();
   const [isScrollEnabled, setIsScrollEnabled] = useState(true);
   const [showAllRead, setShowAllRead] = useState(false);
 
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
+  // Don't auto-refetch on mount - badge should stay until user clicks "mark all as read"
 
   // Memoized notifications count for performance
   const notificationStats = useMemo(() => {
@@ -59,14 +57,19 @@ const NotificationsList: React.FC = () => {
   const handleSwipeEnd = useCallback(() => setIsScrollEnabled(true), []);
 
   // Mark all as read with animation
-  const handleMarkAllAsRead = useCallback(() => {
+  const handleMarkAllAsRead = useCallback(async () => {
     setShowAllRead(true);
-    markAllAsSeen();
+
+    // Call backend to mark all as read
+    await markAllAsSeen();
+
+    // Refetch to update badge
+    await refetch();
 
     setTimeout(() => {
       setShowAllRead(false);
     }, 2000);
-  }, [markAllAsSeen]);
+  }, [markAllAsSeen, refetch]);
 
   // Enhanced render function with animation
   const renderItem = useCallback(
@@ -218,7 +221,7 @@ const NotificationsList: React.FC = () => {
         </View>
 
         {/* Enhanced Ad Container */}
-        {!premium && (
+        {!isPremium() && (
           <Animated.View
             entering={FadeInUp.delay(300).springify()}
             style={styles.adContainer}

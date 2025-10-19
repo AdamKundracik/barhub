@@ -1,9 +1,8 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { LocationType } from '../types/types';
-import { setUser } from '../services/functions';
-import { useUserStore } from '@/src/app/utils/store/userStore';
-import { geohashForLocation } from 'geofire-common';
+import { userService } from '@/src/app/services/userService';
+import { useUserStore as useNewUserStore } from '@/src/app/utils/store/userStore';
 
 interface LocationStore {
   location: LocationType | null;
@@ -46,26 +45,57 @@ export const useLocationStore = create<LocationStore>()(
 // ✅ Subscribe – vždy update do DB
 useLocationStore.subscribe(
   state => state.useFakeLocation,
-  (newVal, prevVal) => {
+  async (newVal, prevVal) => {
     if (newVal !== prevVal) {
-      useUserStore.getState().setUserData({ isUsingFakeLocation: newVal });
-      setUser({ isUsingFakeLocation: newVal });
+      // Update local store
+      useNewUserStore.getState().updateUserData({ usingFakeLocation: newVal });
+      
+      // Update backend using new userService
+      const newUserStore = useNewUserStore.getState();
+      const userId = newUserStore.getUserId();
+      
+      if (userId) {
+        try {
+          await userService.updateUser(userId, { usingFakeLocation: newVal });
+          console.log('[LocationStore] Fake location preference updated successfully in backend');
+        } catch (error) {
+          console.error('[LocationStore] Error updating fake location preference in backend:', error);
+        }
+      }
     }
   }
 );
 
 useLocationStore.subscribe(
   state => state.location,
-  (newVal, prevVal) => {
+  async (newVal, prevVal) => {
     if (newVal !== prevVal && newVal) {
-      const hash = geohashForLocation([
-        newVal?.latitude ?? 0,
-        newVal?.longitude ?? 0,
-      ]);
-      setUser({
-        location: newVal,
-        geohash: hash,
-      });
+      // console.log(
+      //   '[LocationStore] Location changed, updating backend:',
+      //   newVal
+      // );
+
+      // Update new user store (for new system)
+      const newUserStore = useNewUserStore.getState();
+      const userId = newUserStore.getUserId();
+
+      if (userId) {
+        try {
+          // Update backend with new location API
+          await userService.updateLocation(userId, {
+            latitude: newVal.latitude,
+            longitude: newVal.longitude,
+          });
+          // console.log(
+          //   '[LocationStore] Location updated successfully in backend'
+          // );
+        } catch (error) {
+          console.error(
+            '[LocationStore] Error updating location in backend:',
+            error
+          );
+        }
+      }
     }
   }
 );
@@ -74,9 +104,9 @@ useLocationStore.subscribe(
   state => state.fakeLocation,
   (newVal, prevVal) => {
     if (newVal !== prevVal && newVal) {
-      setUser({
-        fakeLocation: newVal,
-      });
+      // Fake location coordinates are stored locally only
+      // The backend only tracks the usingFakeLocation boolean flag
+      console.log('[LocationStore] Fake location coordinates updated locally');
     }
   }
 );
@@ -85,7 +115,9 @@ useLocationStore.subscribe(
   state => state.fakeLocationName,
   (newVal, prevVal) => {
     if (newVal !== prevVal) {
-      setUser({ fakeLocationName: newVal });
+      // Fake location name is stored locally only
+      // The backend only tracks the usingFakeLocation boolean flag
+      console.log('[LocationStore] Fake location name updated locally');
     }
   }
 );

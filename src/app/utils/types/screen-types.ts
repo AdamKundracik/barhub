@@ -20,6 +20,8 @@ export type UserStackList = {
 
   PostSummary: { image: string; place: Place };
 
+  PostDetail: { postId: string };
+
   NotificationsList: undefined;
 
   SelectFakeLocation: undefined;
@@ -27,6 +29,12 @@ export type UserStackList = {
   Licenses: undefined;
 
   Leaderboard: undefined;
+
+  TermsOfService: undefined;
+
+  PrivacyPolicy: undefined;
+
+  CommunityGuidelines: undefined;
 };
 
 export type FeedsScreenProps = NativeStackScreenProps<

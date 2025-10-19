@@ -41,7 +41,7 @@ const functions = getFunctions(app, 'europe-west1'); // tu sa nastavuje region
 //     connectFunctionsEmulator(functions, 'localhost', 5001);
 //     connectStorageEmulator(storage, 'localhost', 9199);
 //
-//     console.log("SUCCESSFULLY connected to FIREBASE LOCAL EMULATOR");
+//     // console.log("SUCCESSFULLY connected to FIREBASE LOCAL EMULATOR");
 // }
 
 export { db, storage, functions };

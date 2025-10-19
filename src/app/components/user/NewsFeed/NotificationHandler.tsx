@@ -5,7 +5,7 @@ import { registerForPushNotificationsAsync } from '../../../utils/functions/noto
 import { openCamera } from '../../../utils/helper-functions/openCamera';
 import { NotificationType } from '../../../utils/types/notification-types';
 import { useUserStore } from '@/src/app/utils/store/userStore';
-import userClient from '@/src/app/utils/services/user.service';
+import { userService } from '@/src/app/services/userService';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { UserStackList } from '@/src/app/utils/types/screen-types';
@@ -17,18 +17,27 @@ export function useNotificationsHandler() {
   const [expoPushToken, setExpoPushToken] = useState<string>('');
   const notificationListener = useRef<Notifications.Subscription | null>(null);
   const responseListener = useRef<Notifications.Subscription | null>(null);
+  const processingNotification = useRef<string | null>(null);
   const { setCurrentPushToken } = useUserStore();
   const { refetch } = useNotificationsQuery();
 
   const addPushToken = async (token: string) => {
     if (!token) return;
-    const response = await userClient.addPushToken(token);
-    if (response.success) setCurrentPushToken(token);
+    const { getUserId } = useUserStore.getState();
+    const userId = getUserId();
+    if (!userId) return;
+
+    const success = await userService.addPushToken(userId.toString(), token);
+    if (success) setCurrentPushToken(token);
   };
 
   const removePushToken = async (token: string) => {
     if (!token) return;
-    await userClient.removePushToken(token);
+    const { getUserId } = useUserStore.getState();
+    const userId = getUserId();
+    if (!userId) return;
+
+    await userService.removePushToken(userId.toString(), token);
   };
 
   const unsubscribeNotifications = () => {
@@ -64,12 +73,39 @@ export function useNotificationsHandler() {
           sentAt,
           notificationType,
           id,
-        } = response.notification.request.content.data;
+          postId,
+        } = response.notification.request.content.data as {
+          placeId: string;
+          senderToken: string;
+          notificationTTL: number;
+          sentAt: string;
+          notificationType: string;
+          id: string;
+          postId?: string;
+        };
+
+        // Prevent duplicate processing of the same notification
+        const notificationKey = `${id}-${notificationType}`;
+        if (processingNotification.current === notificationKey) {
+          return;
+        }
+        
+        processingNotification.current = notificationKey;
+        
+        // Reset after 2 seconds to allow retry if needed
+        setTimeout(() => {
+          processingNotification.current = null;
+        }, 2000);
 
         switch (notificationType as NotificationType) {
           case NotificationType.LIKE:
           case NotificationType.COMMENT:
-            navigation.navigate('NotificationsList');
+            // Navigate to PostDetail if postId is available
+            if (postId) {
+              navigation.navigate('PostDetail', { postId });
+            } else {
+              navigation.navigate('NotificationsList');
+            }
             break;
 
           case NotificationType.REQUEST:
@@ -84,7 +120,12 @@ export function useNotificationsHandler() {
             break;
 
           case NotificationType.RESPONSE:
-            // prípadne spracovanie
+            // Navigate to PostDetail if postId is available
+            if (postId) {
+              navigation.navigate('PostDetail', { postId });
+            } else {
+              navigation.navigate('NotificationsList');
+            }
             break;
         }
       });
@@ -92,7 +133,7 @@ export function useNotificationsHandler() {
     return () => {
       unsubscribeNotifications(); // iba cleanup listenerov
     };
-  }, []);
+  }, [refetch, navigation, t]);
 
   return { expoPushToken, unsubscribeNotifications, removePushToken };
 }

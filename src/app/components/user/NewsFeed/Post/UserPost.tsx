@@ -1,10 +1,16 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { StyleSheet, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Device from 'react-native-device-info';
 import Animated, {
   FadeIn,
   runOnJS,
-  SlideInUp,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -13,12 +19,9 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import FastImage from 'react-native-fast-image';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { usePlaceStore } from '@/src/app/utils/store/placesStore';
 import { useUserStore } from '@/src/app/utils/store/userStore';
-import { Post } from '@/shared';
-import { useQueryClient } from 'react-query';
-import { toggleLike } from '@/src/app/utils/services/functions';
-import { auth } from '@/firebaseConfig';
+import { Post } from '@/src/app/types/postTypes';
+import { postService } from '@/src/app/services/postService';
 import { trimPlaceName } from '@/src/app/utils/helper-functions/trimPlaceName';
 
 import PlaceNameSeparator from './PlaceNameSeparator';
@@ -29,7 +32,6 @@ import { postBgColor, primaryBgColor } from '@/src/app/utils/styles/colors';
 
 // Constants
 const isTablet = Device.isTablet();
-const DEBOUNCE_DELAY = 700;
 const DOUBLE_TAP_MAX_DURATION = 250;
 const IMAGE_ASPECT_RATIO = 0.75;
 const CARD_MARGIN = 16;
@@ -58,70 +60,87 @@ const usePostLike = (
 ) => {
   const [liked, setLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(initialCount);
-  const [previousLikeState, setPreviousLikeState] = useState(!initialLiked);
 
-  const queryClient = useQueryClient();
-  const { placeId } = usePlaceStore();
-  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+  // Track what backend currently has
+  const backendLikedState = useRef(initialLiked);
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
-  const optimisticUpdate = useCallback(
-    (currentLiked: boolean) => {
-      if (!postId) return;
+  const { getUserId } = useUserStore();
 
-      const queryKey = placeId ? ['posts', placeId] : 'posts';
+  // Reset state when post changes (when component is reused for different post)
+  useEffect(() => {
+    setLiked(initialLiked);
+    setLikeCount(initialCount);
+    backendLikedState.current = initialLiked;
 
-      queryClient.setQueryData(queryKey, (oldData: any) => {
-        if (!oldData) return oldData;
+    // Clear any pending debounce timer when post changes
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+      debounceTimer.current = null;
+    }
+  }, [postId, initialLiked, initialCount]);
 
-        return {
-          ...oldData,
-          pages: oldData.pages.map((page: any) => ({
-            ...page,
-            posts: page.posts.map((p: Post) =>
-              p.id === postId
-                ? {
-                    ...p,
-                    isLiked: !currentLiked,
-                    likesCount: currentLiked
-                      ? Math.max((p.likesCount ?? 0) - 1, 0)
-                      : (p.likesCount ?? 0) + 1,
-                  }
-                : p
-            ),
-          })),
-        };
-      });
+  const syncWithBackend = useCallback(
+    async (currentUIState: boolean) => {
+      // Only call API if UI state differs from backend state
+      if (currentUIState === backendLikedState.current) {
+        return; // States match - no API call needed
+      }
+
+      try {
+        const userId = getUserId();
+        if (!userId) {
+          throw new Error('User not found');
+        }
+
+        // Call backend API to toggle
+        const response = await postService.toggleLike(
+          postId,
+          parseInt(userId, 10)
+        );
+
+        if (response) {
+          // Update backend state tracker
+          backendLikedState.current = response.liked;
+
+          // Sync UI with actual backend response (source of truth)
+          setLiked(response.liked);
+          setLikeCount(response.totalLikes);
+
+          // Don't update cache - let natural refetch handle it
+          // This prevents issues with cache corruption where all posts at position 0 get liked
+        }
+      } catch (error) {
+        console.error('Error syncing like with backend:', error);
+        // On error, revert to backend state
+        setLiked(backendLikedState.current);
+        setLikeCount(prev =>
+          backendLikedState.current ? prev : Math.max(prev - 1, 0)
+        );
+      }
     },
-    [postId, placeId, queryClient]
+    [postId, getUserId]
   );
 
-  const handleLikeToggle = useCallback(async () => {
+  const handleLikeToggle = useCallback(() => {
     if (!postId) return;
 
+    // Immediate optimistic UI update
     const newLikedState = !liked;
     setLiked(newLikedState);
     setLikeCount(prev => (newLikedState ? prev + 1 : Math.max(prev - 1, 0)));
 
-    if (debounceTimeout.current) {
-      clearTimeout(debounceTimeout.current);
+    // Clear existing debounce timer
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
     }
 
-    debounceTimeout.current = setTimeout(async () => {
-      try {
-        if (liked !== previousLikeState && auth.currentUser?.displayName) {
-          await toggleLike(postId, auth.currentUser.displayName);
-          setPreviousLikeState(prev => !prev);
-          optimisticUpdate(liked ?? false);
-        }
-      } catch (error) {
-        console.error('Error updating like status:', error);
-        setLiked(previousLikeState);
-        setLikeCount(prev =>
-          previousLikeState ? prev + 1 : Math.max(prev - 1, 0)
-        );
-      }
-    }, DEBOUNCE_DELAY);
-  }, [liked, previousLikeState, postId, optimisticUpdate]);
+    // Debounce backend sync (500ms)
+    // After user stops clicking, sync final UI state with backend
+    debounceTimer.current = setTimeout(() => {
+      syncWithBackend(newLikedState);
+    }, 500);
+  }, [liked, postId, syncWithBackend]);
 
   return { liked, likeCount, handleLikeToggle };
 };
@@ -187,12 +206,33 @@ const UserPost: React.FC<UserPostProps> = ({
   isFiltering,
   onCommentPress,
 }) => {
-  const { premium, canSeeContent } = useUserStore();
+  const { isPremium, canSeeContent } = useUserStore();
+  const navigation = useNavigation();
 
   // Early return if no post
   if (!post) {
     return null;
   }
+
+  // Navigate to PostDetail screen
+  const handleNavigateToDetail = useCallback(() => {
+    (navigation as any).navigate('PostDetail', { postId: post.id });
+  }, [navigation, post.id]);
+
+  // Navigate to UserDetail screen
+  const handleNavigateToUser = useCallback(() => {
+    (navigation as any).navigate('UserDetail', { userId: post.userId });
+  }, [navigation, post.userId]);
+
+  // Share post
+  const handleShare = useCallback(async () => {
+    try {
+      const { shareService } = await import('@/src/app/services/shareService');
+      await shareService.sharePost(post);
+    } catch (error) {
+      console.error('Error sharing post:', error);
+    }
+  }, [post]);
 
   // Safe destructuring with defaults
   const {
@@ -208,6 +248,7 @@ const UserPost: React.FC<UserPostProps> = ({
     userId = '',
     commentsCount = 0,
     occupancy = '',
+    isHighlighted = false,
   } = post;
 
   // Custom hooks with safe values
@@ -240,8 +281,8 @@ const UserPost: React.FC<UserPostProps> = ({
 
   // Computed values
   const shouldShowBlur = useMemo(
-    () => !premium && !canSeeContent,
-    [premium, canSeeContent]
+    () => !isPremium() && !canSeeContent,
+    [isPremium, canSeeContent]
   );
 
   const trimmedPlaceName = useMemo(() => trimPlaceName(placeName), [placeName]);
@@ -258,12 +299,11 @@ const UserPost: React.FC<UserPostProps> = ({
     >
       {/* Modern Place Name Header */}
       {!isFiltering && (
-        <View
-          style={[styles.placeName, isTablet && tabletStyles.placeName]}
-        >
+        <View style={[styles.placeName, isTablet && tabletStyles.placeName]}>
           <PlaceNameSeparator
             placeNameLocal={trimmedPlaceName}
             placeIdLocal={folderId}
+            placeAddressLocal={placeAddress}
           />
         </View>
       )}
@@ -273,11 +313,24 @@ const UserPost: React.FC<UserPostProps> = ({
         style={[
           styles.contentContainer,
           isTablet && tabletStyles.contentContainer,
+          isHighlighted &&
+            isFiltering && {
+              borderWidth: 2,
+              borderColor: '#FFC107',
+              shadowColor: '#FFC107',
+              shadowOpacity: 0.3,
+              shadowRadius: 16,
+              elevation: 12,
+            },
         ]}
       >
         {/* Subtle gradient overlay */}
         <LinearGradient
-          colors={['rgba(16, 217, 185, 0.02)', 'rgba(16, 217, 185, 0.0)']}
+          colors={
+            isHighlighted && isFiltering
+              ? ['rgba(255, 193, 7, 0.05)', 'rgba(255, 193, 7, 0.0)']
+              : ['rgba(16, 217, 185, 0.02)', 'rgba(16, 217, 185, 0.0)']
+          }
           style={styles.gradientOverlay}
         />
 
@@ -290,6 +343,15 @@ const UserPost: React.FC<UserPostProps> = ({
           profileImage={user?.photoUrl ?? ''}
           postId={id}
           postUserId={userId}
+          canDelete={post.canDelete}
+          canReport={post.canReport}
+          canReportUser={post.canReportUser}
+          canHighlight={post.canHighlight}
+          isHighlighted={isHighlighted}
+          imageUrl={photoUrl}
+          onPress={handleNavigateToDetail}
+          onUserPress={handleNavigateToUser}
+          onShare={handleShare}
         />
 
         {/* Enhanced Image Container */}
@@ -430,6 +492,7 @@ export default React.memo(UserPost, (prevProps, nextProps) => {
     prevProps.post.id === nextProps.post.id &&
     prevProps.post.isLiked === nextProps.post.isLiked &&
     prevProps.post.likesCount === nextProps.post.likesCount &&
+    prevProps.post.isHighlighted === nextProps.post.isHighlighted &&
     prevProps.isZoomed === nextProps.isZoomed &&
     prevProps.hasPremium === nextProps.hasPremium &&
     prevProps.isFiltering === nextProps.isFiltering

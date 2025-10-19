@@ -1,8 +1,11 @@
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+import { 
+  StyleSheet, 
+  Text, 
+  TouchableOpacity, 
+  View, 
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform 
 } from 'react-native';
 import * as React from 'react';
 import { useState } from 'react';
@@ -32,7 +35,6 @@ import {
 import { Center } from '@/components/ui/center';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { useLoginForm } from '../../hooks/useLoginForm';
-import AuthLayout from '../../components/auth/AuthLayout';
 import { useCustomToast } from '../../components/shared/Toaster';
 
 export const LogIn = ({ navigation }: any) => {
@@ -76,10 +78,51 @@ export const LogIn = ({ navigation }: any) => {
   };
 
   return (
-    <AuthLayout pageTitle={t('login')}>
-      {/* Logo */}
-      <Center style={styles.logoContainer}>
-        <Svg width="348" height="90" viewBox="0 0 348 90" fill="none">
+    <SafeAreaView style={styles.wrapper}>
+      {/* Background SVG */}
+      <Svg
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 125,
+        }}
+        width="390"
+        height="379"
+        viewBox="0 0 390 379"
+        fill="none"
+      >
+        <Path
+          d="M340.897 8.988L279.707 49.9378V184.304L243.7 169.88L217.496 186.38V52.9053L185.401 20.5505L90.2854 0L54.7047 31.7905V118.668L17.771 106.274L0 121.046V127.228L15.7241 114.154V200.517L20.0333 203.429V112.274L54.7047 123.907V306.615L59.0139 309.522V34.2793L88.6781 7.77885V375.123L92.9872 378.035V5.70819L181.092 24.7422V356.391L185.401 353.479V27.2008L213.187 55.2127V310.02L217.496 307.113V192.103L241.739 176.838V288.13L246.048 285.223V176.153L279.707 189.62V333.392L284.016 336.309V52.6836L338.786 16.4746V370.15L343.095 367.238V16.2026L390 45.7814V40.0127L340.897 8.988Z"
+          fill="#031824"
+        />
+      </Svg>
+      <Svg
+        style={{
+          position: 'absolute',
+          left: '50%',
+          top: 75,
+        }}
+        width="60"
+        height="60"
+        viewBox="0 0 60 60"
+        fill="none"
+      >
+        <Path
+          d="M30 60C46.5406 60 60 46.5406 60 30C60 13.4594 46.5406 0 30 0C13.4594 0 0 13.4594 0 30C0 46.5406 13.4594 60 30 60ZM30 3.87097C44.4077 3.87097 56.129 15.5923 56.129 30C56.129 44.4077 44.4077 56.129 30 56.129C15.5923 56.129 3.87097 44.4077 3.87097 30C3.87097 15.5923 15.5923 3.87097 30 3.87097Z"
+          fill="#031824"
+        />
+      </Svg>
+
+      <KeyboardAvoidingView
+        style={styles.content}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
+        <View style={styles.mainContent}>
+          <View style={styles.authPageContainer}>
+            {/* Logo */}
+            <Center style={styles.logoContainer}>
+              <Svg width="348" height="90" viewBox="0 0 348 90" fill="none">
           <Path
             d="M35.2971 84.4969L35.297 90.0009L0.225006 90L0.22514 84.496L35.2971 84.4969ZM125.718 84.4991L125.718 90.0031L35.35 90.0009L35.3501 84.4969L47.7661 84.4972L47.7682 0.529183L82.5842 0.530033C88.6429 0.530181 93.8482 1.25564 98.2001 2.70642C102.637 4.15719 105.923 6.11994 108.056 8.59466C112.152 13.2028 114.2 18.4081 114.2 24.2108C114.199 31.2081 111.981 36.4134 107.543 39.8266C105.922 41.0213 104.813 41.7892 104.215 42.1306C103.618 42.3866 102.551 42.8559 101.015 43.5385C106.562 44.7333 110.956 47.2507 114.199 51.0908C117.527 54.8456 119.191 59.5389 119.191 65.1709C119.19 73.6189 115.862 80.0615 109.206 84.4987L125.718 84.4991ZM62.8703 76.0496L86.5503 76.0501C92.097 76.0503 96.321 75.197 99.2224 73.4904C102.209 71.6985 103.703 68.3706 103.703 63.5066C103.703 55.5706 97.3456 51.6024 84.6309 51.6021L62.8709 51.6016L62.8703 76.0496ZM62.8713 37.6496L82.0713 37.65C92.994 37.6503 98.4554 33.9384 98.4556 26.5144C98.4557 22.2478 97.1331 19.1757 94.4878 17.2983C91.8425 15.4209 87.7465 14.4822 82.1999 14.482L62.8719 14.4816L62.8713 37.6496ZM232.117 84.5017L232.117 90.0057L203.573 90.005L194.614 69.6528L149.814 69.6517L140.853 90.0035L112.309 90.0028L112.309 84.4988L127.157 84.4991L164.151 0.532025L180.279 0.532419L217.269 84.5013L232.117 84.5017ZM188.47 55.7006L172.215 18.8362L155.958 55.6998L188.47 55.7006ZM316.109 84.5037L316.109 90.0077L288.461 90.0071L267.086 59.9265L247.246 59.9261L247.245 90.0061L219.725 90.0054L219.725 84.5014L232.141 84.5017L232.143 0.533685L265.423 0.534498C279.077 0.534831 288.847 2.83907 294.735 7.44722C300.623 12.0554 303.567 19.4368 303.566 29.5914C303.566 44.3541 297.123 53.6553 284.238 57.495L303.693 84.5034L316.109 84.5037ZM266.062 46.2305C274.595 46.2307 280.398 44.9082 283.47 42.2629C286.542 39.6177 288.078 35.3937 288.078 29.5911C288.079 23.7031 286.5 19.6924 283.343 17.5589C280.185 15.3402 274.554 14.2307 266.447 14.2305L247.247 14.2301L247.246 46.2301L266.062 46.2305ZM347.922 84.5045L347.922 90.0085L312.85 90.0077L312.85 84.5037L347.922 84.5045Z"
             fill="white"
@@ -99,7 +142,6 @@ export const LogIn = ({ navigation }: any) => {
 
       {/* Welcome Text */}
       <View style={styles.welcomeContainer}>
-        <Text style={styles.welcomeTitle}>{t('welcome-back') || 'Welcome Back'}</Text>
         <Text style={styles.welcomeSubtitle}>
           {t('sign-in-to-continue') || 'Sign in to your account to continue'}
         </Text>
@@ -110,7 +152,6 @@ export const LogIn = ({ navigation }: any) => {
         size="md"
         isDisabled={false}
         isReadOnly={false}
-        isRequired={true}
         style={styles.formControl}
         isInvalid={touched.email && !!errors.email}
       >
@@ -132,7 +173,7 @@ export const LogIn = ({ navigation }: any) => {
             type="text"
             placeholder={t('email')}
             style={{ color: primaryTextColor }}
-            onChangeText={(value) => updateField('email', value)}
+            onChangeText={value => updateField('email', value)}
             onFocus={() => setFocusedInput('email')}
             onBlur={() => {
               setFocusedInput(null);
@@ -166,7 +207,6 @@ export const LogIn = ({ navigation }: any) => {
         size="md"
         isDisabled={false}
         isReadOnly={false}
-        isRequired={true}
         style={styles.formControl}
         isInvalid={touched.password && !!errors.password}
       >
@@ -188,7 +228,7 @@ export const LogIn = ({ navigation }: any) => {
             type={togglePassword ? 'text' : 'password'}
             placeholder={t('password')}
             style={{ color: primaryTextColor }}
-            onChangeText={(value) => updateField('password', value)}
+            onChangeText={value => updateField('password', value)}
             onFocus={() => setFocusedInput('password')}
             onBlur={() => {
               setFocusedInput(null);
@@ -257,6 +297,7 @@ export const LogIn = ({ navigation }: any) => {
           onPress={onAppleButtonPress}
         />
 
+        {/* Google Sign-In Button */}
         <TouchableOpacity
           style={styles.socialButton}
           onPress={onGoogleButtonPress}
@@ -266,28 +307,52 @@ export const LogIn = ({ navigation }: any) => {
         </TouchableOpacity>
       </View>
 
-      {/* Register Link */}
-      <Center style={styles.registerContainer}>
-        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.registerText}>
-            {t('noAccount') || "Don't have an account?"}{' '}
-            <Text style={styles.registerTextBold}>{t('registerYourself') || 'Sign Up'}</Text>
-          </Text>
-        </TouchableOpacity>
-      </Center>
-    </AuthLayout>
+            {/* Register Link */}
+            <Center style={styles.registerContainer}>
+              <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+                <Text style={styles.registerText}>
+                  {t('noAccount') || "Don't have an account?"}{' '}
+                  <Text style={styles.registerTextBold}>
+                    {t('registerYourself') || 'Sign Up'}
+                  </Text>
+                </Text>
+              </TouchableOpacity>
+            </Center>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    backgroundColor: '#020213',
+    padding: 15,
+  },
+  content: {
+    flex: 1,
+  },
+  mainContent: {
+    paddingHorizontal: 10,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  authPageContainer: {
+    padding: 10,
+    flex: 1,
+    justifyContent: 'space-between',
+    minHeight: '100%',
+  },
   logoContainer: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   subLogoContainer: {
-    marginBottom: 32,
+    marginBottom: 20,
   },
   welcomeContainer: {
-    marginBottom: 32,
+    marginBottom: 20,
     paddingHorizontal: 4,
   },
   welcomeTitle: {
@@ -305,7 +370,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   formControl: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   labelText: {
     color: primaryColor,
@@ -326,7 +391,7 @@ const styles = StyleSheet.create({
   },
   forgotPasswordButton: {
     alignSelf: 'flex-end',
-    marginBottom: 24,
+    marginBottom: 16,
     paddingVertical: 4,
   },
   forgotPasswordText: {
@@ -338,7 +403,7 @@ const styles = StyleSheet.create({
     backgroundColor: primaryColor,
     borderRadius: 12,
     height: 50,
-    marginBottom: 24,
+    marginBottom: 16,
   },
   signInButtonText: {
     color: '#000',
@@ -347,16 +412,16 @@ const styles = StyleSheet.create({
   },
   socialButtonsContainer: {
     width: '100%',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   socialButton: {
     width: '100%',
-    marginVertical: 8,
+    marginVertical: 6,
     alignItems: 'center',
     height: 44,
   },
   registerContainer: {
-    marginTop: 8,
+    marginTop: 4,
   },
   registerText: {
     color: secondaryTextColor,

@@ -1,26 +1,19 @@
-import { useQuery } from 'react-query';
-import { getCurrentUser } from '../services/functions';
-import { useUserStore } from '../store/userStore';
-import { auth } from '@/firebaseConfig';
+// DEPRECATED: This hook is deprecated - use useUserData from hooks/useUserQuery instead
+// Keeping for backward compatibility during migration
+
+import { useUserData as useNewUserData } from '../../hooks/useUserQuery';
 
 export const useUserData = () => {
-  const uid = auth.currentUser?.uid;
-  const { setUserData } = useUserStore();
+  const { userData, isLoading, refetch, isError, error } = useNewUserData();
 
-  return useQuery(
-    ['userData', uid],
-    async () => {
-      return await getCurrentUser();
-    },
-    {
-      enabled: !!uid,
-      retry: 2,
-      staleTime: 1000 * 60 * 5,
-      onSuccess: data => {
-        if (data) {
-          setUserData(data);
-        }
-      },
-    }
-  );
+  // Mock the old react-query interface for backward compatibility
+  return {
+    data: userData,
+    isLoading,
+    refetch,
+    // Add other react-query properties as needed
+    error,
+    isError,
+    isSuccess: !!userData,
+  };
 };

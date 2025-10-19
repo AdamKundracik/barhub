@@ -20,6 +20,10 @@ import { usePlaceStore } from '../../../utils/store/placesStore';
 import { fetchNearbyPlaces } from '../../../utils/helper-functions/fetchPlacesAPI';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { 
+  GEOFENCE_CONFIG, 
+  isLocationWithinPerimeter 
+} from '../../../utils/helper-functions/geofencing';
 import {
   postBgColor,
   primaryBgColor,
@@ -45,7 +49,7 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
   const { location } = useLocationStore();
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
-  const { setPlaceId, setPlaceName } = usePlaceStore();
+  const { setPlaceId, setPlaceName, setPlaceAddress } = usePlaceStore();
 
   const mapRef = useRef<MapView>(null);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -70,12 +74,24 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
     const placePrediction = mapPlaceToPlacePrediction(selectedPlace);
     setPlaceId(placePrediction.placeId);
     setPlaceName(placePrediction.structuredFormat.mainText.text);
+    setPlaceAddress(placePrediction.structuredFormat.secondaryText.text);
     closeMap();
     navigation.navigate('Feed');
-  }, [selectedPlace, setPlaceId, setPlaceName, closeMap, navigation]);
+  }, [selectedPlace, setPlaceId, setPlaceName, setPlaceAddress, closeMap, navigation]);
 
   const handleSearchSurrounding = useCallback(async () => {
     if (loading) return;
+
+    // Check if current map region is within 30km from user's actual location
+    const regionLocation = { 
+      latitude: region.latitude, 
+      longitude: region.longitude 
+    };
+    
+    if (!isLocationWithinPerimeter(regionLocation, location)) {
+      alert(t('outside-allowed-area') || 'You moved too far from your location. Maximum 30km allowed.');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -88,7 +104,7 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
     } finally {
       setLoading(false);
     }
-  }, [loading, region]);
+  }, [loading, region, location, t]);
 
   const onRegionChangeComplete = useCallback((newRegion: Region) => {
     if (debounceTimeout.current) {
@@ -127,6 +143,20 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
         clusterColor={primaryColor}
         clusterTextColor={primaryBgColor}
       >
+        {/* User's perimeter circle - 30km max range */}
+        {location && (
+          <Circle
+            center={{
+              latitude: location.latitude,
+              longitude: location.longitude,
+            }}
+            radius={GEOFENCE_CONFIG.maxRadiusKm * 1000} // Convert km to meters
+            strokeColor="rgba(255, 165, 0, 0.5)"
+            fillColor="rgba(255, 165, 0, 0.05)"
+            strokeWidth={2}
+          />
+        )}
+
         {/* Search radius circle */}
         <Circle
           center={region}

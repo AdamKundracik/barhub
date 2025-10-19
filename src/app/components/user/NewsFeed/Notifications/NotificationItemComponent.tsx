@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Animated,
@@ -15,7 +15,7 @@ import { BlurView } from 'expo-blur';
 
 import { NotificationItemProps } from '@/src/app/utils/types/notification-types';
 import { UserStackList } from '@/src/app/utils/types/screen-types';
-import { NotificationType } from '@/common/types/notificationTypes';
+import { NotificationType } from '@/src/app/types/notificationTypes';
 import { Icons } from '@/src/app/utils/icons/icons';
 import { openCamera } from '@/src/app/utils/helper-functions/openCamera';
 import {
@@ -40,48 +40,45 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
 
+  // console.log('[NotificationItemComponent] item.sender:', item.sender);
+
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
   const locales = useLocales();
 
-  const getTimeUnit = useCallback(
-    (count: number, unit: 'minute' | 'hour') => {
-      const currentLanguage = locales[0]?.languageCode || 'sk';
+  // --- ENHANCED TIME FORMATTING WITH AUTO-UPDATE ---
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-      if (count === 1) {
-        return t(unit);
-      }
+  // Update current time every minute for live time display
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
 
-      if (currentLanguage === 'sk') {
-        return t(`${unit}s_2_4`);
-      }
-
-      return t(`${unit}s_2_4`); // This covers German, English, Spanish
-    },
-    [locales, t]
-  );
+    return () => clearInterval(interval);
+  }, []);
 
   const notificationConfig = useMemo(() => {
     const configs = {
       [NotificationType.LIKE]: {
         label: t('new-like'),
-        text: `${item.senderName} ${t('liked-your-photo')}`,
+        text: `${item.sender?.name} ${t('liked-your-photo')}`,
         icon: Icons.HeartSolid,
         color: '#FF6B85',
         bgGradient: ['rgba(255, 107, 133, 0.1)', 'rgba(255, 107, 133, 0.05)'],
-        actionable: false,
+        actionable: true,
       },
       [NotificationType.COMMENT]: {
         label: t('new-comment'),
-        text: `${item.senderName} ${t('commented-your-photo')}`,
+        text: `${item.sender?.name} ${t('commented-your-photo')}`,
         icon: Icons.CommentSolid,
         color: '#4A90E2',
         bgGradient: ['rgba(74, 144, 226, 0.1)', 'rgba(74, 144, 226, 0.05)'],
-        actionable: false,
+        actionable: true,
       },
       [NotificationType.REQUEST]: {
         label: t('request'),
-        text: `${item.senderName} ${t('sent-request')}`,
+        text: `${item.sender?.name} ${t('sent-request')}`,
         icon: Icons.Bell,
         color: primaryColor,
         bgGradient: [`rgba(16, 217, 185, 0.15)`, `rgba(16, 217, 185, 0.08)`],
@@ -89,106 +86,126 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
       },
       [NotificationType.RESPONSE]: {
         label: t('response'),
-        text: `${item.senderName} ${t('responded-to-request')}`,
+        text: `${item.sender?.name} ${t('responded-to-request')}`,
         icon: Icons.Bell,
         color: successColor,
         bgGradient: [`rgba(76, 175, 80, 0.1)`, `rgba(76, 175, 80, 0.05)`],
-        actionable: false,
+        actionable: true,
       },
     };
 
     return configs[item.notificationType] || configs[NotificationType.REQUEST];
   }, [item.notificationType, item.senderName, t]);
 
-  // Format timestamp
+  // Format timestamp - same logic as UserLine
   const formattedTime = useMemo(() => {
-    if (!item.creationTime || typeof item.creationTime !== 'object') {
+    if (!item.creationTime) {
       return '';
     }
 
-    let timestamp: number;
-    if ('_seconds' in item.creationTime) {
-      timestamp = (item.creationTime._seconds as number) * 1000;
-    } else if ('seconds' in item.creationTime) {
-      timestamp = item.creationTime.seconds * 1000;
-    } else {
-      return '';
-    }
+    try {
+      // Parse LocalDateTime string: "2025-10-07T22:29:23.517475"
+      // Backend sends UTC time but without 'Z' suffix, so we need to treat it as UTC
+      let dateStr = item.creationTime.includes('T')
+        ? item.creationTime
+        : item.creationTime.replace(' ', 'T');
 
-    const now = Date.now();
-    const diff = now - timestamp;
-
-    // Less than 1 minute
-    if (diff < 60000) {
-      return t('just-now');
-    }
-
-    // Less than 1 hour
-    if (diff < 3600000) {
-      const minutes = Math.floor(diff / 60000);
-      const timeUnit = getTimeUnit(minutes, 'minute');
-      const currentLanguage = locales[0]?.languageCode || 'sk';
-
-      // Different word order for different languages
-      if (currentLanguage === 'es') {
-        return `${t('ago')} ${minutes} ${timeUnit}`;
-      } else if (currentLanguage === 'en') {
-        return `${minutes} ${timeUnit} ${t('ago')}`;
-      } else {
-        // Slovak and German: "pred X minútami/vor X Minuten"
-        return `${t('ago')} ${minutes} ${timeUnit}`;
+      // Add 'Z' suffix to indicate UTC time
+      if (
+        !dateStr.endsWith('Z') &&
+        !dateStr.includes('+') &&
+        !dateStr.includes('-', 10)
+      ) {
+        dateStr += 'Z';
       }
-    }
 
-    // Less than 1 day
-    if (diff < 86400000) {
-      const hours = Math.floor(diff / 3600000);
-      const timeUnit = getTimeUnit(hours, 'hour');
-      const currentLanguage = locales[0]?.languageCode || 'sk';
+      const dateObj = new Date(dateStr);
 
-      // Different word order for different languages
-      if (currentLanguage === 'es') {
-        return `${t('ago')} ${hours} ${timeUnit}`;
-      } else if (currentLanguage === 'en') {
-        return `${hours} ${timeUnit} ${t('ago')}`;
-      } else {
-        // Slovak and German: "pred X hodinami/vor X Stunden"
-        return `${t('ago')} ${hours} ${timeUnit}`;
+      // Validate date
+      if (isNaN(dateObj.getTime())) {
+        return '';
       }
-    }
 
-    // Format full date
-    return new Date(timestamp).toLocaleDateString(
-      locales[0]?.languageCode ?? 'sk-SK',
-      {
+      // Calculate difference using current time (updates every minute)
+      const diffInMinutes = Math.floor(
+        (currentTime.getTime() - dateObj.getTime()) / (1000 * 60)
+      );
+      const diffInHours = Math.floor(diffInMinutes / 60);
+      const diffInDays = Math.floor(diffInHours / 24);
+
+      // Ak je menej ako 1 deň, používaj relatívny čas
+      if (diffInDays < 1) {
+        if (diffInMinutes < 1) {
+          return t('just-now') || 'práve teraz';
+        } else if (diffInMinutes < 60) {
+          return `${t('ago')} ${diffInMinutes} min`;
+        } else {
+          return `${t('ago')} ${diffInHours}h`;
+        }
+      }
+
+      // Ak je viac ako 1 deň, zobraz dátum a čas v lokálnej časovej zóne
+      const userLocale = locales[0]?.languageTag || 'en-US';
+
+      const formattedDate = dateObj.toLocaleString(userLocale, {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      }
-    );
-  }, [item.creationTime, locales, t]);
+        hour12: false,
+      });
+
+      return formattedDate;
+    } catch (error) {
+      console.error(
+        'Error formatting notification time:',
+        error,
+        item.creationTime
+      );
+      return '';
+    }
+  }, [item.creationTime, currentTime, locales, t]);
 
   // Check if notification is expired (for requests)
   const isExpired = useMemo(() => {
     if (item.notificationType !== NotificationType.REQUEST) return false;
 
-    if (!item.creationTime || typeof item.creationTime !== 'object')
-      return true;
+    if (!item.creationTime) return true;
 
-    let timestamp: number;
-    if ('_seconds' in item.creationTime) {
-      timestamp = (item.creationTime._seconds as number) * 1000;
-    } else if ('seconds' in item.creationTime) {
-      timestamp = item.creationTime.seconds * 1000;
-    } else {
+    try {
+      // Parse LocalDateTime string: "2025-10-07T22:29:23.517475"
+      // Backend sends UTC time but without 'Z' suffix, so we need to treat it as UTC
+      let dateStr = item.creationTime.includes('T')
+        ? item.creationTime
+        : item.creationTime.replace(' ', 'T');
+
+      // Add 'Z' suffix to indicate UTC time
+      if (
+        !dateStr.endsWith('Z') &&
+        !dateStr.includes('+') &&
+        !dateStr.includes('-', 10)
+      ) {
+        dateStr += 'Z';
+      }
+
+      const dateObj = new Date(dateStr);
+
+      // Validate date
+      if (isNaN(dateObj.getTime())) {
+        return true;
+      }
+
+      const expirationTime = 180 * 1000; // 3 minutes
+      return currentTime.getTime() > dateObj.getTime() + expirationTime;
+    } catch (error) {
+      console.error(
+        'Error parsing notification time for expiration check:',
+        error
+      );
       return true;
     }
-
-    const expirationTime = 180 * 1000; // 3 minutes
-    return Date.now() > timestamp + expirationTime;
-  }, [item.creationTime, item.notificationType]);
+  }, [item.creationTime, item.notificationType, currentTime]);
 
   // Animation styles
   const animatedContainerStyle = useAnimatedStyle(() => ({
@@ -218,6 +235,15 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
         }
 
         await openCamera(item.placeId, item.senderToken, navigation, item.id);
+      } else if (
+        item.notificationType === NotificationType.RESPONSE ||
+        item.notificationType === NotificationType.LIKE ||
+        item.notificationType === NotificationType.COMMENT
+      ) {
+        // Navigate to PostDetail for response/like/comment notifications
+        if (item.postId) {
+          (navigation as any).navigate('PostDetail', { postId: item.postId });
+        }
       }
     } catch (error) {
       console.error('Error handling notification:', error);
@@ -284,7 +310,9 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
                   {notificationConfig.actionable && !isExpired && (
                     <View style={styles.actionBadge}>
                       <Text style={styles.actionText}>
-                        {t('tap-to-respond')}
+                        {item.notificationType === NotificationType.REQUEST
+                          ? t('tap-to-respond')
+                          : t('tap-to-view')}
                       </Text>
                     </View>
                   )}

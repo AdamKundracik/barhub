@@ -1,36 +1,37 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { 
-  Pressable, 
-  StyleSheet, 
-  Text, 
-  View, 
-  Keyboard,
-  TouchableWithoutFeedback,
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
   Animated,
-  Dimensions,
-  ScrollView
+  Keyboard,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
-import { formStyles } from '../../utils/styles/styles';
-import { 
-  primaryColor, 
-  primaryDeepColor, 
+import {
+  postBgColor,
+  primaryColor,
+  primaryDeepColor,
   primaryTextColor,
   separatorColor,
-  postBgColor
 } from '../../utils/styles/colors';
 import { useLocationStore } from '../../utils/store/locationStore';
 import { useTranslation } from 'react-i18next';
 import { FormControl } from '@/components/ui/form-control';
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
-import { XIcon, SearchIcon, MapPinIcon, AlertCircleIcon } from 'lucide-react-native';
+import {
+  AlertCircleIcon,
+  MapPinIcon,
+  SearchIcon,
+  XIcon,
+} from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCustomToast } from '../../components/shared/Toaster';
 import LoadingIndicator from '../../components/user/NewsFeed/LoadingIndicator';
 import { generateUID } from '../../utils/helper-functions/generateUID';
-
-const { width: screenWidth } = Dimensions.get('window');
 
 // Interfaces for old Google Places API (for cities/geocoding)
 interface CityPrediction {
@@ -70,9 +71,8 @@ export const SelectFakeLocation = () => {
   const navigation = useNavigation();
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { setFakeLocation, setFakeLocationName } = useLocationStore();
-  const { location } = useLocationStore();
   const sessionToken = useRef(generateUID()).current;
-  
+
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
@@ -120,15 +120,15 @@ export const SelectFakeLocation = () => {
         const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
           debouncedQuery
         )}&types=(cities)&key=${process.env.EXPO_PUBLIC_GOOGLE_API_KEY}&sessiontoken=${sessionToken}`;
-        
+
         const response = await fetch(url);
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         if (data.status === 'OK') {
           setPlaces(data.predictions || []);
         } else if (data.status === 'ZERO_RESULTS') {
@@ -148,49 +148,56 @@ export const SelectFakeLocation = () => {
     fetchPlaces();
   }, [debouncedQuery, t, sessionToken]);
 
-  const handlePlaceSelect = useCallback(async (place: CityPrediction) => {
-    if (isSelecting) return; // Prevent double selection
-    
-    setIsSelecting(true);
-    Keyboard.dismiss();
-    
-    try {
-      // Use old Google Places API for place details
-      const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&key=${process.env.EXPO_PUBLIC_GOOGLE_API_KEY}&sessiontoken=${sessionToken}`;
-      
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+  const handlePlaceSelect = useCallback(
+    async (place: CityPrediction) => {
+      if (isSelecting) return; // Prevent double selection
+
+      setIsSelecting(true);
+      Keyboard.dismiss();
+
+      try {
+        // Use old Google Places API for place details
+        const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&key=${process.env.EXPO_PUBLIC_GOOGLE_API_KEY}&sessiontoken=${sessionToken}`;
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const details: PlaceDetailsResponse = await response.json();
+
+        if (details.status === 'OK' && details.result?.geometry?.location) {
+          const location = details.result.geometry.location;
+
+          setFakeLocation({ latitude: location.lat, longitude: location.lng });
+          setFakeLocationName(place.description);
+
+          showSuccessToast(t('Selected-location'), place.description);
+
+          // Small delay for better UX
+          setTimeout(() => {
+            navigation.goBack();
+          }, 500);
+        } else {
+          throw new Error(details.error_message || 'Invalid response');
+        }
+      } catch (e) {
+        console.error('Error fetching place details', e);
+        showErrorToast(t('error'), t('something-went-wrong'));
+      } finally {
+        setIsSelecting(false);
       }
-      
-      const details: PlaceDetailsResponse = await response.json();
-      
-      if (details.status === 'OK' && details.result?.geometry?.location) {
-        const location = details.result.geometry.location;
-        
-        setFakeLocation({ latitude: location.lat, longitude: location.lng });
-        setFakeLocationName(place.description);
-        
-        showSuccessToast(
-          t('Selected-location'),
-          place.description
-        );
-        
-        // Small delay for better UX
-        setTimeout(() => {
-          navigation.goBack();
-        }, 500);
-      } else {
-        throw new Error(details.error_message || 'Invalid response');
-      }
-    } catch (e) {
-      console.error('Error fetching place details', e);
-      showErrorToast(t('error'), t('something-went-wrong'));
-    } finally {
-      setIsSelecting(false);
-    }
-  }, [isSelecting, setFakeLocation, setFakeLocationName, t, navigation, sessionToken]);
+    },
+    [
+      isSelecting,
+      setFakeLocation,
+      setFakeLocationName,
+      t,
+      navigation,
+      sessionToken,
+    ]
+  );
 
   const handleClearSearch = useCallback(() => {
     setQuery('');
@@ -207,11 +214,11 @@ export const SelectFakeLocation = () => {
     <TouchableWithoutFeedback onPress={dismissKeyboard}>
       <ScreenLayout
         title={t('select-city')}
-        showTitle 
+        showTitle
         showBackButton
         onBackPress={() => navigation.goBack()}
       >
-        <Animated.View 
+        <Animated.View
           style={[
             styles.container,
             {
@@ -236,11 +243,7 @@ export const SelectFakeLocation = () => {
                 style={styles.searchInput}
               >
                 <InputSlot className="pl-4">
-                  <InputIcon 
-                    as={SearchIcon} 
-                    size={'lg'} 
-                    color={primaryColor} 
-                  />
+                  <InputIcon as={SearchIcon} size={'lg'} color={primaryColor} />
                 </InputSlot>
                 <InputField
                   type="text"
@@ -267,16 +270,12 @@ export const SelectFakeLocation = () => {
                     onPress={handleClearSearch}
                     disabled={isSelecting}
                   >
-                    <InputIcon 
-                      as={XIcon} 
-                      size={'lg'} 
-                      color={separatorColor} 
-                    />
+                    <InputIcon as={XIcon} size={'lg'} color={separatorColor} />
                   </InputSlot>
                 )}
               </Input>
             </FormControl>
-            
+
             {/* Search hint */}
             {!hasSearched && !query && (
               <Text style={styles.searchHint}>
@@ -286,7 +285,7 @@ export const SelectFakeLocation = () => {
           </View>
 
           {/* Content Area */}
-          <ScrollView 
+          <ScrollView
             style={styles.contentArea}
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
@@ -296,9 +295,7 @@ export const SelectFakeLocation = () => {
             {loading && (
               <View style={styles.loadingContainer}>
                 <LoadingIndicator />
-                <Text style={styles.loadingText}>
-                  {t('search')}...
-                </Text>
+                <Text style={styles.loadingText}>{t('search')}...</Text>
               </View>
             )}
 
@@ -306,7 +303,8 @@ export const SelectFakeLocation = () => {
             {!loading && places.length > 0 && (
               <View style={styles.resultsContainer}>
                 <Text style={styles.resultsHeader}>
-                  {places.length} {places.length === 1 ? 'výsledok' : 'výsledkov'}
+                  {places.length}{' '}
+                  {places.length === 1 ? 'výsledok' : 'výsledkov'}
                 </Text>
                 {places.map((place, index) => (
                   <Pressable
@@ -317,21 +315,26 @@ export const SelectFakeLocation = () => {
                   >
                     {({ pressed }) => (
                       <LinearGradient
-                        colors={pressed ? [primaryColor + '20', primaryColor + '10'] : ['transparent', 'transparent']}
+                        colors={
+                          pressed
+                            ? [primaryColor + '20', primaryColor + '10']
+                            : ['transparent', 'transparent']
+                        }
                         style={styles.placeItemGradient}
                       >
                         <View style={styles.placeItemContent}>
                           <View style={styles.placeIconContainer}>
-                            <MapPinIcon 
-                              size={20} 
-                              color={primaryColor} 
-                            />
+                            <MapPinIcon size={20} color={primaryColor} />
                           </View>
                           <View style={styles.placeTextContainer}>
                             <Text
                               style={[
                                 styles.placeText,
-                                { color: pressed ? primaryColor : primaryTextColor },
+                                {
+                                  color: pressed
+                                    ? primaryColor
+                                    : primaryTextColor,
+                                },
                               ]}
                               numberOfLines={2}
                             >
@@ -377,7 +380,7 @@ export const SelectFakeLocation = () => {
                 </View>
                 <Text style={styles.errorTitle}>{t('error')}</Text>
                 <Text style={styles.errorSubtitle}>{error}</Text>
-                <Pressable 
+                <Pressable
                   style={styles.retryButton}
                   onPress={() => {
                     if (debouncedQuery) {
@@ -389,7 +392,9 @@ export const SelectFakeLocation = () => {
                     }
                   }}
                 >
-                  <Text style={styles.retryButtonText}>{t('please-try-again-later')}</Text>
+                  <Text style={styles.retryButtonText}>
+                    {t('please-try-again-later')}
+                  </Text>
                 </Pressable>
               </View>
             )}
@@ -562,7 +567,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
   },
   retryButtonText: {
-    color: 'white',
+    color: '#000',
     fontSize: 16,
     fontWeight: '600',
   },

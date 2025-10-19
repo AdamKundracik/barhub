@@ -22,31 +22,35 @@ export const requestTrackingPermission = async () => {
 };
 
 export const requestCameraPermission = async () => {
-  const { status } = await requestCameraPermissionsAsync();
-  return status === 'granted';
+  try {
+    const { status } = await requestCameraPermissionsAsync();
+    return status === 'granted';
+  } catch (error) {
+    console.error('Camera permission error:', error);
+    return false;
+  }
 };
 
 export const requestNotificationPermission = async () => {
-  const { status } = await Notifications.requestPermissionsAsync({
-    ios: {
-      allowAlert: true,
-      allowBadge: true,
-      allowSound: true,
-    },
-  });
-  return status === 'granted';
+  try {
+    const { status } = await Notifications.requestPermissionsAsync({
+      ios: {
+        allowAlert: true,
+        allowBadge: true,
+        allowSound: true,
+      },
+    });
+    return status === 'granted';
+  } catch (error) {
+    console.error('Notification permission error:', error);
+    return false;
+  }
 };
 
 export const requestGeolocationPermission = async () => {
   try {
     const authStatus = await BackgroundGeolocation.requestPermission();
-
-    if (authStatus !== BackgroundGeolocation.AUTHORIZATION_STATUS_ALWAYS) {
-      await Linking.openSettings();
-      return false;
-    }
-
-    return true;
+    return authStatus === BackgroundGeolocation.AUTHORIZATION_STATUS_ALWAYS;
   } catch (error) {
     console.error('Geolocation permission error:', error);
     return false;

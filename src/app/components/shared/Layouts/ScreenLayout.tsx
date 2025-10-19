@@ -33,7 +33,11 @@ export const ScreenLayout = ({
             {/* Back button */}
             {showBackButton && onBackPress ? (
               <Pressable onPress={onBackPress} style={styles.backButton}>
-                <FontAwesomeIcon icon={Icons.Left} size={24} color="white" />
+                <FontAwesomeIcon
+                  icon={Icons.ChevronLeft}
+                  size={24}
+                  color="white"
+                />
               </Pressable>
             ) : (
               showTitle && <Box style={styles.backButtonPlaceholder} />
@@ -41,7 +45,12 @@ export const ScreenLayout = ({
 
             {/* Title */}
             {showTitle && title && (
-              <Center style={[styles.titleContainer, !showBackButton && styles.titleContainerFullWidth]}>
+              <Center
+                style={[
+                  styles.titleContainer,
+                  !showBackButton && styles.titleContainerFullWidth,
+                ]}
+              >
                 <Text numberOfLines={1} style={styles.titleText}>
                   {title}
                 </Text>
@@ -72,7 +81,7 @@ const styles = StyleSheet.create({
   backButton: { padding: 8 },
   backButtonPlaceholder: { width: 40 }, // placeholder to keep title centered
   titleContainer: { flex: 1, alignItems: 'center' },
-  titleContainerFullWidth: { 
+  titleContainerFullWidth: {
     position: 'absolute',
     left: 0,
     right: 0,

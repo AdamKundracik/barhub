@@ -10,7 +10,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
-import { useNotificationsHandler } from '@/src/app/components/user/NewsFeed/NotificationHandler';
 import { useNotificationsStore } from '@/src/app/utils/store/notificationsStore';
 import { modalsStore } from '@/src/app/utils/store/modalsStore';
 
@@ -22,8 +21,6 @@ type LayoutProps = {
 };
 
 export const Layout = ({ children, showTopBar = true }: LayoutProps) => {
-  useNotificationsHandler();
-
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { data } = useNotificationsStore();
   const { toggleFilter } = modalsStore();

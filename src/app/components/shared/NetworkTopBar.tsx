@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Animated, Platform } from 'react-native';
+import { Animated, Platform, StyleSheet, Text, View } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { useNetwork } from '../../providers/NetworkProvider';
 import { useTranslation } from 'react-i18next';
@@ -39,7 +39,7 @@ export const NetworkTopBar: React.FC = () => {
   }
 
   return (
-    <Animated.View 
+    <Animated.View
       style={[
         styles.container,
         {
@@ -48,10 +48,10 @@ export const NetworkTopBar: React.FC = () => {
       ]}
     >
       <View style={styles.content}>
-        <FontAwesomeIcon 
-          icon={Icons.TriangleExclamation} 
-          size={16} 
-          color="#FFFFFF" 
+        <FontAwesomeIcon
+          icon={Icons.Warning}
+          size={16}
+          color="#FFFFFF"
           style={styles.icon}
         />
         <Text style={styles.text}>

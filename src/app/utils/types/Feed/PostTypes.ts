@@ -1,8 +1,8 @@
 export enum ReportReason {
-  SPAM = 'spam',
-  INAPPROPRIATE = 'inappropriate',
-  HARASSMENT = 'harassment',
-  OTHER = 'other',
+  SPAM = 'SPAM',
+  INAPPROPRIATE = 'INAPPROPRIATE',
+  HARASSMENT = 'HARASSMENT',
+  OTHER = 'OTHER',
 }
 
 export enum OccupancyEnum {

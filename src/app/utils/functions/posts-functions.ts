@@ -1,10 +1,11 @@
 import { GeoPointType, LocationType } from '../types/types';
 import { getFreshContent, getPostsByPlaceId } from '../services/post.service';
-import { InfinityScrollPost, Post } from '@/common/types/postTypes';
+import { InfinityScrollPost, Post } from '@/src/app/types/postTypes';
+import { useUserStore } from '../store/userStore';
 
 export const handleFreshContent = async (
   radius: number,
-  lastVisible?: string | null,
+  cursor?: string | null,
   placeId?: string | null,
   location?: LocationType
 ): Promise<{ posts: Post[]; lastVisible: string | null }> => {
@@ -12,19 +13,28 @@ export const handleFreshContent = async (
     location ?? { latitude: 0, longitude: 0 }
   );
 
+  // Get userId from store
+  const userId = useUserStore.getState().getUserId();
+
   try {
     let response;
     if (placeId) {
-      response = lastVisible
-        ? await getPostsByPlaceId(placeId, lastVisible)
-        : await getPostsByPlaceId(placeId);
+      response = await getPostsByPlaceId(
+        placeId,
+        cursor || undefined,
+        parseInt(userId ?? '') || undefined
+      );
     } else {
-      response = lastVisible
-        ? await getFreshContent(geoPoint, radius, lastVisible)
-        : await getFreshContent(geoPoint, radius);
+      response = await getFreshContent(
+        geoPoint,
+        radius,
+        cursor || undefined,
+        parseInt(userId ?? '') || undefined
+      );
     }
 
     const data = response.data as InfinityScrollPost;
+    // console.log(data.posts[0]);
     if (!data?.posts?.length) {
       return { posts: [], lastVisible: null };
     }

@@ -38,7 +38,7 @@ export const PermissionCard: React.FC<PermissionCardProps> = ({
       exiting={SlideOutLeft}
       style={[styles.permissionContainer, isGranted && styles.grantedContainer]}
     >
-      <FontAwesomeIcon icon={config.icon} size={120} color="#fff" />
+      <FontAwesomeIcon icon={config.icon} size={80} color="#fff" />
       <Text style={styles.permissionTitle}>{t(config.titleKey)}</Text>
       <Text style={styles.permissionDescription}>
         {t(config.descriptionKey)}
@@ -57,81 +57,87 @@ export const PermissionCard: React.FC<PermissionCardProps> = ({
         </TouchableOpacity>
       )}
 
-      <View style={styles.stepIndicator}>
-        {Array.from({ length: totalSteps }, (_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.step,
-              index === currentStep && styles.activeStep,
-              index < currentStep && styles.completedStep,
-            ]}
-          />
-        ))}
-      </View>
     </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
   permissionContainer: {
-    width: width * 0.85,
+    width: '100%',
     alignItems: 'center',
     padding: 30,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    backdropFilter: 'blur(10px)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 8,
   },
   grantedContainer: {
     borderWidth: 2,
     borderColor: successColor,
+    backgroundColor: 'rgba(76, 175, 80, 0.1)',
   },
   permissionTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '800',
     color: '#fff',
-    marginVertical: 20,
+    marginTop: 20,
+    marginBottom: 12,
     textAlign: 'center',
   },
   permissionDescription: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.8)',
+    fontSize: 15,
+    color: 'rgba(255,255,255,0.9)',
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: 24,
+    lineHeight: 20,
+    paddingHorizontal: 8,
   },
   grantedText: {
     color: successColor,
-    fontSize: 20,
-    marginBottom: 15,
-    fontWeight: '600',
+    fontSize: 18,
+    marginBottom: 16,
+    fontWeight: '700',
+    textAlign: 'center',
   },
   permissionButton: {
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 30,
+    backgroundColor: '#fff',
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    borderRadius: 14,
     marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
   },
   buttonText: {
-    color: '#fff',
+    color: '#667eea',
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   stepIndicator: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 8,
+    gap: 10,
   },
   step: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: 'rgba(255,255,255,0.3)',
   },
   activeStep: {
     backgroundColor: '#fff',
-    width: 24,
+    width: 30,
   },
   completedStep: {
-    backgroundColor: 'rgba(255,255,255,0.6)',
+    backgroundColor: 'rgba(255,255,255,0.8)',
   },
 });

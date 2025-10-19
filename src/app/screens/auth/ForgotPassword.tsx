@@ -37,7 +37,7 @@ import { HStack } from '@/components/ui/hstack';
 import { Divider } from '@/components/ui/divider';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import * as Icons from '@fortawesome/free-solid-svg-icons';
-import { useForgotPassword } from '../../hooks/useForgotPassword';
+import { useForgotPasswordAPI } from '../../hooks/useForgotPasswordAPI';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { AlertCircleIcon } from '@/components/ui/icon';
 
@@ -57,7 +57,7 @@ export const ForgotPassword = ({ navigation }: any) => {
     isFormValid,
     sendResetEmail,
     resetForm,
-  } = useForgotPassword(t);
+  } = useForgotPasswordAPI(t);
 
   const handleSendResetEmail = async () => {
     const result = await sendResetEmail();
@@ -422,6 +422,7 @@ const styles = StyleSheet.create({
     color: primaryColor,
     fontSize: 16,
     fontWeight: '500',
+    marginBottom: 4,
   },
   requiredStar: {
     color: warningColor,
@@ -430,10 +431,6 @@ const styles = StyleSheet.create({
   inputFocused: {
     borderColor: primaryColor,
     borderWidth: 2,
-    shadowColor: primaryColor,
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
   },
   helperText: {
     color: secondaryTextColor,

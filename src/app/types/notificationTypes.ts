@@ -1,0 +1,21 @@
+import * as admin from 'firebase-admin';
+
+export type NotificationItem = {
+  id: string;
+  read: boolean;
+  creationTime: admin.firestore.Timestamp;
+  userId: string;
+  senderId: string;
+  notificationType: NotificationType;
+  senderToken: string;
+  placeId: string;
+  senderName?: string;
+  postId?: string;
+};
+
+export enum NotificationType {
+  REQUEST = 'REQUEST',
+  RESPONSE = 'RESPONSE',
+  LIKE = 'LIKE',
+  COMMENT = 'COMMENT',
+}

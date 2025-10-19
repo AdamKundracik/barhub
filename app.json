@@ -1,12 +1,18 @@
 {
   "expo": {
     "name": "Barhub",
-    "slug": "baruj-app",
+    "slug": "barhub-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "scheme": "baruj",
+    "scheme": "barhubapp",
+    "linking": {
+      "prefixes": [
+        "https://barhubapp.com",
+        "https://www.barhubapp.com"
+      ]
+    },
     "entryPoint": "./index.js",
     "splash": {
       "image": "./assets/splash.png",
@@ -16,7 +22,8 @@
     "ios": {
       "bundleIdentifier": "com.barhub.barhub",
       "associatedDomains": [
-        "applinks:expo.dev"
+        "applinks:barhubapp.com",
+        "applinks:www.barhubapp.com"
       ],
       "usesAppleSignIn": true,
       "googleServicesFile": "./GoogleService-Info.plist",
@@ -112,8 +119,13 @@
           "data": [
             {
               "scheme": "https",
-              "host": "*.myapp.io",
-              "pathPrefix": "/records"
+              "host": "barhubapp.com",
+              "pathPrefix": "/post"
+            },
+            {
+              "scheme": "https",
+              "host": "www.barhubapp.com",
+              "pathPrefix": "/post"
             }
           ],
           "category": [

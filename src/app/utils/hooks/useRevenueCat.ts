@@ -6,9 +6,7 @@ import Purchases, {
 } from 'react-native-purchases';
 import { Platform } from 'react-native';
 import { useUserStore } from '../store/userStore';
-import { setUser } from '../services/functions';
-import { User } from '@/shared';
-import { auth } from '@/firebaseConfig';
+import { useAuth } from '../../providers/AuthProvider';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useTranslation } from 'react-i18next';
 
@@ -24,13 +22,16 @@ export const useRevenueCat = ({
 } = {}) => {
   const [packages, setPackages] = useState<PurchasesPackage[]>([]);
   const [isReady, setIsReady] = useState(false);
+  const [currentSubscriptionType, setCurrentSubscriptionType] = useState<string | null>(null);
+  const [offerings, setOfferings] = useState<any>(null);
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const { t } = useTranslation();
 
-  const { premium, setPremium } = useUserStore();
+  const { isPremium } = useUserStore();
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (!auth.currentUser) return;
+    if (!user?.id) return;
 
     const initRevenueCat = async () => {
       try {
@@ -39,7 +40,7 @@ export const useRevenueCat = ({
         Purchases.configure({ apiKey });
         await Purchases.setLogLevel(LOG_LEVEL.WARN);
 
-        const { customerInfo } = await Purchases.logIn(auth.currentUser!.uid);
+        const { customerInfo } = await Purchases.logIn(user.id.toString());
         Purchases.addCustomerInfoUpdateListener(updateCustomerInformation);
 
         await loadOfferings();
@@ -51,23 +52,46 @@ export const useRevenueCat = ({
     };
 
     initRevenueCat();
-  }, [auth.currentUser]);
+  }, [user?.id]);
 
   const loadOfferings = async () => {
-    const offerings = await Purchases.getOfferings();
-    if (offerings.current) {
-      setPackages(offerings.current.availablePackages);
+    const offeringsData = await Purchases.getOfferings();
+    setOfferings(offeringsData);
+    if (offeringsData.current) {
+      setPackages(offeringsData.current.availablePackages);
     }
   };
 
   const updateCustomerInformation = async (customerInfo: CustomerInfo) => {
     try {
       const entitlements = customerInfo?.entitlements?.active ?? {};
-      const isPremium = !!entitlements['subscription']; // názov podľa RC Dashboard
+      const isPremiumInRC = !!entitlements['subscription']; // názov podľa RC Dashboard
 
-      setPremium(isPremium);
-      await setUser({ premium: isPremium } as Partial<User>);
+      // Get current subscription type from active entitlements
+      const activeEntitlements = Object.keys(entitlements);
+      let subscriptionType: string | null = null;
+      
+      if (activeEntitlements.length > 0) {
+        // Check for specific subscription types
+        if (activeEntitlements.includes('barhub_premium_1y')) {
+          subscriptionType = 'barhub_premium_1y';
+        } else if (activeEntitlements.includes('barhub_premium_1m')) {
+          subscriptionType = 'barhub_premium_1m';
+        } else if (activeEntitlements.includes('subscription')) {
+          subscriptionType = 'subscription';
+        }
+      }
+      
+      setCurrentSubscriptionType(subscriptionType);
 
+      // console.log('[RevenueCat] Customer info updated - Premium in RC:', isPremiumInRC);
+      // console.log('[RevenueCat] Premium status is managed by backend webhook - not updating locally');
+
+      // DO NOT update premium locally - it's managed by backend via webhook
+      // Backend will receive webhook from RevenueCat and update DB
+      // Frontend will get updated premium status via auto-refresh (every 30s)
+
+      // Trigger callback to refresh user data from backend
       if (onCustomerInfoUpdated) {
         await onCustomerInfoUpdated();
       }
@@ -94,10 +118,12 @@ export const useRevenueCat = ({
   };
 
   return {
-    premium,
+    premium: isPremium(),
     packages,
     isReady,
     purchasePackage,
     restorePermissions,
+    currentSubscriptionType,
+    offerings,
   };
 };

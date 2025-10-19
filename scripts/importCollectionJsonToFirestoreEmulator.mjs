@@ -27,7 +27,7 @@ const collectionName = process.argv[2];
 const fileName = process.argv[3];
 
 if (!collectionName || !fileName) {
-    console.log('Please provide both collection name and JSON file as arguments.');
+    // console.log('Please provide both collection name and JSON file as arguments.');
     process.exit(1);
 }
 
@@ -37,7 +37,7 @@ async function importCollectionJsonToFirestoreEmulator(fileName, collectionName)
         const data = JSON.parse(fs.readFileSync(fileName, 'utf8'));
 
         if (!data || data.length === 0) {
-            console.log('No data found in the file to import.');
+            // console.log('No data found in the file to import.');
             return;
         }
 
@@ -49,7 +49,7 @@ async function importCollectionJsonToFirestoreEmulator(fileName, collectionName)
         });
 
         await batch.commit();
-        console.log(`Successfully imported ${data.length} documents into ${collectionName} collection.`);
+        // console.log(`Successfully imported ${data.length} documents into ${collectionName} collection.`);
     } catch (error) {
         console.error('Error importing collection:', error);
     }

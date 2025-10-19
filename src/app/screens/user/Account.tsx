@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Pressable,
+  RefreshControl,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -22,15 +24,24 @@ import {
 } from '../../utils/styles/colors';
 import EditProfile from '../../components/user/Account/EditProfile';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
-import { auth } from '@/firebaseConfig';
 import { useUserStore } from '@/src/app/utils/store/userStore';
+import { useUserData } from '@/src/app/hooks/useUserQuery';
+import { AuthTypeEnum } from '@/src/app/types/dto';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
-import FastImage from 'react-native-fast-image';
+import {
+  Avatar,
+  AvatarFallbackText,
+  AvatarImage,
+} from '@/components/ui/avatar';
 import * as MailComposer from 'expo-mail-composer';
 import { BlurView } from 'expo-blur';
-import { signOut } from 'firebase/auth';
-import { useNotificationsHandler } from '@/src/app/components/user/NewsFeed/NotificationHandler';
-import { LinearGradient } from 'expo-linear-gradient';
+import { useAuth } from '../../providers/AuthProvider';
+import { userService } from '@/src/app/services/userService';
+import { useUserRole } from '@/src/app/hooks/useUserRole';
+import { useUserHighlights } from '@/src/app/hooks/useUserHighlights';
+import { HighlightedPostsGrid } from '@/src/app/components/user/Profile/HighlightedPostsGrid';
+import BioEditModal from '@/src/app/components/shared/Modals/BioEditModal';
+import { DeleteAccountConfirmModal } from '@/src/app/components/shared/Modals/DeleteAccountConfirmModal';
 
 interface ActionButtonProps {
   icon: any;
@@ -39,6 +50,7 @@ interface ActionButtonProps {
   onPress: () => void;
   variant?: 'default' | 'warning' | 'premium';
   showChevron?: boolean;
+  loading?: boolean;
 }
 
 interface InfoItemProps {
@@ -55,6 +67,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   onPress,
   variant = 'default',
   showChevron = true,
+  loading = false,
 }) => {
   const getVariantColors = () => {
     switch (variant) {
@@ -95,7 +108,8 @@ const ActionButton: React.FC<ActionButtonProps> = ({
           opacity: pressed ? 0.8 : 1,
         },
       ]}
-      onPress={onPress}
+      onPress={loading ? undefined : onPress}
+      disabled={loading}
     >
       <View style={styles.actionButtonContent}>
         <View style={styles.actionButtonLeft}>
@@ -118,7 +132,11 @@ const ActionButton: React.FC<ActionButtonProps> = ({
             )}
           </View>
         </View>
-        {showChevron && (
+        {loading ? (
+          <View style={styles.actionButtonRight}>
+            <ActivityIndicator size="small" color={colors.iconColor} />
+          </View>
+        ) : showChevron ? (
           <View style={styles.actionButtonRight}>
             <FontAwesomeIcon
               icon={Icons.ChevronRight}
@@ -126,7 +144,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
               color={separatorColor}
             />
           </View>
-        )}
+        ) : null}
       </View>
     </Pressable>
   );
@@ -152,51 +170,83 @@ const InfoItem: React.FC<InfoItemProps> = ({
 );
 
 export const Account = () => {
-  const { userData, premium } = useUserStore();
+  const {
+    userData,
+    isPremium,
+    displayName,
+    email,
+    photoUrl,
+    deleteAccountAsync,
+    isDeletingAccount,
+    refetch,
+  } = useUserData();
+  const { logout } = useAuth();
   const { t } = useTranslation();
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
-  const { unsubscribeNotifications, removePushToken } =
-    useNotificationsHandler();
-  const { currentPushToken } = useUserStore();
+  const { currentPushToken, getUserId } = useUserStore();
+  const { isAdmin, isModerator } = useUserRole();
+  const userId = getUserId();
+  const { highlights, isLoading: isLoadingHighlights } = useUserHighlights(
+    userId || undefined
+  );
 
   const [isEditing, setIsEditing] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [isBioModalOpen, setIsBioModalOpen] = useState(false);
+  const [isUpdatingBio, setIsUpdatingBio] = useState(false);
+  const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] =
+    useState(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } catch (error) {
+      console.error('Error refreshing user data:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleBioSave = async (newBio: string) => {
+    setIsUpdatingBio(true);
+    try {
+      // Update bio via userService
+      await userService.updateBio(newBio);
+
+      // Update local user data
+      const { updateUserData } = useUserStore.getState();
+      updateUserData({ bio: newBio });
+
+      showSuccessToast(
+        t('bio.save-success-title') || 'Success',
+        t('bio.save-success-message') || 'Bio updated successfully!'
+      );
+    } catch (error) {
+      console.error('Error updating bio:', error);
+      throw error; // Re-throw to be handled by modal
+    } finally {
+      setIsUpdatingBio(false);
+    }
+  };
 
   const userDisplayName = useMemo(
-    () => auth.currentUser?.displayName || t('anonymous-user'),
-    [auth.currentUser?.displayName, t]
+    () => displayName || t('anonymous-user'),
+    [displayName, t]
   );
 
-  const userEmail = useMemo(
-    () => auth.currentUser?.email || t('no-email'),
-    [auth.currentUser?.email, t]
-  );
+  const userEmail = useMemo(() => email || t('no-email'), [email, t]);
 
   const formattedBirthDate = useMemo(() => {
     if (!userData?.dateOfBirth) return t('date-of-birth-not-set');
     return new Date(userData.dateOfBirth).toLocaleDateString();
   }, [userData?.dateOfBirth, t]);
 
-  const handleDeleteUser = async () => {
-    try {
-      await auth.currentUser!.delete();
-      showSuccessToast(t('account-deleted-success'));
-    } catch {
-      showErrorToast(t('something-went-wrong'));
-    }
-  };
-
-  const confirmDeleteAccount = () => {
-    Alert.alert(
-      t('delete-account-title'),
-      t('delete-account-info'),
-      [
-        { text: t('cancel'), style: 'cancel' },
-        { text: t('submit'), style: 'destructive', onPress: handleDeleteUser },
-      ],
-      { cancelable: true }
-    );
-  };
+  // Check if user can change password (only for EMAIL_PASSWORD auth type)
+  const canChangePassword = useMemo(() => {
+    return userData?.authType === AuthTypeEnum.EMAIL_PASSWORD;
+  }, [userData?.authType]);
 
   const confirmSignOut = () => {
     Alert.alert(
@@ -218,20 +268,54 @@ export const Account = () => {
     }
 
     await MailComposer.composeAsync({
-      recipients: ['support@example.com'],
+      recipients: ['support@barhubapp.com'],
       subject: t('help-request'),
       body: t('please-describe-your-issue'),
     });
   };
 
   const handleSignOut = async () => {
-    unsubscribeNotifications();
-    await removePushToken(currentPushToken ?? '');
-    await signOut(auth)
-      .then(async () => {
-        showSuccessToast(t('you-have-been-signed-out'));
-      })
-      .catch(console.error);
+    try {
+      // Use new backend logout (push token removal is handled in AuthProvider)
+      await logout();
+      showSuccessToast(t('you-have-been-signed-out'));
+    } catch (error) {
+      console.error('Error signing out:', error);
+      showErrorToast(t('error-signing-out'));
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      // First remove push token from backend (before account deletion)
+      if (currentPushToken && userData?.id) {
+        try {
+          // // console.log('[Account] Removing push token before account deletion');
+          await userService.removePushToken(
+            userData.id.toString(),
+            currentPushToken
+          );
+        } catch (error) {
+          console.error('[Account] Error removing push token:', error);
+          // Continue with account deletion even if push token removal fails
+        }
+      }
+
+      // Delete account via backend API
+      await deleteAccountAsync();
+
+      // Close modal and logout after successful deletion
+      setIsDeleteAccountModalOpen(false);
+      await logout();
+      showSuccessToast(t('account-deleted-successfully'));
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      showErrorToast(t('error-deleting-account'));
+    }
+  };
+
+  const confirmDeleteAccount = () => {
+    setIsDeleteAccountModalOpen(true);
   };
 
   if (isEditing) {
@@ -287,49 +371,87 @@ export const Account = () => {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={primaryColor}
+            colors={[primaryColor]}
+          />
+        }
       >
         {/* Enhanced Profile Section */}
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
-            {premium && (
-              <LinearGradient
-                colors={['#FFD700', '#FFA500', '#FF6347']}
-                style={styles.premiumRing}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              />
-            )}
-            <FastImage
-              source={
-                auth.currentUser?.photoURL
-                  ? {
-                      uri: auth.currentUser.photoURL,
-                      priority: FastImage.priority.high,
-                    }
-                  : require('../../../../assets/userIcon.png')
-              }
-              style={styles.profileImage}
-              resizeMode={FastImage.resizeMode.cover}
-            />
+            <Avatar
+              size="xl"
+              style={[
+                styles.avatarContainer,
+                isPremium && styles.premiumBorder,
+              ]}
+            >
+              {photoUrl ? (
+                <AvatarImage
+                  source={{ uri: photoUrl }}
+                  style={styles.avatarImage}
+                />
+              ) : (
+                <AvatarFallbackText style={styles.avatarFallback}>
+                  {userDisplayName}
+                </AvatarFallbackText>
+              )}
+            </Avatar>
           </View>
 
           <Text style={styles.displayName}>{userDisplayName}</Text>
 
-          <View style={styles.statusBadge}>
-            <View
-              style={[
-                styles.statusDot,
-                { backgroundColor: premium ? '#FFD700' : primaryColor },
-              ]}
-            />
-            <Text
-              style={[
-                styles.statusText,
-                { color: premium ? '#FFD700' : primaryColor },
-              ]}
-            >
-              {premium ? 'Premium' : 'Basic'}
-            </Text>
+          <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+            {/* Premium Badge */}
+            <View style={styles.statusBadge}>
+              <View
+                style={[
+                  styles.statusDot,
+                  { backgroundColor: isPremium ? '#FFD700' : primaryColor },
+                ]}
+              />
+              <Text
+                style={[
+                  styles.statusText,
+                  { color: isPremium ? '#FFD700' : primaryColor },
+                ]}
+              >
+                {isPremium ? 'Premium' : 'Basic'}
+              </Text>
+            </View>
+
+            {/* Role Badge */}
+            {(isAdmin || isModerator) && (
+              <View
+                style={[
+                  styles.statusBadge,
+                  {
+                    backgroundColor: isAdmin
+                      ? 'rgba(239, 68, 68, 0.15)'
+                      : 'rgba(59, 130, 246, 0.15)',
+                    borderColor: isAdmin
+                      ? 'rgba(239, 68, 68, 0.3)'
+                      : 'rgba(59, 130, 246, 0.3)',
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.statusText,
+                    {
+                      color: isAdmin ? '#EF4444' : '#3B82F6',
+                      marginLeft: 4,
+                    },
+                  ]}
+                >
+                  {isAdmin ? 'ADMIN' : 'MODERATOR'}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -352,8 +474,92 @@ export const Account = () => {
               label={t('date-of-birth')}
               value={formattedBirthDate}
             />
+
+            {/* Bio Section */}
+            <View style={styles.bioSection}>
+              <View style={styles.bioHeader}>
+                <Text style={styles.bioLabel}>{t('bio.label') || 'Bio'}</Text>
+                <TouchableOpacity
+                  style={styles.editBioButton}
+                  onPress={() => setIsBioModalOpen(true)}
+                >
+                  <Text style={styles.editBioText}>{t('bio.edit')}</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.bioContent}>
+                <Text style={styles.bioText}>
+                  {userData?.bio || t('bio.no-bio') || 'No bio yet'}
+                </Text>
+              </View>
+            </View>
+
+            {/* View Profile Detail Button */}
+            <View style={{ marginTop: 16 }}>
+              <ActionButton
+                icon={Icons.Info}
+                title={t('user.profile')}
+                description={t('view-profile-detail')}
+                onPress={() =>
+                  (navigation as any).navigate('UserDetail', { userId: userId })
+                }
+              />
+            </View>
           </View>
         </BlurView>
+
+        {/* Highlighted Posts Grid */}
+        <HighlightedPostsGrid
+          highlights={highlights}
+          isLoading={isLoadingHighlights}
+        />
+
+        {/* Admin Panel Card (Admin/Moderator only) */}
+        {(isAdmin || isModerator) && (
+          <BlurView intensity={20} tint="dark" style={styles.card}>
+            <View style={styles.cardHeader}>
+              <FontAwesomeIcon
+                icon={Icons.ShieldHalved}
+                size={20}
+                color={isAdmin ? '#EF4444' : '#3B82F6'}
+              />
+              <Text style={styles.cardTitle}>Admin Panel</Text>
+            </View>
+
+            <View style={styles.cardContent}>
+              <View style={{ gap: 16 }}>
+                <ActionButton
+                  icon={Icons.Users}
+                  title={t('admin.userManagement')}
+                  description={t('admin.userManagementDesc')}
+                  onPress={() => navigation.navigate('AdminPanel' as never)}
+                  variant="premium"
+                />
+
+                <ActionButton
+                  icon={Icons.Warning}
+                  title={t('admin.reportsManagement')}
+                  description={t('admin.reportsManagementDesc')}
+                  onPress={() =>
+                    navigation.navigate('ReportsManagement' as never)
+                  }
+                  variant="warning"
+                />
+
+                {isAdmin && (
+                  <ActionButton
+                    icon={Icons.ShieldHalved}
+                    title={t('admin.consentManagement')}
+                    description={t('admin.consentManagementDesc')}
+                    onPress={() =>
+                      navigation.navigate('ConsentManagement' as never)
+                    }
+                    variant="default"
+                  />
+                )}
+              </View>
+            </View>
+          </BlurView>
+        )}
 
         {/* Actions Card */}
         <BlurView intensity={20} tint="dark" style={styles.card}>
@@ -364,12 +570,14 @@ export const Account = () => {
 
           <View style={styles.cardContent}>
             <View style={{ gap: 16 }}>
-              <ActionButton
-                icon={Icons.Lock}
-                title={t('change-password-title')}
-                description={t('update-password')}
-                onPress={() => navigation.navigate('PasswordChangeScreen')}
-              />
+              {canChangePassword && (
+                <ActionButton
+                  icon={Icons.Lock}
+                  title={t('change-password-title')}
+                  description={t('update-password')}
+                  onPress={() => navigation.navigate('PasswordChangeScreen')}
+                />
+              )}
 
               <ActionButton
                 icon={Icons.Help}
@@ -383,6 +591,13 @@ export const Account = () => {
                 title={t('info')}
                 description={t('app-information')}
                 onPress={() => navigation.navigate('Info')}
+              />
+
+              <ActionButton
+                icon={Icons.ShieldHalved}
+                title={t('privacy.privacy-and-data')}
+                description={t('privacy.privacy-data-description')}
+                onPress={() => navigation.navigate('PrivacyData' as never)}
               />
             </View>
           </View>
@@ -398,6 +613,7 @@ export const Account = () => {
               onPress={confirmDeleteAccount}
               variant="warning"
               showChevron={false}
+              loading={isDeletingAccount}
             />
           </View>
         </BlurView>
@@ -405,6 +621,24 @@ export const Account = () => {
         {/* Bottom Spacing */}
         <View style={styles.bottomSpacing} />
       </ScrollView>
+
+      {/* Bio Edit Modal */}
+      <BioEditModal
+        visible={isBioModalOpen}
+        currentBio={userData?.bio || ''}
+        onClose={() => setIsBioModalOpen(false)}
+        onSave={handleBioSave}
+        isLoading={isUpdatingBio}
+      />
+
+      {/* Delete Account Confirm Modal */}
+      <DeleteAccountConfirmModal
+        visible={isDeleteAccountModalOpen}
+        onClose={() => setIsDeleteAccountModalOpen(false)}
+        onConfirm={handleDeleteAccount}
+        confirmationText="DELETE"
+        loading={isDeletingAccount}
+      />
     </SafeAreaView>
   );
 };
@@ -468,22 +702,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  premiumRing: {
-    position: 'absolute',
-    top: -6,
-    left: -6,
-    right: -6,
-    bottom: -6,
-    borderRadius: 75,
-    zIndex: 1,
+  premiumBorder: {
+    borderColor: '#FFC107',
+    borderWidth: 3,
   },
-  profileImage: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
-    borderWidth: 4,
-    borderColor: primaryBgColor,
-    zIndex: 2,
+  avatarContainer: {
+    width: 120,
+    height: 120,
+    borderWidth: 3,
+    borderColor: separatorColor,
+  },
+  avatarImage: {
+    borderWidth: 3,
+    borderColor: separatorColor,
+  },
+  avatarFallback: {
+    backgroundColor: 'transparent',
+    color: 'white',
   },
   premiumBadge: {
     position: 'absolute',
@@ -641,6 +876,52 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '400',
     lineHeight: 16,
+  },
+
+  // Bio Section
+  bioSection: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: separatorColor,
+  },
+  bioHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  bioLabel: {
+    color: separatorColor,
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  editBioButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: 'rgba(16, 217, 185, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(16, 217, 185, 0.3)',
+  },
+  editBioText: {
+    color: primaryColor,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+  },
+  bioContent: {
+    marginLeft: 0,
+  },
+  bioText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '400',
+    lineHeight: 24,
+    fontStyle: 'italic',
+    opacity: 0.9,
   },
 
   // Bottom Spacing

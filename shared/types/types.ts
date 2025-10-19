@@ -1,4 +1,3 @@
-import { Timestamp } from 'firebase/firestore';
 import { FirebaseTimestamp, LocationType } from '@/src/app/utils/types/types';
 
 export interface UserRecord {
@@ -44,41 +43,20 @@ export interface SearchHistoryItem {
   secondaryText: string;
 }
 
-export type Post = {
-  geohash: string;
-  location: {
-    _lat: number;
-    _long: number;
-  };
-  placeTypes: string[];
-  timestamp: number;
-  userId?: string;
-  fileId: string;
-  folderId: string;
-  placeName: string;
-  placeAddress: string;
-  id: string;
-  photoUrl: string;
-  likesCount?: number;
-  commentsCount?: number;
-  isLiked?: boolean;
-  occupancy: string;
-  creationTime: Timestamp;
-  user?: UserInfo;
-};
+// Post types are now in @/src/app/types/postTypes.ts
+// Use: import { Post, InfinityScrollPost } from '@/src/app/types/postTypes';
+export { Post, InfinityScrollPost } from '@/src/app/types/postTypes';
 
 export interface UserInfo {
   id: string;
   displayName: string;
   photoUrl: string;
   expoPushToken?: string;
+  role?: 'USER' | 'MODERATOR' | 'ADMIN';
 }
 
-export type InfinityScrollPost = {
-  posts: Post[];
-  lastVisible: string;
-};
-
-export interface PostUrlExtended extends Post {
+// Legacy type - use Post from @/common/types/postTypes instead
+export interface PostUrlExtended {
   url: string;
+  // ... extends Post properties
 }

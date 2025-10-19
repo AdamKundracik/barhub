@@ -5,12 +5,12 @@ import LoadingIndicator from './LoadingIndicator';
 import PostOldInfo from './Post/PostOldInfo';
 import { usePlaceStore } from '../../../utils/store/placesStore';
 import { primaryColor } from '../../../utils/styles/colors';
-import { FirebaseTimestamp } from '../../../utils/types/types';
 import { useTranslation } from 'react-i18next';
 import NativeAdComponent from '@/src/app/components/user/NativeAd';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { usePostsStore } from '@/src/app/utils/store/postStore';
-import { Post, User } from '@/shared';
+import { Post } from '@/src/app/types/postTypes';
+import { User } from '@/shared';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 
 interface PostsListProps {
@@ -21,6 +21,7 @@ interface PostsListProps {
   requestPhoto: () => void;
   fetchMorePosts: () => Promise<void>;
   onRefresh: () => Promise<void>;
+  onForceRefresh?: () => Promise<void>;
   loading: boolean;
   isFiltering: boolean;
   isFetchingNextPage: boolean;
@@ -36,10 +37,10 @@ const PostsList = ({
   posts,
   zoomedPost,
   setZoomedPost,
-  userData,
   requestPhoto,
   fetchMorePosts,
   onRefresh,
+  onForceRefresh,
   loading,
   isFiltering,
   onCommentPress,
@@ -48,7 +49,7 @@ const PostsList = ({
 }: PostsListProps) => {
   const { t } = useTranslation();
   const { placeId } = usePlaceStore();
-  const { premium } = useUserStore();
+  const { isPremium } = useUserStore();
   const flatListRef = useRef<FlashListRef<any>>(null);
   // const [showScrollTopButton, setShowScrollTopButton] = useState(false);
   // const scrollButtonAnimation = useRef(new Animated.Value(0)).current;
@@ -74,12 +75,31 @@ const PostsList = ({
   // };
 
   const isOlderThanMinutes = (
-    timestamp: FirebaseTimestamp,
+    date: Date | string | number | any,
     minutes: number
   ): boolean => {
-    const seconds = timestamp?._seconds || 0;
+    if (!date) return false;
+
+    let timestampMs: number;
+
+    // Handle Date object (from BE LocalDateTime via mapper)
+    if (date instanceof Date) {
+      timestampMs = date.getTime();
+    }
+    // Handle string (ISO format) or number (timestamp)
+    else if (typeof date === 'string' || typeof date === 'number') {
+      timestampMs = new Date(date).getTime();
+    }
+    // Handle serialized Date from React Query cache
+    else if (typeof date === 'object' && date.time) {
+      timestampMs = date.time;
+    }
+    // Fallback
+    else {
+      return false;
+    }
+
     const now = Date.now();
-    const timestampMs = seconds * 1000;
     const minutesInMs = minutes * 60 * 1000;
 
     return now - timestampMs > minutesInMs;
@@ -106,6 +126,9 @@ const PostsList = ({
     return null;
   };
 
+  // ✅ Memoizovaný NativeAd komponent
+  const MemoizedNativeAd = React.memo(() => <NativeAdComponent />, () => true);
+
   // ✅ Memoizovaný renderItem
   const renderItem = useCallback(
     ({ item, index }: { item: Post; index: number }) => {
@@ -122,7 +145,7 @@ const PostsList = ({
               onCommentPress(postId, expoPushToken, userId)
             }
             isFiltering={isFiltering}
-            hasPremium={userData?.premium ?? false}
+            hasPremium={isPremium()}
             post={item}
             setZoomedPost={setZoomedPost}
             isZoomed={zoomedPost === item.photoUrl}
@@ -130,12 +153,17 @@ const PostsList = ({
         </View>
       );
 
-      if (index > 0 && index % 3 === 0 && !premium) {
+      // Show ad every 3 posts (but not on first post)
+      const shouldShowAd = index > 0 && index % 3 === 0 && !isPremium();
+
+      if (shouldShowAd) {
         return (
-          <>
-            <NativeAdComponent />
+          <View key={`post-with-ad-${item.id}`}>
+            <View key={`ad-${index}`}>
+              <MemoizedNativeAd />
+            </View>
             {postView}
-          </>
+          </View>
         );
       }
 
@@ -143,11 +171,10 @@ const PostsList = ({
     },
     [
       zoomedPost,
-      premium,
+      isPremium,
       requestPhoto,
       onCommentPress,
       isFiltering,
-      userData?.premium,
       setZoomedPost,
     ]
   );
@@ -160,6 +187,8 @@ const PostsList = ({
         renderItem={renderItem}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.scrollView}
+        drawDistance={500} // Reduce overdraw for better performance
+        showsVerticalScrollIndicator={false}
         ListFooterComponent={
           <ListFooter
             isFetchingNextPage={isFetchingNextPage}
@@ -167,13 +196,18 @@ const PostsList = ({
           />
         }
         refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={onForceRefresh || onRefresh}
+            tintColor={primaryColor}
+            colors={[primaryColor]}
+          />
         }
         onEndReached={hasMorePosts ? fetchMorePosts : null}
         onEndReachedThreshold={0.5}
         ListHeaderComponent={
           <>
-            {placeId && isOlderThanMinutes(posts[0].creationTime, 30) && (
+            {placeId && posts.length > 0 && isOlderThanMinutes(posts[0].creationTime, 30) && (
               <PostOldInfo requestPhoto={requestPhoto} />
             )}
           </>

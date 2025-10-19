@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Dimensions,
@@ -18,24 +18,22 @@ import {
 } from '../../../utils/styles/colors';
 import { Place } from '../../../utils/types/types';
 import { useTranslation } from 'react-i18next';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
-import { uploadImageAsync } from '../../../utils/helper-functions/imageUploadFunctions';
+import { uploadService } from '../../../services/uploadService';
 import { useQueryClient } from 'react-query';
-import postService from '../../../utils/services/post.service';
-import { geohashForLocation } from 'geofire-common';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
-import { sendResponseNotificationToRecipients } from '../../../utils/services/notifications-service';
 import { generateUID } from '../../../utils/helper-functions/generateUID';
-import { Post } from '@/common/types/postTypes';
 import { OccupancyEnum } from '@/src/app/utils/types/Feed/PostTypes';
 import { Center } from '@/components/ui/center';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { useFiltersStore } from '@/src/app/utils/store/filtersStorage';
 import FastImage from 'react-native-fast-image';
-import { useUserData } from '@/src/app/utils/hooks/useUserData';
+import { useUserData } from '@/src/app/hooks/useUserQuery';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useUserStore } from '@/src/app/utils/store/userStore';
+import { buttonStyles } from '../../../utils/styles/buttonStyles';
+import { usePostsStore } from '@/src/app/utils/store/postStore';
 
 type SummaryProps = {
   image: string;
@@ -51,11 +49,11 @@ export const PostSummary = ({ route }: any) => {
   const { t } = useTranslation();
   const routeParams = route.params as SummaryProps;
   const navigation = useNavigation<NavigationProp<UserStackList>>();
-  const { refetch } = useUserData();
+  const { refetch, userId } = useUserData();
   const { showSuccessToast, showErrorToast } = useCustomToast();
-
   const { resetFilters } = useFiltersStore();
-  const { setLastUploadedPost } = useUserStore();
+  const { updateUserData } = useUserStore();
+  const { scrollOnTop } = usePostsStore();
 
   const [selectedOccupancy, setSelectedOccupancy] =
     useState<OccupancyEnum | null>(null);
@@ -64,6 +62,9 @@ export const PostSummary = ({ route }: any) => {
   );
   const [showPicker, setShowPicker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  const scrollViewRef = useRef<ScrollView>(null);
+  const saveButtonRef = useRef<View>(null);
 
   const image = routeParams?.image;
   const place = routeParams?.place;
@@ -75,6 +76,39 @@ export const PostSummary = ({ route }: any) => {
       setTempOccupancy(null);
     }
   }, [routeParams]);
+
+  // Set gestureEnabled based on saving state
+  useEffect(() => {
+    navigation.setOptions({
+      gestureEnabled: !isSaving,
+    });
+  }, [navigation, isSaving]);
+
+  // Block navigation when saving (including swipe gestures)
+  useFocusEffect(
+    useCallback(() => {
+      const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+        if (!isSaving) {
+          // If not saving, allow navigation
+          return;
+        }
+
+        // Prevent default behavior of leaving the screen
+        e.preventDefault();
+      });
+
+      return unsubscribe;
+    }, [navigation, isSaving])
+  );
+
+  // Custom back press handler that blocks navigation during saving
+  const handleBackPress = useCallback(() => {
+    if (isSaving) {
+      // Just block navigation without showing alert
+      return;
+    }
+    navigation.goBack();
+  }, [isSaving, navigation]);
 
   const occupancyLabels: Record<OccupancyEnum, string> = {
     [OccupancyEnum.FULL]: t('full'),
@@ -103,6 +137,20 @@ export const PostSummary = ({ route }: any) => {
   const confirmPickerSelection = useCallback(() => {
     setSelectedOccupancy(tempOccupancy);
     setShowPicker(false);
+
+    // Scroll to save button after selection
+    setTimeout(() => {
+      saveButtonRef.current?.measureLayout(
+        scrollViewRef.current as any,
+        (x, y) => {
+          scrollViewRef.current?.scrollTo({ y: y - 100, animated: true });
+        },
+        () => {
+          // Fallback: scroll to end if measure fails
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }
+      );
+    }, 300);
   }, [tempOccupancy]);
 
   const handleSavePost = useCallback(async () => {
@@ -111,48 +159,34 @@ export const PostSummary = ({ route }: any) => {
     setIsSaving(true);
 
     try {
-      const fileId = generateUID();
-      const url = await uploadImageAsync(image, place.id, fileId);
-
-      if (!url) {
-        throw new Error('Failed to upload image');
+      // Check if userId exists
+      if (!userId) {
+        throw new Error('User ID not found');
       }
 
-      const hash = geohashForLocation([
-        place.location.latitude ?? 0,
-        place.location.longitude ?? 0,
-      ]);
+      const fileId = generateUID();
 
-      const newPost: Omit<Post, 'creationTime'> = {
-        geohash: hash,
+      // Upload image and save post in one call
+      // Backend handles both Cloudflare upload and DB save
+      await uploadService.uploadPostImage(image, {
+        userId: parseInt(userId),
+        placeId: place.id,
+        fileId: fileId,
         location: {
           _lat: place.location.latitude ?? 0,
           _long: place.location.longitude ?? 0,
         },
         placeTypes: place.types,
-        id: '',
-        userId: '',
-        fileId: fileId,
         occupancy: selectedOccupancy,
-        folderId: place.id,
-        timestamp: Date.now(),
         placeName: place.displayName.text ?? '',
         placeAddress: place.formattedAddress ?? '',
-        photoUrl: url,
-      };
+        senderToken: senderToken, // Backend sends notification if senderToken exists
+      });
 
-      const addedPostResponse = await postService.savePost(newPost);
+      // Invalidate queries to refresh feed
       await queryClient.invalidateQueries({ queryKey: ['posts'] });
 
-      if (senderToken) {
-        await sendResponseNotificationToRecipients(
-          place.id,
-          senderToken,
-          addedPostResponse.id
-        );
-      }
-
-      setLastUploadedPost(new Date());
+      updateUserData({ lastUploadedPostAt: new Date().toISOString() });
       resetFilters();
       await refetch();
 
@@ -160,7 +194,14 @@ export const PostSummary = ({ route }: any) => {
         t('uploadPost.successTitle'),
         t('uploadPost.successDescription')
       );
+
+      // Navigate to Feed
       navigation.navigate('Feed');
+
+      // Scroll to top to show new post (with small delay for navigation)
+      setTimeout(() => {
+        scrollOnTop();
+      }, 100);
     } catch (error) {
       console.error('Error saving post:', error);
       showErrorToast(t('something-went-wrong'));
@@ -172,7 +213,7 @@ export const PostSummary = ({ route }: any) => {
 
   if (!image || !place) {
     return (
-      <ScreenLayout onBackPress={navigation.goBack} showBackButton>
+      <ScreenLayout onBackPress={handleBackPress} showBackButton>
         <Center style={{ flex: 1 }}>
           <Text style={styles.errorText}>{t('invalid-data')}</Text>
         </Center>
@@ -181,8 +222,9 @@ export const PostSummary = ({ route }: any) => {
   }
 
   return (
-    <ScreenLayout onBackPress={navigation.goBack} showBackButton>
+    <ScreenLayout onBackPress={handleBackPress} showBackButton>
       <ScrollView
+        ref={scrollViewRef}
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -272,25 +314,28 @@ export const PostSummary = ({ route }: any) => {
         </View>
 
         {/* Save Button */}
-        <Center style={styles.buttonContainer}>
-          <Button
-            variant="solid"
-            size="lg"
-            action="primary"
-            style={[
-              styles.saveButton,
-              !selectedOccupancy && styles.saveButtonDisabled,
-            ]}
-            onPress={handleSavePost}
-            isDisabled={isSaving || !selectedOccupancy}
-          >
-            {isSaving ? (
-              <ButtonSpinner />
-            ) : (
-              <ButtonText style={styles.saveButtonText}>{t('save')}</ButtonText>
-            )}
-          </Button>
-        </Center>
+        <View ref={saveButtonRef} collapsable={false}>
+          <Center style={styles.buttonContainer}>
+            <Button
+              variant="solid"
+              size="lg"
+              style={[
+                buttonStyles.primary,
+                !selectedOccupancy && buttonStyles.primaryDisabled,
+              ]}
+              onPress={handleSavePost}
+              isDisabled={isSaving || !selectedOccupancy}
+            >
+              {isSaving ? (
+                <ButtonSpinner color="#000" />
+              ) : (
+                <ButtonText style={buttonStyles.primaryText}>
+                  {t('save')}
+                </ButtonText>
+              )}
+            </Button>
+          </Center>
+        </View>
       </ScrollView>
 
       {/* Enhanced Occupancy Picker Modal */}
@@ -517,24 +562,6 @@ const styles = StyleSheet.create({
   // Save button
   buttonContainer: {
     marginTop: 10,
-  },
-  saveButton: {
-    backgroundColor: primaryColor,
-    borderRadius: 16,
-    width: '100%',
-    elevation: 4,
-    shadowColor: primaryColor,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-  },
-  saveButtonDisabled: {
-    backgroundColor: '#666',
-    shadowColor: '#666',
-  },
-  saveButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
   },
 
   // Modal - Much wider and better

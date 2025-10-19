@@ -20,7 +20,7 @@ import BottomSheet, {
 } from '@gorhom/bottom-sheet';
 import CommentsLoaderView from '../Loaders/CommentsLoaderView';
 import commentService from '../../../../../utils/services/comment.service';
-import { PostComment } from '@/common/types/commentTypes';
+import { PostComment } from '@/src/app/types/commentTypes';
 import { User } from '@/shared';
 import { auth } from '@/firebaseConfig';
 import { primaryColor, primaryGrey } from '@/src/app/utils/styles/colors';
@@ -28,6 +28,7 @@ import { Icons } from '@/src/app/utils/icons/icons';
 import { getTimeAgoFromTimestampSeconds } from '@/src/app/utils/helper-functions/timeAgo';
 import FastImage from 'react-native-fast-image';
 import { FlashList } from '@shopify/flash-list';
+import { useUserRole } from '@/src/app/hooks/useUserRole';
 
 type Props = {
   expoPushToken: string;
@@ -41,6 +42,7 @@ type Props = {
 const CommentsSlider = (props: Props) => {
   const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const { hasAdminAccess } = useUserRole();
 
   const [newComment, setNewComment] = useState('');
   const [inputHeight, setInputHeight] = useState(40);
@@ -108,20 +110,31 @@ const CommentsSlider = (props: Props) => {
     };
     try {
       await optimisticUpdate([...comments, optimisticComment]);
-      // if (props.userId !== auth.currentUser?.uid)
-      //   await sendCommentNotification({
-      //     commentText: newComment,
-      //     postId: props.postId,
-      //     username: auth.currentUser.displayName,
-      //     expoPushToken: props.expoPushToken,
-      //   });
+      
+      // Send comment notification via BE API
+      if (props.userId !== auth.currentUser?.uid && props.postId) {
+        const { notificationService } = await import('@/src/app/services/notificationService');
+        const { useUserStore } = await import('@/src/app/utils/store/userStore');
+        
+        const currentUserId = useUserStore.getState().getUserId();
+        if (currentUserId) {
+          await notificationService.sendCommentNotification({
+            postAuthorId: Number(props.userId),
+            senderId: Number(currentUserId),
+            senderName: auth.currentUser.displayName,
+            postId: Number(props.postId),
+            commentText: newComment.trim(),
+          });
+        }
+      }
+      
       setNewComment('');
       setIsCommentPosting(false);
     } catch (error) {
       console.error('Error adding comment:', error);
       // TODO add some notification maybe?
     }
-  }, [newComment, auth, comments, props.postId, optimisticUpdate]);
+  }, [newComment, auth, comments, props.postId, props.userId, optimisticUpdate]);
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
@@ -308,7 +321,7 @@ const CommentsSlider = (props: Props) => {
                           item?.creationTime?.seconds
                         )}
                       </Text>
-                      {item?.userId === auth.currentUser?.uid && (
+                      {(item?.userId === auth.currentUser?.uid || hasAdminAccess) && (
                         <TouchableOpacity
                           onPress={() => handleDeleteComment(item?.id)}
                           style={styles.trashButton}

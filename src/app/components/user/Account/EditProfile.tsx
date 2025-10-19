@@ -19,88 +19,173 @@ import {
   primaryTextColor,
   secondaryTextColor,
   separatorColor,
+  warningColor,
 } from '../../../utils/styles/colors';
-import { formStyles } from '../../../utils/styles/styles';
 import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
-import {
-  deleteProfilePicture,
-  uploadProfilePhotoAsync,
-} from '../../../utils/helper-functions/imageUploadFunctions';
-import { setUser } from '../../../utils/services/functions';
-import { updateProfile } from 'firebase/auth';
+import { uploadService } from '../../../services/uploadService';
 import SlidingView from '@/src/app/components/shared/Modals/SlidingView';
 import { Input, InputField } from '@/components/ui/input';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { useLocales } from 'expo-localization';
-import { auth } from '@/firebaseConfig';
-import { User } from '@/shared';
+import { ClientDTO } from '@/src/app/types/dto';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
+import { useUserData } from '@/src/app/hooks/useUserQuery';
 import { useQueryClient } from 'react-query';
-import { useUserData } from '@/src/app/utils/hooks/useUserData';
-import FastImage from 'react-native-fast-image';
+import {
+  getUnicodeValidationMessage,
+  isValidUnicodeUsername,
+} from '@/src/app/utils/validation/unicodeValidation';
+import {
+  Avatar,
+  AvatarFallbackText,
+  AvatarImage,
+} from '@/components/ui/avatar';
+import {
+  FormControl,
+  FormControlError,
+  FormControlErrorIcon,
+  FormControlErrorText,
+  FormControlLabel,
+  FormControlLabelText,
+} from '@/components/ui/form-control';
+import { AlertCircleIcon } from '@/components/ui/icon';
+import { buttonStyles } from '../../../utils/styles/buttonStyles';
 
 type EditProfileProps = {
-  user: User | null;
+  user: ClientDTO | null;
   onEditCLose: () => void;
 };
 
 const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
   const { t } = useTranslation();
-  const { refetch: fetchUserData } = useUserData();
+  const queryClient = useQueryClient();
+  const {
+    updateProfileAsync,
+    isUpdatingProfile,
+    deletePhotoAsync,
+    isUpdatingPhoto,
+    isDeletingPhoto,
+    displayName,
+    email,
+    photoUrl,
+    isPremium,
+    userId,
+  } = useUserData();
+
   const locales = useLocales();
   const { showSuccessToast, showErrorToast } = useCustomToast();
-  const queryClient = useQueryClient();
 
   const [openImageOptions, setOpenImageOptions] = useState(false);
   const [username, setUsername] = useState<string | null | undefined>(
-    auth.currentUser?.displayName
+    displayName
   );
-  const [email] = useState<string | null | undefined>(auth.currentUser?.email);
+  const [userEmail] = useState<string | null | undefined>(email);
   const [birthDate, setBirthDate] = useState<Date>(
     user?.dateOfBirth ? new Date(user.dateOfBirth) : new Date()
   );
-  const [isSaving, setIsSaving] = useState(false);
   const [datePickerOpened, setDatePickerOpened] = useState(false);
-  const [imageUploading, setImageUploading] = useState(false);
+  const [focusedInput, setFocusedInput] = useState<string | null>(null);
+  const [dateError, setDateError] = useState<string>('');
+  const [usernameError, setUsernameError] = useState<string>('');
+  const [isOpeningGallery, setIsOpeningGallery] = useState<boolean>(false);
+  const [isOpeningCamera, setIsOpeningCamera] = useState<boolean>(false);
+
+  // Track original values to detect changes
+  const originalUsername = displayName;
+  const originalBirthDate = user?.dateOfBirth
+    ? new Date(user.dateOfBirth)
+    : new Date();
 
   function validateInputs(): boolean {
-    return !username || username.trim().length === 0;
+    return (
+      !username ||
+      username.trim().length === 0 ||
+      !!dateError ||
+      !!usernameError
+    );
   }
 
-  const handleImageUpload = async (uri: string) => {
-    setImageUploading(true);
-    try {
-      const uploadedUri = await uploadProfilePhotoAsync(uri);
-      const response = await setUser({ photoURL: uploadedUri });
+  const isUsernameInvalid = (): boolean => {
+    return !username || username.trim().length === 0 || !!usernameError;
+  };
 
-      if (response.success) {
-        await updateProfile(auth.currentUser!, { photoURL: uploadedUri });
-        await queryClient.invalidateQueries({
-          queryKey: ['userData', auth.currentUser?.uid],
-        });
-        showSuccessToast(
-          t('toastPhotoUpdatedTitle'),
-          t('toastPhotoUpdatedDesc')
-        );
-      } else {
-        showErrorToast(t('toastErrorTitle'), t('toastErrorDesc'));
+  const validateUsername = (value: string): void => {
+    if (!value || value.trim().length === 0) {
+      setUsernameError('');
+      return;
+    }
+
+    if (!isValidUnicodeUsername(value)) {
+      const errorMsg = getUnicodeValidationMessage(value);
+      setUsernameError(
+        errorMsg.includes('emoji')
+          ? t('username-invalid-characters')
+          : t('username-standard-chars-only')
+      );
+    } else {
+      setUsernameError('');
+    }
+  };
+
+  // Check if any data has changed
+  const hasChanges = (): boolean => {
+    const usernameChanged = username?.trim() !== originalUsername?.trim();
+    const dateChanged =
+      birthDate.toISOString().split('T')[0] !==
+      originalBirthDate.toISOString().split('T')[0];
+    return usernameChanged || dateChanged;
+  };
+
+  const validateAge = (date: Date): boolean => {
+    const today = new Date();
+    const age = today.getFullYear() - date.getFullYear();
+    const monthDiff = today.getMonth() - date.getMonth();
+    const dayDiff = today.getDate() - date.getDate();
+
+    // Calculate exact age
+    const exactAge =
+      monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+
+    return exactAge >= 13;
+  };
+
+  const handleImageUpload = async (uri: string) => {
+    try {
+      if (!userId) {
+        throw new Error('User ID not found');
       }
-    } catch {
+
+      const uploadedUri = await uploadService.uploadProfilePhoto(
+        uri,
+        parseInt(userId)
+      );
+
+      // Backend already updated photoUrl in database, just invalidate cache to refresh UI
+      await queryClient.invalidateQueries(['user', 'data']);
+
+      showSuccessToast(t('toastPhotoUpdatedTitle'), t('toastPhotoUpdatedDesc'));
+
+      // Close edit profile after successful upload
+      onEditCLose();
+    } catch (error) {
+      console.error('Error uploading image:', error);
       showErrorToast(t('toastErrorTitle'), t('toastErrorDesc'));
     } finally {
-      setImageUploading(false);
       setOpenImageOptions(false);
     }
   };
 
   const openGallery = async () => {
+    let result: any = null;
     try {
+      setIsOpeningGallery(true);
+
       const permission =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) throw new Error('Permission denied');
 
-      const result = await ImagePicker.launchImageLibraryAsync({
+      result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
         quality: 0.8,
         allowsEditing: true,
@@ -109,63 +194,61 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
 
       if (!result.canceled) {
         await handleImageUpload(result.assets[0].uri);
-      } else {
-        setOpenImageOptions(false);
       }
+      // Modal sa zatvorí až po úspešnom uploade v handleImageUpload
     } catch {
       showErrorToast(t('toastErrorTitle'), t('toastErrorDesc'));
       setOpenImageOptions(false);
+    } finally {
+      setIsOpeningGallery(false);
+      // Zatvor modal ak používateľ zrušil výber
+      if (result?.canceled) {
+        setOpenImageOptions(false);
+      }
     }
   };
 
   const openCamera = async () => {
+    let result: any = null;
     try {
+      setIsOpeningCamera(true);
+
       const permission = await ImagePicker.requestCameraPermissionsAsync();
       if (!permission.granted) throw new Error('Permission denied');
 
-      const result = await ImagePicker.launchCameraAsync({
+      result = await ImagePicker.launchCameraAsync({
         quality: 0.8,
         allowsEditing: true,
         aspect: [1, 1],
       });
 
       if (!result.canceled) {
-        if (auth.currentUser?.providerId !== 'google.com') {
-          await deleteProfilePicture(auth.currentUser?.uid!);
-        }
+        // Backend will handle old image deletion automatically
         await handleImageUpload(result.assets[0].uri);
-      } else {
-        setOpenImageOptions(false);
       }
+      // Modal sa zatvorí až po úspešnom uploade v handleImageUpload
     } catch {
       showErrorToast(t('toastErrorTitle'), t('toastErrorDesc'));
       setOpenImageOptions(false);
+    } finally {
+      setIsOpeningCamera(false);
+      // Zatvor modal ak používateľ zrušil výber
+      if (result?.canceled) {
+        setOpenImageOptions(false);
+      }
     }
   };
 
   const removePicture = async () => {
-    setImageUploading(true);
     try {
-      if (auth.currentUser?.providerId !== 'google.com') {
-        await deleteProfilePicture(auth.currentUser?.uid!);
-      }
-      const response = await setUser({ photoURL: '' });
-      if (response.success) {
-        await updateProfile(auth.currentUser!, { photoURL: '' });
-        await queryClient.invalidateQueries({
-          queryKey: ['userData', auth.currentUser?.uid],
-        });
-        showSuccessToast(
-          t('toastPhotoDeletedTitle'),
-          t('toastPhotoDeletedDesc')
-        );
-      } else {
-        showErrorToast(t('toastErrorTitle'), t('toastErrorDesc'));
-      }
-    } catch {
+      // Use the new delete photo mutation with optimistic updates
+      await deletePhotoAsync();
+
+      showSuccessToast(t('toastPhotoDeletedTitle'), t('toastPhotoDeletedDesc'));
+    } catch (error) {
+      console.error('Error deleting photo:', error);
       showErrorToast(t('toastErrorTitle'), t('toastErrorDesc'));
     } finally {
-      setImageUploading(false);
       setOpenImageOptions(false);
     }
   };
@@ -183,29 +266,20 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
   };
 
   const handleUpdateUser = async () => {
-    if (!auth.currentUser || validateInputs()) return;
+    if (validateInputs()) return;
 
-    setIsSaving(true);
     try {
-      const response = await setUser({
-        displayName: username?.trim(),
+      // Use the new profile update mutation with optimistic updates
+      await updateProfileAsync({
+        name: username?.trim(),
         dateOfBirth: birthDate.toISOString(),
       });
 
-      if (response.success) {
-        await updateProfile(auth.currentUser, {
-          displayName: username?.trim(),
-        });
-        if (fetchUserData) await fetchUserData();
-        showSuccessToast(t('toastDataUpdatedTitle'), t('toastDataUpdatedDesc'));
-        onEditCLose();
-      } else {
-        showErrorToast(t('toastErrorTitle'), t('toastErrorDesc'));
-      }
-    } catch {
+      showSuccessToast(t('toastDataUpdatedTitle'), t('toastDataUpdatedDesc'));
+      onEditCLose();
+    } catch (error) {
+      console.error('Error updating user:', error);
       showErrorToast(t('toastErrorTitle'), t('toastErrorDesc'));
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -223,29 +297,36 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
         {/* Profile Picture Section */}
         <View style={styles.profileCard}>
           <TouchableOpacity
-            onPress={() => !imageUploading && setOpenImageOptions(true)}
+            onPress={() =>
+              !(isUpdatingPhoto || isDeletingPhoto) && setOpenImageOptions(true)
+            }
             style={styles.profileImageContainer}
-            disabled={imageUploading}
+            disabled={isUpdatingPhoto || isDeletingPhoto}
           >
-            <FastImage
-              source={
-                auth.currentUser?.photoURL
-                  ? {
-                      uri: auth.currentUser.photoURL,
-                      priority: FastImage.priority.normal,
-                    }
-                  : require('../../../../../assets/userIcon.png')
-              }
+            <Avatar
+              size="xl"
               style={[
-                styles.profilePicture,
-                user?.premium && styles.premiumBorder,
-                imageUploading && styles.profilePictureLoading,
+                styles.avatarContainer,
+                isPremium && styles.premiumBorder,
+                (isUpdatingPhoto || isDeletingPhoto) &&
+                  styles.profilePictureLoading,
               ]}
-              resizeMode={FastImage.resizeMode.cover}
-            />
+            >
+              {photoUrl ? (
+                <AvatarImage
+                  key={photoUrl} // Force re-render when photoUrl changes
+                  source={{ uri: photoUrl }}
+                  style={styles.avatarImage}
+                />
+              ) : (
+                <AvatarFallbackText style={styles.avatarFallback}>
+                  {username || 'User'}
+                </AvatarFallbackText>
+              )}
+            </Avatar>
 
             <View style={styles.editIconContainer}>
-              {imageUploading ? (
+              {isUpdatingPhoto || isDeletingPhoto ? (
                 <View style={styles.loadingContainer}>
                   <ButtonSpinner color={primaryBgColor} size="small" />
                 </View>
@@ -257,12 +338,6 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
                 />
               )}
             </View>
-
-            {user?.premium && (
-              <View style={styles.premiumBadge}>
-                <FontAwesomeIcon icon={Icons.Crown} size={12} color="#FFC107" />
-              </View>
-            )}
           </TouchableOpacity>
 
           <Text style={styles.profileImageHint}>
@@ -273,78 +348,118 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
         {/* Form Section */}
         <View style={styles.formCard}>
           {/* Email Field */}
-          <View style={styles.inputContainer}>
-            <View style={styles.inputLabelContainer}>
-              <FontAwesomeIcon
-                icon={Icons.Envelope}
-                size={16}
-                color={primaryColor}
-              />
-              <Text style={styles.inputLabel}>{t('email')}</Text>
-            </View>
+          <FormControl size="md" isDisabled={true} style={styles.formControl}>
+            <FormControlLabel>
+              <View
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+              >
+                <FontAwesomeIcon
+                  icon={Icons.Envelope}
+                  size={14}
+                  color={primaryColor}
+                  style={{ marginBottom: 4 }}
+                />
+                <FormControlLabelText style={styles.labelText}>
+                  {t('email')}
+                </FormControlLabelText>
+              </View>
+            </FormControlLabel>
             <Input
               variant="rounded"
               size="xl"
-              style={[formStyles.inputPrimary, styles.input]}
+              style={[styles.input, styles.disabledInput]}
             >
               <InputField
                 type="text"
-                value={email!}
+                value={userEmail!}
                 editable={false}
-                style={[styles.inputText, styles.disabledText]}
+                style={[styles.inputField, styles.disabledText]}
               />
             </Input>
-          </View>
+          </FormControl>
 
           {/* Username Field */}
-          <View style={styles.inputContainer}>
-            <View style={styles.inputLabelContainer}>
-              <FontAwesomeIcon
-                icon={Icons.User}
-                size={16}
-                color={primaryColor}
-              />
-              <Text style={styles.inputLabel}>{t('user-name')}</Text>
-            </View>
+          <FormControl
+            size="md"
+            isInvalid={isUsernameInvalid()}
+            style={styles.formControl}
+          >
+            <FormControlLabel>
+              <View
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+              >
+                <FontAwesomeIcon
+                  icon={Icons.User}
+                  size={14}
+                  color={primaryColor}
+                  style={{ marginBottom: 4 }}
+                />
+                <FormControlLabelText style={styles.labelText}>
+                  {t('user-name')} <Text style={styles.requiredStar}>*</Text>
+                </FormControlLabelText>
+              </View>
+            </FormControlLabel>
             <Input
               variant="rounded"
               size="xl"
               style={[
-                formStyles.inputPrimary,
                 styles.input,
-                validateInputs() && styles.inputError,
+                focusedInput === 'username' && styles.inputFocused,
+                isUsernameInvalid() && styles.inputError,
               ]}
             >
               <InputField
                 type="text"
                 placeholder={t('enter-username')}
                 value={username || ''}
-                onChangeText={setUsername}
-                style={styles.inputText}
+                onChangeText={value => {
+                  setUsername(value);
+                  validateUsername(value);
+                }}
+                style={styles.inputField}
                 maxLength={30}
+                onFocus={() => setFocusedInput('username')}
+                onBlur={() => setFocusedInput(null)}
               />
             </Input>
-            {validateInputs() && (
-              <Text style={styles.errorText}>{t('username-required')}</Text>
-            )}
             <Text style={styles.charCount}>{username?.length || 0}/30</Text>
-          </View>
+            {isUsernameInvalid() && (
+              <FormControlError>
+                <FormControlErrorIcon as={AlertCircleIcon} />
+                <FormControlErrorText style={styles.errorText}>
+                  {usernameError || t('username-required')}
+                </FormControlErrorText>
+              </FormControlError>
+            )}
+          </FormControl>
 
           {/* Date of Birth Field */}
-          <View style={styles.inputContainer}>
-            <View style={styles.inputLabelContainer}>
-              <FontAwesomeIcon
-                icon={Icons.Calendar}
-                size={16}
-                color={primaryColor}
-              />
-              <Text style={styles.inputLabel}>{t('date-of-birth')}</Text>
-            </View>
+          <FormControl size="md" style={styles.formControl}>
+            <FormControlLabel>
+              <View
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+              >
+                <FontAwesomeIcon
+                  icon={Icons.Calendar}
+                  size={14}
+                  color={primaryColor}
+                  style={{ marginBottom: 4 }}
+                />
+                <FormControlLabelText style={styles.labelText}>
+                  {t('date-of-birth')}
+                </FormControlLabelText>
+              </View>
+            </FormControlLabel>
             <TouchableOpacity
               onPress={() => setDatePickerOpened(true)}
-              style={[formStyles.inputPrimary, styles.input, styles.dateInput]}
+              style={[
+                styles.input,
+                styles.dateInput,
+                focusedInput === 'dateOfBirth' && styles.inputFocused,
+                dateError && styles.inputError,
+              ]}
             >
-              <Text style={styles.inputText}>
+              <Text style={styles.inputField}>
                 {birthDate.toLocaleDateString(locales[0].languageCode!, {
                   year: 'numeric',
                   month: 'long',
@@ -353,11 +468,16 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
               </Text>
               <FontAwesomeIcon
                 icon={Icons.ChevronRight}
-                size={14}
+                size={16}
                 color={separatorColor}
               />
             </TouchableOpacity>
-          </View>
+            {dateError && (
+              <Text style={[styles.errorText, { marginTop: 8 }]}>
+                {dateError}
+              </Text>
+            )}
+          </FormControl>
         </View>
 
         {/* Save Button */}
@@ -365,18 +485,18 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
           <Button
             variant="solid"
             size="lg"
-            action="primary"
             style={[
-              styles.saveButton,
-              (isSaving || validateInputs()) && styles.saveButtonDisabled,
+              buttonStyles.primary,
+              (isUpdatingProfile || validateInputs() || !hasChanges()) &&
+                buttonStyles.primaryDisabled,
             ]}
             onPress={handleUpdateUser}
-            isDisabled={isSaving || validateInputs()}
+            isDisabled={isUpdatingProfile || validateInputs() || !hasChanges()}
           >
-            {isSaving ? (
-              <ButtonSpinner color="white" />
+            {isUpdatingProfile ? (
+              <ButtonSpinner color="#000" />
             ) : (
-              <ButtonText style={styles.saveButtonText}>
+              <ButtonText style={buttonStyles.primaryText}>
                 {t('save-changes')}
               </ButtonText>
             )}
@@ -396,6 +516,13 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
         onConfirm={date => {
           setDatePickerOpened(false);
           setBirthDate(date);
+
+          // Validate age immediately after selection
+          if (!validateAge(date)) {
+            setDateError(t('minimum-age-required'));
+          } else {
+            setDateError('');
+          }
         }}
         onCancel={() => setDatePickerOpened(false)}
         title={t('select-birth-date')}
@@ -410,6 +537,9 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
         openGallery={openGallery}
         openCamera={openCamera}
         removePicture={confirmRemovePicture}
+        isOpeningGallery={isOpeningGallery}
+        isOpeningCamera={isOpeningCamera}
+        isDeletingPhoto={isDeletingPhoto}
       />
     </KeyboardAvoidingView>
   );
@@ -465,12 +595,19 @@ const styles = StyleSheet.create({
     position: 'relative',
     marginBottom: 12,
   },
-  profilePicture: {
+  avatarContainer: {
     width: 120,
     height: 120,
-    borderRadius: 60,
     borderWidth: 3,
     borderColor: separatorColor,
+  },
+  avatarImage: {
+    borderWidth: 3,
+    borderColor: separatorColor,
+  },
+  avatarFallback: {
+    backgroundColor: 'transparent',
+    color: 'white',
   },
   profilePictureLoading: {
     opacity: 0.6,
@@ -521,124 +658,80 @@ const styles = StyleSheet.create({
   formCard: {
     backgroundColor: postBgColor,
     borderRadius: 20,
-    padding: 20,
+    padding: 24,
     marginBottom: 24,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#333',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
-    gap: 10,
+    elevation: 4,
   },
-  inputContainer: {
-    marginBottom: 20,
+  formControl: {
+    marginBottom: 16,
   },
-  inputLabelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '600',
+  labelText: {
     color: primaryColor,
-    marginLeft: 8,
-    flex: 1,
-  },
-  requiredIndicator: {
     fontSize: 16,
-    color: '#FF6B6B',
-    fontWeight: 'bold',
-  },
-  verifiedBadge: {
+    fontWeight: '500',
+    marginBottom: 4,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(68, 170, 68, 0.1)',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
   },
-  verifiedText: {
-    fontSize: 12,
-    color: '#44AA44',
-    marginLeft: 4,
-    fontWeight: '500',
+  requiredStar: {
+    color: warningColor,
+    fontSize: 16,
   },
   input: {
-    borderRadius: 12,
     backgroundColor: primaryBgColor,
+    borderColor: '#333',
+    borderWidth: 1,
+  },
+  inputFocused: {
+    borderColor: primaryColor,
     borderWidth: 2,
-    borderColor: separatorColor,
-    minHeight: 52,
   },
   inputError: {
-    borderColor: '#FF6B6B',
+    borderColor: warningColor,
+    borderWidth: 2,
   },
-  inputText: {
+  inputField: {
     color: primaryTextColor,
     fontSize: 16,
-    fontWeight: '500',
+  },
+  disabledInput: {
+    opacity: 0.8,
   },
   disabledText: {
     color: secondaryTextColor,
+    opacity: 1,
   },
   dateInput: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: primaryBgColor,
+    borderColor: '#333',
+    borderWidth: 1,
+    borderRadius: 12,
+    minHeight: 52,
   },
   errorText: {
-    fontSize: 12,
-    color: '#FF6B6B',
-    marginTop: 4,
-    marginLeft: 4,
+    color: warningColor,
+    fontSize: 14,
   },
   charCount: {
     fontSize: 12,
     color: secondaryTextColor,
     textAlign: 'right',
-    marginTop: 4,
+    marginTop: 6,
   },
 
   // Buttons Section
   buttonContainer: {
     gap: 16,
-  },
-  saveButton: {
-    backgroundColor: primaryColor,
-    borderRadius: 16,
-    height: 56,
-    elevation: 4,
-    shadowColor: primaryColor,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  saveButtonDisabled: {
-    backgroundColor: '#666',
-    elevation: 0,
-    shadowOpacity: 0,
-  },
-  saveButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: primaryBgColor,
-  },
-  cancelButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: separatorColor,
-    borderRadius: 16,
-    height: 56,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: separatorColor,
   },
 });
 

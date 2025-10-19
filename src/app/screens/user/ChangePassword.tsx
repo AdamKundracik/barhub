@@ -1,18 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import {
-  EmailAuthProvider,
-  getAuth,
-  GoogleAuthProvider,
-  linkWithCredential,
-  reauthenticateWithCredential,
-  updatePassword,
-} from 'firebase/auth';
+import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -21,18 +12,20 @@ import {
   primaryBgColor,
   primaryColor,
   primaryTextColor,
+  secondaryTextColor,
   separatorColor,
   warningColor,
 } from '../../utils/styles/colors';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import {
   FormControl,
   FormControlError,
   FormControlErrorIcon,
   FormControlErrorText,
+  FormControlHelper,
+  FormControlHelperText,
   FormControlLabel,
   FormControlLabelText,
 } from '@/components/ui/form-control';
@@ -45,144 +38,83 @@ import LoadingIndicator from '@/src/app/components/user/NewsFeed/LoadingIndicato
 import { Button, ButtonText } from '@/components/ui/button';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
-import { HStack } from '@/components/ui/hstack';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
-import { KeyIcon } from 'lucide-react-native';
+import { useChangePasswordAPI } from '../../hooks/useChangePasswordAPI';
+import { Text } from '@/components/ui/text';
+import { buttonStyles } from '../../utils/styles/buttonStyles';
 
-type LoginMethod = 'email' | 'google' | 'other';
-type InputField = 'oldPassword' | 'password' | 'confirmPassword';
+type InputField = 'oldPassword' | 'newPassword' | 'confirmPassword';
 
 export const PasswordChangeScreen = () => {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { showSuccessToast, showErrorToast } = useCustomToast();
-
-  // Form state
-  const [formData, setFormData] = useState({
-    oldPassword: '',
-    password: '',
-    confirmPassword: '',
-  });
-
-  // UI state
   const [focusedInput, setFocusedInput] = useState<InputField | null>(null);
-  const [passwordVisibility, setPasswordVisibility] = useState({
-    oldPassword: false,
-    password: false,
-    confirmPassword: false,
-  });
-  const [loading, setLoading] = useState(false);
-  const [loginMethod, setLoginMethod] = useState<LoginMethod>('email');
 
-  const auth = getAuth();
-  const user = auth.currentUser;
+  const {
+    formData,
+    loading,
+    passwordVisibility,
+    updateField,
+    togglePasswordVisibility,
+    isPasswordValid,
+    passwordsMatch,
+    isFormValid,
+    updatePassword,
+  } = useChangePasswordAPI(t);
 
-  // Validation
-  const isPasswordValid = formData.password.length >= 6;
-  const passwordsMatch =
-    formData.password === formData.confirmPassword && formData.password !== '';
-  const canSubmit =
-    !loading &&
-    isPasswordValid &&
-    passwordsMatch &&
-    loginMethod !== 'other' &&
-    (loginMethod === 'google' || formData.oldPassword.length > 0);
+  const handleChangePassword = async () => {
+    const result = await updatePassword();
 
-  useEffect(() => {
-    if (!user) return;
-
-    const providers = user.providerData.map(p => p.providerId);
-    if (providers.includes('google.com')) {
-      setLoginMethod('google');
-    } else if (providers.includes('password')) {
-      setLoginMethod('email');
-    } else {
-      setLoginMethod('other');
-    }
-  }, [user]);
-
-  const handleInputChange = (field: keyof typeof formData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const togglePasswordVisibility = (field: keyof typeof passwordVisibility) => {
-    setPasswordVisibility(prev => ({ ...prev, [field]: !prev[field] }));
-  };
-
-  const reauthenticateAndChangePassword = async () => {
-    if (!user || !canSubmit) return;
-
-    setLoading(true);
-    try {
-      if (loginMethod === 'email' && user.email) {
-        const credential = EmailAuthProvider.credential(
-          user.email,
-          formData.oldPassword
-        );
-        await reauthenticateWithCredential(user, credential);
-        await updatePassword(user, formData.password);
-      } else if (loginMethod === 'google') {
-        const googleUser = await GoogleSignin.signIn();
-        const googleCredential = GoogleAuthProvider.credential(
-          googleUser.idToken
-        );
-        await reauthenticateWithCredential(user, googleCredential);
-
-        const hasPassword = user.providerData.some(
-          p => p.providerId === 'password'
-        );
-        if (!hasPassword && user.email) {
-          const passwordCredential = EmailAuthProvider.credential(
-            user.email,
-            formData.password
-          );
-          await linkWithCredential(user, passwordCredential);
-        } else {
-          await updatePassword(user, formData.password);
-        }
-      }
-
+    if (result.success) {
       showSuccessToast(
-        t('password-changed-success'),
-        t('password-changed-success-description')
+        t('password-changed-success') || 'Password Changed!',
+        t('password-changed-success-description') ||
+          'Your password has been updated successfully.'
       );
       navigation.goBack();
-    } catch (error) {
-      console.error('Error updating password:', error);
+    } else {
       showErrorToast(
-        t('password-change-error'),
-        t('password-change-error-description')
+        t('password-change-error') || 'Error',
+        result.error || t('password-change-error-description')
       );
-    } finally {
-      setLoading(false);
     }
   };
 
   const renderPasswordInput = (
     field: keyof typeof formData,
-    icon: any,
     translationKey: string,
-    showField: boolean = true
+    showOldPasswordField: boolean = true
   ) => {
-    if (!showField) return null;
+    if (!showOldPasswordField && field === 'oldPassword') return null;
 
     const isInvalid =
-      (field === 'password' &&
-        formData.password.length > 0 &&
+      (field === 'newPassword' &&
+        formData.newPassword.length > 0 &&
         !isPasswordValid) ||
       (field === 'confirmPassword' &&
         formData.confirmPassword.length > 0 &&
         !passwordsMatch);
 
+    const showHelper =
+      field === 'newPassword' &&
+      formData.newPassword.length > 0 &&
+      formData.newPassword.length < 6 &&
+      !isInvalid;
+
+    const showMatchHelper =
+      field === 'confirmPassword' &&
+      formData.confirmPassword.length > 0 &&
+      formData.confirmPassword !== formData.newPassword &&
+      !isInvalid;
+
     return (
-      <FormControl size="lg" isInvalid={isInvalid} style={styles.formControl}>
+      <FormControl size="md" isInvalid={isInvalid} style={styles.formControl}>
         <FormControlLabel>
-          <HStack space="sm" style={styles.labelContainer}>
-            <FormControlLabelText style={styles.labelText}>
-              {t(translationKey)}
-            </FormControlLabelText>
-          </HStack>
+          <FormControlLabelText style={styles.labelText}>
+            {t(translationKey)} <Text style={styles.requiredStar}>*</Text>
+          </FormControlLabelText>
         </FormControlLabel>
 
         <Input
@@ -198,12 +130,13 @@ export const PasswordChangeScreen = () => {
             type={passwordVisibility[field] ? 'text' : 'password'}
             placeholder={t(translationKey)}
             value={formData[field]}
-            onChangeText={text => handleInputChange(field, text)}
+            onChangeText={text => updateField(field, text)}
             style={styles.inputField}
             onFocus={() => setFocusedInput(field)}
             onBlur={() => setFocusedInput(null)}
             autoCapitalize="none"
             autoCorrect={false}
+            autoComplete="password"
           />
           <InputSlot
             onPress={() => togglePasswordVisibility(field)}
@@ -216,30 +149,38 @@ export const PasswordChangeScreen = () => {
           </InputSlot>
         </Input>
 
+        {showHelper && (
+          <FormControlHelper>
+            <FormControlHelperText style={styles.helperText}>
+              {t('password-requirement') || 'Must be at least 6 characters'}
+            </FormControlHelperText>
+          </FormControlHelper>
+        )}
+
+        {showMatchHelper && (
+          <FormControlHelper>
+            <FormControlHelperText
+              style={[styles.helperText, { color: warningColor }]}
+            >
+              {t('noMatchingPasswords') || 'Passwords do not match'}
+            </FormControlHelperText>
+          </FormControlHelper>
+        )}
+
         {isInvalid && (
           <FormControlError>
             <FormControlErrorIcon as={AlertCircleIcon} />
             <FormControlErrorText style={styles.errorText}>
-              {field === 'password'
-                ? t('password-too-short')
-                : t('noMatchingPasswords')}
+              {field === 'newPassword'
+                ? t('password-too-short') ||
+                  'Password must be at least 6 characters'
+                : t('noMatchingPasswords') || 'Passwords do not match'}
             </FormControlErrorText>
           </FormControlError>
         )}
       </FormControl>
     );
   };
-
-  const renderUnsupportedMessage = () => (
-    <Box style={styles.warningContainer}>
-      <HStack space="md" style={styles.warningContent}>
-        <InputIcon as={AlertCircleIcon} color={warningColor} size="lg" />
-        <Text style={styles.warningText}>
-          {t('password-change-not-supported')}
-        </Text>
-      </HStack>
-    </Box>
-  );
 
   return (
     <ScreenLayout onBackPress={() => navigation.goBack()} showBackButton>
@@ -263,59 +204,44 @@ export const PasswordChangeScreen = () => {
               />
             </Box>
             <Heading size="2xl" style={styles.header}>
-              {t('change-password-title')}
+              {t('change-password-title') || 'Change Password'}
             </Heading>
+            <Text style={styles.subtitle}>
+              {t('change-password-subtitle') ||
+                'Update your password to keep your account secure'}
+            </Text>
           </Center>
 
-          {loginMethod === 'other' ? (
-            renderUnsupportedMessage()
-          ) : (
-            <VStack space="lg" style={styles.formContainer}>
-              <View style={styles.formWrapper}>
-                <VStack space="md">
-                  {renderPasswordInput(
-                    'oldPassword',
-                    KeyIcon,
-                    'old-password',
-                    loginMethod === 'email'
-                  )}
-                  {renderPasswordInput(
-                    'password',
-                    Icons.Remove,
-                    'new-password'
-                  )}
-                  {renderPasswordInput(
-                    'confirmPassword',
-                    Icons.Remove,
-                    'confirm-password'
-                  )}
-                </VStack>
-              </View>
+          {/* Form */}
+          <VStack space="lg" style={styles.formContainer}>
+            <View style={styles.formWrapper}>
+              <VStack space="md">
+                {renderPasswordInput('oldPassword', 'old-password')}
+                {renderPasswordInput('newPassword', 'new-password')}
+                {renderPasswordInput('confirmPassword', 'confirm-password')}
+              </VStack>
+            </View>
 
-              {/* Submit Button */}
-              <Button
-                variant="solid"
-                size="lg"
-                style={[
-                  styles.submitButton,
-                  !canSubmit && styles.submitButtonDisabled,
-                ]}
-                onPress={reauthenticateAndChangePassword}
-                isDisabled={!canSubmit}
-              >
-                {loading ? (
-                  <LoadingIndicator />
-                ) : (
-                  <ButtonText style={styles.submitButtonText}>
-                    {loginMethod === 'google' &&
-                    !user?.providerData.some(p => p.providerId === 'password')
-                      ? t('setup-password')
-                      : t('change-password')}
-                  </ButtonText>
-                )}
-              </Button>
-            </VStack>
-          )}
+            {/* Submit Button */}
+            <Button
+              variant="solid"
+              size="lg"
+              style={[
+                buttonStyles.primary,
+                !isFormValid() && buttonStyles.primaryDisabled,
+              ]}
+              onPress={handleChangePassword}
+              isDisabled={!isFormValid() || loading}
+            >
+              {loading ? (
+                <LoadingIndicator />
+              ) : (
+                <ButtonText style={buttonStyles.primaryText}>
+                  {t('change-password') || 'Change Password'}
+                </ButtonText>
+              )}
+            </Button>
+          </VStack>
         </ScrollView>
       </KeyboardAvoidingView>
     </ScreenLayout>
@@ -352,10 +278,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   subtitle: {
-    color: separatorColor,
+    color: secondaryTextColor,
     fontSize: 16,
     textAlign: 'center',
     lineHeight: 22,
+    paddingHorizontal: 20,
   },
 
   // Form
@@ -374,20 +301,17 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   formControl: {
-    marginBottom: 6,
-  },
-  labelContainer: {
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  iconContainer: {
-    width: 20,
-    alignItems: 'center',
+    marginBottom: 16,
   },
   labelText: {
     color: primaryColor,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  requiredStar: {
+    color: warningColor,
+    fontSize: 16,
   },
   input: {
     backgroundColor: primaryBgColor,
@@ -397,10 +321,6 @@ const styles = StyleSheet.create({
   inputFocused: {
     borderColor: primaryColor,
     borderWidth: 2,
-    shadowColor: primaryColor,
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
   },
   inputError: {
     borderColor: warningColor,
@@ -416,45 +336,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  helperText: {
+    color: secondaryTextColor,
+    fontSize: 12,
+  },
   errorText: {
     color: warningColor,
     fontSize: 14,
-  },
-
-  // Warning
-  warningContainer: {
-    backgroundColor: `${warningColor}15`,
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: `${warningColor}30`,
-  },
-  warningContent: {
-    alignItems: 'center',
-  },
-  warningText: {
-    color: warningColor,
-    fontSize: 16,
-    flex: 1,
-    lineHeight: 22,
-  },
-
-  // Submit Button
-  submitButton: {
-    backgroundColor: primaryColor,
-    borderRadius: 16,
-    shadowColor: primaryColor,
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  submitButtonDisabled: {
-    backgroundColor: separatorColor,
-    shadowOpacity: 0,
-  },
-  submitButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000',
   },
 });

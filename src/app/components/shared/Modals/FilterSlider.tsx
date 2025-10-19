@@ -33,6 +33,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNewsFeedData } from '@/src/app/utils/hooks/NewsFeed/usePostData';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { modalsStore } from '@/src/app/utils/store/modalsStore';
+import { useUserRole } from '@/src/app/hooks/useUserRole';
 
 export const PLACE_TYPES: PlaceType[] = [
   'bar',
@@ -59,7 +60,8 @@ const FilterSlider = () => {
   const { useFakeLocation, setUseFakeLocation, fakeLocationName } =
     useLocationStore();
 
-  const { premium } = useUserStore();
+  const { isPremium } = useUserStore();
+  const { hasAdminAccess } = useUserRole();
 
   const { isRefetching } = useNewsFeedData(); // inside FilterSlider
 
@@ -146,7 +148,8 @@ const FilterSlider = () => {
   );
 
   function handleFakeLocationToggle(value: boolean) {
-    if (premium) {
+    // Admin/Moderator can always toggle, or user with premium
+    if (isPremium() || hasAdminAccess) {
       setUseFakeLocation(value);
     } else {
       setTempUseFakeLocation(useFakeLocation);
@@ -236,9 +239,7 @@ const FilterSlider = () => {
         </View>
         <View style={styles.fakeLocationSection}>
           <View style={styles.fakeLocationHeader}>
-            <Text style={styles.sectionTitle}>
-              {t('use-travel-mode')}
-            </Text>
+            <Text style={styles.sectionTitle}>{t('use-travel-mode')}</Text>
             <Switch
               value={useFakeLocation}
               onValueChange={handleFakeLocationToggle}

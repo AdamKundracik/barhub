@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
 import { getLocales } from 'expo-localization';
 import {
   getTrackingPermissionsAsync,
@@ -9,15 +8,8 @@ import {
 import mobileAds from 'react-native-google-mobile-ads';
 import i18n from '../../../localization/i18n';
 import { useRequestStore } from '../store/requestStore';
-import { useUserStore } from '../store/userStore';
-import { useLocationStore } from '../store/locationStore';
-import { getCurrentUser } from '../services/functions';
-import { auth } from '@/firebaseConfig';
 
 export const useAppInitialization = () => {
-  const [authUser, setAuthUser] = useState<null | boolean>(null);
-  const [emailVerified, setEmailVerified] = useState<boolean>(false);
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isAppInitialized, setIsAppInitialized] = useState(false);
   const { loadRequests } = useRequestStore();
 
@@ -50,50 +42,7 @@ export const useAppInitialization = () => {
     initializeApp();
   }, [loadRequests]);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async user => {
-      try {
-        setAuthUser(!!user);
-        setEmailVerified(user?.emailVerified ?? false);
-        setIsAuthLoading(false);
-
-        if (user) {
-          // Fetch user data only when user is authenticated
-          const userData = await getCurrentUser();
-          if (userData) {
-            // Populate user store
-            useUserStore.getState().setUserData(userData);
-            useUserStore
-              .getState()
-              .setSearchHistory(userData.searchHistory ?? []);
-            useUserStore.getState().setCanSeeContent(userData.lastUploadedPost);
-            useUserStore
-              .getState()
-              .setLastUploadedPost(userData.lastUploadedPost);
-
-            // Populate location store
-            useLocationStore.getState().setLocation(userData.location);
-            useLocationStore.getState().setFakeLocation(userData.fakeLocation);
-            useLocationStore
-              .getState()
-              .setUseFakeLocation(userData.isUsingFakeLocation ?? false);
-            useLocationStore
-              .getState()
-              .setFakeLocationName(userData.fakeLocationName);
-            useLocationStore.getState().setInitialized(true);
-          } else {
-            console.warn('No userData returned from getCurrentUser');
-          }
-        }
-      } catch (error) {
-        console.error('Error in auth state change:', error);
-        setIsAuthLoading(false);
-      }
-    });
-
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
-  }, []);
+  // Note: Auth state management is now handled by AuthProvider
 
   const initializeTrackingAndAds = async () => {
     try {
@@ -108,10 +57,6 @@ export const useAppInitialization = () => {
   };
 
   return {
-    authUser,
-    emailVerified,
-    isAuthLoading,
     isAppInitialized,
-    currentUser: auth.currentUser,
   };
 };

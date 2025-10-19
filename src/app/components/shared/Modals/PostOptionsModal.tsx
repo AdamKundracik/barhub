@@ -8,26 +8,34 @@ import {
 } from 'react-native';
 import {
   BottomSheetBackdrop,
-  BottomSheetFooter,
-  BottomSheetFooterProps,
   BottomSheetModal,
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
 import {
   bottomModalBgColor,
   warningColor,
 } from '@/src/app/utils/styles/colors';
+import {
+  saveImageToGallery,
+  showSaveResultAlert,
+} from '@/src/app/utils/helper-functions/saveImageToGallery';
 
 type PostOptionsModalProps = {
   visible: boolean;
-  showDelete: boolean;
+  showDelete?: boolean; // From backend canDelete permission
+  showReport?: boolean; // From backend canReport permission
+  showHighlight?: boolean; // From backend canHighlight permission
+  isHighlighted?: boolean; // Current highlight state
+  imageUrl?: string; // URL of the post image for saving
   onClose: () => void;
   onDelete: () => Promise<void> | void;
   onReport: () => void; // otvorí Report modal
+  onHighlight?: () => void; // highlight/unhighlight post
+  onShare?: () => void; // share post
+  onViewDetail?: () => void; // zobrazí detail príspevku
 };
 
 export const PostOptionsModal = ({
@@ -35,12 +43,51 @@ export const PostOptionsModal = ({
   onClose,
   onDelete,
   onReport,
-  showDelete,
+  onHighlight,
+  onShare,
+  onViewDetail,
+  imageUrl,
+  showDelete = false,
+  showReport = true,
+  showHighlight = false,
+  isHighlighted = false,
 }: PostOptionsModalProps) => {
   const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
-  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
+
+  // Calculate number of visible options
+  const getVisibleOptionsCount = useCallback(() => {
+    let count = 0;
+    if (onShare) count++;
+    if (imageUrl) count++;
+    if (showHighlight && onHighlight) count++;
+    if (showDelete) count++;
+    if (showReport) count++;
+    if (onViewDetail) count++;
+    return count;
+  }, [
+    onShare,
+    imageUrl,
+    showHighlight,
+    onHighlight,
+    showDelete,
+    showReport,
+    onViewDetail,
+  ]);
+
+  // Calculate dynamic snap points based on number of options
+  const getSnapPoints = useCallback(() => {
+    const optionCount = getVisibleOptionsCount();
+    const baseHeight = 60; // Base height for handle and padding
+    const optionHeight = 60; // Height per option
+    const totalHeight = baseHeight + optionCount * optionHeight;
+    const calculatedPercentage = Math.min(
+      Math.max((totalHeight / 800) * 100, 25),
+      70
+    ); // Min 25%, Max 70%
+    return [`${calculatedPercentage}%`];
+  }, [getVisibleOptionsCount]);
 
   useEffect(() => {
     if (visible) {
@@ -72,35 +119,106 @@ export const PostOptionsModal = ({
     }
   };
 
-  const renderFooter = useCallback(
-    (props: BottomSheetFooterProps) => (
-      <BottomSheetFooter {...props} bottomInset={insets.bottom + 20}>
-        <View style={styles.cancelContainer}>
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={onClose}
-            disabled={loading}
-          >
-            <Text style={styles.cancelText}>{t('cancel')}</Text>
-          </TouchableOpacity>
-        </View>
-      </BottomSheetFooter>
-    ),
-    [loading]
-  );
+  const handleSaveToGallery = async () => {
+    if (!imageUrl) return;
+
+    try {
+      setLoading(true);
+      const result = await saveImageToGallery(imageUrl);
+      showSaveResultAlert(result, t);
+    } finally {
+      setLoading(false);
+      onClose();
+    }
+  };
 
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
-      snapPoints={['35%']}
+      snapPoints={getSnapPoints()}
       backdropComponent={renderBackdrop}
       onDismiss={onClose}
       backgroundStyle={styles.container}
       handleIndicatorStyle={styles.handleIndicator}
       enablePanDownToClose
-      footerComponent={renderFooter}
     >
       <BottomSheetView style={styles.content}>
+        {onViewDetail && (
+          <TouchableOpacity
+            style={styles.option}
+            activeOpacity={0.7}
+            onPress={() => {
+              onViewDetail();
+              onClose();
+            }}
+            disabled={loading}
+          >
+            <View style={styles.optionRow}>
+              <Text style={styles.optionText}>{t('view-post-detail')}</Text>
+              <FontAwesomeIcon icon={Icons.Info} size={16} color="white" />
+            </View>
+          </TouchableOpacity>
+        )}
+
+        {onShare && (
+          <TouchableOpacity
+            style={styles.option}
+            activeOpacity={0.7}
+            onPress={() => {
+              onShare();
+              onClose();
+            }}
+            disabled={loading}
+          >
+            <View style={styles.optionRow}>
+              <Text style={styles.optionText}>{t('share-post')}</Text>
+              <FontAwesomeIcon icon={Icons.Share} size={16} color="white" />
+            </View>
+          </TouchableOpacity>
+        )}
+
+        {imageUrl && (
+          <TouchableOpacity
+            style={styles.option}
+            activeOpacity={0.7}
+            onPress={handleSaveToGallery}
+            disabled={loading}
+          >
+            <View style={styles.optionRow}>
+              <Text style={styles.optionText}>{t('save-to-gallery')}</Text>
+              <FontAwesomeIcon icon={Icons.Download} size={16} color="white" />
+            </View>
+          </TouchableOpacity>
+        )}
+
+        {showHighlight && onHighlight && (
+          <TouchableOpacity
+            style={styles.option}
+            activeOpacity={0.7}
+            onPress={() => {
+              onHighlight();
+              onClose();
+            }}
+            disabled={loading}
+          >
+            <View style={styles.optionRow}>
+              <Text
+                style={[
+                  styles.optionText,
+                  { color: isHighlighted ? '#AAA' : '#FFC107' },
+                ]}
+              >
+                {isHighlighted ? t('unhighlight-post') : t('highlight-post')}
+              </Text>
+              <FontAwesomeIcon
+                icon={Icons.Bolt}
+                size={16}
+                color={isHighlighted ? '#AAA' : '#FFC107'}
+              />
+            </View>
+          </TouchableOpacity>
+        )}
+
         {showDelete && (
           <TouchableOpacity
             style={styles.option}
@@ -109,25 +227,37 @@ export const PostOptionsModal = ({
             disabled={loading}
           >
             <View style={styles.optionRow}>
-              <Text style={styles.optionText}>{t('delete-post')}</Text>
-              <FontAwesomeIcon icon={Icons.TrashCan} size={16} color="white" />
+              <Text style={[styles.optionText, { color: warningColor }]}>
+                {t('delete-post')}
+              </Text>
+              <FontAwesomeIcon
+                icon={Icons.TrashCan}
+                size={16}
+                color={warningColor}
+              />
             </View>
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity
-          style={styles.option}
-          activeOpacity={0.7}
-          onPress={onReport}
-          disabled={loading}
-        >
-          <View style={styles.optionRow}>
-            <Text style={[styles.optionText, { color: warningColor }]}>
-              {t('reportPost.title')}
-            </Text>
-            <FontAwesomeIcon icon={Icons.Flag} size={16} color={warningColor} />
-          </View>
-        </TouchableOpacity>
+        {showReport && (
+          <TouchableOpacity
+            style={styles.option}
+            activeOpacity={0.7}
+            onPress={onReport}
+            disabled={loading}
+          >
+            <View style={styles.optionRow}>
+              <Text style={[styles.optionText, { color: warningColor }]}>
+                {t('reportPost.title')}
+              </Text>
+              <FontAwesomeIcon
+                icon={Icons.Flag}
+                size={16}
+                color={warningColor}
+              />
+            </View>
+          </TouchableOpacity>
+        )}
       </BottomSheetView>
 
       {loading && (

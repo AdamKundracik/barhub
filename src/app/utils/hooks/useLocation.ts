@@ -46,7 +46,7 @@ export const useLocation = () => {
         };
 
         const current = locationRef.current;
-        if (!event.coords?.speed || event.coords?.speed <= 4) {
+        if (!event.coords?.speed || event.coords?.speed <= 5) {
           if (
             !current ||
             current.latitude !== currentLocation.latitude ||
@@ -78,13 +78,31 @@ export const useLocation = () => {
       await BackgroundGeolocation.ready({
         disableLocationAuthorizationAlert: true,
         desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_NAVIGATION,
-        distanceFilter: 25,
-        stopTimeout: 3,
+        distanceFilter: 20, // 20 meters - reasonable threshold
+        stopTimeout: 10, // 10 seconds - send update when stationary, then stop
         debug: false,
         logLevel: BackgroundGeolocation.LOG_LEVEL_OFF,
         stopOnTerminate: false,
         startOnBoot: true,
         showsBackgroundLocationIndicator: false,
+        // Optimized settings for reasonable DB writes
+        stationaryRadius: 20, // 20 meters radius for stationary detection
+        activityRecognitionInterval: 10000, // 10 seconds
+        minimumActivityRecognitionConfidence: 75, // 75% confidence
+        heartbeatInterval: 60, // 1 minute heartbeat
+        // Additional settings for better control
+        locationUpdateInterval: 30000, // 30 seconds between location updates
+        fastestLocationUpdateInterval: 15000, // 15 seconds minimum
+        locationTimeout: 60, // 60 seconds timeout
+        deferTime: 0, // No defer time
+        // Battery optimization
+        pausesLocationUpdatesAutomatically: true, // Pause when stationary
+        backgroundPermissionRationale: {
+          title: "Allow {applicationName} to access to this device's location even when closed or not in use.",
+          message: "This app collects location data to enable features like finding nearby places and sharing your location with friends.",
+          positiveAction: 'Change to "Allow all the time"',
+          negativeAction: 'Cancel'
+        }
       });
 
       return () => {
@@ -104,7 +122,8 @@ export const useLocation = () => {
         try {
           await BackgroundGeolocation.start();
           await getCurrentLocation();
-          refetch();
+          // Don't refetch posts automatically on location change
+          // refetch();
         } catch (err) {
           console.error('Failed to start BackgroundGeolocation:', err);
         }
@@ -112,6 +131,7 @@ export const useLocation = () => {
         try {
           await BackgroundGeolocation.stop();
           if (fakeLocation) setLocation(fakeLocation);
+          // Refetch only when switching to fake location (manual action)
           refetch();
         } catch (err) {
           console.error('Failed to stop BackgroundGeolocation:', err);
@@ -129,6 +149,10 @@ export const useLocation = () => {
     setLocation,
   ]);
 
+  // Disabled: Don't update location on app state change
+  // This was causing posts to refetch every time user returns from background
+  // Background geolocation will still update location when user moves
+  /*
   useEffect(() => {
     const handleAppStateChange = (state: AppStateStatus) => {
       if (state === 'active') {
@@ -142,6 +166,7 @@ export const useLocation = () => {
     );
     return () => subscription.remove();
   }, [getCurrentLocation]);
+  */
 
   // Initial fetch on mount
   useEffect(() => {

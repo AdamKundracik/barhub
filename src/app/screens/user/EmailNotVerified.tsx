@@ -7,9 +7,9 @@ import {
   View,
 } from 'react-native';
 import Layout from '@/src/app/components/shared/Layouts/Layout';
-import { sendEmailVerification, signOut } from 'firebase/auth';
 import { useTranslation } from 'react-i18next';
-import { auth } from '@/firebaseConfig';
+import { emailVerificationService } from '../../services/emailVerificationService';
+import { useAuth } from '../../providers/AuthProvider';
 import {
   postBgColor,
   primaryColor,
@@ -26,49 +26,41 @@ import { Divider } from '@/components/ui/divider';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import * as Icons from '@fortawesome/free-solid-svg-icons';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
-import { useNotificationsHandler } from '@/src/app/components/user/NewsFeed/NotificationHandler';
-import { useUserStore } from '@/src/app/utils/store/userStore';
 
 const EmailNotVerified = () => {
   const { t } = useTranslation();
   const [resending, setResending] = useState(false);
   const [checking, setChecking] = useState(false);
   const { showSuccessToast, showErrorToast } = useCustomToast();
-  const { unsubscribeNotifications, removePushToken } =
-    useNotificationsHandler();
-  const { currentPushToken } = useUserStore();
+  const { user, refreshUser, logout } = useAuth();
 
-  const userEmail = auth.currentUser?.email || '';
+  const userEmail = user?.email || '';
 
   // Manual check for email verification
   const checkEmailVerification = async () => {
-    if (!auth.currentUser || checking) return;
+    if (!user || checking) return;
 
     try {
       setChecking(true);
 
-      // Reload user to get the latest emailVerified status
-      await auth.currentUser.reload();
+      // Refresh user data from backend to get latest emailVerified status
+      await refreshUser();
 
-      // If email is verified, the onAuthStateChanged listener
-      // in useInitializationApp will trigger and navigation will update automatically
-      if (auth.currentUser.emailVerified) {
-        console.log('Email verified! Navigation will update automatically.');
-        showSuccessToast(
-          t('email-verified') || 'Email verified!',
-          t('redirecting') || 'Redirecting to app...'
-        );
-      } else {
+      // Use a small delay to ensure user state is updated in AuthProvider
+      setTimeout(() => {
+        // AuthProvider will automatically navigate away if email is verified
+        // If we're still here after refresh, email is not verified yet
         showErrorToast(
           t('not-verified-yet') || 'Not verified yet',
           t('please-check-email') ||
             'Please check your email and click the verification link.'
         );
-      }
+        setChecking(false);
+      }, 500);
+
     } catch (error) {
       console.error('Error checking email verification:', error);
       showErrorToast(t('error'), t('something-went-wrong'));
-    } finally {
       setChecking(false);
     }
   };
@@ -90,11 +82,11 @@ const EmailNotVerified = () => {
   }, []);
 
   const handleResendVerification = async () => {
-    if (!auth.currentUser || resending) return;
+    if (!user || resending) return;
 
     setResending(true);
     try {
-      await sendEmailVerification(auth.currentUser);
+      await emailVerificationService.resendVerificationEmail();
       showSuccessToast(
         t('verification-email-resent'),
         t('verification-email-resent-desc')
@@ -102,20 +94,17 @@ const EmailNotVerified = () => {
     } catch (error: any) {
       console.error('Error resending verification email:', error);
 
-      // Handle specific Firebase errors
+      // Handle specific errors
       let errorMessage = t('please-try-again-later');
 
-      if (error.code === 'auth/too-many-requests') {
-        errorMessage =
-          t('too-many-requests') ||
-          'Too many requests. Please wait a minute before trying again.';
-      } else if (error.code === 'auth/user-token-expired') {
-        errorMessage =
-          t('session-expired') ||
-          'Your session has expired. Please sign in again.';
-      } else if (error.code === 'auth/network-request-failed') {
-        errorMessage =
-          t('network-error') || 'Network error. Please check your connection.';
+      if (error.message?.includes('too many') || error.message?.includes('rate limit')) {
+        errorMessage = t('too-many-requests');
+      } else if (error.message?.includes('expired') || error.message?.includes('session')) {
+        errorMessage = t('session-expired');
+      } else if (error.message?.includes('network')) {
+        errorMessage = t('network-error');
+      } else if (error.message) {
+        errorMessage = error.message;
       }
 
       showErrorToast(t('email-verification-error'), errorMessage);
@@ -135,14 +124,10 @@ const EmailNotVerified = () => {
         style: 'destructive',
         onPress: async () => {
           try {
-            // Unsubscribe from notifications and remove push token
-            unsubscribeNotifications();
-            await removePushToken(currentPushToken ?? '');
+            // Sign out using AuthProvider (push token removal is handled there)
+            await logout();
 
-            // Sign out
-            await signOut(auth);
-
-            // Navigation handled by auth state listener
+            // Navigation handled by auth state change
           } catch (error) {
             console.error('Error signing out:', error);
             showErrorToast(t('error'), t('something-went-wrong'));
@@ -310,7 +295,9 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: postBgColor,
     borderRadius: 20,
-    padding: 24,
+    paddingTop: 32,
+    paddingHorizontal: 24,
+    paddingBottom: 24,
     borderWidth: 1,
     borderColor: '#333',
     shadowColor: '#000',
@@ -324,7 +311,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: primaryTextColor,
     textAlign: 'center',
+    marginTop: 16,
     marginBottom: 8,
+    paddingTop: 8,
   },
   checkingText: {
     fontSize: 12,

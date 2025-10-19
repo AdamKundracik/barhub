@@ -30,9 +30,10 @@ export const useNotificationsQuery = (): {
     onSuccess: async data => {
       setNotifications(data);
     },
-    staleTime: 60_000 * 3,
-    refetchOnWindowFocus: true,
-    refetchInterval: 60_000 * 3,
+    staleTime: 60000, // 1 minute cache
+    cacheTime: 300000, // 5 minutes
+    refetchOnWindowFocus: false, // Don't auto-refetch - badge should stay until mark all as read
+    refetchInterval: false,
   });
 
   return {
