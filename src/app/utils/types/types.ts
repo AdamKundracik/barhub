@@ -1,167 +1,164 @@
-export type AuthStackParamList = {
-    LoginDriver: undefined;
-    RegisterDriver: { id: string };
-    NumberVerificationDriver: {
-        verification: string;
-        phoneNumber: string;
-        name?: string;
-        email?: string;
-        invitationId?: string;
-    };
-};
-
-export type UserAuthStackParamList = {
-    LoginUser: undefined;
-    NumberVerification: {
-        verification: string;
-        phoneNumber: string;
-    };
-    RegisterUser: undefined;
-};
-
-export type DriverStackParamList = {
-    Domov: undefined,
-    Profile: undefined,
-    Statistics: undefined,
-    Settings: undefined,
-    NavigationList: undefined
-};
-
-export type UserStackParamList = {
-    Home: undefined,
-    Profile: undefined;
-    History: undefined;
-    Payment: undefined;
-    Settings: undefined;
-};
+export enum TabsTypes {
+  camera = 'Camera',
+  account = 'Account',
+  placeSearch = 'PlaceSearch',
+}
 
 export type Settings = {
-    darkMode?: boolean;
-    navigationApp?: string;
-    searchRadius: number;
-}
-
-export type User = {
-    uid: string;
-    name?: string;
-    surname?: string;
-    email?: string;
-    phoneNumber: string;
-    createdAt: number;
-    location?: LocationType;
-    rides: Ride[];
-    status: UserStatusEnum;
-    accountType: AccountTypeEnum;
-    settings: UserSettings;
+  // FOR ADDITIONAL SETTINGS
 };
 
-export type UserSettings = {
-    darkMode?: boolean
+export type DisplayName = {
+  languageCode: string;
+  text: string;
+};
+
+export type Place = {
+  displayName: DisplayName;
+  formattedAddress: string;
+  id: string;
+  location: LocationType;
+  types: string[];
+};
+
+interface AddressComponent {
+  long_name: string;
+  short_name: string;
+  types: string[];
 }
 
-export enum AccountTypeEnum {
-    USER = 'USER',
-    DRIVER = 'DRIVER',
-    PROVIDER = 'PROVIDER',
+interface Location {
+  lat: number;
+  lng: number;
 }
 
-export enum UserStatusEnum {
-    IDLE = 'IDLE',
-    WAITING = 'WAITING',
-    TRANSPORTING = 'TRANSPORTING',
+interface Viewport {
+  northeast: Location;
+  southwest: Location;
+}
+
+interface Geometry {
+  location: Location;
+  viewport: Viewport;
+}
+
+interface OpeningHoursPeriod {
+  close: { day: number; time: string };
+  open: { day: number; time: string };
+}
+
+interface OpeningHours {
+  open_now: boolean;
+  periods: OpeningHoursPeriod[];
+  weekday_text: string[];
+}
+
+interface Photo {
+  height: number;
+  html_attributions: string[];
+  photo_reference: string;
+  width: number;
+}
+
+interface PlusCode {
+  compound_code: string;
+  global_code: string;
+}
+
+interface Review {
+  author_name: string;
+  author_url: string;
+  language: string;
+  profile_photo_url: string;
+  rating: number;
+  relative_time_description: string;
+  text: string;
+  time: number;
+}
+
+export interface PlaceDetail {
+  address_components: AddressComponent[];
+  adr_address: string;
+  business_status: string;
+  formatted_address: string;
+  formatted_phone_number: string;
+  geometry: Geometry;
+  icon: string;
+  icon_background_color: string;
+  icon_mask_base_uri: string;
+  international_phone_number: string;
+  name: string;
+  opening_hours: OpeningHours;
+  photos: Photo[];
+  place_id: string;
+  plus_code: PlusCode;
+  rating: number;
+  reference: string;
+  reviews: Review[];
+  types: string[];
+  url: string;
+  user_ratings_total: number;
+  utc_offset: number;
+  vicinity: string;
+  website: string;
+}
+
+export interface PlaceDetailsResponse {
+  html_attributions: any[];
+  result: PlaceDetail;
+  status: string;
 }
 
 export type LocationType = {
-    latitude: number;
-    longitude: number;
+  latitude: number;
+  longitude: number;
 };
 
-
-export type Provider = {
-    uid: string;
-    name: string;
-    email: string;
-    ico: string;
-    phoneNumber?: string;
-    createdAt: number;
-    city: string;
-    accountType: AccountTypeEnum;
+export type GeoPointType = {
+  _lat: number;
+  _long: number;
 };
 
-export type Driver = {
-    uid: string;
-    name: string;
-    email?: string;
-    phoneNumber: string;
-    createdAt: number;
-    location?: LocationType;
-    providerId: string;
-    accountType: AccountTypeEnum;
-    status: DriverStatusEnum;
-    invitedAt: number;
-    settings?: Settings;
-    invitationCode?: string;
-    invitationId?: string;
-};
-
-export enum DriverStatusEnum {
-    NOT_ACTIVATED = 'NOT_ACTIVATED',
-    AVAILABLE = 'AVAILABLE',
-    NOT_AVAILABLE = 'NOT_AVAILABLE',
-    DRIVING = 'DRIVING',
-    OFFLINE = 'OFFLINE',
-    WAITING_FOR_ACCEPT = "WAITING_FOR_ACCEPT"
+export interface Match {
+  endOffset: number;
 }
 
-export type Vehicle = {
-    id: string;
-    provider: string;
-    status: VehicleStatusEnum;
-    driver: string | null;
-    name: string;
-    manufactured: string;
-    createdAt: number;
-};
-
-export enum VehicleStatusEnum {
-    AVAILABLE = 'AVAILABLE',
-    DRIVING = 'DRIVING',
-    NOT_AVAILABLE = 'NOT_AVAILABLE',
+export interface Text {
+  text: string;
+  matches: Match[];
 }
 
-export type Ride = {
-    id: string;
-    userId: string;
-    driverId?: string;
-    providerId?: string;
-    carId?: string;
-    status: RideStatusEnum;
-    startLocation: LocationType;
-    endLocation: LocationType;
-    userLocation?: LocationType;
-    driverLocation?: LocationType;
-    allowedProviders: string[];
-    startAddress: string,
-    endAddress: string;
-    estTime: number;
-    distance: number;
-    driverEstTime: number;
-    driverDistance: number;
-    blockedDrivers: string[];
-    price: number;
-    createdAt: number;
-    endedAt?: number;
-    acceptedAt?: number;
-    startedAt?: number;
-};
-
-export enum RideStatusEnum {
-    REQUESTED = 'REQUESTED',
-    ACCEPTED = 'ACCEPTED',
-    CANCELLED_BY_USER = 'CANCELLED_BY_USER',
-    CANCELLED_BY_DRIVER = 'CANCELLED_BY_DRIVER',
-    IN_PROGRESS = 'IN_PROGRESS',
-    FINISHED = 'FINISHED',
-    PLANNED = 'PLANNED',
+export interface MainText {
+  text: string;
+  matches: Match[];
 }
 
+export interface StructuredFormat {
+  mainText: MainText;
+  secondaryText: {
+    text: string;
+  };
+}
+
+export interface PlacePrediction {
+  place: string;
+  placeId: string;
+  text: Text;
+  structuredFormat: StructuredFormat;
+  types: string[];
+}
+
+export interface Suggestion {
+  placePrediction: PlacePrediction;
+}
+
+export interface AutocompleteResponse {
+  suggestions: Suggestion[];
+}
+
+export type FirebaseTimestamp = {
+  seconds?: number;
+  _seconds?: number;
+  nanoseconds?: number;
+  _nanoseconds?: number;
+};

@@ -1,0 +1,16 @@
+export const primaryColor = '#10D9B9';
+export const primaryDeepColor = '#254E48';
+export const primaryGrey = '#031824';
+export const primaryLightGrey = '#B7B7B7';
+
+export const textInputPlaceholderColor = '#CFCACA';
+export const primaryTextColor = '#FFFFFF';
+export const primaryBgColor = '#020213';
+export const separatorColor = '#7C7C7C';
+export const postBgColor = '#03031C';
+export const warningColor = '#FE7878';
+export const successColor = 'rgba(76, 175, 80, 0.8)';
+
+export const bottomModalBgColor = 'rgba(20,27,34,0.8)';
+
+export const secondaryTextColor = '#a0a0a0';

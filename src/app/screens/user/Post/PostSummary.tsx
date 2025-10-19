@@ -1,0 +1,673 @@
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Alert,
+  Dimensions,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
+import {
+  postBgColor,
+  primaryBgColor,
+  primaryColor,
+  separatorColor,
+} from '../../../utils/styles/colors';
+import { Place } from '../../../utils/types/types';
+import { useTranslation } from 'react-i18next';
+import { NavigationProp, useNavigation, useFocusEffect } from '@react-navigation/native';
+import { UserStackList } from '../../../utils/types/screen-types';
+import { uploadService } from '../../../services/uploadService';
+import { useQueryClient } from 'react-query';
+import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
+import { generateUID } from '../../../utils/helper-functions/generateUID';
+import { OccupancyEnum } from '@/src/app/utils/types/Feed/PostTypes';
+import { Center } from '@/components/ui/center';
+import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
+import { useFiltersStore } from '@/src/app/utils/store/filtersStorage';
+import FastImage from 'react-native-fast-image';
+import { useUserData } from '@/src/app/hooks/useUserQuery';
+import { useCustomToast } from '@/src/app/components/shared/Toaster';
+import { useUserStore } from '@/src/app/utils/store/userStore';
+import { buttonStyles } from '../../../utils/styles/buttonStyles';
+import { usePostsStore } from '@/src/app/utils/store/postStore';
+
+type SummaryProps = {
+  image: string;
+  place: Place;
+  senderToken?: string;
+  notificationId?: string;
+};
+
+const { height } = Dimensions.get('window');
+
+export const PostSummary = ({ route }: any) => {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
+  const routeParams = route.params as SummaryProps;
+  const navigation = useNavigation<NavigationProp<UserStackList>>();
+  const { refetch, userId } = useUserData();
+  const { showSuccessToast, showErrorToast } = useCustomToast();
+  const { resetFilters } = useFiltersStore();
+  const { updateUserData } = useUserStore();
+  const { scrollOnTop } = usePostsStore();
+
+  const [selectedOccupancy, setSelectedOccupancy] =
+    useState<OccupancyEnum | null>(null);
+  const [tempOccupancy, setTempOccupancy] = useState<OccupancyEnum | null>(
+    null
+  );
+  const [showPicker, setShowPicker] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const scrollViewRef = useRef<ScrollView>(null);
+  const saveButtonRef = useRef<View>(null);
+
+  const image = routeParams?.image;
+  const place = routeParams?.place;
+  const senderToken = routeParams?.senderToken;
+
+  useEffect(() => {
+    if (routeParams?.place) {
+      setSelectedOccupancy(null);
+      setTempOccupancy(null);
+    }
+  }, [routeParams]);
+
+  // Set gestureEnabled based on saving state
+  useEffect(() => {
+    navigation.setOptions({
+      gestureEnabled: !isSaving,
+    });
+  }, [navigation, isSaving]);
+
+  // Block navigation when saving (including swipe gestures)
+  useFocusEffect(
+    useCallback(() => {
+      const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+        if (!isSaving) {
+          // If not saving, allow navigation
+          return;
+        }
+
+        // Prevent default behavior of leaving the screen
+        e.preventDefault();
+      });
+
+      return unsubscribe;
+    }, [navigation, isSaving])
+  );
+
+  // Custom back press handler that blocks navigation during saving
+  const handleBackPress = useCallback(() => {
+    if (isSaving) {
+      // Just block navigation without showing alert
+      return;
+    }
+    navigation.goBack();
+  }, [isSaving, navigation]);
+
+  const occupancyLabels: Record<OccupancyEnum, string> = {
+    [OccupancyEnum.FULL]: t('full'),
+    [OccupancyEnum.ALMOST_FULL]: t('almost-full'),
+    [OccupancyEnum.SPARSELY_OCCUPIED]: t('sparsely-occupied'),
+    [OccupancyEnum.EMPTY]: t('empty'),
+  };
+
+  const occupancyColors: Record<OccupancyEnum, string> = {
+    [OccupancyEnum.FULL]: '#FF4444',
+    [OccupancyEnum.ALMOST_FULL]: '#FF8800',
+    [OccupancyEnum.SPARSELY_OCCUPIED]: '#FFBB00',
+    [OccupancyEnum.EMPTY]: '#44AA44',
+  };
+
+  const openPicker = useCallback(() => {
+    setTempOccupancy(selectedOccupancy);
+    setShowPicker(true);
+  }, [selectedOccupancy]);
+
+  const closePicker = useCallback(() => {
+    setShowPicker(false);
+    setTempOccupancy(selectedOccupancy);
+  }, [selectedOccupancy]);
+
+  const confirmPickerSelection = useCallback(() => {
+    setSelectedOccupancy(tempOccupancy);
+    setShowPicker(false);
+
+    // Scroll to save button after selection
+    setTimeout(() => {
+      saveButtonRef.current?.measureLayout(
+        scrollViewRef.current as any,
+        (x, y) => {
+          scrollViewRef.current?.scrollTo({ y: y - 100, animated: true });
+        },
+        () => {
+          // Fallback: scroll to end if measure fails
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }
+      );
+    }, 300);
+  }, [tempOccupancy]);
+
+  const handleSavePost = useCallback(async () => {
+    if (!image || !place || isSaving || !selectedOccupancy) return;
+
+    setIsSaving(true);
+
+    try {
+      // Check if userId exists
+      if (!userId) {
+        throw new Error('User ID not found');
+      }
+
+      const fileId = generateUID();
+
+      // Upload image and save post in one call
+      // Backend handles both Cloudflare upload and DB save
+      await uploadService.uploadPostImage(image, {
+        userId: parseInt(userId),
+        placeId: place.id,
+        fileId: fileId,
+        location: {
+          _lat: place.location.latitude ?? 0,
+          _long: place.location.longitude ?? 0,
+        },
+        placeTypes: place.types,
+        occupancy: selectedOccupancy,
+        placeName: place.displayName.text ?? '',
+        placeAddress: place.formattedAddress ?? '',
+        senderToken: senderToken, // Backend sends notification if senderToken exists
+      });
+
+      // Invalidate queries to refresh feed
+      await queryClient.invalidateQueries({ queryKey: ['posts'] });
+
+      updateUserData({ lastUploadedPostAt: new Date().toISOString() });
+      resetFilters();
+      await refetch();
+
+      showSuccessToast(
+        t('uploadPost.successTitle'),
+        t('uploadPost.successDescription')
+      );
+
+      // Navigate to Feed
+      navigation.navigate('Feed');
+
+      // Scroll to top to show new post (with small delay for navigation)
+      setTimeout(() => {
+        scrollOnTop();
+      }, 100);
+    } catch (error) {
+      console.error('Error saving post:', error);
+      showErrorToast(t('something-went-wrong'));
+      Alert.alert(t('error'), t('upload-failed'));
+    } finally {
+      setIsSaving(false);
+    }
+  }, [image, place, selectedOccupancy, senderToken, isSaving]);
+
+  if (!image || !place) {
+    return (
+      <ScreenLayout onBackPress={handleBackPress} showBackButton>
+        <Center style={{ flex: 1 }}>
+          <Text style={styles.errorText}>{t('invalid-data')}</Text>
+        </Center>
+      </ScreenLayout>
+    );
+  }
+
+  return (
+    <ScreenLayout onBackPress={handleBackPress} showBackButton>
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <Text style={styles.title}>{t('new-post')}</Text>
+
+        {/* Photo with 3:4 aspect ratio and conditional border */}
+        <View
+          style={[
+            styles.photoContainer,
+            selectedOccupancy && {
+              borderColor: occupancyColors[selectedOccupancy],
+            },
+          ]}
+        >
+          <FastImage
+            style={styles.photo}
+            source={{
+              uri: image,
+              priority: FastImage.priority.high,
+            }}
+            resizeMode={FastImage.resizeMode.cover}
+          />
+        </View>
+
+        {/* Details Card */}
+        <View style={styles.detailsCard}>
+          {/* Location - wider display */}
+          <View style={styles.locationSection}>
+            <View style={styles.locationHeader}>
+              <Text style={styles.locationIcon}>📍</Text>
+              <Text style={styles.locationTitle}>{t('location')}</Text>
+            </View>
+            <View>
+              <Text style={styles.placeName} numberOfLines={2}>
+                {place.displayName?.text}
+              </Text>
+              <Text style={styles.placeAddress} numberOfLines={3}>
+                {place.formattedAddress}
+              </Text>
+            </View>
+          </View>
+
+          {/* Divider */}
+          <View style={styles.divider} />
+
+          {/* Occupancy Selection */}
+          <View style={styles.occupancySection}>
+            <View style={styles.occupancyHeader}>
+              <Text style={styles.occupancyIcon}>👥</Text>
+              <Text style={styles.occupancyTitle}>{t('occupancy')}</Text>
+            </View>
+
+            <View>
+              <TouchableOpacity
+                onPress={openPicker}
+                style={[
+                  styles.occupancyButton,
+                  selectedOccupancy && {
+                    borderColor: occupancyColors[selectedOccupancy],
+                  },
+                ]}
+              >
+                {selectedOccupancy && (
+                  <View
+                    style={[
+                      styles.occupancyDot,
+                      { backgroundColor: occupancyColors[selectedOccupancy] },
+                    ]}
+                  />
+                )}
+                <Text
+                  style={[
+                    styles.occupancyText,
+                    !selectedOccupancy && styles.occupancyPlaceholderText,
+                  ]}
+                >
+                  {selectedOccupancy
+                    ? occupancyLabels[selectedOccupancy]
+                    : t('select-occupancy')}
+                </Text>
+                <Text style={styles.dropdownArrow}>▼</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        {/* Save Button */}
+        <View ref={saveButtonRef} collapsable={false}>
+          <Center style={styles.buttonContainer}>
+            <Button
+              variant="solid"
+              size="lg"
+              style={[
+                buttonStyles.primary,
+                !selectedOccupancy && buttonStyles.primaryDisabled,
+              ]}
+              onPress={handleSavePost}
+              isDisabled={isSaving || !selectedOccupancy}
+            >
+              {isSaving ? (
+                <ButtonSpinner color="#000" />
+              ) : (
+                <ButtonText style={buttonStyles.primaryText}>
+                  {t('save')}
+                </ButtonText>
+              )}
+            </Button>
+          </Center>
+        </View>
+      </ScrollView>
+
+      {/* Enhanced Occupancy Picker Modal */}
+      <Modal
+        visible={showPicker}
+        transparent
+        animationType="slide"
+        onRequestClose={closePicker}
+      >
+        <TouchableWithoutFeedback onPress={closePicker}>
+          <View style={styles.modalOverlay} />
+        </TouchableWithoutFeedback>
+
+        <View style={styles.modalContainer}>
+          {/* Header */}
+          <View style={styles.modalHeader}>
+            <TouchableOpacity
+              onPress={closePicker}
+              style={styles.modalHeaderButton}
+            >
+              <Text style={styles.modalCancelText}>{t('cancel')}</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>{t('select-occupancy')}</Text>
+            <TouchableOpacity
+              onPress={confirmPickerSelection}
+              style={[
+                styles.modalHeaderButton,
+                !tempOccupancy && styles.modalDoneButtonDisabled,
+              ]}
+              disabled={!tempOccupancy}
+            >
+              <Text
+                style={[
+                  styles.modalDoneText,
+                  !tempOccupancy && styles.modalDoneTextDisabled,
+                ]}
+              >
+                {t('done')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Options - Much wider */}
+          <ScrollView style={styles.optionsScrollView}>
+            <View style={styles.optionsContainer}>
+              {Object.values(OccupancyEnum).map(option => (
+                <TouchableOpacity
+                  key={option}
+                  style={[
+                    styles.option,
+                    tempOccupancy === option && styles.optionSelected,
+                  ]}
+                  onPress={() => setTempOccupancy(option)}
+                >
+                  <View style={styles.optionContent}>
+                    <View
+                      style={[
+                        styles.optionDot,
+                        { backgroundColor: occupancyColors[option] },
+                      ]}
+                    />
+                    <Text
+                      style={[
+                        styles.optionText,
+                        tempOccupancy === option && styles.optionTextSelected,
+                      ]}
+                    >
+                      {occupancyLabels[option]}
+                    </Text>
+                  </View>
+                  {tempOccupancy === option && (
+                    <Text style={styles.checkmark}>✓</Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
+        </View>
+      </Modal>
+    </ScreenLayout>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+
+  // Header
+  title: {
+    color: primaryColor,
+    fontSize: 28,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 30,
+  },
+
+  // Photo section with 3:4 aspect ratio
+  photoContainer: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    marginBottom: 25,
+    backgroundColor: '#333',
+    borderWidth: 3,
+    borderColor: 'transparent', // Default transparent border
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  photo: {
+    width: '100%',
+    aspectRatio: 3 / 4,
+  },
+
+  // Details card
+  detailsCard: {
+    backgroundColor: postBgColor,
+    borderRadius: 20,
+    padding: 25,
+    marginBottom: 30,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+  },
+
+  // Location section - much more detailed
+  locationSection: {
+    marginBottom: 20,
+  },
+  locationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  locationIcon: {
+    fontSize: 20,
+    marginRight: 10,
+    width: 30,
+  },
+  locationTitle: {
+    color: primaryColor,
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  placeName: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '500',
+    marginBottom: 8,
+    lineHeight: 24,
+  },
+  placeAddress: {
+    color: separatorColor,
+    fontSize: 15,
+    lineHeight: 22,
+  },
+
+  // Divider
+  divider: {
+    height: 1,
+    backgroundColor: '#333',
+    marginVertical: 20,
+  },
+
+  // Occupancy section - properly aligned
+  occupancySection: {
+    marginBottom: 5,
+  },
+  occupancyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  occupancyIcon: {
+    fontSize: 20,
+    marginRight: 10,
+    width: 30,
+  },
+  occupancyTitle: {
+    color: primaryColor,
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  occupancyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: primaryBgColor,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#333', // Default border color when nothing selected
+    paddingHorizontal: 18,
+    paddingVertical: 15,
+  },
+  occupancyDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    marginRight: 12,
+  },
+  occupancyText: {
+    color: 'white',
+    fontSize: 16,
+    flex: 1,
+    fontWeight: '500',
+  },
+  occupancyPlaceholderText: {
+    color: separatorColor,
+    fontWeight: '400',
+  },
+  dropdownArrow: {
+    color: separatorColor,
+    fontSize: 14,
+    marginLeft: 10,
+  },
+
+  // Save button
+  buttonContainer: {
+    marginTop: 10,
+  },
+
+  // Modal - Much wider and better
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+  },
+  modalContainer: {
+    backgroundColor: '#1a1a1a',
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
+    maxHeight: height * 0.65,
+    minHeight: 300,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 25,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  modalHeaderButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    minWidth: 70,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  modalCancelText: {
+    color: separatorColor,
+    fontSize: 17,
+  },
+  modalDoneText: {
+    color: primaryColor,
+    fontSize: 17,
+    fontWeight: '600',
+  },
+  modalDoneTextDisabled: {
+    color: '#666',
+  },
+  modalDoneButtonDisabled: {
+    opacity: 0.5,
+  },
+
+  // Options - Much wider and better spacing
+  optionsScrollView: {
+    flex: 1,
+  },
+  optionsContainer: {
+    padding: 25,
+    paddingTop: 15,
+  },
+  option: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    borderRadius: 15,
+    marginBottom: 12,
+    backgroundColor: '#252525',
+  },
+  optionSelected: {
+    backgroundColor: '#333',
+    borderWidth: 2,
+    borderColor: primaryColor,
+  },
+  optionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  optionDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    marginRight: 15,
+  },
+  optionText: {
+    color: 'white',
+    fontSize: 17,
+    fontWeight: '500',
+  },
+  optionTextSelected: {
+    color: primaryColor,
+    fontWeight: '600',
+  },
+  checkmark: {
+    color: primaryColor,
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginLeft: 15,
+  },
+
+  // Error state
+  errorText: {
+    color: '#FF6B6B',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+});
+
+export default PostSummary;

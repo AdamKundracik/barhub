@@ -1,28 +1,79 @@
-import Layout from "../../components/user/Layout";
-import {Text, TouchableOpacity, View} from "react-native";
-import {commonAppStyles} from "../../utils/styles";
-import { getAuth, signOut } from "firebase/auth";
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import Layout from '@/src/app/components/shared/Layouts/Layout';
+import FeedHeader from '../../components/user/NewsFeed/FeedHeader';
+import { usePlaceStore } from '../../utils/store/placesStore';
+import { useFiltersStore } from '../../utils/store/filtersStorage';
+import { usePhotoRequest } from '../../utils/hooks/NewsFeed/usePhotoRequest';
+import { usePostZoom } from '../../utils/hooks/NewsFeed/usePostZoom';
+import { useNewsFeedEffects } from '../../utils/hooks/NewsFeed/useNewsFeedEffects';
+import { useNewsFeedData } from '../../utils/hooks/NewsFeed/usePostData';
+import { useComments } from '../../utils/hooks/NewsFeed/useComments';
+import { FeedContent } from './NewsFeed/FeedContent';
+import FilterSlider from '@/src/app/components/shared/Modals/FilterSlider';
+import { useUserStore } from '@/src/app/utils/store/userStore';
 
+export const NewsFeed = () => {
+  const { t } = useTranslation();
 
-export const NewsFeed = ({navigation}: any) => {
+  const { placeId, placeName } = usePlaceStore();
+  const { distance } = useFiltersStore();
 
-    function triggerSignOut() {
-        const auth = getAuth();
-        signOut(auth).then(() => {
-            console.log('signed out')
-        }).catch((error) => {
-            console.error(error)
-        });
-    }
+  // Data hooks
+  const {
+    posts,
+    isLoading,
+    isRefetching,
+    isFetchingNextPage,
+    hasNextPage,
+    refetch,
+    forceRefetch,
+    fetchMorePosts,
+  } = useNewsFeedData();
+  const { requestPhoto } = usePhotoRequest();
+  const { commentsState, openComments, closeComments } = useComments();
+  const { zoomedPost, setZoomedPost } = usePostZoom();
+  const { userData } = useUserStore();
+  useNewsFeedEffects({ placeId, distance, refetch });
+  const handleRefresh = async () => {
+    await refetch();
+  };
 
-    return (
-        <Layout pageTitle={'Feed'}>
-            <View>
-                <Text style={commonAppStyles.textPrimary}>Hello wrld!</Text>
-            </View>
-            <TouchableOpacity onPress={triggerSignOut}><Text style={commonAppStyles.textPrimary}>Log out</Text></TouchableOpacity>
-        </Layout>
-    )
-}
+  const handleForceRefresh = async () => {
+    await forceRefetch();
+  };
 
-export default NewsFeed
+  return (
+    <Layout pageTitle={t('feed')}>
+      <FeedHeader placeName={placeName} />
+      <FeedContent
+        isLoading={isLoading}
+        posts={posts}
+        isRefetching={isRefetching}
+        onRefresh={handleRefresh}
+        onForceRefresh={handleForceRefresh}
+        hasNextPage={hasNextPage}
+        zoomedPost={zoomedPost}
+        setZoomedPost={setZoomedPost}
+        userData={userData}
+        requestPhoto={requestPhoto}
+        onCommentPress={openComments}
+        isFiltering={!!placeId}
+        isFetchingNextPage={isFetchingNextPage}
+        fetchMorePosts={fetchMorePosts}
+      />
+
+      {/* Uncomment when CommentsSlider is ready */}
+      {/*<CommentsSlider
+        postId={commentsState.postId}
+        userId={commentsState.userId ?? ''}
+        opened={commentsState.isOpen}
+        expoPushToken={commentsState.expoPushToken}
+        onClose={closeComments}
+      />*/}
+      <FilterSlider />
+    </Layout>
+  );
+};
+
+export default NewsFeed;
