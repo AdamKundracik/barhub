@@ -133,7 +133,22 @@ export const UserDetail = () => {
 
   const formatDate = (dateString: string) => {
     try {
-      const date = new Date(dateString);
+      // Parse LocalDateTime string: "2025-10-07T22:29:23.517475"
+      // Backend sends UTC time but without 'Z' suffix, so we need to treat it as UTC
+      let dateStr = dateString.includes('T')
+        ? dateString
+        : dateString.replace(' ', 'T');
+
+      // Add 'Z' suffix to indicate UTC time
+      if (
+        !dateStr.endsWith('Z') &&
+        !dateStr.includes('+') &&
+        !dateStr.includes('-', 10)
+      ) {
+        dateStr += 'Z';
+      }
+
+      const date = new Date(dateStr);
       const now = new Date();
       const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 

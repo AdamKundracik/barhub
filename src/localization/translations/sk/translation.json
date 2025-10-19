@@ -575,13 +575,17 @@
       "title": "Nájdite to, čo potrebujete",
       "description": "Použite vyhľadávanie na nájdenie konkrétnych barov, reštaurácií alebo prehliadajte podľa lokality a preferencií."
     },
+    "favorites": {
+      "title": "Pridajte miesta do obľúbených",
+      "description": "Označte si svoje obľúbené bary a reštaurácie srdiečkom. Môžete ich ľahko nájsť neskôr a sledovať ich aktuálnu obsadenosť."
+    },
     "profile": {
       "title": "Váš profil",
       "description": "Spravujte svoj profil, zobrazujte svoje príspevky a prispôsobte si zážitok v aplikácii."
     },
     "complete": {
       "title": "Všetko je pripravené! 🎉",
-      "description": "Ste pripravení objavovať najlepšie bary a nočný život vo vašom meste. Užite si objavovanie nových miest!"
+      "description": "Ste pripravený objavovať najlepšie bary a nočný život vo vašom meste. Užite si objavovanie nových miest!"
     },
     "skip": "Preskočiť",
     "back": "Späť",

@@ -555,6 +555,10 @@
       "title": "Finden Sie, was Sie brauchen",
       "description": "Nutzen Sie die Suchfunktion, um bestimmte Bars, Restaurants zu finden oder nach Standort und Präferenzen zu durchsuchen."
     },
+    "favorites": {
+      "title": "Orte zu Favoriten hinzufügen",
+      "description": "Markieren Sie Ihre Lieblingsbars und -restaurants mit einem Herz. Sie können sie später leicht finden und ihre aktuelle Auslastung verfolgen."
+    },
     "profile": {
       "title": "Ihr Profil",
       "description": "Verwalten Sie Ihr Profil, sehen Sie Ihre Beiträge an und passen Sie Ihre App-Erfahrung an."

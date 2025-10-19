@@ -1,16 +1,23 @@
 import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View, Text, Modal } from 'react-native';
+import {
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { primaryColor } from '@/src/app/utils/styles/colors';
+import { primaryBgColor, primaryColor } from '@/src/app/utils/styles/colors';
 
 interface PremiumWelcomeModalProps {
   visible: boolean;
   onClose: () => void;
 }
 
-export const PremiumWelcomeModal: React.FC<PremiumWelcomeModalProps> = ({ 
-  visible, 
-  onClose 
+export const PremiumWelcomeModal: React.FC<PremiumWelcomeModalProps> = ({
+  visible,
+  onClose,
 }) => {
   const { t } = useTranslation();
 
@@ -105,7 +112,9 @@ export const PremiumWelcomeModal: React.FC<PremiumWelcomeModalProps> = ({
 
               {/* Close button */}
               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                <Text style={styles.buttonText}>{t('subscription.start-enjoying')}</Text>
+                <Text style={styles.buttonText}>
+                  {t('subscription.start-enjoying')}
+                </Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -124,7 +133,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalContainer: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: primaryBgColor,
     borderRadius: 24,
     maxHeight: '85%',
     width: '100%',

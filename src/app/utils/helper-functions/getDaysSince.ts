@@ -7,8 +7,22 @@ export function getDaysSince(localDateTimeString: string | null | undefined): nu
   if (!localDateTimeString) return 0;
 
   try {
-    // Parse the LocalDateTime string from backend
-    const givenDate = new Date(localDateTimeString);
+    // Parse LocalDateTime string: "2025-10-07T22:29:23.517475"
+    // Backend sends UTC time but without 'Z' suffix, so we need to treat it as UTC
+    let dateStr = localDateTimeString.includes('T')
+      ? localDateTimeString
+      : localDateTimeString.replace(' ', 'T');
+
+    // Add 'Z' suffix to indicate UTC time
+    if (
+      !dateStr.endsWith('Z') &&
+      !dateStr.includes('+') &&
+      !dateStr.includes('-', 10)
+    ) {
+      dateStr += 'Z';
+    }
+
+    const givenDate = new Date(dateStr);
     
     // Check if the date is valid
     if (isNaN(givenDate.getTime())) {

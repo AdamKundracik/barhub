@@ -556,6 +556,10 @@
       "title": "Encuentra lo que necesitas",
       "description": "Usa la función de búsqueda para encontrar bares específicos, restaurantes o navegar por ubicación y preferencias."
     },
+    "favorites": {
+      "title": "Añadir lugares a favoritos",
+      "description": "Marca tus bares y restaurantes favoritos con un corazón. Puedes encontrarlos fácilmente más tarde y seguir su ocupación actual."
+    },
     "profile": {
       "title": "Tu perfil",
       "description": "Gestiona tu perfil, ve tus publicaciones y personaliza tu experiencia en la aplicación."

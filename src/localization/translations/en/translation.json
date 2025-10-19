@@ -587,6 +587,10 @@
       "title": "Find What You Need",
       "description": "Use the search feature to find specific bars, restaurants, or browse by location and preferences."
     },
+    "favorites": {
+      "title": "Add Places to Favorites",
+      "description": "Mark your favorite bars and restaurants with a heart. You can easily find them later and track their current occupancy."
+    },
     "profile": {
       "title": "Your Profile",
       "description": "Manage your profile, view your posts, and customize your experience in the app."
