@@ -150,15 +150,32 @@ class AuthService {
         formData.append('consents', JSON.stringify(credentials.consents));
       }
 
-      const authResponse: AuthResponse = await axiosClient.post(
-        ENDPOINTS.AUTH.SIGNUP_WITH_PHOTO,
-        formData,
-        {
+      // Use axiosClient directly for proper multipart/form-data handling
+      // Don't set Content-Type manually - let axios set it with boundary
+
+      console.log('🚀 [SIGNUP UPLOAD DEBUG] Starting signup with photo...');
+      console.log('🚀 [SIGNUP UPLOAD DEBUG] FormData created with fields:');
+      console.log('  - profilePhoto: [FILE] profile.webp');
+      console.log('  - name:', credentials.name);
+      console.log('  - email:', credentials.email);
+      console.log('  - password: [HIDDEN]');
+      if (credentials.dateOfBirth) {
+        console.log('  - dateOfBirth:', credentials.dateOfBirth);
+      }
+      if (credentials.consents) {
+        console.log('  - consents:', JSON.stringify(credentials.consents));
+      }
+
+      const authResponse: AuthResponse = await axiosClient
+        .getInstance()
+        .post(ENDPOINTS.AUTH.SIGNUP_WITH_PHOTO, formData, {
           headers: {
-            'Content-Type': 'multipart/form-data',
+            // Explicitly set Content-Type to undefined to force axios to set multipart/form-data with boundary
+            'Content-Type': undefined,
           },
-        }
-      );
+        });
+
+      console.log('✅ [SIGNUP UPLOAD DEBUG] Signup with photo successful!');
 
       // Store tokens
       await this.storeTokens(authResponse.token, authResponse.refreshToken);
@@ -199,12 +216,15 @@ class AuthService {
 
   // Refresh access token
   async refreshAccessToken(): Promise<string | null> {
-    const refreshToken = tokenManager.getRefreshToken();
+    const refreshToken = await tokenManager.getRefreshToken();
     if (!refreshToken) {
       return null;
     }
 
     try {
+      console.log('🔄 [REFRESH DEBUG] Calling refresh endpoint with:');
+      console.log('🔄 [REFRESH DEBUG] refreshToken type:', typeof refreshToken);
+
       const authResponse: AuthResponse = await axiosClient.post(
         ENDPOINTS.AUTH.REFRESH,
         { refreshToken: refreshToken }
@@ -296,7 +316,7 @@ class AuthService {
   async logout(): Promise<void> {
     try {
       // Call backend logout endpoint to clear Redis data
-      const refreshToken = tokenManager.getRefreshToken();
+      const refreshToken = await tokenManager.getRefreshToken();
       if (refreshToken) {
         try {
           await axiosClient.post(ENDPOINTS.AUTH.LOGOUT, {

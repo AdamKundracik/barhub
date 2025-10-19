@@ -22,10 +22,16 @@ export const useUserQuery = () => {
   return useQuery({
     queryKey: USER_QUERY_KEYS.userData,
     queryFn: async (): Promise<ClientDTO | null> => {
+      console.log('🔄 [USER QUERY DEBUG] Fetching user data...');
       const userData = await userService.getCurrentUser();
 
       // Update Zustand store with fetched data
       if (userData) {
+        console.log('✅ [USER QUERY DEBUG] User data fetched:', {
+          id: userData.id,
+          name: userData.name,
+          photoUrl: userData.photoUrl
+        });
         setUserData(userData);
         updateCanSeeContent();
       }

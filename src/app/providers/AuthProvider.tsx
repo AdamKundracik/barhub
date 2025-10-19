@@ -464,11 +464,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         await loadUserData(userData);
       } else {
         // If we can't refresh user data, logout
-        await logout();
+        // await logout();
       }
     } catch (error) {
       console.error('Refresh user error:', error);
-      await logout();
+      // await logout();
     }
   };
 

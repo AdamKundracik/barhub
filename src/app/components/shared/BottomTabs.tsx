@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Alert,
   Platform,
@@ -27,6 +27,7 @@ import { useNewsFeedData } from '@/src/app/utils/hooks/NewsFeed/usePostData';
 import { useUserRole } from '@/src/app/hooks/useUserRole';
 import { TutorialWizard } from './TutorialWizard';
 import { useTutorial } from '@/src/app/utils/hooks/useTutorial';
+import { useNavigationStore } from '@/src/app/utils/store/navigationStore';
 
 const Tab = createBottomTabNavigator();
 
@@ -39,8 +40,24 @@ const BottomTabs = () => {
   const { t } = useTranslation();
   const { hasAdminAccess } = useUserRole();
   const { showTutorial, markTutorialAsViewed, skipTutorial } = useTutorial();
+  const { setPreviousPage } = useNavigationStore();
 
   // console.log('[BottomTabs] showTutorial:', showTutorial);
+
+  // Track navigation state changes to store previous page
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('state', (e) => {
+      const state = e.data.state;
+      if (state && state.routes && state.routes.length > 0) {
+        const currentRoute = state.routes[state.index];
+        if (currentRoute && currentRoute.name) {
+          setPreviousPage(currentRoute.name);
+        }
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation, setPreviousPage]);
 
   const handleOpenCamera = async () => {
     // 1️⃣ Block if using fake location

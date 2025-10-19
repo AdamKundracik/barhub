@@ -24,6 +24,7 @@ import { useUserHighlights } from '../../hooks/useUserHighlights';
 import { HighlightedPostsGrid } from '../../components/user/Profile/HighlightedPostsGrid';
 import { FavoritePlaceDTO, ReasonTypeEnum } from '../../types/dto';
 import { usePlaceStore } from '../../utils/store/placesStore';
+import { useNavigationStore } from '../../utils/store/navigationStore';
 import { UserReportModal } from '../../components/shared/Modals/UserReportModal';
 import { reportService } from '../../services/reportService';
 import { ReportReason } from '../../utils/types/Feed/PostTypes';
@@ -47,6 +48,7 @@ export const UserDetail = () => {
   const { showErrorToast } = useCustomToast();
   const { getUserId } = useUserStore();
   const { setPlaceId, setPlaceName, setPlaceAddress } = usePlaceStore();
+  const { previousPage } = useNavigationStore();
 
   const { userId } = route.params as { userId: string };
   const currentUserId = getUserId();
@@ -474,11 +476,22 @@ export const UserDetail = () => {
                     key={place.placeId}
                     style={styles.favoritePlaceCard}
                     onPress={() => {
-                      // Set place data and navigate back to feed
+                      // Set place data
                       setPlaceId(place.placeId);
                       setPlaceName(place.placeName);
                       setPlaceAddress(place.placeAddress);
-                      navigation.goBack();
+
+                      // Check previous page and redirect to Feed with placeId filter if needed
+                      if (previousPage && previousPage !== 'Feed') {
+                        // If previous page was not Feed, redirect to Feed with placeId filter
+                        (navigation as any).navigate('MainTabs', {
+                          screen: 'Feed',
+                          params: { placeId: place.placeId },
+                        });
+                      } else {
+                        // If previous page was Feed, just go back
+                        navigation.goBack();
+                      }
                     }}
                   >
                     <View style={styles.favoritePlaceIcon}>

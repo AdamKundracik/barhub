@@ -18,9 +18,9 @@ import {
 } from '../../../utils/styles/colors';
 import { Place } from '../../../utils/types/types';
 import { useTranslation } from 'react-i18next';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
-import { imageService } from '../../../services/imageService';
+import { uploadService } from '../../../services/uploadService';
 import { useQueryClient } from 'react-query';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { generateUID } from '../../../utils/helper-functions/generateUID';
@@ -76,6 +76,39 @@ export const PostSummary = ({ route }: any) => {
       setTempOccupancy(null);
     }
   }, [routeParams]);
+
+  // Set gestureEnabled based on saving state
+  useEffect(() => {
+    navigation.setOptions({
+      gestureEnabled: !isSaving,
+    });
+  }, [navigation, isSaving]);
+
+  // Block navigation when saving (including swipe gestures)
+  useFocusEffect(
+    useCallback(() => {
+      const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+        if (!isSaving) {
+          // If not saving, allow navigation
+          return;
+        }
+
+        // Prevent default behavior of leaving the screen
+        e.preventDefault();
+      });
+
+      return unsubscribe;
+    }, [navigation, isSaving])
+  );
+
+  // Custom back press handler that blocks navigation during saving
+  const handleBackPress = useCallback(() => {
+    if (isSaving) {
+      // Just block navigation without showing alert
+      return;
+    }
+    navigation.goBack();
+  }, [isSaving, navigation]);
 
   const occupancyLabels: Record<OccupancyEnum, string> = {
     [OccupancyEnum.FULL]: t('full'),
@@ -135,8 +168,8 @@ export const PostSummary = ({ route }: any) => {
 
       // Upload image and save post in one call
       // Backend handles both Cloudflare upload and DB save
-      await imageService.uploadPostImage(image, {
-        userId: userId,
+      await uploadService.uploadPostImage(image, {
+        userId: parseInt(userId),
         placeId: place.id,
         fileId: fileId,
         location: {
@@ -180,7 +213,7 @@ export const PostSummary = ({ route }: any) => {
 
   if (!image || !place) {
     return (
-      <ScreenLayout onBackPress={navigation.goBack} showBackButton>
+      <ScreenLayout onBackPress={handleBackPress} showBackButton>
         <Center style={{ flex: 1 }}>
           <Text style={styles.errorText}>{t('invalid-data')}</Text>
         </Center>
@@ -189,7 +222,7 @@ export const PostSummary = ({ route }: any) => {
   }
 
   return (
-    <ScreenLayout onBackPress={navigation.goBack} showBackButton>
+    <ScreenLayout onBackPress={handleBackPress} showBackButton>
       <ScrollView
         ref={scrollViewRef}
         style={styles.container}

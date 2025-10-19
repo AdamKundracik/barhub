@@ -31,6 +31,22 @@ class AxiosClient {
     // Request interceptor - add auth token
     this.axiosInstance.interceptors.request.use(
       async (config: InternalAxiosRequestConfig) => {
+        // Debug logging for upload requests
+        if (config.url?.includes('/upload') || config.data instanceof FormData) {
+          console.log('🔍 [AXIOS DEBUG] Upload request detected:');
+          console.log('🔍 [AXIOS DEBUG] URL:', config.url);
+          console.log('🔍 [AXIOS DEBUG] Method:', config.method);
+          console.log('🔍 [AXIOS DEBUG] Content-Type header:', config.headers['Content-Type']);
+          console.log('🔍 [AXIOS DEBUG] Data type:', config.data?.constructor?.name);
+          if (config.data instanceof FormData) {
+            console.log('🔍 [AXIOS DEBUG] FormData detected - axios should set multipart/form-data');
+            // Don't override Content-Type for FormData - let axios handle it
+            if (config.headers['Content-Type'] === undefined) {
+              console.log('🔍 [AXIOS DEBUG] Content-Type is undefined - axios will set multipart/form-data with boundary');
+            }
+          }
+        }
+
         // Skip adding token for auth endpoints (except refresh)
         if (
           config.url?.startsWith('/auth/') &&
@@ -58,9 +74,24 @@ class AxiosClient {
     // Response interceptor - handle 401 errors globally
     this.axiosInstance.interceptors.response.use(
       (response: AxiosResponse) => {
+        // Debug logging for upload responses
+        if (response.config.url?.includes('/upload')) {
+          console.log('✅ [AXIOS DEBUG] Upload response received:');
+          console.log('✅ [AXIOS DEBUG] Status:', response.status);
+          console.log('✅ [AXIOS DEBUG] Headers:', response.headers);
+        }
         return response;
       },
       async (error: any) => {
+        // Debug logging for upload errors
+        if (error.config?.url?.includes('/upload')) {
+          console.log('❌ [AXIOS DEBUG] Upload error occurred:');
+          console.log('❌ [AXIOS DEBUG] Status:', error.response?.status);
+          console.log('❌ [AXIOS DEBUG] Status Text:', error.response?.statusText);
+          console.log('❌ [AXIOS DEBUG] Error Data:', error.response?.data);
+          console.log('❌ [AXIOS DEBUG] Request Headers:', error.config?.headers);
+          console.log('❌ [AXIOS DEBUG] Request Data Type:', error.config?.data?.constructor?.name);
+        }
         const originalRequest = error.config;
 
         // Handle 401 Unauthorized - but skip auth endpoints to prevent infinite loops
@@ -95,8 +126,9 @@ class AxiosClient {
 
           try {
             console.log('🔄 Starting token refresh...');
-            // Try to refresh the token directly
-            const newToken = await this.refreshToken();
+            // Use authService refresh method to avoid conflicts
+            const { authService } = await import('../../services/authService');
+            const newToken = await authService.refreshAccessToken();
 
             if (newToken) {
               console.log(
@@ -148,40 +180,6 @@ class AxiosClient {
     this.failedQueue = [];
   }
 
-  private async refreshToken(): Promise<string | null> {
-    try {
-      const refreshToken = await tokenManager.getRefreshToken();
-      if (!refreshToken) {
-        console.log('❌ No refresh token available for refresh');
-        return null;
-      }
-
-      console.log('🔄 Calling backend refresh endpoint...');
-
-      const response = await axios.post(`${API_CONFIG.BASE_URL}/auth/refresh`, {
-        refreshToken: refreshToken,
-      });
-
-      if (response.data && response.data.token) {
-        const { token: accessToken, refreshToken: newRefreshToken } =
-          response.data;
-
-        console.log('✅ Backend returned new tokens - updating token manager');
-        // Update tokens in token manager
-        await tokenManager.setTokens(
-          accessToken,
-          newRefreshToken || refreshToken
-        );
-
-        return accessToken;
-      }
-
-      console.log('❌ Backend response missing token field');
-      return null;
-    } catch (error: any) {
-      return null;
-    }
-  }
 
   // HTTP methods
   async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {

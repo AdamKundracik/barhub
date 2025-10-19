@@ -23,7 +23,7 @@ import {
 } from '../../../utils/styles/colors';
 import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
-import { imageService } from '../../../services/imageService';
+import { uploadService } from '../../../services/uploadService';
 import SlidingView from '@/src/app/components/shared/Modals/SlidingView';
 import { Input, InputField } from '@/components/ui/input';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
@@ -31,7 +31,11 @@ import { useLocales } from 'expo-localization';
 import { ClientDTO } from '@/src/app/types/dto';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useUserData } from '@/src/app/hooks/useUserQuery';
-import { isValidUnicodeUsername, getUnicodeValidationMessage } from '@/src/app/utils/validation/unicodeValidation';
+import { useQueryClient } from 'react-query';
+import {
+  getUnicodeValidationMessage,
+  isValidUnicodeUsername,
+} from '@/src/app/utils/validation/unicodeValidation';
 import {
   Avatar,
   AvatarFallbackText,
@@ -55,10 +59,10 @@ type EditProfileProps = {
 
 const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const {
     updateProfileAsync,
     isUpdatingProfile,
-    updatePhotoAsync,
     deletePhotoAsync,
     isUpdatingPhoto,
     isDeletingPhoto,
@@ -66,7 +70,9 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
     email,
     photoUrl,
     isPremium,
+    userId,
   } = useUserData();
+
   const locales = useLocales();
   const { showSuccessToast, showErrorToast } = useCustomToast();
 
@@ -82,13 +88,22 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
   const [dateError, setDateError] = useState<string>('');
   const [usernameError, setUsernameError] = useState<string>('');
+  const [isOpeningGallery, setIsOpeningGallery] = useState<boolean>(false);
+  const [isOpeningCamera, setIsOpeningCamera] = useState<boolean>(false);
 
   // Track original values to detect changes
   const originalUsername = displayName;
-  const originalBirthDate = user?.dateOfBirth ? new Date(user.dateOfBirth) : new Date();
+  const originalBirthDate = user?.dateOfBirth
+    ? new Date(user.dateOfBirth)
+    : new Date();
 
   function validateInputs(): boolean {
-    return !username || username.trim().length === 0 || !!dateError || !!usernameError;
+    return (
+      !username ||
+      username.trim().length === 0 ||
+      !!dateError ||
+      !!usernameError
+    );
   }
 
   const isUsernameInvalid = (): boolean => {
@@ -100,12 +115,14 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
       setUsernameError('');
       return;
     }
-    
+
     if (!isValidUnicodeUsername(value)) {
       const errorMsg = getUnicodeValidationMessage(value);
-      setUsernameError(errorMsg.includes('emoji') 
-        ? t('username-invalid-characters')
-        : t('username-standard-chars-only'));
+      setUsernameError(
+        errorMsg.includes('emoji')
+          ? t('username-invalid-characters')
+          : t('username-standard-chars-only')
+      );
     } else {
       setUsernameError('');
     }
@@ -114,7 +131,9 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
   // Check if any data has changed
   const hasChanges = (): boolean => {
     const usernameChanged = username?.trim() !== originalUsername?.trim();
-    const dateChanged = birthDate.toISOString().split('T')[0] !== originalBirthDate.toISOString().split('T')[0];
+    const dateChanged =
+      birthDate.toISOString().split('T')[0] !==
+      originalBirthDate.toISOString().split('T')[0];
     return usernameChanged || dateChanged;
   };
 
@@ -133,16 +152,22 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
 
   const handleImageUpload = async (uri: string) => {
     try {
-      if (!user?.id) {
+      if (!userId) {
         throw new Error('User ID not found');
       }
 
-      const uploadedUri = await imageService.uploadProfilePhoto(uri, user.id);
+      const uploadedUri = await uploadService.uploadProfilePhoto(
+        uri,
+        parseInt(userId)
+      );
 
-      // Use the new photo mutation with optimistic updates
-      await updatePhotoAsync(uploadedUri);
+      // Backend already updated photoUrl in database, just invalidate cache to refresh UI
+      await queryClient.invalidateQueries(['user', 'data']);
 
       showSuccessToast(t('toastPhotoUpdatedTitle'), t('toastPhotoUpdatedDesc'));
+
+      // Close edit profile after successful upload
+      onEditCLose();
     } catch (error) {
       console.error('Error uploading image:', error);
       showErrorToast(t('toastErrorTitle'), t('toastErrorDesc'));
@@ -152,12 +177,15 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
   };
 
   const openGallery = async () => {
+    let result: any = null;
     try {
+      setIsOpeningGallery(true);
+
       const permission =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) throw new Error('Permission denied');
 
-      const result = await ImagePicker.launchImageLibraryAsync({
+      result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
         quality: 0.8,
         allowsEditing: true,
@@ -166,21 +194,29 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
 
       if (!result.canceled) {
         await handleImageUpload(result.assets[0].uri);
-      } else {
-        setOpenImageOptions(false);
       }
+      // Modal sa zatvorí až po úspešnom uploade v handleImageUpload
     } catch {
       showErrorToast(t('toastErrorTitle'), t('toastErrorDesc'));
       setOpenImageOptions(false);
+    } finally {
+      setIsOpeningGallery(false);
+      // Zatvor modal ak používateľ zrušil výber
+      if (result?.canceled) {
+        setOpenImageOptions(false);
+      }
     }
   };
 
   const openCamera = async () => {
+    let result: any = null;
     try {
+      setIsOpeningCamera(true);
+
       const permission = await ImagePicker.requestCameraPermissionsAsync();
       if (!permission.granted) throw new Error('Permission denied');
 
-      const result = await ImagePicker.launchCameraAsync({
+      result = await ImagePicker.launchCameraAsync({
         quality: 0.8,
         allowsEditing: true,
         aspect: [1, 1],
@@ -189,12 +225,17 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
       if (!result.canceled) {
         // Backend will handle old image deletion automatically
         await handleImageUpload(result.assets[0].uri);
-      } else {
-        setOpenImageOptions(false);
       }
+      // Modal sa zatvorí až po úspešnom uploade v handleImageUpload
     } catch {
       showErrorToast(t('toastErrorTitle'), t('toastErrorDesc'));
       setOpenImageOptions(false);
+    } finally {
+      setIsOpeningCamera(false);
+      // Zatvor modal ak používateľ zrušil výber
+      if (result?.canceled) {
+        setOpenImageOptions(false);
+      }
     }
   };
 
@@ -273,6 +314,7 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
             >
               {photoUrl ? (
                 <AvatarImage
+                  key={photoUrl} // Force re-render when photoUrl changes
                   source={{ uri: photoUrl }}
                   style={styles.avatarImage}
                 />
@@ -308,7 +350,9 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
           {/* Email Field */}
           <FormControl size="md" isDisabled={true} style={styles.formControl}>
             <FormControlLabel>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+              >
                 <FontAwesomeIcon
                   icon={Icons.Envelope}
                   size={14}
@@ -320,7 +364,11 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
                 </FormControlLabelText>
               </View>
             </FormControlLabel>
-            <Input variant="rounded" size="xl" style={[styles.input, styles.disabledInput]}>
+            <Input
+              variant="rounded"
+              size="xl"
+              style={[styles.input, styles.disabledInput]}
+            >
               <InputField
                 type="text"
                 value={userEmail!}
@@ -337,7 +385,9 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
             style={styles.formControl}
           >
             <FormControlLabel>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+              >
                 <FontAwesomeIcon
                   icon={Icons.User}
                   size={14}
@@ -362,7 +412,7 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
                 type="text"
                 placeholder={t('enter-username')}
                 value={username || ''}
-                onChangeText={(value) => {
+                onChangeText={value => {
                   setUsername(value);
                   validateUsername(value);
                 }}
@@ -386,7 +436,9 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
           {/* Date of Birth Field */}
           <FormControl size="md" style={styles.formControl}>
             <FormControlLabel>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+              >
                 <FontAwesomeIcon
                   icon={Icons.Calendar}
                   size={14}
@@ -421,7 +473,9 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
               />
             </TouchableOpacity>
             {dateError && (
-              <Text style={[styles.errorText, { marginTop: 8 }]}>{dateError}</Text>
+              <Text style={[styles.errorText, { marginTop: 8 }]}>
+                {dateError}
+              </Text>
             )}
           </FormControl>
         </View>
@@ -462,7 +516,7 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
         onConfirm={date => {
           setDatePickerOpened(false);
           setBirthDate(date);
-          
+
           // Validate age immediately after selection
           if (!validateAge(date)) {
             setDateError(t('minimum-age-required'));
@@ -483,6 +537,9 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
         openGallery={openGallery}
         openCamera={openCamera}
         removePicture={confirmRemovePicture}
+        isOpeningGallery={isOpeningGallery}
+        isOpeningCamera={isOpeningCamera}
+        isDeletingPhoto={isDeletingPhoto}
       />
     </KeyboardAvoidingView>
   );

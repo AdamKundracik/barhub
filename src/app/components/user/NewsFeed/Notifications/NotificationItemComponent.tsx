@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Animated,
@@ -45,6 +45,18 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
   const locales = useLocales();
+
+  // --- ENHANCED TIME FORMATTING WITH AUTO-UPDATE ---
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update current time every minute for live time display
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, []);
 
   const notificationConfig = useMemo(() => {
     const configs = {
@@ -114,9 +126,9 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
         return '';
       }
 
-      const now = new Date();
+      // Calculate difference using current time (updates every minute)
       const diffInMinutes = Math.floor(
-        (now.getTime() - dateObj.getTime()) / (1000 * 60)
+        (currentTime.getTime() - dateObj.getTime()) / (1000 * 60)
       );
       const diffInHours = Math.floor(diffInMinutes / 60);
       const diffInDays = Math.floor(diffInHours / 24);
@@ -153,7 +165,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
       );
       return '';
     }
-  }, [item.creationTime, locales, t]);
+  }, [item.creationTime, currentTime, locales, t]);
 
   // Check if notification is expired (for requests)
   const isExpired = useMemo(() => {
@@ -185,7 +197,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
       }
 
       const expirationTime = 180 * 1000; // 3 minutes
-      return Date.now() > dateObj.getTime() + expirationTime;
+      return currentTime.getTime() > dateObj.getTime() + expirationTime;
     } catch (error) {
       console.error(
         'Error parsing notification time for expiration check:',
@@ -193,7 +205,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
       );
       return true;
     }
-  }, [item.creationTime, item.notificationType]);
+  }, [item.creationTime, item.notificationType, currentTime]);
 
   // Animation styles
   const animatedContainerStyle = useAnimatedStyle(() => ({
