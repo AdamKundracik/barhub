@@ -1,4 +1,4 @@
-import { Post } from '@/common/types/postTypes';
+import { Post } from '@/src/app/types/postTypes';
 
 /**
  * Maps backend PostDTO to frontend Post format

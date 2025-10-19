@@ -685,6 +685,7 @@
   "bio": {
     "label": "Bio",
     "no-bio": "Žiadne bio",
+    "edit": "Upraviť",
     "edit-title": "Upraviť Bio",
     "description": "Povedzte ostatným niečo o sebe v niekoľkých slovách.",
     "placeholder": "Napíšte svoje bio tu...",

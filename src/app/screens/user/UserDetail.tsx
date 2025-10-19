@@ -10,8 +10,8 @@ import {
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   Avatar,
   AvatarFallbackText,
@@ -113,9 +113,13 @@ export const UserDetail = () => {
     [userProfile?.id, currentUserId, showErrorToast, t]
   );
 
-
   // Funkcia pre správne slovenské množné čísla
-  const getSlovakPlural = (count: number, singular: string, plural2to4: string, plural5plus: string) => {
+  const getSlovakPlural = (
+    count: number,
+    singular: string,
+    plural2to4: string,
+    plural5plus: string
+  ) => {
     if (count === 1) {
       return singular;
     } else if (count >= 2 && count <= 4) {
@@ -135,7 +139,12 @@ export const UserDetail = () => {
         return t('user.just-now') || 'práve teraz';
       } else if (diffInSeconds < 3600) {
         const minutes = Math.floor(diffInSeconds / 60);
-        const minutesText = getSlovakPlural(minutes, 'minúta', 'minúty', 'minút');
+        const minutesText = getSlovakPlural(
+          minutes,
+          'minúta',
+          'minúty',
+          'minút'
+        );
         return `${minutes} ${minutesText} ${t('user.ago') || 'dozadu'}`;
       } else if (diffInSeconds < 86400) {
         const hours = Math.floor(diffInSeconds / 3600);
@@ -147,7 +156,12 @@ export const UserDetail = () => {
         return `${days} ${daysText} ${t('user.ago') || 'dozadu'}`;
       } else if (diffInSeconds < 31536000) {
         const months = Math.floor(diffInSeconds / 2592000);
-        const monthsText = getSlovakPlural(months, 'mesiac', 'mesiace', 'mesiacov');
+        const monthsText = getSlovakPlural(
+          months,
+          'mesiac',
+          'mesiace',
+          'mesiacov'
+        );
         return `${months} ${monthsText} ${t('user.ago') || 'dozadu'}`;
       } else {
         const years = Math.floor(diffInSeconds / 31536000);
@@ -261,14 +275,13 @@ export const UserDetail = () => {
             />
           </TouchableOpacity>
         )}
-
       </View>
 
       <ScrollView
         style={styles.scrollView}
         refreshControl={
-          <RefreshControl 
-            refreshing={refreshing} 
+          <RefreshControl
+            refreshing={refreshing}
             onRefresh={onRefresh}
             tintColor={primaryColor}
             colors={[primaryColor]}
@@ -287,21 +300,19 @@ export const UserDetail = () => {
             <View style={styles.heroContent}>
               {/* Avatar with glow effect */}
               <View style={styles.avatarWrapper}>
-                {userProfile.premium && (
-                  <LinearGradient
-                    colors={['#FFD700', '#FFA500', '#FF6347']}
-                    style={styles.premiumRing}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                  />
-                )}
                 <View style={styles.avatarGlow}>
-                  <Avatar size="2xl" style={styles.heroAvatar}>
+                  <Avatar
+                    size="2xl"
+                    style={[
+                      styles.heroAvatar,
+                      userProfile.premium && styles.premiumBorder,
+                    ]}
+                  >
                     {userProfile.photoUrl ? (
                       <AvatarImage source={{ uri: userProfile.photoUrl }} />
                     ) : (
                       <AvatarFallbackText style={styles.avatarFallback}>
-                        {userProfile.name}
+                        {userProfile.name || t('anonymous-user')}
                       </AvatarFallbackText>
                     )}
                   </Avatar>
@@ -318,7 +329,12 @@ export const UserDetail = () => {
                     {userProfile.totalPosts}
                   </Text>
                   <Text style={styles.quickStatLabel}>
-                    {getSlovakPlural(userProfile.totalPosts, 'príspevok', 'príspevky', 'príspevkov')}
+                    {getSlovakPlural(
+                      userProfile.totalPosts,
+                      'príspevok',
+                      'príspevky',
+                      'príspevkov'
+                    )}
                   </Text>
                 </View>
                 <View style={styles.quickStatDivider} />
@@ -327,7 +343,12 @@ export const UserDetail = () => {
                     {userProfile.totalLikes}
                   </Text>
                   <Text style={styles.quickStatLabel}>
-                    {getSlovakPlural(userProfile.totalLikes, 'lajk', 'lajky', 'lajkov')}
+                    {getSlovakPlural(
+                      userProfile.totalLikes,
+                      'lajk',
+                      'lajky',
+                      'lajkov'
+                    )}
                   </Text>
                 </View>
                 <View style={styles.quickStatDivider} />
@@ -336,7 +357,12 @@ export const UserDetail = () => {
                     {userProfile.leaderboardPoints}
                   </Text>
                   <Text style={styles.quickStatLabel}>
-                    {getSlovakPlural(userProfile.leaderboardPoints, 'bod', 'body', 'bodov')}
+                    {getSlovakPlural(
+                      userProfile.leaderboardPoints,
+                      'bod',
+                      'body',
+                      'bodov'
+                    )}
                   </Text>
                 </View>
               </View>
@@ -394,7 +420,11 @@ export const UserDetail = () => {
         {userProfile.bio && (
           <View style={styles.bioSection}>
             <View style={styles.bioHeader}>
-              <FontAwesomeIcon icon={Icons.Info} size={20} color={primaryColor} />
+              <FontAwesomeIcon
+                icon={Icons.Info}
+                size={20}
+                color={primaryColor}
+              />
               <Text style={styles.bioSectionTitle}>
                 {t('bio.label') || 'Bio'}
               </Text>
@@ -439,38 +469,33 @@ export const UserDetail = () => {
                 style={styles.favoritePlacesScroll}
                 contentContainerStyle={styles.favoritePlacesContent}
               >
-                {userProfile.favoritePlaces.map(
-                  (place: FavoritePlaceDTO, index: number) => (
-                    <TouchableOpacity
-                      key={place.placeId}
-                      style={styles.favoritePlaceCard}
-                      onPress={() => {
-                        // Set place data and navigate back to feed
-                        setPlaceId(place.placeId);
-                        setPlaceName(place.placeName);
-                        setPlaceAddress(place.placeAddress);
-                        navigation.goBack();
-                      }}
-                    >
-                      <View style={styles.favoritePlaceIcon}>
-                        <FontAwesomeIcon
-                          icon={Icons.MapMarkerAlt}
-                          size={16}
-                          color="#FF6B6B"
-                        />
-                      </View>
-                      <Text style={styles.favoritePlaceName} numberOfLines={1}>
-                        {place.placeName}
-                      </Text>
-                      <Text
-                        style={styles.favoritePlaceAddress}
-                        numberOfLines={2}
-                      >
-                        {place.placeAddress}
-                      </Text>
-                    </TouchableOpacity>
-                  )
-                )}
+                {userProfile.favoritePlaces.map((place: FavoritePlaceDTO) => (
+                  <TouchableOpacity
+                    key={place.placeId}
+                    style={styles.favoritePlaceCard}
+                    onPress={() => {
+                      // Set place data and navigate back to feed
+                      setPlaceId(place.placeId);
+                      setPlaceName(place.placeName);
+                      setPlaceAddress(place.placeAddress);
+                      navigation.goBack();
+                    }}
+                  >
+                    <View style={styles.favoritePlaceIcon}>
+                      <FontAwesomeIcon
+                        icon={Icons.MapMarkerAlt}
+                        size={16}
+                        color="#FF6B6B"
+                      />
+                    </View>
+                    <Text style={styles.favoritePlaceName} numberOfLines={1}>
+                      {place.placeName}
+                    </Text>
+                    <Text style={styles.favoritePlaceAddress} numberOfLines={2}>
+                      {place.placeAddress}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </ScrollView>
             </View>
           )}
@@ -497,14 +522,24 @@ export const UserDetail = () => {
                   />
                 </View>
                 <Text style={styles.modernStatTitle}>
-                  {getSlovakPlural(userProfile.totalHighlights, 'zvýraznenie', 'zvýraznenia', 'zvýraznení')}
+                  {getSlovakPlural(
+                    userProfile.totalHighlights,
+                    'zvýraznenie',
+                    'zvýraznenia',
+                    'zvýraznení'
+                  )}
                 </Text>
               </View>
               <Text style={styles.modernStatNumber}>
                 {userProfile.totalHighlights}
               </Text>
               <Text style={styles.modernStatDescription}>
-                {getSlovakPlural(userProfile.totalHighlights, 'zvýraznený príspevok', 'zvýraznené príspevky', 'zvýraznených príspevkov')}
+                {getSlovakPlural(
+                  userProfile.totalHighlights,
+                  'zvýraznený príspevok',
+                  'zvýraznené príspevky',
+                  'zvýraznených príspevkov'
+                )}
               </Text>
             </View>
 
@@ -589,7 +624,12 @@ export const UserDetail = () => {
               </Text>
               <Text style={styles.modernStatDescription}>
                 {(() => {
-                  const avgLikes = userProfile.totalPosts > 0 ? Math.round(userProfile.totalLikes / userProfile.totalPosts) : 0;
+                  const avgLikes =
+                    userProfile.totalPosts > 0
+                      ? Math.round(
+                          userProfile.totalLikes / userProfile.totalPosts
+                        )
+                      : 0;
                   return `Priemerné ${getSlovakPlural(avgLikes, 'lajk', 'lajky', 'lajkov')} na príspevok`;
                 })()}
               </Text>
@@ -697,7 +737,6 @@ export const UserDetail = () => {
           onSave={handleReportUser}
         />
       )}
-
     </View>
   );
 };
@@ -802,6 +841,7 @@ const styles = StyleSheet.create({
   },
   avatarWrapper: {
     position: 'relative',
+    marginTop: 20,
     marginBottom: 20,
   },
   avatarGlow: {
@@ -817,14 +857,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     color: primaryTextColor,
   },
-  premiumRing: {
-    position: 'absolute',
-    top: -6,
-    left: -6,
-    right: -6,
-    bottom: -6,
-    borderRadius: 75,
-    zIndex: 1,
+  premiumBorder: {
+    borderColor: '#FFC107',
+    borderWidth: 3,
   },
   heroName: {
     fontSize: 24,
@@ -837,8 +872,8 @@ const styles = StyleSheet.create({
   },
   bioSection: {
     paddingHorizontal: 20,
-    marginTop: 12,
-    marginBottom: 20,
+    marginTop: 24,
+    marginBottom: 12,
   },
   bioHeader: {
     flexDirection: 'row',
@@ -936,8 +971,8 @@ const styles = StyleSheet.create({
   },
   // Modern Stats Styles
   detailedStatsContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 20,
+    paddingHorizontal: 16,
+    marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 22,
@@ -950,7 +985,7 @@ const styles = StyleSheet.create({
   modernStatsGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: 12,
     gap: 8,
   },
   modernStatCard: {
@@ -1005,12 +1040,12 @@ const styles = StyleSheet.create({
   // Highlights Styles
   highlightsSection: {
     paddingHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 12,
   },
   // Favorite Places Styles
   favoritePlacesSection: {
     paddingHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 12,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -1074,7 +1109,7 @@ const styles = StyleSheet.create({
   // Privacy Styles
   privacySection: {
     paddingHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 12,
   },
   modernPrivacyGrid: {
     flexDirection: 'row',

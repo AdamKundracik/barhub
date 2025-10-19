@@ -1,9 +1,6 @@
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../../../firebaseConfig';
-import {
-  AddedCommentResponse,
-  PostCommentsResponse,
-} from '../../../../common/types/commentTypes';
+import { AddedCommentResponse, PostCommentsResponse } from '@/src/app/types';
 
 class CommentService {
   public addCommentToPost = async (

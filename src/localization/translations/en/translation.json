@@ -332,6 +332,7 @@
   "bio": {
     "label": "Bio",
     "no-bio": "No bio yet",
+    "edit": "Edit",
     "edit-title": "Edit Bio",
     "description": "Tell others about yourself in a few words.",
     "placeholder": "Write your bio here...",

@@ -15,7 +15,7 @@ import { BlurView } from 'expo-blur';
 
 import { NotificationItemProps } from '@/src/app/utils/types/notification-types';
 import { UserStackList } from '@/src/app/utils/types/screen-types';
-import { NotificationType } from '@/common/types/notificationTypes';
+import { NotificationType } from '@/src/app/types/notificationTypes';
 import { Icons } from '@/src/app/utils/icons/icons';
 import { openCamera } from '@/src/app/utils/helper-functions/openCamera';
 import {
@@ -45,23 +45,6 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
   const locales = useLocales();
-
-  const getTimeUnit = useCallback(
-    (count: number, unit: 'minute' | 'hour') => {
-      const currentLanguage = locales[0]?.languageCode || 'sk';
-
-      if (count === 1) {
-        return t(unit);
-      }
-
-      if (currentLanguage === 'sk') {
-        return t(`${unit}s_2_4`);
-      }
-
-      return t(`${unit}s_2_4`); // This covers German, English, Spanish
-    },
-    [locales, t]
-  );
 
   const notificationConfig = useMemo(() => {
     const configs = {
@@ -114,21 +97,27 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
       let dateStr = item.creationTime.includes('T')
         ? item.creationTime
         : item.creationTime.replace(' ', 'T');
-      
+
       // Add 'Z' suffix to indicate UTC time
-      if (!dateStr.endsWith('Z') && !dateStr.includes('+') && !dateStr.includes('-', 10)) {
+      if (
+        !dateStr.endsWith('Z') &&
+        !dateStr.includes('+') &&
+        !dateStr.includes('-', 10)
+      ) {
         dateStr += 'Z';
       }
-      
+
       const dateObj = new Date(dateStr);
-      
+
       // Validate date
       if (isNaN(dateObj.getTime())) {
         return '';
       }
 
       const now = new Date();
-      const diffInMinutes = Math.floor((now.getTime() - dateObj.getTime()) / (1000 * 60));
+      const diffInMinutes = Math.floor(
+        (now.getTime() - dateObj.getTime()) / (1000 * 60)
+      );
       const diffInHours = Math.floor(diffInMinutes / 60);
       const diffInDays = Math.floor(diffInHours / 24);
 
@@ -157,7 +146,11 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
 
       return formattedDate;
     } catch (error) {
-      console.error('Error formatting notification time:', error, item.creationTime);
+      console.error(
+        'Error formatting notification time:',
+        error,
+        item.creationTime
+      );
       return '';
     }
   }, [item.creationTime, locales, t]);
@@ -174,14 +167,18 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
       let dateStr = item.creationTime.includes('T')
         ? item.creationTime
         : item.creationTime.replace(' ', 'T');
-      
+
       // Add 'Z' suffix to indicate UTC time
-      if (!dateStr.endsWith('Z') && !dateStr.includes('+') && !dateStr.includes('-', 10)) {
+      if (
+        !dateStr.endsWith('Z') &&
+        !dateStr.includes('+') &&
+        !dateStr.includes('-', 10)
+      ) {
         dateStr += 'Z';
       }
-      
+
       const dateObj = new Date(dateStr);
-      
+
       // Validate date
       if (isNaN(dateObj.getTime())) {
         return true;

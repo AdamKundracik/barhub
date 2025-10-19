@@ -43,9 +43,9 @@ export interface SearchHistoryItem {
   secondaryText: string;
 }
 
-// Post types moved to @/common/types/postTypes.ts
-// Use: import { Post, InfinityScrollPost } from '@/common/types/postTypes';
-export { Post, InfinityScrollPost } from '@/common/types/postTypes';
+// Post types are now in @/src/app/types/postTypes.ts
+// Use: import { Post, InfinityScrollPost } from '@/src/app/types/postTypes';
+export { Post, InfinityScrollPost } from '@/src/app/types/postTypes';
 
 export interface UserInfo {
   id: string;

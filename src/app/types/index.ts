@@ -1,6 +1,11 @@
 // Export all DTO types for easy importing
 export * from './dto';
 
+// Export types (moved from /common/types to /src/app/types)
+export * from './commentTypes';
+export * from './notificationTypes';
+export * from './postTypes';
+
 // Re-export commonly used types with shorter names
 export type {
   ClientDTO as User,

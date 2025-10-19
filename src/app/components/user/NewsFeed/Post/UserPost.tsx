@@ -20,7 +20,7 @@ import FastImage from 'react-native-fast-image';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { useUserStore } from '@/src/app/utils/store/userStore';
-import { Post } from '@/common/types/postTypes';
+import { Post } from '@/src/app/types/postTypes';
 import { postService } from '@/src/app/services/postService';
 import { trimPlaceName } from '@/src/app/utils/helper-functions/trimPlaceName';
 
@@ -352,7 +352,6 @@ const UserPost: React.FC<UserPostProps> = ({
           onPress={handleNavigateToDetail}
           onUserPress={handleNavigateToUser}
           onShare={handleShare}
-          onViewDetail={handleNavigateToDetail}
         />
 
         {/* Enhanced Image Container */}

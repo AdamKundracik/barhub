@@ -19,13 +19,3 @@ export enum NotificationType {
   LIKE = 'LIKE',
   COMMENT = 'COMMENT',
 }
-
-export interface SaveNotificationResponse extends NotificationItem {}
-
-export interface SaveNotificationRequest extends NotificationItem {}
-
-export interface GetUserNotificationsResponse {
-  notifications: SaveNotificationResponse[];
-  hasNewNotifications: boolean;
-  newNotificationsCount: number;
-}

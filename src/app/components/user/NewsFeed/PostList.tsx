@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import NativeAdComponent from '@/src/app/components/user/NativeAd';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { usePostsStore } from '@/src/app/utils/store/postStore';
-import { Post } from '@/common/types/postTypes';
+import { Post } from '@/src/app/types/postTypes';
 import { User } from '@/shared';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 

@@ -6,6 +6,7 @@ import {
   SearchHistoryItemEmbeddable,
 } from '../../types/dto';
 import { userService } from '../../services/userService';
+import { authService } from '../../services/authService';
 
 // Updated UserStore interface using backend DTO
 interface UserStore {
@@ -49,147 +50,156 @@ interface UserStore {
 }
 
 export const useUserStore = create<UserStore>()(
-  subscribeWithSelector((set, get) => ({
-    // Initial state
-    userData: null,
-    isUserDataLoading: false,
-    currentPushToken: null,
-    canSeeContent: false,
+  subscribeWithSelector((set, get) => {
+    // Set up callback for authService to update user data
+    authService.setUserDataUpdateCallback((userData: ClientDTO | null) => {
+      set({ userData });
+    });
 
-    // Actions
-    setUserData: (data: ClientDTO | null) => {
-      set({ userData: data });
-      // Update content visibility when user data changes
-      if (data) {
-        get().updateCanSeeContent();
-      }
-    },
+    return {
+      // Initial state
+      userData: null,
+      isUserDataLoading: false,
+      currentPushToken: null,
+      canSeeContent: false,
 
-    setUserDataLoading: (loading: boolean) => {
-      set({ isUserDataLoading: loading });
-    },
+      // Actions
+      setUserData: (data: ClientDTO | null) => {
+        set({ userData: data });
+        // Update content visibility when user data changes
+        if (data) {
+          get().updateCanSeeContent();
+        }
+      },
 
-    updateUserData: (data: Partial<ClientDTO>) => {
-      const currentData = get().userData;
-      if (currentData) {
-        const updatedData = { ...currentData, ...data };
-        set({ userData: updatedData });
-        get().updateCanSeeContent();
-      }
-    },
+      setUserDataLoading: (loading: boolean) => {
+        set({ isUserDataLoading: loading });
+      },
 
-    setCurrentPushToken: (token: string | null) => {
-      set({ currentPushToken: token });
-    },
+      updateUserData: (data: Partial<ClientDTO>) => {
+        const currentData = get().userData;
+        if (currentData) {
+          const updatedData = { ...currentData, ...data };
+          set({ userData: updatedData });
+          get().updateCanSeeContent();
+        }
+      },
 
-    addToSearchHistory: async (item: SearchHistoryItemEmbeddable) => {
-      const { userData } = get();
-      if (!userData) return;
+      setCurrentPushToken: (token: string | null) => {
+        set({ currentPushToken: token });
+      },
 
-      try {
-        // Remove existing item with same placeId and add new one at the beginning
-        const currentHistory = userData.searchHistory || [];
-        const filtered = currentHistory.filter(h => h.placeId !== item.placeId);
-        const updatedHistory = [item, ...filtered].slice(0, 5); // Keep only 5 items
+      addToSearchHistory: async (item: SearchHistoryItemEmbeddable) => {
+        const { userData } = get();
+        if (!userData) return;
 
-        // Update local state
-        get().updateUserData({ searchHistory: updatedHistory });
+        try {
+          // Remove existing item with same placeId and add new one at the beginning
+          const currentHistory = userData.searchHistory || [];
+          const filtered = currentHistory.filter(
+            h => h.placeId !== item.placeId
+          );
+          const updatedHistory = [item, ...filtered].slice(0, 5); // Keep only 5 items
 
-        // Update backend
-        await userService.updateSearchHistory(
-          userData.id.toString(),
-          updatedHistory
+          // Update local state
+          get().updateUserData({ searchHistory: updatedHistory });
+
+          // Update backend
+          await userService.updateSearchHistory(
+            userData.id.toString(),
+            updatedHistory
+          );
+        } catch (error) {
+          console.error('Error adding to search history:', error);
+        }
+      },
+
+      updateSearchHistory: (history: SearchHistoryItemEmbeddable[]) => {
+        get().updateUserData({ searchHistory: history });
+      },
+
+      updateCanSeeContent: () => {
+        const { userData } = get();
+        if (!userData || !userData.lastUploadedPostAt) {
+          set({ canSeeContent: false });
+          return;
+        }
+
+        // Check if last uploaded post was within 7 days
+        const lastUploadDate = new Date(userData.lastUploadedPostAt);
+        const now = new Date();
+        const daysDiff = Math.floor(
+          (now.getTime() - lastUploadDate.getTime()) / (1000 * 60 * 60 * 24)
         );
-      } catch (error) {
-        console.error('Error adding to search history:', error);
-      }
-    },
 
-    updateSearchHistory: (history: SearchHistoryItemEmbeddable[]) => {
-      get().updateUserData({ searchHistory: history });
-    },
+        set({ canSeeContent: daysDiff < 7 });
+      },
 
-    updateCanSeeContent: () => {
-      const { userData } = get();
-      if (!userData || !userData.lastUploadedPostAt) {
-        set({ canSeeContent: false });
-        return;
-      }
+      // Premium status management
+      isPremium: () => {
+        const { userData } = get();
+        return userData?.premium || false;
+      },
 
-      // Check if last uploaded post was within 7 days
-      const lastUploadDate = new Date(userData.lastUploadedPostAt);
-      const now = new Date();
-      const daysDiff = Math.floor(
-        (now.getTime() - lastUploadDate.getTime()) / (1000 * 60 * 60 * 24)
-      );
+      setPremium: (premium: boolean) => {
+        const { userData } = get();
+        if (!userData) return;
 
-      set({ canSeeContent: daysDiff < 7 });
-    },
+        // Update local state only
+        // Backend is updated automatically via RevenueCat webhook
+        get().updateUserData({ premium });
+      },
 
-    // Premium status management
-    isPremium: () => {
-      const { userData } = get();
-      return userData?.premium || false;
-    },
+      getDisplayName: () => {
+        const { userData } = get();
+        return userData?.name || '';
+      },
 
-    setPremium: (premium: boolean) => {
-      const { userData } = get();
-      if (!userData) return;
+      getEmail: () => {
+        const { userData } = get();
+        return userData?.email || '';
+      },
 
-      // Update local state only
-      // Backend is updated automatically via RevenueCat webhook
-      get().updateUserData({ premium });
-    },
+      getPhotoUrl: () => {
+        const { userData } = get();
+        return userData?.photoUrl;
+      },
 
-    getDisplayName: () => {
-      const { userData } = get();
-      return userData?.name || '';
-    },
+      getUserId: () => {
+        const { userData } = get();
+        return userData?.id.toString() || null;
+      },
 
-    getEmail: () => {
-      const { userData } = get();
-      return userData?.email || '';
-    },
+      // Role management functions
+      getRole: () => {
+        const { userData } = get();
+        return userData?.role || null;
+      },
 
-    getPhotoUrl: () => {
-      const { userData } = get();
-      return userData?.photoUrl;
-    },
+      isAdmin: () => {
+        const { userData } = get();
+        return userData?.role === RoleEnum.ADMIN;
+      },
 
-    getUserId: () => {
-      const { userData } = get();
-      return userData?.id.toString() || null;
-    },
+      isModerator: () => {
+        const { userData } = get();
+        return userData?.role === RoleEnum.MODERATOR;
+      },
 
-    // Role management functions
-    getRole: () => {
-      const { userData } = get();
-      return userData?.role || null;
-    },
+      isUser: () => {
+        const { userData } = get();
+        return userData?.role === RoleEnum.USER;
+      },
 
-    isAdmin: () => {
-      const { userData } = get();
-      return userData?.role === RoleEnum.ADMIN;
-    },
-
-    isModerator: () => {
-      const { userData } = get();
-      return userData?.role === RoleEnum.MODERATOR;
-    },
-
-    isUser: () => {
-      const { userData } = get();
-      return userData?.role === RoleEnum.USER;
-    },
-
-    hasAdminAccess: () => {
-      const { userData } = get();
-      return (
-        userData?.role === RoleEnum.ADMIN ||
-        userData?.role === RoleEnum.MODERATOR
-      );
-    },
-  }))
+      hasAdminAccess: () => {
+        const { userData } = get();
+        return (
+          userData?.role === RoleEnum.ADMIN ||
+          userData?.role === RoleEnum.MODERATOR
+        );
+      },
+    };
+  })
 );
 
 // Selectors for easy access

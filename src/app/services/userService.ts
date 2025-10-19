@@ -1,4 +1,4 @@
-import { apiUtils } from '../utils/api/apiClient';
+import { httpClient } from '../utils/api/httpClient';
 import { ENDPOINTS } from '../config/api';
 import {
   ClientDTO,
@@ -16,7 +16,7 @@ class UserService {
   // Get current user data from backend
   async getCurrentUser(): Promise<AppUserData | null> {
     try {
-      return await apiUtils.get<ClientDTO>(ENDPOINTS.USERS.ME);
+      return await httpClient.get<ClientDTO>(ENDPOINTS.USERS.ME);
     } catch (error) {
       console.error('Error fetching user data:', error);
       return null;
@@ -59,7 +59,7 @@ class UserService {
         backendUpdates.premium = updates.premium;
       }
 
-      return await apiUtils.patch<ClientDTO>(
+      return await httpClient.patch<ClientDTO>(
         ENDPOINTS.USERS.ME,
         backendUpdates
       );
@@ -129,7 +129,7 @@ class UserService {
   // Mark tutorial as viewed
   async markTutorialAsViewed(): Promise<void> {
     try {
-      await apiUtils.put(ENDPOINTS.USERS.TUTORIAL_VIEWED);
+      await httpClient.put(ENDPOINTS.USERS.TUTORIAL_VIEWED);
     } catch (error) {
       console.error('Error marking tutorial as viewed:', error);
       throw error;
@@ -139,7 +139,7 @@ class UserService {
   // Get user profile by ID
   async getUserProfile(userId: string): Promise<UserProfileDTO | null> {
     try {
-      const profile = await apiUtils.get<UserProfileDTO>(ENDPOINTS.USERS.PROFILE(userId));
+      const profile = await httpClient.get<UserProfileDTO>(ENDPOINTS.USERS.PROFILE(userId));
       return profile;
     } catch (error) {
       console.error('Error getting user profile:', error);
@@ -150,7 +150,7 @@ class UserService {
   // Delete current user account
   async deleteCurrentUser(): Promise<boolean> {
     try {
-      await apiUtils.delete(ENDPOINTS.USERS.DELETE_ME);
+      await httpClient.delete(ENDPOINTS.USERS.DELETE_ME);
       return true;
     } catch (error) {
       console.error('Error deleting user account:', error);
@@ -162,7 +162,7 @@ class UserService {
   async addPushToken(userId: string, token: string): Promise<boolean> {
     try {
       const request: PushTokenRequestDTO = { token };
-      await apiUtils.post(ENDPOINTS.USERS.PUSH_TOKENS(userId), request);
+      await httpClient.post(ENDPOINTS.USERS.PUSH_TOKENS(userId), request);
       return true;
     } catch (error) {
       console.error('Error adding push token:', error);
@@ -175,7 +175,7 @@ class UserService {
     try {
       // Use query parameter instead of request body
       const endpoint = `${ENDPOINTS.USERS.PUSH_TOKENS(userId)}?token=${encodeURIComponent(token)}`;
-      await apiUtils.delete(endpoint);
+      await httpClient.delete(endpoint);
       return true;
     } catch (error) {
       console.error('Error removing push token:', error);
@@ -186,7 +186,7 @@ class UserService {
   // Get user's push tokens
   async getPushTokens(userId: string): Promise<string[]> {
     try {
-      const response = await apiUtils.get<{ tokens: string[] }>(
+      const response = await httpClient.get<{ tokens: string[] }>(
         ENDPOINTS.USERS.PUSH_TOKENS(userId)
       );
       return response.tokens || [];
@@ -207,7 +207,7 @@ class UserService {
         longitude: location.longitude,
       };
 
-      await apiUtils.patch(ENDPOINTS.USERS.LOCATION(userId), request);
+      await httpClient.patch(ENDPOINTS.USERS.LOCATION(userId), request);
       return true;
     } catch (error) {
       console.error('Error updating location:', error);
@@ -220,7 +220,7 @@ class UserService {
     userId: string
   ): Promise<{ latitude: number; longitude: number } | null> {
     try {
-      return await apiUtils.get<{ latitude: number; longitude: number }>(
+      return await httpClient.get<{ latitude: number; longitude: number }>(
         ENDPOINTS.USERS.LOCATION(userId)
       );
     } catch (error) {
@@ -235,7 +235,7 @@ class UserService {
     item: SearchHistoryItemEmbeddable
   ): Promise<boolean> {
     try {
-      await apiUtils.post(ENDPOINTS.USERS.SEARCH_HISTORY(userId), item);
+      await httpClient.post(ENDPOINTS.USERS.SEARCH_HISTORY(userId), item);
       return true;
     } catch (error) {
       console.error('Error adding search history item:', error);
@@ -263,7 +263,7 @@ class UserService {
     userId: string
   ): Promise<SearchHistoryItemEmbeddable[]> {
     try {
-      const response = await apiUtils.get<{
+      const response = await httpClient.get<{
         searchHistory: SearchHistoryItemEmbeddable[];
       }>(ENDPOINTS.USERS.SEARCH_HISTORY(userId));
       return response.searchHistory || [];
@@ -276,7 +276,7 @@ class UserService {
   // Admin functions
   async getAllUsers(): Promise<ClientDTO[]> {
     try {
-      const users = await apiUtils.get<ClientDTO[]>('/users');
+      const users = await httpClient.get<ClientDTO[]>('/users');
       return users || [];
     } catch (error) {
       console.error('Error fetching all users:', error);
@@ -286,7 +286,7 @@ class UserService {
 
   async updateUserRole(userId: number, role: RoleEnum): Promise<boolean> {
     try {
-      await apiUtils.patch(`/admin/users/${userId}/role`, {
+      await httpClient.patch(`/admin/users/${userId}/role`, {
         role: role.toString(),
       });
       return true;
@@ -301,7 +301,7 @@ class UserService {
     disabled: boolean
   ): Promise<boolean> {
     try {
-      await apiUtils.patch(`/admin/users/${userId}/disabled`, { disabled });
+      await httpClient.patch(`/admin/users/${userId}/disabled`, { disabled });
       return true;
     } catch (error) {
       console.error('Error updating user disabled status:', error);
@@ -311,7 +311,7 @@ class UserService {
 
   async updateUserPremium(userId: number, premium: boolean): Promise<boolean> {
     try {
-      await apiUtils.patch(`/admin/users/${userId}/premium`, { premium });
+      await httpClient.patch(`/admin/users/${userId}/premium`, { premium });
       return true;
     } catch (error) {
       console.error('Error updating user premium status:', error);

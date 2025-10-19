@@ -37,7 +37,6 @@ import * as MailComposer from 'expo-mail-composer';
 import { BlurView } from 'expo-blur';
 import { useAuth } from '../../providers/AuthProvider';
 import { userService } from '@/src/app/services/userService';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useUserRole } from '@/src/app/hooks/useUserRole';
 import { useUserHighlights } from '@/src/app/hooks/useUserHighlights';
 import { HighlightedPostsGrid } from '@/src/app/components/user/Profile/HighlightedPostsGrid';
@@ -196,7 +195,8 @@ export const Account = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [isBioModalOpen, setIsBioModalOpen] = useState(false);
   const [isUpdatingBio, setIsUpdatingBio] = useState(false);
-  const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] = useState(false);
+  const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] =
+    useState(false);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -214,11 +214,11 @@ export const Account = () => {
     try {
       // Update bio via userService
       await userService.updateBio(newBio);
-      
+
       // Update local user data
       const { updateUserData } = useUserStore.getState();
       updateUserData({ bio: newBio });
-      
+
       showSuccessToast(
         t('bio.save-success-title') || 'Success',
         t('bio.save-success-message') || 'Bio updated successfully!'
@@ -285,7 +285,7 @@ export const Account = () => {
     }
   };
 
-  const handleDeleteAccount = async (confirmationText: string) => {
+  const handleDeleteAccount = async () => {
     try {
       // First remove push token from backend (before account deletion)
       if (currentPushToken && userData?.id) {
@@ -383,15 +383,13 @@ export const Account = () => {
         {/* Enhanced Profile Section */}
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
-            {isPremium && (
-              <LinearGradient
-                colors={['#FFD700', '#FFA500', '#FF6347']}
-                style={styles.premiumRing}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              />
-            )}
-            <Avatar size="xl" style={styles.avatarContainer}>
+            <Avatar
+              size="xl"
+              style={[
+                styles.avatarContainer,
+                isPremium && styles.premiumBorder,
+              ]}
+            >
               {photoUrl ? (
                 <AvatarImage
                   source={{ uri: photoUrl }}
@@ -485,7 +483,7 @@ export const Account = () => {
                   style={styles.editBioButton}
                   onPress={() => setIsBioModalOpen(true)}
                 >
-                  <Text style={styles.editBioText}>Edit</Text>
+                  <Text style={styles.editBioText}>{t('bio.edit')}</Text>
                 </TouchableOpacity>
               </View>
               <View style={styles.bioContent}>
@@ -501,7 +499,9 @@ export const Account = () => {
                 icon={Icons.Info}
                 title={t('user.profile')}
                 description={t('view-profile-detail')}
-                onPress={() => (navigation as any).navigate('UserDetail', { userId: userId })}
+                onPress={() =>
+                  (navigation as any).navigate('UserDetail', { userId: userId })
+                }
               />
             </View>
           </View>
@@ -702,21 +702,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  premiumRing: {
-    position: 'absolute',
-    top: -6,
-    left: -6,
-    right: -6,
-    bottom: -6,
-    borderRadius: 75,
-    zIndex: 1,
+  premiumBorder: {
+    borderColor: '#FFC107',
+    borderWidth: 3,
   },
   avatarContainer: {
     width: 120,
     height: 120,
     borderWidth: 3,
     borderColor: separatorColor,
-    zIndex: 2,
   },
   avatarImage: {
     borderWidth: 3,

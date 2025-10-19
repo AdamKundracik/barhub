@@ -1,6 +1,6 @@
 import { useQuery } from 'react-query';
 import { postService } from '../services/postService';
-import { Post } from '@/common/types/postTypes';
+import { Post } from '@/src/app/types/postTypes';
 import { useUserStore } from '../utils/store/userStore';
 
 export const usePostDetail = (postId: string) => {

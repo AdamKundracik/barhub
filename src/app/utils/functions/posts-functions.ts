@@ -1,6 +1,6 @@
 import { GeoPointType, LocationType } from '../types/types';
 import { getFreshContent, getPostsByPlaceId } from '../services/post.service';
-import { InfinityScrollPost, Post } from '@/common/types/postTypes';
+import { InfinityScrollPost, Post } from '@/src/app/types/postTypes';
 import { useUserStore } from '../store/userStore';
 
 export const handleFreshContent = async (

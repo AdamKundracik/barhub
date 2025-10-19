@@ -6,8 +6,9 @@ import {
   SignInRequestDTO,
   SignUpRequestDTO,
 } from '../types/dto';
-import { useUserStore } from '../utils/store/userStore';
 import { apiClient } from '../utils/api/apiClient';
+import { axiosClient } from '../utils/api/axiosClient';
+import { tokenManager } from '../utils/api/tokenManager';
 
 // Type aliases for better naming
 export type LoginCredentials = SignInRequestDTO;
@@ -15,20 +16,24 @@ export type RegisterCredentials = SignUpRequestDTO;
 export type AuthResponse = JwtAuthenticationResponseDTO;
 export type User = ClientDTO;
 
+// Callback types for breaking circular dependency
+export type OnUserDataUpdateCallback = (userData: ClientDTO | null) => void;
+
 // Constants
-const ACCESS_TOKEN_KEY = 'access_token';
-const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_DATA_KEY = 'user_data';
 
 class AuthService {
-  private accessToken: string | null = null;
-  private refreshToken: string | null = null;
+  private onUserDataUpdateCallback: OnUserDataUpdateCallback | null = null;
 
-  // Initialize tokens from storage
+  // Set callback for user data updates (to break circular dependency)
+  setUserDataUpdateCallback(callback: OnUserDataUpdateCallback): void {
+    this.onUserDataUpdateCallback = callback;
+  }
+
+  // Initialize tokens from secure storage
   async initialize(): Promise<void> {
     try {
-      this.accessToken = await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
-      this.refreshToken = await AsyncStorage.getItem(REFRESH_TOKEN_KEY);
+      await tokenManager.initialize();
     } catch (error) {
       console.error('Error initializing auth service:', error);
     }
@@ -37,23 +42,10 @@ class AuthService {
   // Login with email and password
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
-      const response = await fetch(
-        `${API_CONFIG.BASE_URL}${ENDPOINTS.AUTH.SIGNIN}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(credentials),
-        }
+      const authResponse: AuthResponse = await axiosClient.post(
+        ENDPOINTS.AUTH.SIGNIN,
+        credentials
       );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Login failed');
-      }
-
-      const authResponse: AuthResponse = await response.json();
 
       // Store tokens
       await this.storeTokens(authResponse.token, authResponse.refreshToken);
@@ -64,8 +56,8 @@ class AuthService {
           USER_DATA_KEY,
           JSON.stringify(authResponse.user)
         );
-        // Also update Zustand store
-        useUserStore.getState().setUserData(authResponse.user);
+        // Also update user store via callback
+        this.onUserDataUpdateCallback?.(authResponse.user);
       }
 
       return authResponse;
@@ -78,23 +70,10 @@ class AuthService {
   // Register new user
   async register(credentials: RegisterCredentials): Promise<AuthResponse> {
     try {
-      const response = await fetch(
-        `${API_CONFIG.BASE_URL}${ENDPOINTS.AUTH.SIGNUP}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(credentials),
-        }
+      const authResponse: AuthResponse = await axiosClient.post(
+        ENDPOINTS.AUTH.SIGNUP,
+        credentials
       );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Registration failed');
-      }
-
-      const authResponse: AuthResponse = await response.json();
 
       // Store tokens
       await this.storeTokens(authResponse.token, authResponse.refreshToken);
@@ -105,15 +84,19 @@ class AuthService {
           USER_DATA_KEY,
           JSON.stringify(authResponse.user)
         );
-        // Also update Zustand store
-        useUserStore.getState().setUserData(authResponse.user);
-        
+        // Also update user store via callback
+        this.onUserDataUpdateCallback?.(authResponse.user);
+
         // Send verification email if user is not verified
         if (!authResponse.user.emailVerified) {
           try {
             // Lazy import to avoid circular dependency
-            const { emailVerificationService } = await import('./emailVerificationService');
-            await emailVerificationService.sendVerificationEmail(authResponse.user.email);
+            const { emailVerificationService } = await import(
+              './emailVerificationService'
+            );
+            await emailVerificationService.sendVerificationEmail(
+              authResponse.user.email
+            );
           } catch (emailError) {
             console.error('Failed to send verification email:', emailError);
             // Don't throw - registration was successful even if email fails
@@ -145,18 +128,18 @@ class AuthService {
 
       // Create FormData
       const formData = new FormData();
-      
+
       // React Native FormData requires object with uri, type, name (not blob)
       formData.append('profilePhoto', {
         uri: manipulatedImage.uri,
         type: 'image/webp',
         name: 'profile.webp',
       } as any);
-      
+
       formData.append('name', credentials.name);
       formData.append('email', credentials.email);
       formData.append('password', credentials.password);
-      
+
       if (credentials.dateOfBirth) {
         // Convert date to ISO string format for backend
         formData.append('dateOfBirth', credentials.dateOfBirth);
@@ -167,20 +150,15 @@ class AuthService {
         formData.append('consents', JSON.stringify(credentials.consents));
       }
 
-      const uploadResponse = await fetch(
-        `${API_CONFIG.BASE_URL}${ENDPOINTS.AUTH.SIGNUP_WITH_PHOTO}`,
+      const authResponse: AuthResponse = await axiosClient.post(
+        ENDPOINTS.AUTH.SIGNUP_WITH_PHOTO,
+        formData,
         {
-          method: 'POST',
-          body: formData,
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         }
       );
-
-      if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Registration with photo failed');
-      }
-
-      const authResponse: AuthResponse = await uploadResponse.json();
 
       // Store tokens
       await this.storeTokens(authResponse.token, authResponse.refreshToken);
@@ -191,15 +169,19 @@ class AuthService {
           USER_DATA_KEY,
           JSON.stringify(authResponse.user)
         );
-        // Also update Zustand store
-        useUserStore.getState().setUserData(authResponse.user);
+        // Also update user store via callback
+        this.onUserDataUpdateCallback?.(authResponse.user);
 
         // Send verification email if user is not verified
         if (!authResponse.user.emailVerified) {
           try {
             // Lazy import to avoid circular dependency
-            const { emailVerificationService } = await import('./emailVerificationService');
-            await emailVerificationService.sendVerificationEmail(authResponse.user.email);
+            const { emailVerificationService } = await import(
+              './emailVerificationService'
+            );
+            await emailVerificationService.sendVerificationEmail(
+              authResponse.user.email
+            );
           } catch (emailError) {
             console.error('Failed to send verification email:', emailError);
             // Don't throw - registration was successful even if email fails
@@ -217,29 +199,16 @@ class AuthService {
 
   // Refresh access token
   async refreshAccessToken(): Promise<string | null> {
-    if (!this.refreshToken) {
+    const refreshToken = tokenManager.getRefreshToken();
+    if (!refreshToken) {
       return null;
     }
 
     try {
-      const response = await fetch(
-        `${API_CONFIG.BASE_URL}${ENDPOINTS.AUTH.REFRESH}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ refreshToken: this.refreshToken }),
-        }
+      const authResponse: AuthResponse = await axiosClient.post(
+        ENDPOINTS.AUTH.REFRESH,
+        { refreshToken: refreshToken }
       );
-
-      if (!response.ok) {
-        // Refresh token is invalid, logout user
-        await this.logout();
-        return null;
-      }
-
-      const authResponse: AuthResponse = await response.json();
 
       // Store new tokens
       await this.storeTokens(authResponse.token, authResponse.refreshToken);
@@ -247,48 +216,27 @@ class AuthService {
       return authResponse.token;
     } catch (error) {
       console.error('Token refresh error:', error);
-      await this.logout();
+      // await this.logout(); // COMMENTED FOR DEBUGGING
       return null;
     }
   }
 
   // Get current user data
-  async getCurrentUser(retryCount = 0): Promise<User | null> {
+  async getCurrentUser(): Promise<User | null> {
     try {
       const token = await this.getValidAccessToken();
       if (!token) {
         return null;
       }
 
-      const response = await fetch(
-        `${API_CONFIG.BASE_URL}${ENDPOINTS.USERS.ME}`,
-        {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        if (response.status === 401 && retryCount < 1) {
-          // Token expired, try to refresh (only once to prevent infinite loop)
-          const newToken = await this.refreshAccessToken();
-          if (newToken) {
-            return this.getCurrentUser(retryCount + 1); // Retry with new token
-          }
-        }
-        throw new Error('Failed to get user data');
-      }
-
-      const userData: User = await response.json();
+      // Use axiosClient - interceptor will handle token refresh automatically
+      const userData: User = await axiosClient.get(ENDPOINTS.USERS.ME);
 
       // Store user data locally
       await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
 
-      // Update Zustand store
-      useUserStore.getState().setUserData(userData);
+      // Update user store via callback
+      this.onUserDataUpdateCallback?.(userData);
 
       return userData;
     } catch (error) {
@@ -310,25 +258,32 @@ class AuthService {
 
   // Get current access token without automatic refresh
   getCurrentAccessToken(): string | null {
-    return this.accessToken;
+    return tokenManager.getAccessToken();
   }
 
   // Get valid access token (refresh if needed)
   async getValidAccessToken(): Promise<string | null> {
-    if (!this.accessToken) {
+    const accessToken = tokenManager.getAccessToken();
+
+    if (!accessToken) {
       await this.initialize();
+      const refreshedToken = tokenManager.getAccessToken();
+      if (!refreshedToken) {
+        return null;
+      }
     }
 
-    if (!this.accessToken) {
+    const currentToken = tokenManager.getAccessToken();
+    if (!currentToken) {
       return null;
     }
 
     // Check if token is expired (basic check - you might want to decode JWT)
-    if (this.isTokenExpired(this.accessToken)) {
+    if (tokenManager.isTokenExpired(currentToken)) {
       return await this.refreshAccessToken();
     }
 
-    return this.accessToken;
+    return currentToken;
   }
 
   // Check if user is authenticated
@@ -341,66 +296,39 @@ class AuthService {
   async logout(): Promise<void> {
     try {
       // Call backend logout endpoint to clear Redis data
-      if (this.refreshToken) {
+      const refreshToken = tokenManager.getRefreshToken();
+      if (refreshToken) {
         try {
-          await fetch(
-            `${API_CONFIG.BASE_URL}${ENDPOINTS.AUTH.LOGOUT}`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ refreshToken: this.refreshToken }),
-            }
-          );
+          await axiosClient.post(ENDPOINTS.AUTH.LOGOUT, {
+            refreshToken: refreshToken,
+          });
         } catch (error) {
           console.error('Error calling backend logout:', error);
           // Continue with local cleanup even if backend logout fails
         }
       }
 
-      // Clear tokens from memory
-      this.accessToken = null;
-      this.refreshToken = null;
+      // Clear tokens using token manager
+      await tokenManager.clearTokens();
 
-      // Clear tokens from storage
-      await AsyncStorage.multiRemove([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY]);
-
-      // Clear user data from Zustand store
-      useUserStore.getState().setUserData(null);
+      // Clear user data from user store via callback
+      this.onUserDataUpdateCallback?.(null);
     } catch (error) {
       console.error('Logout error:', error);
     }
   }
 
-  // Store tokens securely
+  // Store tokens securely using Expo SecureStore
   private async storeTokens(
     accessToken: string,
     refreshToken: string
   ): Promise<void> {
     try {
-      this.accessToken = accessToken;
-      this.refreshToken = refreshToken;
-
-      await AsyncStorage.multiSet([
-        [ACCESS_TOKEN_KEY, accessToken],
-        [REFRESH_TOKEN_KEY, refreshToken],
-      ]);
+      // Store tokens using token manager
+      await tokenManager.setTokens(accessToken, refreshToken);
     } catch (error) {
       console.error('Error storing tokens:', error);
       throw error;
-    }
-  }
-
-  // Basic token expiration check (you might want to use a JWT library for proper decoding)
-  private isTokenExpired(token: string): boolean {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const currentTime = Math.floor(Date.now() / 1000);
-      return payload.exp < currentTime;
-    } catch (error) {
-      // If we can't decode the token, assume it's expired
-      return true;
     }
   }
 
@@ -468,20 +396,12 @@ class AuthService {
     newPassword: string
   ): Promise<void> {
     try {
-      const response = await this.makeAuthenticatedRequest(
-        `${API_CONFIG.BASE_URL}${ENDPOINTS.AUTH.UPDATE_PASSWORD}`,
-        {
-          method: 'POST',
-          body: JSON.stringify({ oldPassword, newPassword }),
-        }
-      );
+      // Use axiosClient directly - interceptor will handle token refresh automatically
+      const data = await axiosClient.post(ENDPOINTS.AUTH.UPDATE_PASSWORD, {
+        oldPassword,
+        newPassword,
+      });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to update password');
-      }
-
-      const data = await response.json();
       if (!data.success) {
         throw new Error(data.message || 'Failed to update password');
       }
@@ -491,57 +411,83 @@ class AuthService {
     }
   }
 
-  // Make an authenticated API request
+  // Make an authenticated API request using axiosClient
   async makeAuthenticatedRequest(
     url: string,
     options: RequestInit = {}
   ): Promise<Response> {
-    const token = await this.getValidAccessToken();
+    try {
+      // Extract endpoint from full URL
+      const endpoint = url.replace(API_CONFIG.BASE_URL, '');
 
-    if (!token) {
-      throw new Error('No valid access token available');
-    }
+      // Convert RequestInit to AxiosRequestConfig
+      const axiosConfig: any = {
+        method: options.method?.toLowerCase() || 'get',
+        headers: options.headers,
+      };
 
-    const headers = {
-      ...options.headers,
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    };
-
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
-
-    // If unauthorized, try to refresh token and retry once
-    if (response.status === 401) {
-      const newToken = await this.refreshAccessToken();
-      if (newToken) {
-        const retryHeaders = {
-          ...options.headers,
-          Authorization: `Bearer ${newToken}`,
-          'Content-Type': 'application/json',
-        };
-
-        const retryResponse = await fetch(url, {
-          ...options,
-          headers: retryHeaders,
-        });
-
-        // If still 401 after refresh, token is invalid
-        if (retryResponse.status === 401) {
-          await this.logout();
-          throw new Error('Session expired. Please login again.');
+      // Add body for POST/PUT/PATCH requests
+      if (options.body) {
+        if (options.body instanceof FormData) {
+          axiosConfig.data = options.body;
+          delete axiosConfig.headers?.['Content-Type']; // Let axios set it for FormData
+        } else {
+          axiosConfig.data = options.body;
         }
-
-        return retryResponse;
-      } else {
-        await this.logout();
-        throw new Error('Session expired. Please login again.');
       }
-    }
 
-    return response;
+      // Use axiosClient - interceptor will handle token refresh automatically
+      const response = await axiosClient.getInstance().request({
+        url: endpoint,
+        ...axiosConfig,
+      });
+
+      // Convert AxiosResponse to Response-like object
+      return {
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+        json: async () => response.data,
+        text: async () => JSON.stringify(response.data),
+        redirected: false,
+        type: 'basic' as ResponseType,
+        url: response.config.url || '',
+        clone: () => {
+          throw new Error('Clone not supported');
+        },
+        body: null,
+        bodyUsed: false,
+        arrayBuffer: async () => new ArrayBuffer(0),
+        blob: async () => new Blob(),
+        formData: async () => new FormData(),
+      } as unknown as Response;
+    } catch (error: any) {
+      // Convert axios error to Response-like object
+      const status = error.response?.status || 500;
+      const statusText = error.response?.statusText || 'Internal Server Error';
+      const data = error.response?.data || { message: error.message };
+
+      return {
+        ok: false,
+        status,
+        statusText,
+        headers: error.response?.headers || {},
+        json: async () => data,
+        text: async () => JSON.stringify(data),
+        redirected: false,
+        type: 'basic' as ResponseType,
+        url: error.config?.url || '',
+        clone: () => {
+          throw new Error('Clone not supported');
+        },
+        body: null,
+        bodyUsed: false,
+        arrayBuffer: async () => new ArrayBuffer(0),
+        blob: async () => new Blob(),
+        formData: async () => new FormData(),
+      } as unknown as Response;
+    }
   }
 
   /**
@@ -559,8 +505,8 @@ class AuthService {
           USER_DATA_KEY,
           JSON.stringify(authResponse.user)
         );
-        // Also update Zustand store
-        useUserStore.getState().setUserData(authResponse.user);
+        // Also update user store via callback
+        this.onUserDataUpdateCallback?.(authResponse.user);
       }
     } catch (error) {
       console.error('Error handling social auth response:', error);

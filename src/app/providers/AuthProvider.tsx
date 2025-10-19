@@ -3,10 +3,8 @@ import React, {
   ReactNode,
   useContext,
   useEffect,
-  useRef,
   useState,
 } from 'react';
-import { AppState, AppStateStatus } from 'react-native';
 import { useQueryClient } from 'react-query';
 import {
   authService,
@@ -21,9 +19,12 @@ import { useLocationStore } from '../utils/store/locationStore';
 import { getCoords } from '../utils/helper-functions/get-coords';
 import { socialAuthService } from '../services/socialAuthService';
 import { signInWithGoogleRN } from '../services/auth/googleSignInRN';
-import { signInWithApple as appleSignIn, isAppleSignInAvailable } from '../services/auth/appleSignIn';
+import {
+  isAppleSignInAvailable,
+  signInWithApple as appleSignIn,
+} from '../services/auth/appleSignIn';
 import { consentService } from '../services/consentService';
-import { OutdatedConsentDTO, JwtAuthenticationResponseDTO } from '../types/dto';
+import { JwtAuthenticationResponseDTO, OutdatedConsentDTO } from '../types/dto';
 import { useJwtTokenManager } from '../utils/hooks/useJwtTokenManager';
 
 // Global reference to unsubscribe function (set by Navigation component)
@@ -63,19 +64,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [pendingConsents, setPendingConsents] = useState<OutdatedConsentDTO[] | null>(null);
-  
-  // Temporary state for social auth flow (before consents are accepted)
-  const [pendingSocialAuth, setPendingSocialAuth] = useState<{
-    provider: 'google' | 'apple';
-    idToken: string;
-    email?: string;
-    name: string;
-    photoUrl?: string;
-    appleUserId?: string;
-  } | null>(null);
-  
-  const appState = useRef<AppStateStatus>(AppState.currentState);
+  const [pendingConsents, setPendingConsents] = useState<
+    OutdatedConsentDTO[] | null
+  >(null);
 
   // React Query client for cache management
   const queryClient = useQueryClient();
@@ -86,7 +77,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     useLocationStore();
 
   // JWT Token Manager
-  const { initializeTokenManagement, stopTokenManagement } = useJwtTokenManager();
+  const { initializeTokenManagement, stopTokenManagement } =
+    useJwtTokenManager();
 
   // Google Sign-In hook
   // Google Sign-In is now handled directly in signInWithGoogle function
@@ -185,8 +177,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // Check consent status on app reload
           if (userData.id) {
             try {
-              const consentStatus = await consentService.getConsentStatus(userData.id.toString());
-              
+              const consentStatus = await consentService.getConsentStatus(
+                userData.id.toString()
+              );
+
               // Transform backend ConsentStatusDTO to OutdatedConsentDTO[]
               const outdated: OutdatedConsentDTO[] = consentStatus.consents
                 .filter(c => !c.accepted || c.needsUpdate)
@@ -196,7 +190,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                   userAcceptedVersion: c.acceptedVersion,
                   needsUpdate: c.needsUpdate,
                 }));
-              
+
               if (outdated.length > 0) {
                 setPendingConsents(outdated);
               }
@@ -206,14 +200,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         } else {
           // If we can't get user data, logout
-          await authService.logout();
+          // await authService.logout(); // COMMENTED FOR DEBUGGING
           setUser(null);
         }
       }
     } catch (error) {
       console.error('Auth initialization error:', error);
       // On error, clear auth state
-      await authService.logout();
+      // await authService.logout(); // COMMENTED FOR DEBUGGING
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -225,10 +219,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
 
       // Login and get tokens + consent status
-      const authResponse: JwtAuthenticationResponseDTO = await authService.login(credentials);
+      const authResponse: JwtAuthenticationResponseDTO =
+        await authService.login(credentials);
 
       // Check if consents are required
-      if (authResponse.consentStatus?.consentsRequired && authResponse.consentStatus.outdatedConsents.length > 0) {
+      if (
+        authResponse.consentStatus?.consentsRequired &&
+        authResponse.consentStatus.outdatedConsents.length > 0
+      ) {
         // Store pending consents - modal will be shown in UserNavWrapper
         setPendingConsents(authResponse.consentStatus.outdatedConsents);
       }
@@ -365,7 +363,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signInWithGoogle = async () => {
     try {
       setIsLoading(true);
-      
+
       // Use React Native Google Sign-In
       const googleUser = await signInWithGoogleRN();
       if (!googleUser) {
@@ -373,16 +371,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       // Call backend with Google credentials
-      const authResponse: JwtAuthenticationResponseDTO = await socialAuthService.signInWithGoogle(
-        googleUser.idToken,
-        googleUser.email,
-        googleUser.name,
-        googleUser.photoUrl
-      );
-
+      const authResponse: JwtAuthenticationResponseDTO =
+        await socialAuthService.signInWithGoogle(
+          googleUser.idToken,
+          googleUser.email,
+          googleUser.name,
+          googleUser.photoUrl
+        );
 
       // Check if consents are required
-      if (authResponse.consentStatus?.consentsRequired && authResponse.consentStatus.outdatedConsents.length > 0) {
+      if (
+        authResponse.consentStatus?.consentsRequired &&
+        authResponse.consentStatus.outdatedConsents.length > 0
+      ) {
         setPendingConsents(authResponse.consentStatus.outdatedConsents);
       }
 
@@ -421,16 +422,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       // Call backend with Apple credentials
-      const authResponse: JwtAuthenticationResponseDTO = await socialAuthService.signInWithApple(
-        appleUser.idToken,
-        appleUser.email,
-        appleUser.name,
-        appleUser.appleUserId
-      );
-
+      const authResponse: JwtAuthenticationResponseDTO =
+        await socialAuthService.signInWithApple(
+          appleUser.idToken,
+          appleUser.email,
+          appleUser.name,
+          appleUser.appleUserId
+        );
 
       // Check if consents are required
-      if (authResponse.consentStatus?.consentsRequired && authResponse.consentStatus.outdatedConsents.length > 0) {
+      if (
+        authResponse.consentStatus?.consentsRequired &&
+        authResponse.consentStatus.outdatedConsents.length > 0
+      ) {
         setPendingConsents(authResponse.consentStatus.outdatedConsents);
       }
 

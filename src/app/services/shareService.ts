@@ -1,6 +1,6 @@
 import { Platform, Share } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { Post } from '@/common/types/postTypes';
+import { Post } from '@/src/app/types/postTypes';
 
 class ShareService {
   // Always use PROD web URL for deep linking (without trailing slash)

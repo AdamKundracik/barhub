@@ -20,7 +20,7 @@ import BottomSheet, {
 } from '@gorhom/bottom-sheet';
 import CommentsLoaderView from '../Loaders/CommentsLoaderView';
 import commentService from '../../../../../utils/services/comment.service';
-import { PostComment } from '@/common/types/commentTypes';
+import { PostComment } from '@/src/app/types/commentTypes';
 import { User } from '@/shared';
 import { auth } from '@/firebaseConfig';
 import { primaryColor, primaryGrey } from '@/src/app/utils/styles/colors';

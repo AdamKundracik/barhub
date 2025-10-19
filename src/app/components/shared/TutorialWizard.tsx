@@ -216,7 +216,7 @@ export const TutorialWizard: React.FC<TutorialWizardProps> = ({
                 <FontAwesomeIcon
                   icon={Icons.ChevronRight}
                   size={20}
-                  color="#FFF"
+                  color="black"
                 />
               )}
             </TouchableOpacity>
