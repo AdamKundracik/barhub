@@ -22,6 +22,8 @@ export const useRevenueCat = ({
 } = {}) => {
   const [packages, setPackages] = useState<PurchasesPackage[]>([]);
   const [isReady, setIsReady] = useState(false);
+  const [currentSubscriptionType, setCurrentSubscriptionType] = useState<string | null>(null);
+  const [offerings, setOfferings] = useState<any>(null);
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const { t } = useTranslation();
 
@@ -53,9 +55,10 @@ export const useRevenueCat = ({
   }, [user?.id]);
 
   const loadOfferings = async () => {
-    const offerings = await Purchases.getOfferings();
-    if (offerings.current) {
-      setPackages(offerings.current.availablePackages);
+    const offeringsData = await Purchases.getOfferings();
+    setOfferings(offeringsData);
+    if (offeringsData.current) {
+      setPackages(offeringsData.current.availablePackages);
     }
   };
 
@@ -63,6 +66,23 @@ export const useRevenueCat = ({
     try {
       const entitlements = customerInfo?.entitlements?.active ?? {};
       const isPremiumInRC = !!entitlements['subscription']; // názov podľa RC Dashboard
+
+      // Get current subscription type from active entitlements
+      const activeEntitlements = Object.keys(entitlements);
+      let subscriptionType: string | null = null;
+      
+      if (activeEntitlements.length > 0) {
+        // Check for specific subscription types
+        if (activeEntitlements.includes('barhub_premium_1y')) {
+          subscriptionType = 'barhub_premium_1y';
+        } else if (activeEntitlements.includes('barhub_premium_1m')) {
+          subscriptionType = 'barhub_premium_1m';
+        } else if (activeEntitlements.includes('subscription')) {
+          subscriptionType = 'subscription';
+        }
+      }
+      
+      setCurrentSubscriptionType(subscriptionType);
 
       // console.log('[RevenueCat] Customer info updated - Premium in RC:', isPremiumInRC);
       // console.log('[RevenueCat] Premium status is managed by backend webhook - not updating locally');
@@ -103,5 +123,7 @@ export const useRevenueCat = ({
     isReady,
     purchasePackage,
     restorePermissions,
+    currentSubscriptionType,
+    offerings,
   };
 };

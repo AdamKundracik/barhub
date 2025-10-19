@@ -179,7 +179,6 @@
   "account": "Účet",
   "info": "Informácie",
   "help": "Pomoc",
-  "subscription": "Predplatné",
   "logout": "Odhlásiť sa",
   "change-password-title": "Zmena hesla",
   "change-password-subtitle": "Aktualizujte si heslo pre zabezpečenie účtu",
@@ -694,6 +693,25 @@
     "save-success-message": "Bio bolo úspešne aktualizované!",
     "save-error-title": "Chyba",
     "save-error-message": "Nepodarilo sa uložiť bio. Skúste to znova."
+  },
+  "subscription": {
+    "thank-you-title": "Ďakujeme za podporu!",
+    "thank-you-subtitle": "Máte aktívne ročné predplatné Barhub Premium",
+    "premium-badge": "BARHUB PREMIUM",
+    "yearly-subscription": "Ročné predplatné",
+    "premium-benefits": "Vaše prémiové výhody:",
+    "no-ads": "Žiadne reklamy",
+    "access-all-benefits": "Prístup k všetkým výhodám",
+    "travel-mode": "Cestovný režim",
+    "leaderboards": "Týždenný, mesačný a ročný rebríček",
+    "more-highlights": "Väčšie množstvo zvýraznených príspevkov",
+    "thank-you-message": "Vaša podpora nám pomáha neustále zlepšovať Barhub a prinášať vám najlepšie zážitky. Ďakujeme, že ste súčasťou našej komunity!",
+    "close": "Zavrieť",
+    "welcome-title": "Vitajte v Premium!",
+    "welcome-subtitle": "Úspešne ste si zakúpili Barhub Premium",
+    "welcome-badge": "Nový Premium používateľ",
+    "welcome-message": "Teraz máte prístup ku všetkým prémiovým funkciám! Užite si bezplatné používanie bez reklám a všetky výhody, ktoré Barhub Premium ponúka.",
+    "start-enjoying": "Začať užívať"
   }
 }
 

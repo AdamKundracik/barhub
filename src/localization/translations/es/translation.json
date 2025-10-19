@@ -176,7 +176,6 @@
   "account": "Cuenta",
   "info": "Información",
   "help": "Ayuda",
-  "subscription": "Suscripción",
   "logout": "Cerrar sesión",
   "change-password-title": "Cambiar Contraseña",
   "old-password": "Contraseña Anterior",
@@ -629,5 +628,19 @@
     "save-success-message": "¡Bio actualizado exitosamente!",
     "save-error-title": "Error",
     "save-error-message": "No se pudo guardar el bio. Por favor, inténtalo de nuevo."
+  },
+  "subscription": {
+    "thank-you-title": "¡Gracias por tu apoyo!",
+    "thank-you-subtitle": "Tienes una suscripción activa anual de Barhub Premium",
+    "premium-badge": "BARHUB PREMIUM",
+    "yearly-subscription": "Suscripción anual",
+    "premium-benefits": "Tus beneficios premium:",
+    "no-ads": "Sin anuncios",
+    "access-all-benefits": "Acceso a todos los beneficios",
+    "travel-mode": "Modo viaje",
+    "leaderboards": "Clasificaciones semanales, mensuales y anuales",
+    "more-highlights": "Más publicaciones destacadas",
+    "thank-you-message": "Tu apoyo nos ayuda a mejorar constantemente Barhub y brindarte las mejores experiencias. ¡Gracias por ser parte de nuestra comunidad!",
+    "close": "Cerrar"
   }
 }

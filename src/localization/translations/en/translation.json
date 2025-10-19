@@ -179,7 +179,6 @@
   "account": "Account",
   "info": "Info",
   "help": "Help",
-  "subscription": "Subscription",
   "logout": "Log out",
   "change-password-title": "Change Password",
   "change-password-subtitle": "Update your password to keep your account secure",
@@ -693,5 +692,19 @@
     "consent-withdrawal-explanation": "You have the right to withdraw your consent for us to process your personal data at any time. If you withdraw consent, you will need to either re-accept our terms to continue using the app, or delete your account. This action cannot be undone.",
     "your-gdpr-rights": "Your GDPR Rights",
     "gdpr-rights-explanation": "Under GDPR, you have the right to access, rectify, erase, restrict processing, data portability, and to object to processing of your personal data. You also have the right to lodge a complaint with a supervisory authority."
+  },
+  "subscription": {
+    "thank-you-title": "Thank you for your support!",
+    "thank-you-subtitle": "You have an active annual Barhub Premium subscription",
+    "premium-badge": "BARHUB PREMIUM",
+    "yearly-subscription": "Annual subscription",
+    "premium-benefits": "Your premium benefits:",
+    "no-ads": "No ads",
+    "access-all-benefits": "Access to all benefits",
+    "travel-mode": "Travel mode",
+    "leaderboards": "Weekly, monthly and yearly leaderboards",
+    "more-highlights": "More highlighted posts",
+    "thank-you-message": "Your support helps us constantly improve Barhub and bring you the best experiences. Thank you for being part of our community!",
+    "close": "Close"
   }
 }
