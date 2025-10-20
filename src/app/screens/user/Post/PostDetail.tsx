@@ -48,6 +48,9 @@ export const PostDetail = () => {
   const queryClient = useQueryClient();
   const { getUserId, isPremium } = useUserStore();
 
+  // Check if we can go back (if there's a previous screen in the stack)
+  const canGoBack = navigation.canGoBack();
+
   const { postId } = route.params as { postId: string };
   const { post, isLoading, error, refetch } = usePostDetail(postId);
 
@@ -99,6 +102,16 @@ export const PostDetail = () => {
   const handleNavigateToUser = () => {
     if (!post?.userId) return;
     (navigation as any).navigate('UserDetail', { userId: post.userId });
+  };
+
+  // Handle back navigation - go to Feed if no previous screen (deeplink scenario)
+  const handleBackPress = () => {
+    if (canGoBack) {
+      navigation.goBack();
+    } else {
+      // Navigate to Feed if opened from deeplink
+      (navigation as any).navigate('MainTabs', { screen: 'Feed' });
+    }
   };
 
   const handleReport = async (reason: ReportReason, customReason?: string) => {
@@ -286,7 +299,7 @@ export const PostDetail = () => {
         <HStack space="md" style={{ marginTop: 24 }}>
           <TouchableOpacity
             style={styles.secondaryButton}
-            onPress={() => navigation.goBack()}
+            onPress={handleBackPress}
           >
             <FontAwesomeIcon icon={Icons.faArrowLeft} size={16} color="#fff" />
             <Text style={styles.secondaryButtonText}>{t('go-back')}</Text>
@@ -329,7 +342,7 @@ export const PostDetail = () => {
         <HStack style={styles.headerContent}>
           <TouchableOpacity
             style={styles.headerButton}
-            onPress={() => navigation.goBack()}
+            onPress={handleBackPress}
           >
             <FontAwesomeIcon icon={Icons.faArrowLeft} size={24} color="#fff" />
           </TouchableOpacity>
