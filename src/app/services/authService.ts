@@ -218,6 +218,13 @@ class AuthService {
   async refreshAccessToken(): Promise<string | null> {
     const refreshToken = await tokenManager.getRefreshToken();
     if (!refreshToken) {
+      console.log('🔄 No refresh token available');
+      return null;
+    }
+
+    // Check if refresh token is expired
+    if (tokenManager.isTokenExpired(refreshToken)) {
+      console.log('🔄 Refresh token expired, cannot refresh access token');
       return null;
     }
 
@@ -233,10 +240,12 @@ class AuthService {
       // Store new tokens
       await this.storeTokens(authResponse.token, authResponse.refreshToken);
 
+      console.log('✅ Token refresh successful');
       return authResponse.token;
     } catch (error) {
       console.error('Token refresh error:', error);
-      // await this.logout(); // COMMENTED FOR DEBUGGING
+      // Clear tokens if refresh fails
+      await tokenManager.clearTokens();
       return null;
     }
   }
@@ -283,33 +292,35 @@ class AuthService {
 
   // Get valid access token (refresh if needed)
   async getValidAccessToken(): Promise<string | null> {
+    // First, ensure token manager is initialized
+    await this.initialize();
+    
     const accessToken = tokenManager.getAccessToken();
 
     if (!accessToken) {
-      await this.initialize();
-      const refreshedToken = tokenManager.getAccessToken();
-      if (!refreshedToken) {
-        return null;
-      }
-    }
-
-    const currentToken = tokenManager.getAccessToken();
-    if (!currentToken) {
-      return null;
-    }
-
-    // Check if token is expired (basic check - you might want to decode JWT)
-    if (tokenManager.isTokenExpired(currentToken)) {
+      // No access token, try to refresh using refresh token
+      console.log('🔄 No access token found, attempting refresh...');
       return await this.refreshAccessToken();
     }
 
-    return currentToken;
+    // Check if token is expired
+    if (tokenManager.isTokenExpired(accessToken)) {
+      console.log('🔄 Access token expired, attempting refresh...');
+      return await this.refreshAccessToken();
+    }
+
+    return accessToken;
   }
 
   // Check if user is authenticated
   async isAuthenticated(): Promise<boolean> {
-    const token = await this.getValidAccessToken();
-    return !!token;
+    try {
+      const token = await this.getValidAccessToken();
+      return !!token;
+    } catch (error) {
+      console.error('Error checking authentication status:', error);
+      return false;
+    }
   }
 
   // Logout user

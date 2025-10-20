@@ -3,6 +3,7 @@ import React, {
   ReactNode,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from 'react';
 import { useQueryClient } from 'react-query';
@@ -67,6 +68,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [pendingConsents, setPendingConsents] = useState<
     OutdatedConsentDTO[] | null
   >(null);
+  
+  // Add ref to track if initialization is in progress to prevent race conditions
+  const isInitializingRef = useRef(false);
 
   // React Query client for cache management
   const queryClient = useQueryClient();
@@ -147,13 +151,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const initializeAuth = async () => {
+    // Prevent multiple simultaneous initializations
+    if (isInitializingRef.current) {
+      console.log('🔄 Auth initialization already in progress, skipping...');
+      return;
+    }
+    
     try {
+      isInitializingRef.current = true;
       setIsLoading(true);
 
       // Initialize auth service
       await authService.initialize();
 
-      // Check if user is authenticated
+      // Check if user is authenticated (this will now properly handle token refresh)
       const isAuth = await authService.isAuthenticated();
 
       if (isAuth) {
@@ -199,18 +210,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
           }
         } else {
-          // If we can't get user data, logout
-          // await authService.logout(); // COMMENTED FOR DEBUGGING
-          setUser(null);
+          // If we can't get user data after successful auth, keep cached user data
+          // Don't clear state immediately - user might be temporarily offline
+          console.log('Failed to get fresh user data after authentication, keeping cached data');
+          // Only clear state if we don't have any cached user data
+          if (!userData) {
+            console.log('No cached user data available, clearing state');
+            setUser(null);
+          }
         }
+      } else {
+        // User is not authenticated, clear any cached data
+        console.log('User not authenticated, clearing state');
+        setUser(null);
       }
     } catch (error) {
       console.error('Auth initialization error:', error);
       // On error, clear auth state
-      // await authService.logout(); // COMMENTED FOR DEBUGGING
       setUser(null);
     } finally {
       setIsLoading(false);
+      isInitializingRef.current = false;
     }
   };
 

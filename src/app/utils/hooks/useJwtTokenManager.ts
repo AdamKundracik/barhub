@@ -141,7 +141,8 @@ class JwtTokenManager {
    */
   public async initializeFromAuthService(): Promise<void> {
     try {
-      const token = authService.getCurrentAccessToken();
+      // Use getValidAccessToken to ensure we have a valid token (will refresh if needed)
+      const token = await authService.getValidAccessToken();
       if (token) {
         this.initialize(token);
       }
@@ -230,7 +231,8 @@ export const useJwtTokenManager = () => {
    */
   const getTokenInfo = useCallback(async () => {
     try {
-      const token = authService.getCurrentAccessToken();
+      // Use getValidAccessToken to ensure we have a valid token (will refresh if needed)
+      const token = await authService.getValidAccessToken();
       if (token) {
         return jwtTokenManager.getTokenInfo(token);
       }
@@ -251,12 +253,13 @@ export const useJwtTokenManager = () => {
       ) {
         
         try {
-          const token = authService.getCurrentAccessToken();
+          // Use getValidAccessToken to ensure we have a valid token (will refresh if needed)
+          const token = await authService.getValidAccessToken();
           if (token) {
-            // Reinitialize token management with current token
+            // Reinitialize token management with valid token
             jwtTokenManager.initialize(token);
           } else {
-            // No valid token, stop management
+            // No valid token available (refresh failed), stop management
             jwtTokenManager.stop();
           }
         } catch (error) {

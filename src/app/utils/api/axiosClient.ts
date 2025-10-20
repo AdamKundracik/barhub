@@ -56,7 +56,9 @@ class AxiosClient {
         }
 
         try {
-          const token = tokenManager.getAccessToken();
+          // Use getValidAccessToken to ensure we have a valid token (will refresh if needed)
+          const { authService } = await import('../../services/authService');
+          const token = await authService.getValidAccessToken();
           if (token) {
             config.headers.Authorization = `Bearer ${token}`;
           }

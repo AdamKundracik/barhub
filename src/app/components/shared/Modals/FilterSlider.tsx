@@ -193,7 +193,7 @@ const FilterSlider = () => {
       backgroundStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
       onClose={handleClose}
       ref={bottomSheetRef}
-      snapPoints={['60%', '80%']}
+      snapPoints={['70%', '80%']}
       index={-1}
       backdropComponent={renderBackdrop}
       footerComponent={renderFooter}
