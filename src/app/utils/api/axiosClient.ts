@@ -48,19 +48,26 @@ class AxiosClient {
         }
 
         // Skip adding token for auth endpoints (except refresh)
-        if (
-          config.url?.startsWith('/auth/') &&
-          !config.url?.includes('/refresh')
-        ) {
+        if (config.url?.startsWith('/auth/')) {
+          // For refresh endpoint, don't add Authorization header (it uses refresh token in body)
+          if (config.url?.includes('/refresh')) {
+            console.log('🔄 Refresh endpoint detected - skipping Authorization header');
+            return config;
+          }
+          // For other auth endpoints (login, register, etc.) - skip token
           return config;
         }
 
         try {
-          // Use getValidAccessToken to ensure we have a valid token (will refresh if needed)
-          const { authService } = await import('../../services/authService');
-          const token = await authService.getValidAccessToken();
-          if (token) {
+          // FIXED: Use getCurrentAccessToken instead of getValidAccessToken to prevent refresh cycle
+          // The response interceptor will handle token refresh on 401 errors
+          const token = tokenManager.getAccessToken();
+          if (token && !tokenManager.isTokenExpired(token)) {
             config.headers.Authorization = `Bearer ${token}`;
+          } else if (token) {
+            // Token is expired but we have one - let it through, 401 interceptor will handle refresh
+            config.headers.Authorization = `Bearer ${token}`;
+            console.log('🔄 Using expired token - will be refreshed on 401');
           }
         } catch (error) {
           console.error('Error getting token for request:', error);
@@ -100,7 +107,8 @@ class AxiosClient {
         if (
           error.response?.status === 401 &&
           !originalRequest._retry &&
-          !originalRequest.url?.startsWith('/auth/')
+          !originalRequest.url?.startsWith('/auth/') &&
+          !this.isRefreshing // Additional check to prevent multiple refresh attempts
         ) {
           console.log(
             '🔄 401 Error detected - attempting token refresh for:',
@@ -130,7 +138,14 @@ class AxiosClient {
             console.log('🔄 Starting token refresh...');
             // Use authService refresh method to avoid conflicts
             const { authService } = await import('../../services/authService');
-            const newToken = await authService.refreshAccessToken();
+            
+            // Add timeout to prevent hanging refresh
+            const refreshPromise = authService.refreshAccessToken();
+            const timeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Refresh timeout')), 10000)
+            );
+            
+            const newToken = await Promise.race([refreshPromise, timeoutPromise]) as string | null;
 
             if (newToken) {
               console.log(
@@ -145,21 +160,19 @@ class AxiosClient {
               // Retry the original request
               return this.axiosInstance(originalRequest);
             } else {
-              console.log(
-                '❌ Token refresh failed - NOT clearing tokens for debugging'
-              );
+              console.log('❌ Token refresh failed - no new token received');
+              console.log('❌ Clearing tokens and rejecting requests');
               // Refresh failed, clear tokens
               this.processQueue(new Error('Token refresh failed'));
-              await tokenManager.clearTokens(); // COMMENTED FOR DEBUGGING
-              return Promise.reject(error);
+              await tokenManager.clearTokens();
+              return Promise.reject(new Error('Authentication failed - please login again'));
             }
           } catch (refreshError) {
-            console.log(
-              '❌ Token refresh error - NOT clearing tokens for debugging'
-            );
+            console.error('❌ Token refresh error:', refreshError);
+            console.log('❌ Clearing tokens due to refresh error');
             this.processQueue(refreshError);
-            await tokenManager.clearTokens(); // COMMENTED FOR DEBUGGING
-            return Promise.reject(error);
+            await tokenManager.clearTokens();
+            return Promise.reject(new Error('Authentication failed - please login again'));
           } finally {
             this.isRefreshing = false;
           }

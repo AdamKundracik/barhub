@@ -4,11 +4,14 @@ import { UserBlocked } from '../screens/user/UserBlocked';
 import { UserNav } from './UserNav';
 import { DateOfBirthModal } from '../components/shared/Modals/DateOfBirthModal';
 import { OutdatedConsentsModal } from '../components/shared/Modals/OutdatedConsentsModal';
+import { OccupancyModal } from '../components/shared/Modals/OccupancyModal';
 import { userService } from '../services/userService';
 import { consentService } from '../services/consentService';
 import { useCustomToast } from '../components/shared/Toaster';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../providers/AuthProvider';
+import { modalsStore } from '../utils/store/modalsStore';
+import { OccupancyEnum } from '../utils/types/Feed/PostTypes';
 
 /**
  * Wrapper that checks if user is blocked/disabled, missing date of birth, or outdated consents
@@ -23,6 +26,14 @@ export const UserNavWrapper: React.FC = () => {
   const { t } = useTranslation();
   const [isSubmittingDate, setIsSubmittingDate] = useState(false);
   const [isAcceptingConsents, setIsAcceptingConsents] = useState(false);
+
+  // Occupancy modal from store
+  const {
+    isOccupancyOpen,
+    occupancyValue,
+    occupancyCallback,
+    closeOccupancy,
+  } = modalsStore();
 
   // Check if user is disabled
   if (userData?.disabled) {
@@ -106,6 +117,12 @@ export const UserNavWrapper: React.FC = () => {
     }
   };
 
+  const handleOccupancySelect = (value: OccupancyEnum) => {
+    if (occupancyCallback) {
+      occupancyCallback(value);
+    }
+  };
+
   return (
     <>
       {/* Outdated Consents Modal (Force - cannot dismiss) */}
@@ -127,6 +144,14 @@ export const UserNavWrapper: React.FC = () => {
           isLoading={isSubmittingDate}
         />
       )}
+
+      {/* Occupancy Modal - Global */}
+      <OccupancyModal
+        visible={isOccupancyOpen}
+        onClose={closeOccupancy}
+        onSelect={handleOccupancySelect}
+        initialValue={occupancyValue}
+      />
 
       {/* Show normal user navigation */}
       <UserNav />

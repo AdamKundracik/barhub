@@ -49,9 +49,9 @@ export const useNewsFeedData = () => {
       enabled: !!currentLocation && isAuthenticated, // Wait for both location and authentication
       refetchOnWindowFocus: false, // Don't refetch when app comes to foreground
       refetchOnMount: false, // Don't refetch on mount if data exists (cache is cleared on logout)
-      staleTime: 1 * 60 * 1000, // 1 minute - data considered fresh for 1 minute
+      staleTime: 5 * 60 * 1000, // 5 minutes - increased to reduce requests
       cacheTime: 15 * 60 * 1000, // 15 minutes - keep in cache for 15 minutes
-      refetchInterval: 3 * 60 * 1000, // Automatic refetch every 3 minutes
+      refetchInterval: false, // DISABLED: Prevent automatic refetching that can cause refresh loops
     }
   );
 
