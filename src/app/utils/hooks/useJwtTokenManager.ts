@@ -1,6 +1,19 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { authService } from '../../services/authService';
+import { tokenManager } from '../../utils/api/tokenManager';
+
+/**
+ * JWT Token Manager - TIMER DISABLED
+ * 
+ * This manager is configured to NOT automatically refresh tokens based on time.
+ * Token refresh happens on:
+ * - 401 errors via axios interceptor
+ * - App foreground when token is expired
+ * - Manual force refresh calls
+ * 
+ * This prevents infinite refresh loops while maintaining necessary refresh functionality.
+ */
 
 interface JwtPayload {
   exp: number;
@@ -131,13 +144,16 @@ class JwtTokenManager {
 
   /**
    * Initialize token management with current token
+   * TIMER DISABLED: No automatic scheduling - only refresh on 401 errors
    */
   public initialize(token: string): void {
-    this.scheduleTokenRefresh(token);
+    console.log('🔄 Token management initialized (timer disabled)');
+    // this.scheduleTokenRefresh(token); // TIMER DISABLED
   }
 
   /**
    * Initialize token management with current token from auth service
+   * TIMER DISABLED: No automatic scheduling - only refresh on 401 errors
    */
   public async initializeFromAuthService(): Promise<void> {
     try {
@@ -166,6 +182,13 @@ class JwtTokenManager {
   public async forceRefresh(): Promise<string | null> {
     this.clearRefreshTimer();
     return this.refreshToken();
+  }
+
+  /**
+   * Check if token management is currently active
+   */
+  public isActive(): boolean {
+    return this.refreshTimer !== null || this.isRefreshing;
   }
 
   /**
@@ -246,6 +269,14 @@ export const useJwtTokenManager = () => {
   // Handle app state changes
   useEffect(() => {
     const handleAppStateChange = async (nextAppState: AppStateStatus) => {
+      console.log(`🔄 App state changed: ${appState.current} → ${nextAppState}`);
+      
+      // App went to background - keep token management running
+      if (appState.current === 'active' && nextAppState.match(/inactive|background/)) {
+        console.log('📱 App went to background - keeping token management active');
+        // Don't stop token management in background - let it continue refreshing
+      }
+      
       // App came to foreground
       if (
         appState.current.match(/inactive|background/) &&
@@ -253,14 +284,41 @@ export const useJwtTokenManager = () => {
       ) {
         
         try {
-          // Use getValidAccessToken to ensure we have a valid token (will refresh if needed)
-          const token = await authService.getValidAccessToken();
-          if (token) {
-            // Reinitialize token management with valid token
-            jwtTokenManager.initialize(token);
+          console.log('🔄 App came to foreground - checking token status');
+          
+          // Check if token management is still active
+          if (!jwtTokenManager.isActive()) {
+            console.log('🔄 Token management was stopped in background - restarting');
+          }
+          
+          // Check current token without triggering refresh
+          const currentToken = authService.getCurrentAccessToken();
+          if (currentToken && !tokenManager.isTokenExpired(currentToken)) {
+            console.log('✅ Token is still valid - reinitializing management');
+            jwtTokenManager.initialize(currentToken);
+          } else if (currentToken) {
+            console.log('🔄 Token expired - attempting refresh');
+            // Token is expired, try to refresh
+            const newToken = await authService.refreshAccessToken();
+            if (newToken) {
+              console.log('✅ Token refreshed successfully');
+              jwtTokenManager.initialize(newToken);
+            } else {
+              console.log('❌ Token refresh failed - stopping management');
+              jwtTokenManager.stop();
+            }
           } else {
-            // No valid token available (refresh failed), stop management
+            console.log('❌ No token available - stopping management');
             jwtTokenManager.stop();
+          }
+          
+          // Also check if we need to refresh user data after coming back from background
+          try {
+            const { userService } = await import('../../services/userService');
+            await userService.getCurrentUser();
+            console.log('✅ User data refreshed after foreground');
+          } catch (error) {
+            console.log('⚠️ Failed to refresh user data after foreground:', error);
           }
         } catch (error) {
           console.error('Error checking token on app foreground:', error);
