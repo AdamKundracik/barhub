@@ -12,7 +12,7 @@ export const useUserHighlights = (userId: string | undefined) => {
     {
       enabled: !!userId,
       staleTime: 2 * 60 * 1000, // 2 minutes
-      refetchOnWindowFocus: true,
+      refetchOnWindowFocus: false,
     }
   );
 
@@ -23,4 +23,3 @@ export const useUserHighlights = (userId: string | undefined) => {
     refetch: queryResult.refetch,
   };
 };
-

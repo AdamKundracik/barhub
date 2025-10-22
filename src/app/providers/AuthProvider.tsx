@@ -26,7 +26,6 @@ import {
 } from '../services/auth/appleSignIn';
 import { consentService } from '../services/consentService';
 import { JwtAuthenticationResponseDTO, OutdatedConsentDTO } from '../types/dto';
-import { useJwtTokenManager } from '../utils/hooks/useJwtTokenManager';
 
 // Global reference to unsubscribe function (set by Navigation component)
 let globalUnsubscribeNotifications: (() => void) | null = null;
@@ -69,7 +68,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     OutdatedConsentDTO[] | null
   >(null);
   
-  // Add ref to track if initialization is in progress to prevent race conditions
+  // Track if initialization is in progress to prevent race conditions
   const isInitializingRef = useRef(false);
 
   // React Query client for cache management
@@ -80,28 +79,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { setUseFakeLocation, setFakeLocationName, setInitialized } =
     useLocationStore();
 
-  // JWT Token Manager
-  const { initializeTokenManagement, stopTokenManagement } =
-    useJwtTokenManager();
-
-  // Google Sign-In hook
-  // Google Sign-In is now handled directly in signInWithGoogle function
-
   // Initialize authentication state
   useEffect(() => {
     initializeAuth();
   }, []);
-
-  // Initialize JWT token management when user is authenticated
-  useEffect(() => {
-    if (user) {
-      // Initialize automatic token refresh management
-      initializeTokenManagement();
-    } else {
-      // Stop token management when user logs out
-      stopTokenManagement();
-    }
-  }, [user, initializeTokenManagement, stopTokenManagement]);
 
   // Save current location to backend
   const saveCurrentLocationToBackend = async (
@@ -111,11 +92,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Get current location
       const location = await getCoords();
 
-      // Save to backend
       await userService.updateLocation(userId, location);
     } catch (error) {
-      console.error('Error saving location to backend:', error);
-      // Don't throw - location saving is not critical for auth flow
+      console.error('AuthProvider: Location save error:', error);
     }
   };
 
@@ -146,14 +125,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setInitialized(true);
       }
     } catch (error) {
-      console.error('Error loading user data:', error);
+      console.error('AuthProvider: User data load error:', error);
     }
   };
 
   const initializeAuth = async () => {
     // Prevent multiple simultaneous initializations
     if (isInitializingRef.current) {
-      console.log('🔄 Auth initialization already in progress, skipping...');
       return;
     }
     
@@ -164,69 +142,50 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Initialize auth service
       await authService.initialize();
 
-      // Check if user is authenticated (this will now properly handle token refresh)
+      // Check if user is authenticated
       const isAuth = await authService.isAuthenticated();
 
       if (isAuth) {
-        // Try to get user data from cache first
+        // Try to get cached user data first for instant UI
         let userData = await authService.getCachedUser();
-
         if (userData) {
           setUser(userData);
         }
 
-        // Then refresh from server
+        // Then fetch fresh user data from server
         userData = await authService.getCurrentUser();
         if (userData) {
           setUser(userData);
-          // Load extended user data and populate stores
           await loadUserData(userData);
-
-          // Initialize push token service and save token to backend
           await pushTokenService.initialize(userData.id.toString());
 
-          // Check consent status on app reload
-          if (userData.id) {
-            try {
-              const consentStatus = await consentService.getConsentStatus(
-                userData.id.toString()
-              );
+          // Check consent status
+          try {
+            const consentStatus = await consentService.getConsentStatus(
+              userData.id.toString()
+            );
 
-              // Transform backend ConsentStatusDTO to OutdatedConsentDTO[]
-              const outdated: OutdatedConsentDTO[] = consentStatus.consents
-                .filter(c => !c.accepted || c.needsUpdate)
-                .map(c => ({
-                  consentType: c.consentType,
-                  currentVersion: c.currentVersion,
-                  userAcceptedVersion: c.acceptedVersion,
-                  needsUpdate: c.needsUpdate,
-                }));
+            const outdated: OutdatedConsentDTO[] = consentStatus.consents
+              .filter(c => !c.accepted || c.needsUpdate)
+              .map(c => ({
+                consentType: c.consentType,
+                currentVersion: c.currentVersion,
+                userAcceptedVersion: c.acceptedVersion,
+                needsUpdate: c.needsUpdate,
+              }));
 
-              if (outdated.length > 0) {
-                setPendingConsents(outdated);
-              }
-            } catch (error) {
-              console.error('Error checking consent status on reload:', error);
+            if (outdated.length > 0) {
+              setPendingConsents(outdated);
             }
-          }
-        } else {
-          // If we can't get user data after successful auth, keep cached user data
-          // Don't clear state immediately - user might be temporarily offline
-          console.log('Failed to get fresh user data after authentication, keeping cached data');
-          // Only clear state if we don't have any cached user data
-          if (!userData) {
-            console.log('No cached user data available, clearing state');
-            setUser(null);
+          } catch (error) {
+            console.error('AuthProvider: Consent check error:', error);
           }
         }
       } else {
-        // User is not authenticated, clear any cached data
-        console.log('User not authenticated, clearing state');
         setUser(null);
       }
     } catch (error) {
-      console.error('Auth initialization error:', error);
-      // On error, clear auth state
+      console.error('AuthProvider: Initialization error:', error);
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -339,42 +298,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
 
-      // Stop JWT token management first
-      stopTokenManagement();
-
-      // Unsubscribe from notifications first
+      // Unsubscribe from notifications
       if (globalUnsubscribeNotifications) {
         globalUnsubscribeNotifications();
       }
 
-      // Remove push token from backend BEFORE clearing auth tokens
+      // Remove push token from backend
       if (user) {
         try {
           await pushTokenService.removePushTokenFromBackend(user.id.toString());
         } catch (error) {
-          console.error('Error removing push token from backend:', error);
-          // Continue with logout even if push token removal fails
+          console.error('AuthProvider: Push token removal error:', error);
         }
       }
 
-      // Now clear auth tokens and logout
+      // Logout and clear tokens
       await authService.logout();
       setUser(null);
 
-      // Clear all stores
+      // Clear stores
       setUserData(null);
-      // Reset location to default values instead of null
       setUseFakeLocation(false);
       setFakeLocationName('');
       setInitialized(false);
-
-      // Clear push token service
       pushTokenService.clearToken();
 
-      // Clear React Query cache to prevent stale data on next login
+      // Clear React Query cache
       queryClient.clear();
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('AuthProvider: Logout error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -480,15 +432,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const userData = await authService.getCurrentUser();
       if (userData) {
         setUser(userData);
-        // Reload extended user data
         await loadUserData(userData);
-      } else {
-        // If we can't refresh user data, logout
-        // await logout();
       }
     } catch (error) {
-      console.error('Refresh user error:', error);
-      // await logout();
+      console.error('AuthProvider: Refresh user error:', error);
     }
   };
 

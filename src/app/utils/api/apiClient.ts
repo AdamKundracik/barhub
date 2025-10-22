@@ -1,30 +1,23 @@
 import { API_CONFIG } from '../../config/api';
+import { axiosClient } from './axiosClient';
 
-// Custom fetch wrapper with automatic token handling
+// Custom fetch wrapper with automatic token handling via axiosClient
 class ApiClient {
   private baseURL: string;
-  // Store reference to auth service (set later to avoid circular dependency)
-  private getAuthService: (() => any) | null = null;
 
   constructor(baseURL: string) {
     this.baseURL = baseURL;
   }
 
-  // Set auth service reference (called from authService after initialization)
-  setAuthService(getAuthServiceFn: () => any) {
-    this.getAuthService = getAuthServiceFn;
-  }
-
-  // Make authenticated request
+  // Make authenticated request using axiosClient
   async request(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<Response> {
-    const url = `${this.baseURL}${endpoint}`;
-    
     try {
-      // For auth endpoints, don't add token
+      // For auth endpoints, use native fetch
       if (endpoint.startsWith('/auth/')) {
+        const url = `${this.baseURL}${endpoint}`;
         return fetch(url, {
           ...options,
           headers: {
@@ -34,16 +27,53 @@ class ApiClient {
         });
       }
 
-      // For other endpoints, use authenticated request
-      if (this.getAuthService) {
-        const authService = this.getAuthService();
-        return await authService.makeAuthenticatedRequest(url, options);
-      } else {
-        // Fallback if authService not set yet (shouldn't happen in practice)
-        throw new Error('AuthService not initialized');
+      // For other endpoints, use axiosClient (handles token refresh automatically)
+      const method = options.method?.toLowerCase() || 'get';
+      const axiosConfig: any = {
+        headers: options.headers,
+      };
+
+      // Add body for non-GET requests
+      if (options.body && method !== 'get') {
+        if (options.body instanceof FormData) {
+          axiosConfig.data = options.body;
+        } else {
+          axiosConfig.data = typeof options.body === 'string' 
+            ? JSON.parse(options.body) 
+            : options.body;
+        }
       }
-    } catch (error) {
+
+      const axiosResponse = await axiosClient.getInstance().request({
+        url: endpoint,
+        method,
+        ...axiosConfig,
+      });
+
+      // Convert AxiosResponse to fetch Response-like object
+      return {
+        ok: axiosResponse.status >= 200 && axiosResponse.status < 300,
+        status: axiosResponse.status,
+        statusText: axiosResponse.statusText,
+        headers: axiosResponse.headers as any,
+        json: async () => axiosResponse.data,
+        text: async () => JSON.stringify(axiosResponse.data),
+      } as Response;
+    } catch (error: any) {
       console.error('API request failed:', error);
+      
+      // Convert axios error to fetch Response-like object
+      if (error.response) {
+        return {
+          ok: false,
+          status: error.response.status,
+          statusText: error.response.statusText,
+          headers: error.response.headers as any,
+          json: async () => error.response.data,
+          text: async () => JSON.stringify(error.response.data),
+        } as Response;
+      }
+      
       throw error;
     }
   }

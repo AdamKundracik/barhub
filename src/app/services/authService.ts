@@ -6,7 +6,6 @@ import {
   SignInRequestDTO,
   SignUpRequestDTO,
 } from '../types/dto';
-import { apiClient } from '../utils/api/apiClient';
 import { axiosClient } from '../utils/api/axiosClient';
 import { tokenManager } from '../utils/api/tokenManager';
 
@@ -62,7 +61,7 @@ class AuthService {
 
       return authResponse;
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('AuthService: Login error:', error);
       throw error;
     }
   }
@@ -98,16 +97,18 @@ class AuthService {
               authResponse.user.email
             );
           } catch (emailError) {
-            console.error('Failed to send verification email:', emailError);
+            console.error(
+              'AuthService: Failed to send verification email:',
+              emailError
+            );
             // Don't throw - registration was successful even if email fails
-            // User can manually request verification email later
           }
         }
       }
 
       return authResponse;
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error('AuthService: Registration error:', error);
       throw error;
     }
   }
@@ -150,32 +151,13 @@ class AuthService {
         formData.append('consents', JSON.stringify(credentials.consents));
       }
 
-      // Use axiosClient directly for proper multipart/form-data handling
-      // Don't set Content-Type manually - let axios set it with boundary
-
-      console.log('🚀 [SIGNUP UPLOAD DEBUG] Starting signup with photo...');
-      console.log('🚀 [SIGNUP UPLOAD DEBUG] FormData created with fields:');
-      console.log('  - profilePhoto: [FILE] profile.webp');
-      console.log('  - name:', credentials.name);
-      console.log('  - email:', credentials.email);
-      console.log('  - password: [HIDDEN]');
-      if (credentials.dateOfBirth) {
-        console.log('  - dateOfBirth:', credentials.dateOfBirth);
-      }
-      if (credentials.consents) {
-        console.log('  - consents:', JSON.stringify(credentials.consents));
-      }
-
       const authResponse: AuthResponse = await axiosClient
         .getInstance()
         .post(ENDPOINTS.AUTH.SIGNUP_WITH_PHOTO, formData, {
           headers: {
-            // Explicitly set Content-Type to undefined to force axios to set multipart/form-data with boundary
             'Content-Type': undefined,
           },
         });
-
-      console.log('✅ [SIGNUP UPLOAD DEBUG] Signup with photo successful!');
 
       // Store tokens
       await this.storeTokens(authResponse.token, authResponse.refreshToken);
@@ -200,51 +182,49 @@ class AuthService {
               authResponse.user.email
             );
           } catch (emailError) {
-            console.error('Failed to send verification email:', emailError);
+            console.error(
+              'AuthService: Failed to send verification email:',
+              emailError
+            );
             // Don't throw - registration was successful even if email fails
-            // User can manually request verification email later
           }
         }
       }
 
       return authResponse;
     } catch (error) {
-      console.error('Registration with photo error:', error);
+      console.error('AuthService: Registration with photo error:', error);
       throw error;
     }
   }
 
   // Refresh access token
   async refreshAccessToken(): Promise<string | null> {
+    console.log('🔄 [REFRESH] Attempting to refresh access token');
+
     const refreshToken = await tokenManager.getRefreshToken();
     if (!refreshToken) {
-      console.log('🔄 No refresh token available');
-      return null;
-    }
-
-    // Check if refresh token is expired
-    if (tokenManager.isTokenExpired(refreshToken)) {
-      console.log('🔄 Refresh token expired, cannot refresh access token');
+      console.log('❌ [REFRESH] No refresh token available');
       return null;
     }
 
     try {
-      console.log('🔄 [REFRESH DEBUG] Calling refresh endpoint with:');
-      console.log('🔄 [REFRESH DEBUG] refreshToken type:', typeof refreshToken);
-
+      console.log('🔄 [REFRESH] Calling refresh endpoint');
       const authResponse: AuthResponse = await axiosClient.post(
         ENDPOINTS.AUTH.REFRESH,
-        { refreshToken: refreshToken }
+        { refreshToken }
       );
+
+      console.log('✅ [REFRESH] Refresh endpoint successful');
 
       // Store new tokens
       await this.storeTokens(authResponse.token, authResponse.refreshToken);
 
-      console.log('✅ Token refresh successful');
+      console.log('✅ [REFRESH] New tokens stored successfully');
       return authResponse.token;
     } catch (error) {
-      console.error('Token refresh error:', error);
-      // Clear tokens if refresh fails
+      console.error('❌ [REFRESH] Token refresh failed:', error);
+      console.log('🗑️ [REFRESH] Clearing tokens due to refresh failure');
       await tokenManager.clearTokens();
       return null;
     }
@@ -253,11 +233,6 @@ class AuthService {
   // Get current user data
   async getCurrentUser(): Promise<User | null> {
     try {
-      const token = await this.getValidAccessToken();
-      if (!token) {
-        return null;
-      }
-
       // Use axiosClient - interceptor will handle token refresh automatically
       const userData: User = await axiosClient.get(ENDPOINTS.USERS.ME);
 
@@ -269,7 +244,7 @@ class AuthService {
 
       return userData;
     } catch (error) {
-      console.error('Get current user error:', error);
+      console.error('AuthService: Get current user error:', error);
       return null;
     }
   }
@@ -285,67 +260,50 @@ class AuthService {
     }
   }
 
-  // Get current access token without automatic refresh
-  getCurrentAccessToken(): string | null {
+  // Get current access token
+  getAccessToken(): string | null {
     return tokenManager.getAccessToken();
-  }
-
-  // Get valid access token (refresh if needed)
-  async getValidAccessToken(): Promise<string | null> {
-    // First, ensure token manager is initialized
-    await this.initialize();
-    
-    const accessToken = tokenManager.getAccessToken();
-
-    if (!accessToken) {
-      // No access token, try to refresh using refresh token
-      console.log('🔄 No access token found, attempting refresh...');
-      return await this.refreshAccessToken();
-    }
-
-    // Check if token is expired
-    if (tokenManager.isTokenExpired(accessToken)) {
-      console.log('🔄 Access token expired, attempting refresh...');
-      return await this.refreshAccessToken();
-    }
-
-    return accessToken;
   }
 
   // Check if user is authenticated
   async isAuthenticated(): Promise<boolean> {
-    try {
-      const token = await this.getValidAccessToken();
-      return !!token;
-    } catch (error) {
-      console.error('Error checking authentication status:', error);
+    await this.initialize();
+    // Use async method with SecureStore fallback
+    const token = await tokenManager.getAccessTokenAsync();
+
+    if (!token) {
       return false;
     }
+
+    // If token is expired, try to refresh
+    if (tokenManager.isTokenExpired(token)) {
+      const newToken = await this.refreshAccessToken();
+      return !!newToken;
+    }
+
+    return true;
   }
 
   // Logout user
   async logout(): Promise<void> {
     try {
-      // Call backend logout endpoint to clear Redis data
+      // Call backend logout endpoint
       const refreshToken = await tokenManager.getRefreshToken();
       if (refreshToken) {
         try {
-          await axiosClient.post(ENDPOINTS.AUTH.LOGOUT, {
-            refreshToken: refreshToken,
-          });
+          await axiosClient.post(ENDPOINTS.AUTH.LOGOUT, { refreshToken });
         } catch (error) {
-          console.error('Error calling backend logout:', error);
-          // Continue with local cleanup even if backend logout fails
+          console.error('AuthService: Backend logout failed:', error);
         }
       }
 
-      // Clear tokens using token manager
+      // Clear tokens
       await tokenManager.clearTokens();
 
       // Clear user data from user store via callback
       this.onUserDataUpdateCallback?.(null);
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('AuthService: Logout error:', error);
     }
   }
 
@@ -387,7 +345,7 @@ class AuthService {
         throw new Error(data.message || 'Failed to send reset email');
       }
     } catch (error) {
-      console.error('Forgot password error:', error);
+      console.error('AuthService: Forgot password error:', error);
       throw error;
     }
   }
@@ -416,7 +374,7 @@ class AuthService {
         throw new Error(data.message || 'Failed to reset password');
       }
     } catch (error) {
-      console.error('Reset password error:', error);
+      console.error('AuthService: Reset password error:', error);
       throw error;
     }
   }
@@ -427,7 +385,6 @@ class AuthService {
     newPassword: string
   ): Promise<void> {
     try {
-      // Use axiosClient directly - interceptor will handle token refresh automatically
       const data = await axiosClient.post(ENDPOINTS.AUTH.UPDATE_PASSWORD, {
         oldPassword,
         newPassword,
@@ -437,87 +394,8 @@ class AuthService {
         throw new Error(data.message || 'Failed to update password');
       }
     } catch (error) {
-      console.error('Update password error:', error);
+      console.error('AuthService: Update password error:', error);
       throw error;
-    }
-  }
-
-  // Make an authenticated API request using axiosClient
-  async makeAuthenticatedRequest(
-    url: string,
-    options: RequestInit = {}
-  ): Promise<Response> {
-    try {
-      // Extract endpoint from full URL
-      const endpoint = url.replace(API_CONFIG.BASE_URL, '');
-
-      // Convert RequestInit to AxiosRequestConfig
-      const axiosConfig: any = {
-        method: options.method?.toLowerCase() || 'get',
-        headers: options.headers,
-      };
-
-      // Add body for POST/PUT/PATCH requests
-      if (options.body) {
-        if (options.body instanceof FormData) {
-          axiosConfig.data = options.body;
-          delete axiosConfig.headers?.['Content-Type']; // Let axios set it for FormData
-        } else {
-          axiosConfig.data = options.body;
-        }
-      }
-
-      // Use axiosClient - interceptor will handle token refresh automatically
-      const response = await axiosClient.getInstance().request({
-        url: endpoint,
-        ...axiosConfig,
-      });
-
-      // Convert AxiosResponse to Response-like object
-      return {
-        ok: response.status >= 200 && response.status < 300,
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers,
-        json: async () => response.data,
-        text: async () => JSON.stringify(response.data),
-        redirected: false,
-        type: 'basic' as ResponseType,
-        url: response.config.url || '',
-        clone: () => {
-          throw new Error('Clone not supported');
-        },
-        body: null,
-        bodyUsed: false,
-        arrayBuffer: async () => new ArrayBuffer(0),
-        blob: async () => new Blob(),
-        formData: async () => new FormData(),
-      } as unknown as Response;
-    } catch (error: any) {
-      // Convert axios error to Response-like object
-      const status = error.response?.status || 500;
-      const statusText = error.response?.statusText || 'Internal Server Error';
-      const data = error.response?.data || { message: error.message };
-
-      return {
-        ok: false,
-        status,
-        statusText,
-        headers: error.response?.headers || {},
-        json: async () => data,
-        text: async () => JSON.stringify(data),
-        redirected: false,
-        type: 'basic' as ResponseType,
-        url: error.config?.url || '',
-        clone: () => {
-          throw new Error('Clone not supported');
-        },
-        body: null,
-        bodyUsed: false,
-        arrayBuffer: async () => new ArrayBuffer(0),
-        blob: async () => new Blob(),
-        formData: async () => new FormData(),
-      } as unknown as Response;
     }
   }
 
@@ -548,6 +426,3 @@ class AuthService {
 
 // Export singleton instance
 export const authService = new AuthService();
-
-// Set authService reference in apiClient to break circular dependency
-apiClient.setAuthService(() => authService);

@@ -1,5 +1,5 @@
-import { API_CONFIG, ENDPOINTS } from '../config/api';
-import { authService } from './authService';
+import { ENDPOINTS } from '../config/api';
+import { axiosClient } from '../utils/api/axiosClient';
 import { useUserStore } from '../utils/store/userStore';
 
 class EmailVerificationService {
@@ -8,28 +8,9 @@ class EmailVerificationService {
    */
   async sendVerificationEmail(email: string): Promise<void> {
     try {
-      const response = await fetch(
-        `${API_CONFIG.BASE_URL}${ENDPOINTS.AUTH.SEND_VERIFICATION_EMAIL}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to send verification email');
-      }
-
-      // console.log(
-      //   '[EmailVerificationService] Verification email sent to:',
-      //   email
-      // );
+      await axiosClient.post(ENDPOINTS.AUTH.SEND_VERIFICATION_EMAIL, { email });
     } catch (error) {
-      console.error('Send verification email error:', error);
+      console.error('EmailVerificationService: Send verification email error:', error);
       throw error;
     }
   }
@@ -45,27 +26,11 @@ class EmailVerificationService {
         throw new Error('User email not found');
       }
 
-      const response = await authService.makeAuthenticatedRequest(
-        `${API_CONFIG.BASE_URL}${ENDPOINTS.AUTH.RESEND_VERIFICATION_EMAIL}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email: userEmail }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.error || 'Failed to resend verification email'
-        );
-      }
-
-      // console.log('[EmailVerificationService] Verification email resent');
+      await axiosClient.post(ENDPOINTS.AUTH.RESEND_VERIFICATION_EMAIL, { 
+        email: userEmail 
+      });
     } catch (error) {
-      console.error('Resend verification email error:', error);
+      console.error('EmailVerificationService: Resend verification email error:', error);
       throw error;
     }
   }
@@ -75,24 +40,12 @@ class EmailVerificationService {
    */
   async validateToken(token: string): Promise<boolean> {
     try {
-      const response = await fetch(
-        `${API_CONFIG.BASE_URL}${ENDPOINTS.AUTH.VALIDATE_EMAIL_TOKEN}?token=${token}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
+      const data = await axiosClient.get(
+        `${ENDPOINTS.AUTH.VALIDATE_EMAIL_TOKEN}?token=${token}`
       );
-
-      if (!response.ok) {
-        return false;
-      }
-
-      const data = await response.json();
       return data.valid;
     } catch (error) {
-      console.error('Validate token error:', error);
+      console.error('EmailVerificationService: Validate token error:', error);
       return false;
     }
   }
@@ -102,25 +55,9 @@ class EmailVerificationService {
    */
   async verifyEmail(token: string): Promise<void> {
     try {
-      const response = await fetch(
-        `${API_CONFIG.BASE_URL}${ENDPOINTS.AUTH.VERIFY_EMAIL}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ token }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.error || errorData.message || 'Failed to verify email'
-        );
-      }
+      await axiosClient.post(ENDPOINTS.AUTH.VERIFY_EMAIL, { token });
     } catch (error) {
-      console.error('Verify email error:', error);
+      console.error('EmailVerificationService: Verify email error:', error);
       throw error;
     }
   }
