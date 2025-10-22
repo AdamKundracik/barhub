@@ -2,7 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 
 /**
  * TokenManager - Simple JWT token storage and management
- * 
+ *
  * Responsibilities:
  * - Store/retrieve tokens securely using SecureStore
  * - In-memory cache for quick access
@@ -79,23 +79,29 @@ class TokenManager {
   async setTokens(accessToken: string, refreshToken: string): Promise<void> {
     try {
       console.log('💾 [TOKEN] Storing new tokens');
-      
+
       this.accessToken = accessToken;
       this.refreshToken = refreshToken;
-      
+
       await Promise.all([
         SecureStore.setItemAsync('accessToken', accessToken),
-        SecureStore.setItemAsync('refreshToken', refreshToken)
+        SecureStore.setItemAsync('refreshToken', refreshToken),
       ]);
-      
+
       // Log expiration times
       const accessExp = this.getTokenExpiration(accessToken);
       const refreshExp = this.getTokenExpiration(refreshToken);
       if (accessExp) {
-        console.log('💾 [TOKEN] Access token expires:', accessExp.toLocaleString());
+        console.log(
+          '💾 [TOKEN] Access token expires:',
+          accessExp.toLocaleString()
+        );
       }
       if (refreshExp) {
-        console.log('💾 [TOKEN] Refresh token expires:', refreshExp.toLocaleString());
+        console.log(
+          '💾 [TOKEN] Refresh token expires:',
+          refreshExp.toLocaleString()
+        );
       }
     } catch (error) {
       console.error('❌ [TOKEN] Error storing tokens:', error);
@@ -109,15 +115,15 @@ class TokenManager {
   async clearTokens(): Promise<void> {
     try {
       console.log('🗑️ [TOKEN] Clearing all tokens');
-      
+
       this.accessToken = null;
       this.refreshToken = null;
-      
+
       await Promise.all([
         SecureStore.deleteItemAsync('accessToken').catch(() => {}),
-        SecureStore.deleteItemAsync('refreshToken').catch(() => {})
+        SecureStore.deleteItemAsync('refreshToken').catch(() => {}),
       ]);
-      
+
       console.log('✅ [TOKEN] Tokens cleared successfully');
     } catch (error) {
       console.error('❌ [TOKEN] Error clearing tokens:', error);

@@ -50,7 +50,13 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 
   const MAX_BIO_LENGTH = 120;
+  const MAX_BIO_LINES = 10;
   const remainingChars = MAX_BIO_LENGTH - bio.length;
+
+  // Count lines properly, handling various line break characters
+  const normalizedBio = bio.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const currentLines = normalizedBio.split('\n').length;
+  const remainingLines = MAX_BIO_LINES - currentLines;
 
   // Handle modal visibility
   useEffect(() => {
@@ -98,17 +104,89 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
   );
 
   const validateBio = (text: string): string => {
+    // Check if bio is empty
+    if (!text.trim()) {
+      return '';
+    }
+
+    // Check character length
     if (text.length > MAX_BIO_LENGTH) {
       return (
         t('bio.too-long') || `Bio cannot exceed ${MAX_BIO_LENGTH} characters`
       );
     }
+
+    // Count lines properly, handling various line break characters
+    const normalizedText = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const lines = normalizedText.split('\n');
+
+    // Check line count
+    if (lines.length > MAX_BIO_LINES) {
+      return (
+        t('bio.too-many-lines') || `Bio cannot exceed ${MAX_BIO_LINES} lines`
+      );
+    }
+
+    // Check for excessive empty lines (more than 2 consecutive empty lines)
+    const emptyLines = lines.filter(line => line.trim() === '');
+    if (emptyLines.length > 2) {
+      return (
+        t('bio.too-many-empty-lines') ||
+        'Bio cannot have more than 2 empty lines'
+      );
+    }
+
+    // Check for excessive whitespace (more than 3 consecutive spaces)
+    if (/\s{4,}/.test(text)) {
+      return (
+        t('bio.excessive-whitespace') ||
+        'Bio cannot have more than 3 consecutive spaces'
+      );
+    }
+
+    // Check for repetitive characters (same character repeated more than 5 times)
+    if (/(.)\1{5,}/.test(text)) {
+      return (
+        t('bio.repetitive-characters') ||
+        'Bio cannot have the same character repeated more than 5 times'
+      );
+    }
+
+    // Check for spam-like patterns (too many special characters)
+    const specialCharCount = (
+      text.match(/[!@#$%^&*()_+={}[\]|\\:";'<>?,./~`]/g) || []
+    ).length;
+    if (specialCharCount > text.length * 0.3) {
+      return (
+        t('bio.too-many-special-chars') ||
+        'Bio cannot have more than 30% special characters'
+      );
+    }
+
+    // Check for minimum meaningful content (at least 3 non-space characters)
+    const meaningfulChars = text.replace(/\s/g, '').length;
+    if (meaningfulChars < 3) {
+      return t('bio.too-short') || 'Bio must have at least 3 characters';
+    }
+
     return '';
   };
 
   const handleBioChange = (text: string) => {
-    setBio(text);
-    const validationError = validateBio(text);
+    // Filter out problematic characters that could bypass validation
+    let filteredText = text
+      .replace(/[\t]/g, ' ') // Replace tabs with spaces
+      .replace(/\r\n/g, '\n') // Normalize line breaks
+      .replace(/\r/g, '\n'); // Normalize line breaks
+
+    // Limit consecutive spaces to 3
+    filteredText = filteredText.replace(/\s{4,}/g, '   ');
+
+    // Limit consecutive line breaks to 2
+    filteredText = filteredText.replace(/\n{3,}/g, '\n\n');
+
+    setBio(filteredText);
+    const validationError = validateBio(filteredText);
     setError(validationError);
   };
 
@@ -120,7 +198,7 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
     }
 
     try {
-      await onSave(bio);
+      await onSave(bio.trim());
       onClose();
     } catch (error) {
       console.error('Error saving bio:', error);
@@ -159,12 +237,15 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
         <BottomSheetView style={styles.content}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>{t('bio.edit-title') || 'Edit Bio'}</Text>
+            <Text style={styles.title}>
+              {t('bio.edit-title') || 'Edit Bio'}
+            </Text>
           </View>
 
           {/* Description */}
           <Text style={styles.description}>
-            {t('bio.description') || 'Tell others about yourself in a few words.'}
+            {t('bio.description') ||
+              'Tell others about yourself in a few words.'}
           </Text>
 
           {/* Text Input */}
@@ -184,37 +265,72 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
               blurOnSubmit={false}
             />
 
-          {/* Character counter */}
-          <View style={styles.counterContainer}>
-            <Text
-              style={[
-                styles.counter,
-                {
-                  color:
-                    remainingChars < 0
-                      ? warningColor
-                      : remainingChars < 20
-                        ? '#F59E0B'
-                        : secondaryTextColor,
-                },
-              ]}
-            >
-              {bio.length}/{MAX_BIO_LENGTH}
-            </Text>
-          </View>
+            {/* Character and line counters */}
+            <View style={styles.counterContainer}>
+              <View style={styles.countersRow}>
+                <Text
+                  style={[
+                    styles.counter,
+                    {
+                      color:
+                        remainingChars < 0
+                          ? warningColor
+                          : remainingChars < 20
+                            ? '#F59E0B'
+                            : secondaryTextColor,
+                    },
+                  ]}
+                >
+                  {bio.length}/{MAX_BIO_LENGTH} chars
+                </Text>
+                <Text
+                  style={[
+                    styles.counter,
+                    {
+                      color:
+                        remainingLines < 0
+                          ? warningColor
+                          : remainingLines < 2
+                            ? '#F59E0B'
+                            : secondaryTextColor,
+                    },
+                  ]}
+                >
+                  {currentLines}/{MAX_BIO_LINES} lines
+                </Text>
+              </View>
 
-          {/* Error message */}
-          {error ? (
-            <View style={styles.errorContainer}>
-              <FontAwesomeIcon
-                icon={Icons.Warning}
-                size={14}
-                color={warningColor}
-              />
-              <Text style={styles.errorText}>{error}</Text>
+              {/* Quality indicators */}
+              {bio.trim() && (
+                <View style={styles.qualityIndicators}>
+                  {bio.trim().length >= 10 && (
+                    <Text style={[styles.qualityIndicator, styles.qualityGood]}>
+                      {t('bio.good-length')}
+                    </Text>
+                  )}
+                  {bio.trim().length < 10 && bio.trim().length >= 3 && (
+                    <Text
+                      style={[styles.qualityIndicator, styles.qualityWarning]}
+                    >
+                      {t('bio.consider-adding-more') || '⚠ Consider adding more details'}
+                    </Text>
+                  )}
+                </View>
+              )}
             </View>
-          ) : null}
-        </View>
+
+            {/* Error message */}
+            {error ? (
+              <View style={styles.errorContainer}>
+                <FontAwesomeIcon
+                  icon={Icons.Warning}
+                  size={14}
+                  color={warningColor}
+                />
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            ) : null}
+          </View>
 
           {/* Save Button */}
           <View style={styles.buttonContainer}>
@@ -309,6 +425,24 @@ const styles = StyleSheet.create({
   counterContainer: {
     alignItems: 'flex-end',
     marginBottom: 8,
+  },
+  countersRow: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  qualityIndicators: {
+    marginTop: 4,
+    alignItems: 'flex-end',
+  },
+  qualityIndicator: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  qualityGood: {
+    color: '#10B981',
+  },
+  qualityWarning: {
+    color: '#F59E0B',
   },
   counter: {
     fontSize: 12,
