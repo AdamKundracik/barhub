@@ -92,35 +92,36 @@ const EmptyState: React.FC<{ message: string; type?: 'no-results' | 'error' | 'n
   message, 
   type = 'no-results' 
 }) => {
+  const { t } = useTranslation();
   const getEmptyStateContent = () => {
     switch (type) {
       case 'no-results':
         return {
           icon: <FontAwesomeIcon icon={Icons.Search} size={48} color={primaryColor} />,
-          title: 'Žiadne výsledky',
-          subtitle: 'Skúste zadať iný názov miesta',
-          suggestion: 'Môžete tiež použiť mapu na výber miesta'
+          title: t('no-results-found') || 'Žiadne výsledky',
+          subtitle: t('try-different-search') || 'Skúste zadať iný názov miesta',
+          suggestion: t('search-on-map') || 'Môžete tiež použiť mapu na výber miesta'
         };
       case 'error':
         return {
           icon: <FontAwesomeIcon icon={Icons.XCircle} size={48} color="#FF6B6B" />,
-          title: 'Chyba pri vyhľadávaní',
-          subtitle: 'Skúste to znova neskôr',
-          suggestion: 'Skontrolujte internetové pripojenie'
+          title: t('search-error') || 'Chyba pri vyhľadávaní',
+          subtitle: t('try-again-later') || 'Skúste to znova neskôr',
+          suggestion: t('check-internet-connection') || 'Skontrolujte internetové pripojenie'
         };
       case 'no-history':
         return {
           icon: <FontAwesomeIcon icon={Icons.Clock} size={48} color={primaryColor} />,
-          title: 'Žiadna história vyhľadávania',
-          subtitle: 'Vaše vyhľadané miesta sa tu zobrazia',
-          suggestion: 'Začnite vyhľadávať miesta'
+          title: t('no-search-history') || 'Žiadna história vyhľadávania',
+          subtitle: t('search-history-desc') || 'Vaše vyhľadané miesta sa tu zobrazia',
+          suggestion: t('start-searching-places') || 'Začnite vyhľadávať miesta'
         };
       case 'no-favorites':
         return {
           icon: <FontAwesomeIcon icon={Icons.Heart} size={48} color="#FF6B6B" />,
-          title: 'Žiadne obľúbené miesta',
-          subtitle: 'Pridajte si miesta do obľúbených',
-          suggestion: 'Kliknite na srdiečko pri mieste'
+          title: t('no-favorites') || 'Žiadne obľúbené miesta',
+          subtitle: t('add-favorites-desc') || 'Pridajte si miesta do obľúbených',
+          suggestion: t('click-heart-to-favorite') || 'Kliknite na srdiečko pri mieste'
         };
       default:
         return {
@@ -153,12 +154,15 @@ const EmptyState: React.FC<{ message: string; type?: 'no-results' | 'error' | 'n
   );
 };
 
-const LoadingIndicator: React.FC = () => (
-  <View style={styles.loadingContainer}>
-    <ActivityIndicator size="small" color={primaryColor} />
-    <Text style={styles.loadingText}>Hľadám miesta...</Text>
-  </View>
-);
+const LoadingIndicator: React.FC = () => {
+  const { t } = useTranslation();
+  return (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="small" color={primaryColor} />
+      <Text style={styles.loadingText}>{t('searching-places') || 'Hľadám miesta...'}</Text>
+    </View>
+  );
+};
 
 const PlaceItem: React.FC<{
   mainText: string;
@@ -322,7 +326,7 @@ export const PlaceSearch: React.FC = () => {
         <View style={styles.favoritesHeader}>
           <FontAwesomeIcon icon={Icons.HeartSolid} size={18} color="#FF6B6B" />
           <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
-            Obľúbené miesta
+            {t('favorites') || 'Obľúbené miesta'}
           </Text>
           {favorites && favorites.length > 0 && (
             <Text style={styles.favoritesCount}>
@@ -362,7 +366,7 @@ export const PlaceSearch: React.FC = () => {
     if (searchHistory.length === 0) {
       return (
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Nedávno vyhľadané</Text>
+          <Text style={styles.sectionTitle}>{t('search-history') || 'Nedávno vyhľadané'}</Text>
           <EmptyState 
             message={t('no-search-history') || 'Žiadna história vyhľadávania'} 
             type="no-history" 
@@ -373,7 +377,7 @@ export const PlaceSearch: React.FC = () => {
 
     return (
       <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}>Nedávno vyhľadané</Text>
+        <Text style={styles.sectionTitle}>{t('search-history') || 'Nedávno vyhľadané'}</Text>
         {searchHistory.slice(0, 5).map((place, index) => (
           <PlaceItem
             key={`history-${index}`}
@@ -393,13 +397,13 @@ export const PlaceSearch: React.FC = () => {
     }
 
     if (error) {
-      return <EmptyState message="Nastala chyba pri vyhľadávaní" type="error" />;
+      return <EmptyState message={t('search-error') || 'Nastala chyba pri vyhľadávaní'} type="error" />;
     }
 
     if (places && places?.suggestions?.length > 0) {
       return (
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Výsledky vyhľadávania</Text>
+          <Text style={styles.sectionTitle}>{t('search-results') || 'Výsledky vyhľadávania'}</Text>
           {places?.suggestions.map((place, index) => (
             <PlaceItem
               key={`result-${index}`}
@@ -415,7 +419,7 @@ export const PlaceSearch: React.FC = () => {
     }
 
     if (hasSearched && debouncedQuery.length >= 2) {
-      return <EmptyState message={t('no-results') || 'Žiadne výsledky'} type="no-results" />;
+      return <EmptyState message={t('no-results-found') || 'Žiadne výsledky'} type="no-results" />;
     }
 
     return null;
@@ -448,7 +452,7 @@ export const PlaceSearch: React.FC = () => {
   }
 
   return (
-    <Layout pageTitle="Vyhľadať miesta" showTopBar={false}>
+    <Layout pageTitle={t('search-places') || 'Vyhľadať miesta'} showTopBar={false}>
       <View style={styles.container}>
         <KeyboardAvoidingView
           style={styles.keyboardContainer}
@@ -459,7 +463,7 @@ export const PlaceSearch: React.FC = () => {
             {/* Header */}
             <View style={styles.header}>
               <View style={styles.headerTitle}>
-                <Text style={styles.titleText}>Kam sa chcete vybrať?</Text>
+                <Text style={styles.titleText}>{t('where-do-you-want-to-go') || 'Kam sa chcete vybrať?'}</Text>
               </View>
               <TouchableOpacity
                 style={styles.mapButton}

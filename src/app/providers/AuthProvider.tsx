@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useRef,
   useState,
+  useCallback,
 } from 'react';
 import { useQueryClient } from 'react-query';
 import {
@@ -26,6 +27,7 @@ import {
 } from '../services/auth/appleSignIn';
 import { consentService } from '../services/consentService';
 import { JwtAuthenticationResponseDTO, OutdatedConsentDTO } from '../types/dto';
+import { axiosClient } from '../utils/api/axiosClient';
 
 // Global reference to unsubscribe function (set by Navigation component)
 let globalUnsubscribeNotifications: (() => void) | null = null;
@@ -78,11 +80,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { setUserData, updateCanSeeContent } = useUserStore();
   const { setUseFakeLocation, setFakeLocationName, setInitialized } =
     useLocationStore();
-
-  // Initialize authentication state
-  useEffect(() => {
-    initializeAuth();
-  }, []);
 
   // Save current location to backend
   const saveCurrentLocationToBackend = async (
@@ -294,7 +291,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       setIsLoading(true);
 
@@ -330,7 +327,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, setUserData, setUseFakeLocation, setFakeLocationName, setInitialized, queryClient]);
+
+  // Initialize authentication state
+  useEffect(() => {
+    initializeAuth();
+    
+    // Set up logout callback for token refresh failures
+    axiosClient.setOnTokenRefreshFailure(() => {
+      console.log('🚪 [AUTH] Token refresh failed, logging out user');
+      logout();
+    });
+  }, [logout]);
 
   const signInWithGoogle = async () => {
     try {

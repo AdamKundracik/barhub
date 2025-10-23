@@ -44,7 +44,7 @@ import { Center } from '@/components/ui/center';
 export const UserDetail = () => {
   const route = useRoute();
   const navigation = useNavigation();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { showErrorToast } = useCustomToast();
   const { getUserId } = useUserStore();
   const { setPlaceId, setPlaceName, setPlaceAddress } = usePlaceStore();
@@ -158,31 +158,66 @@ export const UserDetail = () => {
         const minutes = Math.floor(diffInSeconds / 60);
         const minutesText = getSlovakPlural(
           minutes,
-          'minúta',
-          'minúty',
-          'minút'
+          t('user.minute') || 'minúta',
+          t('user.minutes') || 'minúty',
+          t('user.minutes_plural') || 'minút'
         );
+        // Special handling for Spanish - "hace X min" instead of "X min hace"
+        if (i18n.language === 'es') {
+          return `${t('user.ago') || 'hace'} ${minutes} ${minutesText}`;
+        }
         return `${minutes} ${minutesText} ${t('user.ago') || 'dozadu'}`;
       } else if (diffInSeconds < 86400) {
         const hours = Math.floor(diffInSeconds / 3600);
-        const hoursText = getSlovakPlural(hours, 'hodina', 'hodiny', 'hodín');
+        const hoursText = getSlovakPlural(
+          hours,
+          t('user.hour') || 'hodina',
+          t('user.hours') || 'hodiny',
+          t('user.hours_plural') || 'hodín'
+        );
+        // Special handling for Spanish - "hace X horas" instead of "X horas hace"
+        if (i18n.language === 'es') {
+          return `${t('user.ago') || 'hace'} ${hours} ${hoursText}`;
+        }
         return `${hours} ${hoursText} ${t('user.ago') || 'dozadu'}`;
       } else if (diffInSeconds < 2592000) {
         const days = Math.floor(diffInSeconds / 86400);
-        const daysText = getSlovakPlural(days, 'deň', 'dni', 'dní');
+        const daysText = getSlovakPlural(
+          days,
+          t('user.day') || 'deň',
+          t('user.days') || 'dni',
+          t('user.days_plural') || 'dní'
+        );
+        // Special handling for Spanish - "hace X días" instead of "X días hace"
+        if (i18n.language === 'es') {
+          return `${t('user.ago') || 'hace'} ${days} ${daysText}`;
+        }
         return `${days} ${daysText} ${t('user.ago') || 'dozadu'}`;
       } else if (diffInSeconds < 31536000) {
         const months = Math.floor(diffInSeconds / 2592000);
         const monthsText = getSlovakPlural(
           months,
-          'mesiac',
-          'mesiace',
-          'mesiacov'
+          t('user.month') || 'mesiac',
+          t('user.months') || 'mesiace',
+          t('user.months_plural') || 'mesiacov'
         );
+        // Special handling for Spanish - "hace X meses" instead of "X meses hace"
+        if (i18n.language === 'es') {
+          return `${t('user.ago') || 'hace'} ${months} ${monthsText}`;
+        }
         return `${months} ${monthsText} ${t('user.ago') || 'dozadu'}`;
       } else {
         const years = Math.floor(diffInSeconds / 31536000);
-        const yearsText = getSlovakPlural(years, 'rok', 'roky', 'rokov');
+        const yearsText = getSlovakPlural(
+          years,
+          t('user.year') || 'rok',
+          t('user.years') || 'roky',
+          t('user.years_plural') || 'rokov'
+        );
+        // Special handling for Spanish - "hace X años" instead of "X años hace"
+        if (i18n.language === 'es') {
+          return `${t('user.ago') || 'hace'} ${years} ${yearsText}`;
+        }
         return `${years} ${yearsText} ${t('user.ago') || 'dozadu'}`;
       }
     } catch (error) {
@@ -346,12 +381,7 @@ export const UserDetail = () => {
                     {userProfile.totalPosts}
                   </Text>
                   <Text style={styles.quickStatLabel}>
-                    {getSlovakPlural(
-                      userProfile.totalPosts,
-                      'príspevok',
-                      'príspevky',
-                      'príspevkov'
-                    )}
+                    {t('user.posts') || 'Príspevky'}
                   </Text>
                 </View>
                 <View style={styles.quickStatDivider} />
@@ -360,12 +390,7 @@ export const UserDetail = () => {
                     {userProfile.totalLikes}
                   </Text>
                   <Text style={styles.quickStatLabel}>
-                    {getSlovakPlural(
-                      userProfile.totalLikes,
-                      'lajk',
-                      'lajky',
-                      'lajkov'
-                    )}
+                    {t('user.likes') || 'Páči sa mi'}
                   </Text>
                 </View>
                 <View style={styles.quickStatDivider} />
@@ -374,12 +399,7 @@ export const UserDetail = () => {
                     {userProfile.leaderboardPoints}
                   </Text>
                   <Text style={styles.quickStatLabel}>
-                    {getSlovakPlural(
-                      userProfile.leaderboardPoints,
-                      'bod',
-                      'body',
-                      'bodov'
-                    )}
+                    {t('user.points') || 'Body'}
                   </Text>
                 </View>
               </View>
@@ -550,24 +570,14 @@ export const UserDetail = () => {
                   />
                 </View>
                 <Text style={styles.modernStatTitle}>
-                  {getSlovakPlural(
-                    userProfile.totalHighlights,
-                    'zvýraznenie',
-                    'zvýraznenia',
-                    'zvýraznení'
-                  )}
+                  {t('user.highlights') || 'Zvýraznenia'}
                 </Text>
               </View>
               <Text style={styles.modernStatNumber}>
                 {userProfile.totalHighlights}
               </Text>
               <Text style={styles.modernStatDescription}>
-                {getSlovakPlural(
-                  userProfile.totalHighlights,
-                  'zvýraznený príspevok',
-                  'zvýraznené príspevky',
-                  'zvýraznených príspevkov'
-                )}
+                {t('user.highlights-desc') || 'Zvýraznené príspevky'}
               </Text>
             </View>
 
@@ -658,7 +668,7 @@ export const UserDetail = () => {
                           userProfile.totalLikes / userProfile.totalPosts
                         )
                       : 0;
-                  return `Priemerné ${getSlovakPlural(avgLikes, 'lajk', 'lajky', 'lajkov')} na príspevok`;
+                  return `${t('user.avg-likes') || 'Priemerné páči sa mi na príspevok'}`;
                 })()}
               </Text>
             </View>

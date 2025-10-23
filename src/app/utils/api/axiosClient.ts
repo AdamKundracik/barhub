@@ -15,6 +15,7 @@ import { tokenManager } from './tokenManager';
  * - 401 error interceptor with automatic token refresh
  * - Request queuing during token refresh
  * - Prevents infinite refresh loops
+ * - Automatic logout on token refresh failure
  */
 class AxiosClient {
   private axiosInstance: AxiosInstance;
@@ -23,6 +24,7 @@ class AxiosClient {
     resolve: (value?: any) => void;
     reject: (error?: any) => void;
   }> = [];
+  private onTokenRefreshFailure: (() => void) | null = null;
 
   constructor() {
     this.axiosInstance = axios.create({
@@ -111,11 +113,18 @@ class AxiosClient {
               return this.axiosInstance(originalRequest);
             } else {
               console.log('❌ [AUTH] Token refresh failed - no new token received');
-              console.log('🗑️ [AUTH] Clearing tokens and failing all requests');
+              console.log('🗑️ [AUTH] Clearing tokens and triggering logout');
               
               // Refresh failed - clear tokens and logout
               this.processQueue(new Error('Token refresh failed'));
               await tokenManager.clearTokens();
+              
+              // Trigger logout callback if set
+              if (this.onTokenRefreshFailure) {
+                console.log('🚪 [AUTH] Triggering logout due to token refresh failure');
+                this.onTokenRefreshFailure();
+              }
+              
               return Promise.reject(error);
             }
           } catch (refreshError) {
@@ -125,6 +134,13 @@ class AxiosClient {
             // Refresh failed - clear tokens and logout
             this.processQueue(refreshError);
             await tokenManager.clearTokens();
+            
+            // Trigger logout callback if set
+            if (this.onTokenRefreshFailure) {
+              console.log('🚪 [AUTH] Triggering logout due to token refresh error');
+              this.onTokenRefreshFailure();
+            }
+            
             return Promise.reject(error);
           } finally {
             this.isRefreshing = false;
@@ -192,6 +208,11 @@ class AxiosClient {
   // Get the underlying axios instance for advanced usage
   getInstance(): AxiosInstance {
     return this.axiosInstance;
+  }
+
+  // Set callback for token refresh failure
+  setOnTokenRefreshFailure(callback: (() => void) | null) {
+    this.onTokenRefreshFailure = callback;
   }
 }
 

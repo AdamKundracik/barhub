@@ -113,7 +113,7 @@ const UserLineComponent = ({
   const [localIsHighlighted, setLocalIsHighlighted] = useState(isHighlighted);
   const queryClient = useQueryClient();
   const { placeId } = usePlaceStore();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { showSuccessToast, showErrorToast } = useCustomToast();
 
   // Sync local highlight state with prop when it changes
@@ -173,9 +173,17 @@ const UserLineComponent = ({
         if (diffInMinutes < 1) {
           return t('just-now') || 'práve teraz';
         } else if (diffInMinutes < 60) {
-          return `${t('ago')} ${diffInMinutes} min`;
+          // Special handling for Spanish - "hace X min" instead of "X min hace"
+          if (i18n.language === 'es') {
+            return `${t('ago')} ${diffInMinutes} min`;
+          }
+          return `${diffInMinutes} min ${t('ago')}`;
         } else {
-          return `${t('ago')} ${diffInHours}h`;
+          // Special handling for Spanish - "hace Xh" instead of "Xh hace"
+          if (i18n.language === 'es') {
+            return `${t('ago')} ${diffInHours}h`;
+          }
+          return `${diffInHours}h ${t('ago')}`;
         }
       }
 
