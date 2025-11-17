@@ -147,36 +147,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         let userData = await authService.getCachedUser();
         if (userData) {
           setUser(userData);
+          // Set loading to false immediately after we have cached user data
+          // This allows the UI to render while we load additional data in background
+          setIsLoading(false);
         }
 
-        // Then fetch fresh user data from server
+        // Then fetch fresh user data from server and load additional data in background
         userData = await authService.getCurrentUser();
         if (userData) {
           setUser(userData);
-          await loadUserData(userData);
-          await pushTokenService.initialize(userData.id.toString());
-
-          // Check consent status
-          try {
-            const consentStatus = await consentService.getConsentStatus(
-              userData.id.toString()
-            );
-
-            const outdated: OutdatedConsentDTO[] = consentStatus.consents
-              .filter(c => !c.accepted || c.needsUpdate)
-              .map(c => ({
-                consentType: c.consentType,
-                currentVersion: c.currentVersion,
-                userAcceptedVersion: c.acceptedVersion,
-                needsUpdate: c.needsUpdate,
-              }));
-
-            if (outdated.length > 0) {
-              setPendingConsents(outdated);
-            }
-          } catch (error) {
-            console.error('AuthProvider: Consent check error:', error);
-          }
+          
+          // Run these operations in parallel in the background - don't block UI
+          Promise.allSettled([
+            loadUserData(userData),
+            pushTokenService.initialize(userData.id.toString()),
+            loadConsentStatus(userData.id.toString()),
+          ]).catch(error => {
+            console.error('AuthProvider: Background operations error:', error);
+          });
         }
       } else {
         setUser(null);
@@ -185,8 +173,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error('AuthProvider: Initialization error:', error);
       setUser(null);
     } finally {
-      setIsLoading(false);
+      // Only set loading to false if we haven't already done so above
+      if (isInitializingRef.current) {
+        setIsLoading(false);
+      }
       isInitializingRef.current = false;
+    }
+  };
+
+  // Separate function for consent status loading (non-blocking)
+  const loadConsentStatus = async (userId: string) => {
+    try {
+      const consentStatus = await consentService.getConsentStatus(userId);
+
+      const outdated: OutdatedConsentDTO[] = consentStatus.consents
+        .filter(c => !c.accepted || c.needsUpdate)
+        .map(c => ({
+          consentType: c.consentType,
+          currentVersion: c.currentVersion,
+          userAcceptedVersion: c.acceptedVersion,
+          needsUpdate: c.needsUpdate,
+        }));
+
+      if (outdated.length > 0) {
+        setPendingConsents(outdated);
+      }
+    } catch (error) {
+      console.error('AuthProvider: Consent check error:', error);
     }
   };
 
@@ -332,8 +345,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Initialize authentication state
   useEffect(() => {
     initializeAuth();
-    
-    // Set up logout callback for token refresh failures
+  }, []); // Remove logout dependency to prevent re-initialization
+
+  // Set up logout callback for token refresh failures - separate effect
+  useEffect(() => {
     axiosClient.setOnTokenRefreshFailure(() => {
       console.log('🚪 [AUTH] Token refresh failed, logging out user');
       logout();

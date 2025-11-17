@@ -7,16 +7,6 @@ import axios, {
 import { API_CONFIG } from '../../config/api';
 import { tokenManager } from './tokenManager';
 
-/**
- * AxiosClient - HTTP client with automatic JWT token refresh
- * 
- * Key features:
- * - Automatic token injection in request headers
- * - 401 error interceptor with automatic token refresh
- * - Request queuing during token refresh
- * - Prevents infinite refresh loops
- * - Automatic logout on token refresh failure
- */
 class AxiosClient {
   private axiosInstance: AxiosInstance;
   private isRefreshing = false;
@@ -39,15 +29,14 @@ class AxiosClient {
   }
 
   private setupInterceptors() {
-    // Request interceptor - add auth token
+    // Add access token to request
     this.axiosInstance.interceptors.request.use(
       async (config: InternalAxiosRequestConfig) => {
-        // Skip token for auth endpoints
+        // Skip token for auth routes
         if (config.url?.startsWith('/auth/')) {
           return config;
         }
 
-        // Get access token with fallback to SecureStore
         const token = await tokenManager.getAccessTokenAsync();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
@@ -58,93 +47,85 @@ class AxiosClient {
       (error: any) => Promise.reject(error)
     );
 
-    // Response interceptor - handle 401 errors
+    // Handle 401 responses
     this.axiosInstance.interceptors.response.use(
       (response: AxiosResponse) => response,
       async (error: any) => {
         const originalRequest = error.config;
 
-        // Handle 401 Unauthorized
+        // ❌ Ak refresh endpoint vráti 401 -> okamžitý logout
+        if (
+          error.response?.status === 401 &&
+          originalRequest.url?.includes('/auth/refresh')
+        ) {
+          console.log('❌ [AUTH] Refresh token je neplatný → okamžitý logout');
+
+          await tokenManager.clearTokens();
+          if (this.onTokenRefreshFailure) {
+            this.onTokenRefreshFailure();
+          }
+
+          return Promise.reject(error);
+        }
+
+        // 🔒 Riešenie klasickej 401 (expired access token)
         if (
           error.response?.status === 401 &&
           !originalRequest._retry &&
           !originalRequest.url?.startsWith('/auth/')
         ) {
-          console.log('🔴 [AUTH] 401 Unauthorized detected');
-          console.log('🔴 [AUTH] Request:', originalRequest.method?.toUpperCase(), originalRequest.url);
-          
-          // If already refreshing, queue this request
+          console.log(
+            '🔴 [AUTH] 401 Unauthorized detected',
+            originalRequest.url
+          );
+
+          // If refresh already running → queue this request
           if (this.isRefreshing) {
-            console.log('⏳ [AUTH] Token refresh already in progress, queuing request');
             return new Promise((resolve, reject) => {
               this.failedQueue.push({ resolve, reject });
             })
-              .then(() => {
-                console.log('✅ [AUTH] Retrying queued request after refresh');
-                return this.axiosInstance(originalRequest);
-              })
-              .catch(err => {
-                console.log('❌ [AUTH] Queued request failed after refresh');
-                return Promise.reject(err);
-              });
+              .then(() => this.axiosInstance(originalRequest))
+              .catch(err => Promise.reject(err));
           }
 
           originalRequest._retry = true;
           this.isRefreshing = true;
-          console.log('🔄 [AUTH] Starting token refresh process...');
 
           try {
-            // Dynamic import to avoid circular dependency
+            // dynamic import (prevents circular deps)
             const { authService } = await import('../../services/authService');
             const newToken = await authService.refreshAccessToken();
 
-            if (newToken) {
-              console.log('✅ [AUTH] Token refresh successful');
-              console.log('✅ [AUTH] Retrying original request with new token');
-              
-              // Update original request with new token
-              originalRequest.headers.Authorization = `Bearer ${newToken}`;
-              
-              // Retry all queued requests
-              console.log(`✅ [AUTH] Processing ${this.failedQueue.length} queued requests`);
-              this.processQueue(null);
-              
-              // Retry original request
-              return this.axiosInstance(originalRequest);
-            } else {
-              console.log('❌ [AUTH] Token refresh failed - no new token received');
-              console.log('🗑️ [AUTH] Clearing tokens and triggering logout');
-              
-              // Refresh failed - clear tokens and logout
-              this.processQueue(new Error('Token refresh failed'));
+            if (!newToken) {
+              console.log('❌ [AUTH] Refresh vrátil null token → logout');
+
+              this.processQueue(new Error('Refresh failed'));
               await tokenManager.clearTokens();
-              
-              // Trigger logout callback if set
-              if (this.onTokenRefreshFailure) {
-                console.log('🚪 [AUTH] Triggering logout due to token refresh failure');
-                this.onTokenRefreshFailure();
-              }
-              
+              if (this.onTokenRefreshFailure) this.onTokenRefreshFailure();
+
               return Promise.reject(error);
             }
+
+            // success
+            console.log('✅ [AUTH] Refresh OK → retry requests');
+
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            this.processQueue(null);
+
+            return this.axiosInstance(originalRequest);
           } catch (refreshError) {
-            console.log('❌ [AUTH] Token refresh error:', refreshError);
-            console.log('🗑️ [AUTH] Clearing tokens due to refresh error');
-            
-            // Refresh failed - clear tokens and logout
+            console.log(
+              '❌ [AUTH] Refresh request error → logout',
+              refreshError
+            );
+
             this.processQueue(refreshError);
             await tokenManager.clearTokens();
-            
-            // Trigger logout callback if set
-            if (this.onTokenRefreshFailure) {
-              console.log('🚪 [AUTH] Triggering logout due to token refresh error');
-              this.onTokenRefreshFailure();
-            }
-            
+            if (this.onTokenRefreshFailure) this.onTokenRefreshFailure();
+
             return Promise.reject(error);
           } finally {
             this.isRefreshing = false;
-            console.log('🔄 [AUTH] Token refresh process completed');
           }
         }
 
@@ -153,24 +134,17 @@ class AxiosClient {
     );
   }
 
-  /**
-   * Process queued requests after token refresh
-   */
   private processQueue(error: any) {
     this.failedQueue.forEach(({ resolve, reject }) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve();
-      }
+      error ? reject(error) : resolve();
     });
     this.failedQueue = [];
   }
 
-  // HTTP methods
+  // HTTP wrappers
   async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.axiosInstance.get(url, config);
-    return response.data;
+    const res = await this.axiosInstance.get(url, config);
+    return res.data;
   }
 
   async post<T = any>(
@@ -178,8 +152,8 @@ class AxiosClient {
     data?: any,
     config?: AxiosRequestConfig
   ): Promise<T> {
-    const response = await this.axiosInstance.post(url, data, config);
-    return response.data;
+    const res = await this.axiosInstance.post(url, data, config);
+    return res.data;
   }
 
   async put<T = any>(
@@ -187,8 +161,8 @@ class AxiosClient {
     data?: any,
     config?: AxiosRequestConfig
   ): Promise<T> {
-    const response = await this.axiosInstance.put(url, data, config);
-    return response.data;
+    const res = await this.axiosInstance.put(url, data, config);
+    return res.data;
   }
 
   async patch<T = any>(
@@ -196,26 +170,23 @@ class AxiosClient {
     data?: any,
     config?: AxiosRequestConfig
   ): Promise<T> {
-    const response = await this.axiosInstance.patch(url, data, config);
-    return response.data;
+    const res = await this.axiosInstance.patch(url, data, config);
+    return res.data;
   }
 
   async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.axiosInstance.delete(url, config);
-    return response.data;
+    const res = await this.axiosInstance.delete(url, config);
+    return res.data;
   }
 
-  // Get the underlying axios instance for advanced usage
   getInstance(): AxiosInstance {
     return this.axiosInstance;
   }
 
-  // Set callback for token refresh failure
   setOnTokenRefreshFailure(callback: (() => void) | null) {
     this.onTokenRefreshFailure = callback;
   }
 }
 
-// Export singleton instance
 export const axiosClient = new AxiosClient();
 export default axiosClient;

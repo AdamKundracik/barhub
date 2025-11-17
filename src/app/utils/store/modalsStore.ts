@@ -31,12 +31,15 @@ interface ModalsState {
   closeCustomReason: () => void;
   toggleCustomReason: () => void;
 
-  openOccupancy: (initialValue?: OccupancyEnum | null, callback?: (value: OccupancyEnum) => void) => void;
+  openOccupancy: (
+    initialValue?: OccupancyEnum | null,
+    callback?: (value: OccupancyEnum) => void
+  ) => void;
   closeOccupancy: () => void;
   setOccupancyValue: (value: OccupancyEnum | null) => void;
 }
 
-export const modalsStore = create<ModalsState>(set => ({
+export const useModalsStore = create<ModalsState>(set => ({
   isFilterOpen: false,
   isHelpOpen: false,
   isInfoOpen: false,
@@ -80,5 +83,5 @@ export const modalsStore = create<ModalsState>(set => ({
       occupancyValue: null,
       occupancyCallback: null,
     }),
-  setOccupancyValue: (value) => set({ occupancyValue: value }),
+  setOccupancyValue: value => set({ occupancyValue: value }),
 }));

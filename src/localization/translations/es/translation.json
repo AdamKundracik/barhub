@@ -258,6 +258,7 @@
     "title": "Permisos Requeridos",
     "location": "Acceso a Ubicación",
     "locationDesc": "Necesario para encontrar lugares cerca de ti",
+    "locationAlwaysNote": "La ubicación debe estar configurada en SIEMPRE para el funcionamiento adecuado de la aplicación",
     "camera": "Acceso a Cámara",
     "cameraDesc": "Necesario para tomar fotos de lugares",
     "notification": "Notificaciones Push",
@@ -336,7 +337,21 @@
     "confirmMessage": "¿Realmente quieres reportar este usuario como {{reason}}?",
     "customReasonTitle": "Motivo Personalizado",
     "customReasonPlaceholder": "Escribe tu motivo para reportar este usuario...",
-    "customReasonRequired": "El motivo es requerido"
+    "customReasonRequired": "El motivo es requerido",
+    "blockPrompt": "¿También te gustaría bloquear a {{userName}}? No verás sus publicaciones y no podrán interactuar con tu contenido.",
+    "skipBlock": "Omitir"
+  },
+  "blockUser": {
+    "title": "Bloquear usuario",
+    "unblockTitle": "Desbloquear usuario",
+    "message": "¿Estás seguro de que quieres bloquear a {{userName}}? No verás sus publicaciones y no podrán interactuar con tu contenido.",
+    "unblockMessage": "¿Estás seguro de que quieres desbloquear a {{userName}}? Verás sus publicaciones y podrán interactuar con tu contenido nuevamente.",
+    "block": "Bloquear",
+    "unblock": "Desbloquear",
+    "blockSuccessTitle": "Usuario bloqueado",
+    "blockSuccessMessage": "El usuario ha sido bloqueado exitosamente",
+    "unblockSuccessTitle": "Usuario desbloqueado",
+    "unblockSuccessMessage": "El usuario ha sido desbloqueado exitosamente"
   },
   "uploadPost": {
     "successTitle": "Publicación guardada",

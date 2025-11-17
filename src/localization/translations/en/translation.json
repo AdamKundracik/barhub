@@ -294,6 +294,7 @@
     "title": "Required Permissions",
     "location": "Location Access",
     "locationDesc": "Required to find places near you",
+    "locationAlwaysNote": "Location must be set to ALWAYS for proper app functionality",
     "camera": "Camera Access",
     "cameraDesc": "Required to take photos of places",
     "notification": "Push Notifications",
@@ -400,7 +401,21 @@
     "confirmMessage": "Do you really want to report this user as {{reason}}?",
     "customReasonTitle": "Custom Reason",
     "customReasonPlaceholder": "Write your reason for reporting this user...",
-    "customReasonRequired": "Reason is required"
+    "customReasonRequired": "Reason is required",
+    "blockPrompt": "Would you also like to block {{userName}}? You won't see their posts and they won't be able to interact with your content.",
+    "skipBlock": "Skip"
+  },
+  "blockUser": {
+    "title": "Block User",
+    "unblockTitle": "Unblock User",
+    "message": "Are you sure you want to block {{userName}}? You won't see their posts and they won't be able to interact with your content.",
+    "unblockMessage": "Are you sure you want to unblock {{userName}}? You will see their posts and they will be able to interact with your content again.",
+    "block": "Block",
+    "unblock": "Unblock",
+    "blockSuccessTitle": "User Blocked",
+    "blockSuccessMessage": "User has been blocked successfully",
+    "unblockSuccessTitle": "User Unblocked",
+    "unblockSuccessMessage": "User has been unblocked successfully"
   },
   "uploadPost": {
     "successTitle": "Post saved",

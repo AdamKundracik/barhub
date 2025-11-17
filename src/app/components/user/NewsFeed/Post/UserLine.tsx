@@ -248,7 +248,6 @@ const UserLineComponent = ({
     [postId, showSuccessToast, showErrorToast, t]
   );
 
-
   const confirmDelete = useCallback(
     (onConfirm: () => void) => {
       Alert.alert(
@@ -429,7 +428,7 @@ const UserLineComponent = ({
                   style={styles.avatar}
                 />
               ) : (
-                <AvatarFallbackText style={styles.avatarFallback}>
+                <AvatarFallbackText className={'text-white'}>
                   {safeUserName}
                 </AvatarFallbackText>
               )}
@@ -445,12 +444,16 @@ const UserLineComponent = ({
               </TouchableOpacity>
               {user?.role === 'ADMIN' && (
                 <View style={styles.roleBadge}>
-                  <View style={[styles.roleDot, { backgroundColor: '#FF6B6B' }]} />
+                  <View
+                    style={[styles.roleDot, { backgroundColor: '#FF6B6B' }]}
+                  />
                 </View>
               )}
               {user?.role === 'MODERATOR' && (
                 <View style={styles.roleBadge}>
-                  <View style={[styles.roleDot, { backgroundColor: '#007AFF' }]} />
+                  <View
+                    style={[styles.roleDot, { backgroundColor: '#007AFF' }]}
+                  />
                 </View>
               )}
               {localIsHighlighted && (
@@ -506,7 +509,6 @@ const UserLineComponent = ({
         onClose={() => setIsReportModalOpen(false)}
         onSave={handleReport}
       />
-
     </>
   );
 };

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getLocales } from 'expo-localization';
 import {
   getTrackingPermissionsAsync,
@@ -13,36 +13,61 @@ export const useAppInitialization = () => {
   const [isAppInitialized, setIsAppInitialized] = useState(false);
   const { loadRequests } = useRequestStore();
 
+  // Memoize the initialization function to prevent re-creation
+  const initializeBackgroundOperations = useCallback(async () => {
+    try {
+      // Run these operations in parallel, not sequentially
+      await Promise.allSettled([
+        initializeTrackingAndAds(),
+        loadRequests(),
+      ]);
+    } catch (error) {
+      console.error('Error initializing background operations:', error);
+    }
+  }, [loadRequests]);
+
   useEffect(() => {
+    let isCancelled = false;
+
     const initializeApp = async () => {
       try {
-        // --- Set language ---
+        // --- Set language (synchronous, fast) ---
         const locales = getLocales();
         const languageCode = locales[0]?.languageCode || 'en';
         const supportedLanguages = ['sk', 'de', 'es', 'en'];
         const language = supportedLanguages.includes(languageCode)
           ? languageCode
           : 'en';
-        await i18n.changeLanguage(language);
+        
+        // Make language change non-blocking - set immediately without await
+        i18n.changeLanguage(language).catch(error => {
+          console.error('Error changing language:', error);
+        });
 
-        // --- Initialize tracking & ads ---
-        await initializeTrackingAndAds();
+        // Check if component is still mounted before setting state
+        if (!isCancelled) {
+          // Mark app as initialized immediately - don't wait for non-critical operations
+          setIsAppInitialized(true);
 
-        // --- Load requests ---
-        await loadRequests();
+          // --- Initialize non-critical operations in background ---
+          // These don't block app startup but run after app is ready
+          initializeBackgroundOperations();
+        }
 
-        // Mark app as initialized (excluding user-specific data)
-        setIsAppInitialized(true);
       } catch (error) {
         console.error('Error initializing app:', error);
-        setIsAppInitialized(true); // Allow app to proceed even if error occurs
+        if (!isCancelled) {
+          setIsAppInitialized(true); // Allow app to proceed even if error occurs
+        }
       }
     };
 
     initializeApp();
-  }, [loadRequests]);
 
-  // Note: Auth state management is now handled by AuthProvider
+    return () => {
+      isCancelled = true;
+    };
+  }, [initializeBackgroundOperations]);
 
   const initializeTrackingAndAds = async () => {
     try {

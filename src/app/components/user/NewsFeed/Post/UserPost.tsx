@@ -206,7 +206,7 @@ const UserPost: React.FC<UserPostProps> = ({
   isFiltering,
   onCommentPress,
 }) => {
-  const { isPremium, canSeeContent } = useUserStore();
+  const { isPremium, canSeeContent, userData } = useUserStore();
   const navigation = useNavigation();
 
   // Early return if no post
@@ -280,10 +280,15 @@ const UserPost: React.FC<UserPostProps> = ({
   }, [id, user?.expoPushToken, userId, onCommentPress]);
 
   // Computed values
-  const shouldShowBlur = useMemo(
-    () => !isPremium() && !canSeeContent,
-    [isPremium, canSeeContent]
-  );
+  const shouldShowBlur = useMemo(() => {
+    // Don't show blur while user data is loading
+    if (!userData) {
+      return false;
+    }
+
+    const premium = isPremium();
+    return !premium && !canSeeContent;
+  }, [isPremium, canSeeContent, userData, id]);
 
   const trimmedPlaceName = useMemo(() => trimPlaceName(placeName), [placeName]);
 

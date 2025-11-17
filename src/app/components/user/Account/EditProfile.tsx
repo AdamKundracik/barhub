@@ -319,7 +319,7 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
                   style={styles.avatarImage}
                 />
               ) : (
-                <AvatarFallbackText style={styles.avatarFallback}>
+                <AvatarFallbackText className={'text-white'}>
                   {username || 'User'}
                 </AvatarFallbackText>
               )}

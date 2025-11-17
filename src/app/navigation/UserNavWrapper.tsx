@@ -10,7 +10,7 @@ import { consentService } from '../services/consentService';
 import { useCustomToast } from '../components/shared/Toaster';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../providers/AuthProvider';
-import { modalsStore } from '../utils/store/modalsStore';
+import { useModalsStore } from '../utils/store/modalsStore';
 import { OccupancyEnum } from '../utils/types/Feed/PostTypes';
 
 /**
@@ -28,12 +28,8 @@ export const UserNavWrapper: React.FC = () => {
   const [isAcceptingConsents, setIsAcceptingConsents] = useState(false);
 
   // Occupancy modal from store
-  const {
-    isOccupancyOpen,
-    occupancyValue,
-    occupancyCallback,
-    closeOccupancy,
-  } = modalsStore();
+  const { isOccupancyOpen, occupancyValue, occupancyCallback, closeOccupancy } =
+    useModalsStore();
 
   // Check if user is disabled
   if (userData?.disabled) {

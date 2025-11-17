@@ -26,6 +26,7 @@ import { FavoritePlaceDTO, ReasonTypeEnum } from '../../types/dto';
 import { usePlaceStore } from '../../utils/store/placesStore';
 import { useNavigationStore } from '../../utils/store/navigationStore';
 import { UserReportModal } from '../../components/shared/Modals/UserReportModal';
+import { BlockUserModal } from '../../components/shared/Modals/BlockUserModal';
 import { reportService } from '../../services/reportService';
 import { ReportReason } from '../../utils/types/Feed/PostTypes';
 import {
@@ -33,6 +34,7 @@ import {
   primaryBgColor,
   primaryColor,
   primaryDeepColor,
+  primaryLightGrey,
   primaryTextColor,
   secondaryTextColor,
   warningColor,
@@ -46,13 +48,14 @@ export const UserDetail = () => {
   const navigation = useNavigation();
   const { t, i18n } = useTranslation();
   const { showErrorToast } = useCustomToast();
-  const { getUserId } = useUserStore();
+  const { getUserId, blockUser, unblockUser, isUserBlocked } = useUserStore();
   const { setPlaceId, setPlaceName, setPlaceAddress } = usePlaceStore();
   const { previousPage } = useNavigationStore();
 
   const { userId } = route.params as { userId: string };
   const currentUserId = getUserId();
   const isOwnProfile = currentUserId === userId;
+  const userIsBlocked = isUserBlocked(userId);
 
   const {
     data: userProfile,
@@ -67,6 +70,7 @@ export const UserDetail = () => {
 
   const [refreshing, setRefreshing] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -98,22 +102,58 @@ export const UserDetail = () => {
           customReason
         );
 
-        showErrorToast(
-          t('reportUser.successTitle') || 'Report Submitted',
-          t('reportUser.successDescription') || 'Thank you for your report'
-        );
+        // Nezobraziť toast tu, UserReportModal si to rieši sám
+        // showErrorToast(
+        //   t('reportUser.successTitle') || 'Report Submitted',
+        //   t('reportUser.successDescription') || 'Thank you for your report'
+        // );
       } catch (error: any) {
         console.error('Failed to report user:', error);
         showErrorToast(
           t('error') || 'Error',
           error.message || t('something-went-wrong') || 'Something went wrong'
         );
-      } finally {
+        // Zatvor modal len pri chybe
         setIsReportModalOpen(false);
+        throw error; // Re-throw error aby UserReportModal vedel o chybe
       }
+      // Neuzatváraj modal automaticky - UserReportModal si to rieši sám
     },
     [userProfile?.id, currentUserId, showErrorToast, t]
   );
+
+  const handleBlockUser = useCallback(async () => {
+    if (!userId) {
+      showErrorToast('Error', 'Unable to block user');
+      return;
+    }
+
+    try {
+      if (userIsBlocked) {
+        await unblockUser(userId);
+        showErrorToast(
+          t('blockUser.unblockSuccessTitle') || 'User Unblocked',
+          t('blockUser.unblockSuccessMessage') ||
+            'User has been unblocked successfully'
+        );
+      } else {
+        await blockUser(userId);
+        showErrorToast(
+          t('blockUser.blockSuccessTitle') || 'User Blocked',
+          t('blockUser.blockSuccessMessage') ||
+            'User has been blocked successfully'
+        );
+      }
+    } catch (error: any) {
+      console.error('Failed to block/unblock user:', error);
+      showErrorToast(
+        t('error') || 'Error',
+        error.message || t('something-went-wrong') || 'Something went wrong'
+      );
+    } finally {
+      setIsBlockModalOpen(false);
+    }
+  }, [userId, userIsBlocked, blockUser, unblockUser, showErrorToast, t]);
 
   // Funkcia pre správne slovenské množné čísla
   const getSlovakPlural = (
@@ -314,19 +354,35 @@ export const UserDetail = () => {
             color={primaryTextColor}
           />
         </TouchableOpacity>
-        <View style={styles.headerSpacer} />
-        {!isOwnProfile && (
-          <TouchableOpacity
-            onPress={() => setIsReportModalOpen(true)}
-            style={styles.reportButton}
-          >
-            <FontAwesomeIcon
-              icon={Icons.Warning}
-              size={20}
-              color={warningColor}
-            />
-          </TouchableOpacity>
-        )}
+        <View style={styles.headerActions}>
+          {!isOwnProfile && (
+            <>
+              <TouchableOpacity
+                onPress={() => setIsBlockModalOpen(true)}
+                style={[
+                  styles.actionButton,
+                  userIsBlocked && styles.unblockButton,
+                ]}
+              >
+                <FontAwesomeIcon
+                  icon={userIsBlocked ? Icons.CheckCircle : Icons.Ban}
+                  size={18}
+                  color={userIsBlocked ? primaryLightGrey : warningColor}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setIsReportModalOpen(true)}
+                style={styles.actionButton}
+              >
+                <FontAwesomeIcon
+                  icon={Icons.Warning}
+                  size={18}
+                  color={warningColor}
+                />
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
       </View>
 
       <ScrollView
@@ -363,7 +419,7 @@ export const UserDetail = () => {
                     {userProfile.photoUrl ? (
                       <AvatarImage source={{ uri: userProfile.photoUrl }} />
                     ) : (
-                      <AvatarFallbackText style={styles.avatarFallback}>
+                      <AvatarFallbackText className={'text-white'}>
                         {userProfile.name || t('anonymous-user')}
                       </AvatarFallbackText>
                     )}
@@ -773,6 +829,19 @@ export const UserDetail = () => {
           visible={isReportModalOpen}
           onClose={() => setIsReportModalOpen(false)}
           onSave={handleReportUser}
+          onBlockUser={() => setIsBlockModalOpen(true)}
+          userName={userProfile?.name}
+        />
+      )}
+
+      {/* Block User Modal */}
+      {!isOwnProfile && (
+        <BlockUserModal
+          visible={isBlockModalOpen}
+          onClose={() => setIsBlockModalOpen(false)}
+          onConfirm={handleBlockUser}
+          userName={userProfile?.name}
+          isBlocked={userIsBlocked}
         />
       )}
     </View>
@@ -816,13 +885,20 @@ const styles = StyleSheet.create({
   headerSpacer: {
     width: 40,
   },
-  reportButton: {
+  headerActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  unblockButton: {
+    backgroundColor: 'rgba(52, 199, 89, 0.2)',
   },
   scrollView: {
     flex: 1,

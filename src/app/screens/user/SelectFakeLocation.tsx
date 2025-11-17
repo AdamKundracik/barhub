@@ -32,6 +32,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useCustomToast } from '../../components/shared/Toaster';
 import LoadingIndicator from '../../components/user/NewsFeed/LoadingIndicator';
 import { generateUID } from '../../utils/helper-functions/generateUID';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useModalsStore } from '@/src/app/utils/store/modalsStore';
 
 // Interfaces for old Google Places API (for cities/geocoding)
 interface CityPrediction {
@@ -59,6 +61,7 @@ interface PlaceDetailsResponse {
 export const SelectFakeLocation = () => {
   const { t } = useTranslation();
   const { showErrorToast, showSuccessToast } = useCustomToast();
+  const { toggleFilter } = useModalsStore();
 
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -169,15 +172,33 @@ export const SelectFakeLocation = () => {
 
         if (details.status === 'OK' && details.result?.geometry?.location) {
           const location = details.result.geometry.location;
+          const fakeLocationName = place.description;
 
           setFakeLocation({ latitude: location.lat, longitude: location.lng });
-          setFakeLocationName(place.description);
+          setFakeLocationName(fakeLocationName);
 
-          showSuccessToast(t('Selected-location'), place.description);
+          // Save to AsyncStorage for travel mode
+          try {
+            const savedPlace = {
+              fakeLocationName: fakeLocationName,
+              latitude: location.lat,
+              longitude: location.lng,
+            };
+            await AsyncStorage.setItem(
+              'fakeLocationPlace',
+              JSON.stringify(savedPlace)
+            );
+          } catch (error) {
+            console.error('Error saving place to AsyncStorage:', error);
+            // Continue even if saving fails
+          }
+
+          showSuccessToast(t('Selected-location'), fakeLocationName);
 
           // Small delay for better UX
           setTimeout(() => {
             navigation.goBack();
+            toggleFilter();
           }, 500);
         } else {
           throw new Error(details.error_message || 'Invalid response');

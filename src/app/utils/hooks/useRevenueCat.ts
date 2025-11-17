@@ -71,26 +71,33 @@ export const useRevenueCat = ({
   useEffect(() => {
     if (!user?.id) return;
 
-    const initRevenueCat = async () => {
-      try {
-        const apiKey =
-          Platform.OS === 'android' ? APIKeys.google : APIKeys.apple;
-        Purchases.configure({ apiKey });
-        await Purchases.setLogLevel(LOG_LEVEL.WARN);
+    // Defer RevenueCat initialization to avoid blocking app startup
+    const deferredInit = setTimeout(() => {
+      initRevenueCat();
+    }, 3000); // Wait 3 seconds after app initialization
 
-        const { customerInfo } = await Purchases.logIn(user.id.toString());
-        Purchases.addCustomerInfoUpdateListener(updateCustomerInformation);
-
-        await loadOfferings();
-        await updateCustomerInformation(customerInfo);
-        setIsReady(true);
-      } catch (err) {
-        console.error('RevenueCat init error:', err);
-      }
+    return () => {
+      clearTimeout(deferredInit);
     };
-
-    initRevenueCat();
   }, [user?.id]);
+
+  const initRevenueCat = async () => {
+    try {
+      const apiKey =
+        Platform.OS === 'android' ? APIKeys.google : APIKeys.apple;
+      Purchases.configure({ apiKey });
+      await Purchases.setLogLevel(LOG_LEVEL.WARN);
+
+      const { customerInfo } = await Purchases.logIn(user?.id?.toString() || '');
+      Purchases.addCustomerInfoUpdateListener(updateCustomerInformation);
+
+      await loadOfferings();
+      await updateCustomerInformation(customerInfo);
+      setIsReady(true);
+    } catch (err) {
+      console.error('RevenueCat init error:', err);
+    }
+  };
 
   // Update offering when subscription type changes
   useEffect(() => {

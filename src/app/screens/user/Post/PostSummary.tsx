@@ -34,7 +34,7 @@ import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { buttonStyles } from '../../../utils/styles/buttonStyles';
 import { usePostsStore } from '@/src/app/utils/store/postStore';
-import { modalsStore } from '@/src/app/utils/store/modalsStore';
+import { useModalsStore } from '@/src/app/utils/store/modalsStore';
 
 type SummaryProps = {
   image: string;
@@ -53,7 +53,7 @@ export const PostSummary = ({ route }: any) => {
   const { resetFilters } = useFiltersStore();
   const { updateUserData } = useUserStore();
   const { scrollOnTop } = usePostsStore();
-  const { openOccupancy } = modalsStore();
+  const { openOccupancy } = useModalsStore();
 
   const [selectedOccupancy, setSelectedOccupancy] =
     useState<OccupancyEnum | null>(null);

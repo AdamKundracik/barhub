@@ -34,19 +34,40 @@ export const usePermissions = () => {
   const checkAllPermissions = async () => {
     setIsLoading(true);
     try {
-      const [tracking, camera, notification, geolocation] = await Promise.all([
+      // Check permissions in parallel and process results properly
+      const permissionChecks = [
         requestTrackingPermission(),
         requestCameraPermission(),
         requestNotificationPermission(),
         requestGeolocationPermission(),
-      ]);
+      ];
 
-      setPermissions({
-        tracking: Platform.OS === 'android' || tracking,
-        camera,
-        notification,
-        geolocation,
+      const permissionTypes = ['tracking', 'camera', 'notification', 'geolocation'] as const;
+
+      // Wait for all permissions to resolve and process results
+      const results = await Promise.allSettled(permissionChecks);
+      
+      const newPermissions: PermissionsState = {
+        tracking: Platform.OS === 'android', // Default for Android
+        camera: false,
+        notification: false,
+        geolocation: false,
+      };
+
+      results.forEach((result, index) => {
+        const permissionType = permissionTypes[index];
+        
+        if (result.status === 'fulfilled') {
+          newPermissions[permissionType] = permissionType === 'tracking' 
+            ? Platform.OS === 'android' || result.value 
+            : result.value;
+        } else {
+          console.error(`Error checking ${permissionType} permission:`, result.reason);
+        }
       });
+
+      setPermissions(newPermissions);
+
     } catch (error) {
       console.error('Error checking permissions:', error);
     } finally {

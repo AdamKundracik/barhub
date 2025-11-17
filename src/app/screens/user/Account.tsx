@@ -396,7 +396,7 @@ export const Account = () => {
                   style={styles.avatarImage}
                 />
               ) : (
-                <AvatarFallbackText style={styles.avatarFallback}>
+                <AvatarFallbackText className={'text-white'}>
                   {userDisplayName}
                 </AvatarFallbackText>
               )}

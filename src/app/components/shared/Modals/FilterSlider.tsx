@@ -32,8 +32,9 @@ import { Icons } from '@/src/app/utils/icons/icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNewsFeedData } from '@/src/app/utils/hooks/NewsFeed/usePostData';
 import { useUserStore } from '@/src/app/utils/store/userStore';
-import { modalsStore } from '@/src/app/utils/store/modalsStore';
+import { useModalsStore } from '@/src/app/utils/store/modalsStore';
 import { useUserRole } from '@/src/app/hooks/useUserRole';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const PLACE_TYPES: PlaceType[] = [
   'bar',
@@ -57,8 +58,14 @@ const FilterSlider = () => {
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 
-  const { useFakeLocation, setUseFakeLocation, fakeLocationName } =
-    useLocationStore();
+  const {
+    setFakeLocation,
+    fakeLocation,
+    useFakeLocation,
+    setUseFakeLocation,
+    fakeLocationName,
+    setFakeLocationName,
+  } = useLocationStore();
 
   const { isPremium } = useUserStore();
   const { hasAdminAccess } = useUserRole();
@@ -72,7 +79,7 @@ const FilterSlider = () => {
     updateFilters,
   } = useFiltersStore();
 
-  const { isFilterOpen, closeFilter } = modalsStore();
+  const { isFilterOpen, closeFilter } = useModalsStore();
 
   const handleClose = useCallback(() => {
     closeFilter();
@@ -87,19 +94,24 @@ const FilterSlider = () => {
   >(
     storeSelectedOccupancy.length > 0 ? storeSelectedOccupancy : OCCUPANCY_TYPES
   );
-  const [_, setFakeLocationVal] = useState({
-    latitude: 0,
-    longitude: 0,
-  });
 
-  const [tempUseFakeLocation, setTempUseFakeLocation] =
-    useState(useFakeLocation);
-  const [fakeLocationNameVal, setFakeLocationNameVal] = useState('');
+  const loadSavedPlaceFromStorage = useCallback(async () => {
+    try {
+      const savedPlaceJson = await AsyncStorage.getItem('fakeLocationPlace');
+      if (!savedPlaceJson) return;
+      const savedPlace = JSON.parse(savedPlaceJson);
+      setFakeLocation({
+        latitude: savedPlace.latitude,
+        longitude: savedPlace.longitude,
+      });
 
-  useEffect(() => {
-    setTempUseFakeLocation(useFakeLocation);
-    setFakeLocationNameVal(fakeLocationName);
-  }, [isFilterOpen, useFakeLocation, fakeLocationName]);
+      // Support both old placeName and new fakeLocationName for compatibility
+      const name = savedPlace.fakeLocationName || savedPlace.placeName;
+      setFakeLocationName(name);
+    } catch (error) {
+      console.error('Error loading saved place from AsyncStorage:', error);
+    }
+  }, []);
 
   // otvorenie a zatvorenie podľa store
   useEffect(() => {
@@ -115,8 +127,13 @@ const FilterSlider = () => {
       setTempDistance(storeDistance);
       setTempSelectedPlaces(storeSelectedPlaces);
       setTempSelectedOccupancy(storeSelectedOccupancy);
+
+      // Load saved place from AsyncStorage when filter opens and travel mode is enabled
+      if (useFakeLocation) {
+        loadSavedPlaceFromStorage();
+      }
     }
-  }, [isFilterOpen]);
+  }, [isFilterOpen, useFakeLocation, loadSavedPlaceFromStorage]);
 
   const handleSaveChanges = useCallback(() => {
     const finalPlaces =
@@ -147,12 +164,16 @@ const FilterSlider = () => {
     []
   );
 
-  function handleFakeLocationToggle(value: boolean) {
+  async function handleFakeLocationToggle(value: boolean) {
     // Admin/Moderator can always toggle, or user with premium
     if (isPremium() || hasAdminAccess) {
       setUseFakeLocation(value);
+
+      // If enabling travel mode, try to load saved place from AsyncStorage
+      if (value) {
+        await loadSavedPlaceFromStorage();
+      }
     } else {
-      setTempUseFakeLocation(useFakeLocation);
       navigation.navigate('Subscription');
     }
   }
@@ -265,7 +286,7 @@ const FilterSlider = () => {
                 ellipsizeMode="tail"
               >
                 {useFakeLocation
-                  ? fakeLocationNameVal || t('select-city')
+                  ? fakeLocationName || t('select-city')
                   : t('Selected-location')}
               </Text>
               <FontAwesomeIcon

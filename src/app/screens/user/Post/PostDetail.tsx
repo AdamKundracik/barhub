@@ -13,7 +13,11 @@ import * as Icons from '@fortawesome/free-solid-svg-icons';
 import FastImage from 'react-native-fast-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
-import { Avatar, AvatarImage, AvatarFallbackText } from '@/components/ui/avatar';
+import {
+  Avatar,
+  AvatarFallbackText,
+  AvatarImage,
+} from '@/components/ui/avatar';
 import InteractionBar from '@/src/app/components/user/NewsFeed/Post/InteractionBar';
 import { PostOptionsModal } from '@/src/app/components/shared/Modals/PostOptionsModal';
 import { PostReportModal } from '@/src/app/components/shared/Modals/ReportPostModal';
@@ -406,7 +410,7 @@ export const PostDetail = () => {
                       style={styles.avatar}
                     />
                   ) : (
-                    <AvatarFallbackText style={styles.avatarFallback}>
+                    <AvatarFallbackText className={'text-white'}>
                       {post.user?.displayName || 'User'}
                     </AvatarFallbackText>
                   )}
@@ -416,7 +420,9 @@ export const PostDetail = () => {
               <VStack style={{ flex: 1 }}>
                 <HStack space="sm" style={{ alignItems: 'center' }}>
                   <TouchableOpacity onPress={handleNavigateToUser}>
-                    <Text style={styles.userName}>{post.user?.displayName}</Text>
+                    <Text style={styles.userName}>
+                      {post.user?.displayName}
+                    </Text>
                   </TouchableOpacity>
                   {localIsHighlighted && (
                     <View style={styles.highlightBadge}>

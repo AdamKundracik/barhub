@@ -11,7 +11,7 @@ import { Icons } from '../../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { useNotificationsStore } from '@/src/app/utils/store/notificationsStore';
-import { modalsStore } from '@/src/app/utils/store/modalsStore';
+import { useModalsStore } from '@/src/app/utils/store/modalsStore';
 
 type LayoutProps = {
   children: ReactNode | ReactNode[];
@@ -23,7 +23,7 @@ type LayoutProps = {
 export const Layout = ({ children, showTopBar = true }: LayoutProps) => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { data } = useNotificationsStore();
-  const { toggleFilter } = modalsStore();
+  const { toggleFilter } = useModalsStore();
 
   return (
     <SafeAreaView style={styles.wrapper}>

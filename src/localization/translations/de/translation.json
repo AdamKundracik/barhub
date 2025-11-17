@@ -256,6 +256,7 @@
     "title": "Erforderliche Berechtigungen",
     "location": "Standortzugriff",
     "locationDesc": "Erforderlich um Orte in Ihrer Nähe zu finden",
+    "locationAlwaysNote": "Standort muss auf IMMER eingestellt werden für ordnungsgemäße App-Funktionalität",
     "camera": "Kamerazugriff",
     "cameraDesc": "Erforderlich um Fotos von Orten aufzunehmen",
     "notification": "Push-Benachrichtigungen",
@@ -344,7 +345,21 @@
     "confirmMessage": "Möchten Sie diesen Benutzer wirklich als {{reason}} melden?",
     "customReasonTitle": "Benutzerdefinierter Grund",
     "customReasonPlaceholder": "Schreiben Sie Ihren Grund für die Meldung dieses Benutzers...",
-    "customReasonRequired": "Grund ist erforderlich"
+    "customReasonRequired": "Grund ist erforderlich",
+    "blockPrompt": "Möchten Sie auch {{userName}} blockieren? Sie werden ihre Beiträge nicht sehen und sie können nicht mit Ihrem Inhalt interagieren.",
+    "skipBlock": "Überspringen"
+  },
+  "blockUser": {
+    "title": "Benutzer blockieren",
+    "unblockTitle": "Benutzer entsperren",
+    "message": "Sind Sie sicher, dass Sie {{userName}} blockieren möchten? Sie werden ihre Beiträge nicht sehen und sie können nicht mit Ihrem Inhalt interagieren.",
+    "unblockMessage": "Sind Sie sicher, dass Sie {{userName}} entsperren möchten? Sie werden ihre Beiträge sehen und sie können wieder mit Ihrem Inhalt interagieren.",
+    "block": "Blockieren",
+    "unblock": "Entsperren",
+    "blockSuccessTitle": "Benutzer blockiert",
+    "blockSuccessMessage": "Benutzer wurde erfolgreich blockiert",
+    "unblockSuccessTitle": "Benutzer entsperrt",
+    "unblockSuccessMessage": "Benutzer wurde erfolgreich entsperrt"
   },
   "delete-post": "Beitrag löschen",
   "about-me": "Über mich",
