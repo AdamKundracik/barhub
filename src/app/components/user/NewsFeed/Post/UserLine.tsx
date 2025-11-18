@@ -60,13 +60,11 @@ const MoreOptionsButton: React.FC<{ onPress: () => void }> = ({ onPress }) => {
       style={styles.moreButton}
       activeOpacity={0.7}
     >
-      <Animated.View style={animatedStyle}>
-        <FontAwesomeIcon
-          icon={Icons.EllipsisVertical}
-          size={20}
-          color={separatorColor}
-        />
-      </Animated.View>
+      <FontAwesomeIcon
+        icon={Icons.EllipsisVertical}
+        size={20}
+        color={separatorColor}
+      />
     </TouchableOpacity>
   );
 };
