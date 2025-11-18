@@ -187,6 +187,8 @@
   "sending": "Wird gesendet...",
   "older-photo-info": "Foto ist älter als 30 Min.",
   "take-photo": "Foto machen",
+  "no-activity": "Längere Inaktivität des Kontos",
+  "no-activity-info": "Um Fotos anzuzeigen, müssen Sie ein aktuelles Foto von einem Ort beisteuern",
   "no-acitivity": "Längere Inaktivität des Kontos.",
   "no-acitivity-info": "Um Fotos anzuzeigen, müssen Sie ein aktuelles Foto von einem Ort beisteuern.",
   "no-feed-photos": "Es gibt noch keine Beiträge.",

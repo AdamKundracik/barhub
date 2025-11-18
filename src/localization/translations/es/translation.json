@@ -187,6 +187,8 @@
   "sending": "Enviando...",
   "older-photo-info": "Foto tiene más de 30 min.",
   "take-photo": "Hacer foto",
+  "no-activity": "Inactividad prolongada de la cuenta",
+  "no-activity-info": "Para ver las fotos, debes contribuir con una foto actual de algún lugar",
   "no-acitivity": "Inactividad prolongada de la cuenta.",
   "no-acitivity-info": "Para ver las fotos, debes contribuir con una foto actual de algún lugar.",
   "no-feed-photos": "Aún no existen publicaciones.",
