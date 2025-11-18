@@ -109,10 +109,26 @@ export const UserDetail = () => {
         // );
       } catch (error: any) {
         console.error('Failed to report user:', error);
-        showErrorToast(
-          t('error') || 'Error',
-          error.message || t('something-went-wrong') || 'Something went wrong'
-        );
+
+        // Handle specific error codes
+        let errorTitle = t('error') || 'Error';
+        let errorMessage =
+          error.message || t('something-went-wrong') || 'Something went wrong';
+
+        if (
+          error.errorCode === 'USER_ALREADY_REPORTED' ||
+          (error.message &&
+            error.message.includes('You have already reported this user'))
+        ) {
+          errorTitle =
+            t('reportUser.alreadyReportedTitle') || 'Already Reported';
+          // Use localized message instead of backend message
+          errorMessage =
+            t('reportUser.alreadyReportedMessage') ||
+            'You have already reported this user. Multiple reports from the same user are not allowed.';
+        }
+
+        showErrorToast(errorTitle, errorMessage);
         // Zatvor modal len pri chybe
         setIsReportModalOpen(false);
         throw error; // Re-throw error aby UserReportModal vedel o chybe
@@ -718,12 +734,11 @@ export const UserDetail = () => {
               </Text>
               <Text style={styles.modernStatDescription}>
                 {(() => {
-                  const avgLikes =
-                    userProfile.totalPosts > 0
-                      ? Math.round(
-                          userProfile.totalLikes / userProfile.totalPosts
-                        )
-                      : 0;
+                  userProfile.totalPosts > 0
+                    ? Math.round(
+                        userProfile.totalLikes / userProfile.totalPosts
+                      )
+                    : 0;
                   return `${t('user.avg-likes') || 'Priemerné páči sa mi na príspevok'}`;
                 })()}
               </Text>
@@ -829,7 +844,7 @@ export const UserDetail = () => {
           visible={isReportModalOpen}
           onClose={() => setIsReportModalOpen(false)}
           onSave={handleReportUser}
-          onBlockUser={() => setIsBlockModalOpen(true)}
+          onBlockUser={handleBlockUser}
           userName={userProfile?.name}
         />
       )}
@@ -999,6 +1014,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
     color: primaryTextColor,
+    lineHeight: 22,
   },
   bioContent: {
     backgroundColor: postBgColor,

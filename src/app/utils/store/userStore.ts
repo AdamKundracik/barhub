@@ -48,6 +48,7 @@ interface UserStore {
   unblockUser: (userId: string) => Promise<void>;
   isUserBlocked: (userId: string) => boolean;
   setBlockedUsers: (blockedUserIds: string[]) => void;
+  loadBlockedUsers: () => Promise<void>;
 
   // Helper getters
   getDisplayName: () => string;
@@ -222,17 +223,16 @@ export const useUserStore = create<UserStore>()(
         newBlockedUsers.add(userId);
         set({ blockedUsers: newBlockedUsers });
 
-        // TODO: Call API to block user when backend is ready
-        // try {
-        //   await userService.blockUser(userId);
-        // } catch (error) {
-        //   console.error('Failed to block user:', error);
-        //   // Revert optimistic update on error
-        //   const revertedBlockedUsers = new Set(blockedUsers);
-        //   revertedBlockedUsers.delete(userId);
-        //   set({ blockedUsers: revertedBlockedUsers });
-        //   throw error;
-        // }
+        try {
+          await userService.blockUser(userId);
+        } catch (error) {
+          console.error('Failed to block user:', error);
+          // Revert optimistic update on error
+          const revertedBlockedUsers = new Set(blockedUsers);
+          revertedBlockedUsers.delete(userId);
+          set({ blockedUsers: revertedBlockedUsers });
+          throw error;
+        }
       },
 
       unblockUser: async (userId: string) => {
@@ -241,17 +241,16 @@ export const useUserStore = create<UserStore>()(
         newBlockedUsers.delete(userId);
         set({ blockedUsers: newBlockedUsers });
 
-        // TODO: Call API to unblock user when backend is ready
-        // try {
-        //   await userService.unblockUser(userId);
-        // } catch (error) {
-        //   console.error('Failed to unblock user:', error);
-        //   // Revert optimistic update on error
-        //   const revertedBlockedUsers = new Set(blockedUsers);
-        //   revertedBlockedUsers.add(userId);
-        //   set({ blockedUsers: revertedBlockedUsers });
-        //   throw error;
-        // }
+        try {
+          await userService.unblockUser(userId);
+        } catch (error) {
+          console.error('Failed to unblock user:', error);
+          // Revert optimistic update on error
+          const revertedBlockedUsers = new Set(blockedUsers);
+          revertedBlockedUsers.add(userId);
+          set({ blockedUsers: revertedBlockedUsers });
+          throw error;
+        }
       },
 
       isUserBlocked: (userId: string) => {
@@ -261,6 +260,28 @@ export const useUserStore = create<UserStore>()(
 
       setBlockedUsers: (blockedUserIds: string[]) => {
         set({ blockedUsers: new Set(blockedUserIds) });
+      },
+
+      loadBlockedUsers: async () => {
+        try {
+          const blockedUsersData = await userService.getBlockedUsers();
+          // Ensure blockedUsersData is an array before mapping
+          if (Array.isArray(blockedUsersData)) {
+            const blockedUserIds = blockedUsersData
+              .map(user => user.id?.toString())
+              .filter(Boolean);
+            set({ blockedUsers: new Set(blockedUserIds) });
+          } else {
+            console.warn(
+              'loadBlockedUsers: Expected array but got:',
+              typeof blockedUsersData
+            );
+            set({ blockedUsers: new Set() });
+          }
+        } catch (error) {
+          console.error('Failed to load blocked users:', error);
+          set({ blockedUsers: new Set() });
+        }
       },
     };
   })

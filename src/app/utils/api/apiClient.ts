@@ -141,15 +141,26 @@ export const apiClient = new ApiClient(API_CONFIG.BASE_URL);
 export const handleApiResponse = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {
     let errorMessage = 'An error occurred';
+    let errorCode: string | undefined;
     
     try {
       const errorData = await response.json();
-      errorMessage = errorData.message || errorData.error || errorMessage;
+      // Prioritize 'details' for user-friendly messages, fallback to 'message' or 'error'
+      errorMessage = errorData.details || errorData.message || errorData.error || errorMessage;
+      errorCode = errorData.errorCode;
     } catch {
       errorMessage = `HTTP ${response.status}: ${response.statusText}`;
     }
     
-    throw new Error(errorMessage);
+    // Create enhanced error with additional properties
+    const error = new Error(errorMessage) as Error & { 
+      errorCode?: string; 
+      status?: number;
+    };
+    error.errorCode = errorCode;
+    error.status = response.status;
+    
+    throw error;
   }
 
   // Handle empty responses

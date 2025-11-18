@@ -599,6 +599,13 @@ export const Account = () => {
                 description={t('privacy.privacy-data-description')}
                 onPress={() => navigation.navigate('PrivacyData' as never)}
               />
+
+              <ActionButton
+                icon={Icons.Ban}
+                title={t('blockedUsers.title')}
+                description={t('blockedUsers.description')}
+                onPress={() => navigation.navigate('BlockedUsers')}
+              />
             </View>
           </View>
         </BlurView>

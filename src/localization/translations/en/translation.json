@@ -403,7 +403,9 @@
     "customReasonPlaceholder": "Write your reason for reporting this user...",
     "customReasonRequired": "Reason is required",
     "blockPrompt": "Would you also like to block {{userName}}? You won't see their posts and they won't be able to interact with your content.",
-    "skipBlock": "Skip"
+    "skipBlock": "Skip",
+    "alreadyReportedTitle": "Already Reported",
+    "alreadyReportedMessage": "You have already reported this user. Multiple reports from the same user are not allowed."
   },
   "blockUser": {
     "title": "Block User",
@@ -417,6 +419,14 @@
     "unblockSuccessTitle": "User Unblocked",
     "unblockSuccessMessage": "User has been unblocked successfully"
   },
+  "blockedUsers": {
+    "title": "Blocked Users",
+    "emptyTitle": "No Blocked Users",
+    "emptyMessage": "You haven't blocked any users yet. When you block someone, they'll appear here and you can unblock them anytime.",
+    "description": "Manage users you have blocked"
+  },
+  "error-fetching-blocked-users": "Failed to load blocked users",
+  "error-unblocking-user": "Failed to unblock user",
   "uploadPost": {
     "successTitle": "Post saved",
     "successDescription": "The post was successfully saved! Thank you for contributing"

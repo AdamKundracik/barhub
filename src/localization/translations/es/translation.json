@@ -339,7 +339,9 @@
     "customReasonPlaceholder": "Escribe tu motivo para reportar este usuario...",
     "customReasonRequired": "El motivo es requerido",
     "blockPrompt": "¿También te gustaría bloquear a {{userName}}? No verás sus publicaciones y no podrán interactuar con tu contenido.",
-    "skipBlock": "Omitir"
+    "skipBlock": "Omitir",
+    "alreadyReportedTitle": "Ya reportado",
+    "alreadyReportedMessage": "Ya has reportado a este usuario. No se permiten múltiples reportes del mismo usuario."
   },
   "blockUser": {
     "title": "Bloquear usuario",
@@ -353,6 +355,14 @@
     "unblockSuccessTitle": "Usuario desbloqueado",
     "unblockSuccessMessage": "El usuario ha sido desbloqueado exitosamente"
   },
+  "blockedUsers": {
+    "title": "Usuarios bloqueados",
+    "emptyTitle": "No hay usuarios bloqueados",
+    "emptyMessage": "Aún no has bloqueado a ningún usuario. Cuando bloquees a alguien, aparecerá aquí y podrás desbloquearlo en cualquier momento.",
+    "description": "Gestionar usuarios bloqueados"
+  },
+  "error-fetching-blocked-users": "Error al cargar usuarios bloqueados",
+  "error-unblocking-user": "Error al desbloquear usuario",
   "uploadPost": {
     "successTitle": "Publicación guardada",
     "successDescription": "¡La publicación se ha guardado con éxito! Gracias por contribuir"

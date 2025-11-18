@@ -26,7 +26,7 @@ type UserReportModalProps = {
   visible: boolean;
   onClose: () => void;
   onSave: (reason: ReportReason, customReason?: string) => Promise<void> | void;
-  onBlockUser?: () => void; // Optional callback for blocking user after report
+  onBlockUser?: () => Promise<void> | void; // Optional callback for direct blocking user after report
   userName?: string; // User name for display in block option
 };
 
@@ -147,17 +147,25 @@ export const UserReportModal = ({
     setCustomReasonError('');
   };
 
-  const handleBlockAndClose = () => {
-    onClose(); // Zatvor najprv UserReportModal
-    // Použij setTimeout aby sa BlockUserModal zobrazil až po zatvorení UserReportModal
-    setTimeout(() => {
-      onBlockUser?.();
-    }, 300); // 300ms delay pre smooth transition
+  const handleBlockAndClose = async () => {
+    if (!onBlockUser) return;
+    
+    try {
+      setLoading(true);
+      await onBlockUser(); // Direct blocking without opening BlockUserModal
+      onClose(); // Close modal after successful blocking
+    } catch (error) {
+      console.error('Error blocking user:', error);
+      // Error handling is done in the parent function
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSkipBlock = () => {
     onClose();
   };
+
 
   const reasons = [
     { value: ReportReason.SPAM, label: t('reportUser.spam') },

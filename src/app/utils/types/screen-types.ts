@@ -35,6 +35,10 @@ export type UserStackList = {
   PrivacyPolicy: undefined;
 
   CommunityGuidelines: undefined;
+
+  BlockedUsers: undefined;
+
+  UserDetail: { userId: string };
 };
 
 export type FeedsScreenProps = NativeStackScreenProps<

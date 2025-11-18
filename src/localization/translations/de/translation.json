@@ -347,7 +347,9 @@
     "customReasonPlaceholder": "Schreiben Sie Ihren Grund für die Meldung dieses Benutzers...",
     "customReasonRequired": "Grund ist erforderlich",
     "blockPrompt": "Möchten Sie auch {{userName}} blockieren? Sie werden ihre Beiträge nicht sehen und sie können nicht mit Ihrem Inhalt interagieren.",
-    "skipBlock": "Überspringen"
+    "skipBlock": "Überspringen",
+    "alreadyReportedTitle": "Bereits gemeldet",
+    "alreadyReportedMessage": "Sie haben diesen Benutzer bereits gemeldet. Mehrfache Meldungen vom selben Benutzer sind nicht erlaubt."
   },
   "blockUser": {
     "title": "Benutzer blockieren",
@@ -361,6 +363,14 @@
     "unblockSuccessTitle": "Benutzer entsperrt",
     "unblockSuccessMessage": "Benutzer wurde erfolgreich entsperrt"
   },
+  "blockedUsers": {
+    "title": "Blockierte Benutzer",
+    "emptyTitle": "Keine blockierten Benutzer",
+    "emptyMessage": "Sie haben noch keine Benutzer blockiert. Wenn Sie jemanden blockieren, erscheint er hier und Sie können ihn jederzeit entsperren.",
+    "description": "Verwalten Sie blockierte Benutzer"
+  },
+  "error-fetching-blocked-users": "Fehler beim Laden der blockierten Benutzer",
+  "error-unblocking-user": "Fehler beim Entsperren des Benutzers",
   "delete-post": "Beitrag löschen",
   "about-me": "Über mich",
   "change-password": "Passwort ändern",

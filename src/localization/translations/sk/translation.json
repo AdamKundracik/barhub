@@ -381,7 +381,9 @@
     "customReasonPlaceholder": "Napíšte dôvod nahlásenia tohto používateľa...",
     "customReasonRequired": "Dôvod je povinný",
     "blockPrompt": "Chcete tiež zablokovať používateľa {{userName}}? Nebudete vidieť jeho príspevky a nebude môcť interagovať s vaším obsahom.",
-    "skipBlock": "Preskočiť"
+    "skipBlock": "Preskočiť",
+    "alreadyReportedTitle": "Už nahlásené",
+    "alreadyReportedMessage": "Tohto používateľa ste už nahlásili. Viacnásobné nahlásenia od toho istého používateľa nie sú povolené."
   },
   "blockUser": {
     "title": "Zablokovať používateľa",
@@ -395,6 +397,14 @@
     "unblockSuccessTitle": "Používateľ odblokovaný",
     "unblockSuccessMessage": "Používateľ bol úspešne odblokovaný"
   },
+  "blockedUsers": {
+    "title": "Zablokovaní používatelia",
+    "emptyTitle": "Žiadni zablokovaní používatelia",
+    "emptyMessage": "Zatiaľ ste nezablokovali žiadnych používateľov. Keď niekoho zablokujete, objaví sa tu a môžete ho kedykoľvek odblokovať.",
+    "description": "Spravujte používateľov, ktorých ste zablokovali"
+  },
+  "error-fetching-blocked-users": "Nepodarilo sa načítať zablokovaných používateľov",
+  "error-unblocking-user": "Nepodarilo sa odblokovať používateľa",
   "delete-post": "Zmazať príspevok",
   "about-me": "O mne",
   "change-password": "Zmeniť heslo",
