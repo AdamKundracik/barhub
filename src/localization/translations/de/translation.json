@@ -258,7 +258,7 @@
     "title": "Erforderliche Berechtigungen",
     "location": "Standortzugriff",
     "locationDesc": "Erforderlich um Orte in Ihrer Nähe zu finden",
-    "locationAlwaysNote": "Standort muss auf IMMER eingestellt werden für ordnungsgemäße App-Funktionalität",
+    "locationAlwaysNote": "Standortberechtigung ist für ordnungsgemäße App-Funktionalität erforderlich",
     "camera": "Kamerazugriff",
     "cameraDesc": "Erforderlich um Fotos von Orten aufzunehmen",
     "notification": "Push-Benachrichtigungen",

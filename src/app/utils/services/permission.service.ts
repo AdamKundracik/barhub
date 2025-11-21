@@ -50,7 +50,8 @@ export const requestNotificationPermission = async () => {
 export const requestGeolocationPermission = async () => {
   try {
     const authStatus = await BackgroundGeolocation.requestPermission();
-    return authStatus === BackgroundGeolocation.AUTHORIZATION_STATUS_ALWAYS;
+    return authStatus === BackgroundGeolocation.AUTHORIZATION_STATUS_WHEN_IN_USE || 
+           authStatus === BackgroundGeolocation.AUTHORIZATION_STATUS_ALWAYS;
   } catch (error) {
     console.error('Geolocation permission error:', error);
     return false;

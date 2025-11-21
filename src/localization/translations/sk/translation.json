@@ -293,7 +293,7 @@
     "title": "Požadované povolenia",
     "location": "Prístup k polohe",
     "locationDesc": "Potrebné na nájdenie miest vo vašom okolí",
-    "locationAlwaysNote": "Poloha musí byť nastavená na VŽDY pre správne fungovanie aplikácie",
+    "locationAlwaysNote": "Poloha musí byť povolená pre správne fungovanie aplikácie",
     "camera": "Prístup ku kamere",
     "cameraDesc": "Potrebné na fotografovanie miest",
     "notification": "Push notifikácie",

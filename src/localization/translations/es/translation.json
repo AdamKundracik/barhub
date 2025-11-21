@@ -260,7 +260,7 @@
     "title": "Permisos Requeridos",
     "location": "Acceso a Ubicación",
     "locationDesc": "Necesario para encontrar lugares cerca de ti",
-    "locationAlwaysNote": "La ubicación debe estar configurada en SIEMPRE para el funcionamiento adecuado de la aplicación",
+    "locationAlwaysNote": "El permiso de ubicación es necesario para el funcionamiento adecuado de la aplicación",
     "camera": "Acceso a Cámara",
     "cameraDesc": "Necesario para tomar fotos de lugares",
     "notification": "Notificaciones Push",

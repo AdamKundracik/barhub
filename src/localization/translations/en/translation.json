@@ -294,7 +294,7 @@
     "title": "Required Permissions",
     "location": "Location Access",
     "locationDesc": "Required to find places near you",
-    "locationAlwaysNote": "Location must be set to ALWAYS for proper app functionality",
+    "locationAlwaysNote": "Location permission is required for proper app functionality",
     "camera": "Camera Access",
     "cameraDesc": "Required to take photos of places",
     "notification": "Push Notifications",
