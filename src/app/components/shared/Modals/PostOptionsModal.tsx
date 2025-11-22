@@ -34,7 +34,6 @@ type PostOptionsModalProps = {
   onDelete: () => Promise<void> | void;
   onReport: () => void; // otvorí Report modal
   onHighlight?: () => void; // highlight/unhighlight post
-  onShare?: () => void; // share post
   onViewDetail?: () => void; // zobrazí detail príspevku
 };
 
@@ -44,7 +43,6 @@ export const PostOptionsModal = ({
   onDelete,
   onReport,
   onHighlight,
-  onShare,
   onViewDetail,
   imageUrl,
   showDelete = false,
@@ -59,7 +57,6 @@ export const PostOptionsModal = ({
   // Calculate number of visible options
   const getVisibleOptionsCount = useCallback(() => {
     let count = 0;
-    if (onShare) count++;
     if (imageUrl) count++;
     if (showHighlight && onHighlight) count++;
     if (showDelete) count++;
@@ -67,7 +64,6 @@ export const PostOptionsModal = ({
     if (onViewDetail) count++;
     return count;
   }, [
-    onShare,
     imageUrl,
     showHighlight,
     onHighlight,
@@ -160,22 +156,6 @@ export const PostOptionsModal = ({
           </TouchableOpacity>
         )}
 
-        {onShare && (
-          <TouchableOpacity
-            style={styles.option}
-            activeOpacity={0.7}
-            onPress={() => {
-              onShare();
-              onClose();
-            }}
-            disabled={loading}
-          >
-            <View style={styles.optionRow}>
-              <Text style={styles.optionText}>{t('share-post')}</Text>
-              <FontAwesomeIcon icon={Icons.Share} size={16} color="white" />
-            </View>
-          </TouchableOpacity>
-        )}
 
         {imageUrl && (
           <TouchableOpacity

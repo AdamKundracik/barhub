@@ -32,6 +32,7 @@ import { Icons } from '@/src/app/utils/icons/icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNewsFeedData } from '@/src/app/utils/hooks/NewsFeed/usePostData';
 import { useUserStore } from '@/src/app/utils/store/userStore';
+import { PremiumHelpers } from '@/src/app/config/premiumConfig';
 import { useModalsStore } from '@/src/app/utils/store/modalsStore';
 import { useUserRole } from '@/src/app/hooks/useUserRole';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -165,16 +166,18 @@ const FilterSlider = () => {
   );
 
   async function handleFakeLocationToggle(value: boolean) {
-    // Admin/Moderator can always toggle, or user with premium
-    if (isPremium() || hasAdminAccess) {
-      setUseFakeLocation(value);
-
-      // If enabling travel mode, try to load saved place from AsyncStorage
-      if (value) {
-        await loadSavedPlaceFromStorage();
-      }
-    } else {
+    // Check if fake location should be gated behind premium
+    if (PremiumHelpers.shouldGateFakeLocation() && !isPremium() && !hasAdminAccess) {
       navigation.navigate('Subscription');
+      return;
+    }
+
+    // Allow toggle for all users (when premium is disabled) or premium/admin users
+    setUseFakeLocation(value);
+
+    // If enabling travel mode, try to load saved place from AsyncStorage
+    if (value) {
+      await loadSavedPlaceFromStorage();
     }
   }
 

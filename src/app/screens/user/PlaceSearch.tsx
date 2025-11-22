@@ -36,6 +36,7 @@ import { generateUID } from '@/src/app/utils/helper-functions/generateUID';
 import { Icons } from '../../utils/icons/icons';
 import { primaryColor, primaryDeepColor } from '../../utils/styles/colors';
 import { useUserFavorites } from '@/src/app/hooks/useUserFavorites';
+import { PremiumHelpers } from '@/src/app/config/premiumConfig';
 
 // Constants
 const MAX_FAVORITE_PLACES = 10;
@@ -494,7 +495,8 @@ export const PlaceSearch: React.FC = () => {
                   styles.scrollContent,
                   {
                     paddingBottom:
-                      tabBarHeight + insets.bottom + (!isPremium ? 100 : 20),
+                      tabBarHeight + insets.bottom + 
+                      ((PremiumHelpers.shouldAlwaysShowAds() || !isPremium) ? 100 : 20),
                   },
                 ]}
               >
@@ -506,7 +508,7 @@ export const PlaceSearch: React.FC = () => {
       </View>
 
       {/* Banner Ad */}
-      {!isPremium && (
+      {(PremiumHelpers.shouldAlwaysShowAds() || !isPremium) && (
         <View
           style={[
             styles.adContainer,

@@ -43,6 +43,7 @@ import { HStack } from '@/components/ui/hstack';
 import { VStack } from '@/components/ui/vstack';
 import { Center } from '@/components/ui/center';
 import InlineAd from '@/src/app/components/user/InlineAd';
+import { PremiumHelpers } from '@/src/app/config/premiumConfig';
 
 export const PostDetail = () => {
   const route = useRoute();
@@ -352,14 +353,6 @@ export const PostDetail = () => {
           </TouchableOpacity>
 
           <HStack space="md">
-            <TouchableOpacity style={styles.headerButton} onPress={handleShare}>
-              <FontAwesomeIcon
-                icon={Icons.faShareNodes}
-                size={20}
-                color="#fff"
-              />
-            </TouchableOpacity>
-
             <TouchableOpacity
               style={styles.headerButton}
               onPress={() => setIsOptionsModalOpen(true)}
@@ -480,7 +473,7 @@ export const PostDetail = () => {
           </View>
 
           {/* Inline Ad */}
-          {!isPremium() && (
+          {(PremiumHelpers.shouldAlwaysShowAds() || !isPremium()) && (
             <View style={styles.adContainer}>
               <InlineAd />
             </View>

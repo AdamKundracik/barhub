@@ -226,7 +226,7 @@
   "support-us": "Podpor nás",
   "full": "Plné",
   "almost-full": "Skoro plné",
-  "sparsely-occupied": "Málo obsadené",
+  "sparsely-occupied": "Málo\nobsadené",
   "empty": "Prázdne",
   "location": "Poloha",
   "name": "Názov",
@@ -519,7 +519,6 @@
   "hour": "hodinou",
   "hours_2_4": "hodinami",
   "hours_5_plus": "hodinami",
-  "ago": "pred",
   "success": "Úspech",
   "userBlocked": {
     "title": "Účet zablokovaný",

@@ -498,7 +498,6 @@ const UserLineComponent = ({
           setIsReportModalOpen(true);
         }}
         onHighlight={handleHighlight}
-        onShare={onShare}
         onViewDetail={onViewDetail}
       />
 

@@ -416,6 +416,7 @@ const UserPost: React.FC<UserPostProps> = ({
           comments={commentsCount}
           onLikeToggle={handleLikeToggle}
           onCommentToggle={handleCommentPress}
+          onShare={handleShare}
           isLiked={liked}
           occupancy={occupancy}
         />

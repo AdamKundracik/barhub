@@ -14,6 +14,7 @@ interface InteractionBarProps {
   comments: number | undefined;
   onLikeToggle: () => void;
   onCommentToggle: () => void;
+  onShare?: () => void;
   isLiked: boolean | undefined;
   occupancy: string;
 }
@@ -68,7 +69,14 @@ const InteractionButton: React.FC<{
     return (
       <TouchableOpacity onPress={onPress} style={styles.iconContainer}>
         <FontAwesomeIcon icon={icon} size={ICON_SIZE} color={buttonColor} />
-        <Text style={styles.count}>{count}</Text>
+        <Text 
+          style={styles.count}
+          numberOfLines={2}
+          adjustsFontSizeToFit={true}
+          minimumFontScale={0.8}
+        >
+          {count}
+        </Text>
       </TouchableOpacity>
     );
   }
@@ -76,7 +84,14 @@ const InteractionButton: React.FC<{
   return (
     <View style={styles.iconContainer}>
       <FontAwesomeIcon icon={icon} size={ICON_SIZE} color={buttonColor} />
-      <Text style={styles.count}>{count}</Text>
+      <Text 
+        style={styles.count}
+        numberOfLines={2}
+        adjustsFontSizeToFit={true}
+        minimumFontScale={0.8}
+      >
+        {count}
+      </Text>
     </View>
   );
 };
@@ -87,9 +102,11 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
   comments,
   onLikeToggle,
   onCommentToggle,
+  onShare,
   isLiked,
   occupancy,
 }) => {
+  const { t } = useTranslation();
   const getOccupancyTranslation = useOccupancyTranslation();
   const occupancyText = useMemo(
     () => getOccupancyTranslation(occupancy ?? ''),
@@ -134,6 +151,16 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
         onPress={onCommentToggle}
       />
       */}
+
+      {/* Share Button - only show if onShare is provided */}
+      {onShare && (
+        <InteractionButton
+          icon={Icons.Share}
+          count={t('share')}
+          color="white"
+          onPress={onShare}
+        />
+      )}
     </View>
   );
 };
@@ -142,7 +169,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-evenly',
     paddingVertical: 15,
     backgroundColor: postBgColor,
     borderBottomLeftRadius: 10,
@@ -151,6 +178,7 @@ const styles = StyleSheet.create({
   iconContainer: {
     alignItems: 'center',
     flex: 1,
+    paddingHorizontal: 4,
   },
   count: {
     fontWeight: 'bold',
@@ -158,6 +186,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#a0a0a0',
     textAlign: 'center',
+    flexWrap: 'wrap',
+    lineHeight: 14,
   },
 });
 
@@ -168,6 +198,7 @@ const tabletStyles = StyleSheet.create({
   count: {
     marginTop: 8,
     fontSize: 18,
+    lineHeight: 22,
   },
 });
 
@@ -176,6 +207,7 @@ export default React.memo(InteractionBar, (prevProps, nextProps) => {
     prevProps.likes === nextProps.likes &&
     prevProps.comments === nextProps.comments &&
     prevProps.isLiked === nextProps.isLiked &&
-    prevProps.occupancy === nextProps.occupancy
+    prevProps.occupancy === nextProps.occupancy &&
+    prevProps.onShare === nextProps.onShare
   );
 });

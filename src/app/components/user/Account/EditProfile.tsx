@@ -32,6 +32,7 @@ import { ClientDTO } from '@/src/app/types/dto';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useUserData } from '@/src/app/hooks/useUserQuery';
 import { useQueryClient } from 'react-query';
+import { PremiumHelpers } from '@/src/app/config/premiumConfig';
 import {
   getUnicodeValidationMessage,
   isValidUnicodeUsername,
@@ -307,7 +308,8 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
               size="xl"
               style={[
                 styles.avatarContainer,
-                isPremium && styles.premiumBorder,
+                // Show premium border only if premium UI is enabled and user is premium
+                PremiumHelpers.shouldShowPremiumBorders() && isPremium && styles.premiumBorder,
                 (isUpdatingPhoto || isDeletingPhoto) &&
                   styles.profilePictureLoading,
               ]}

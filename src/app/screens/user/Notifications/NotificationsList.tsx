@@ -22,6 +22,7 @@ import { useNotificationsStore } from '../../../utils/store/notificationsStore';
 import { useNotificationsQuery } from '@/src/app/utils/hooks/useNotifications';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { NotificationItem } from '../../../utils/types/notification-types';
+import { PremiumHelpers } from '@/src/app/config/premiumConfig';
 import { Icons } from '@/src/app/utils/icons/icons';
 import {
   postBgColor,
@@ -221,7 +222,7 @@ const NotificationsList: React.FC = () => {
         </View>
 
         {/* Enhanced Ad Container */}
-        {!isPremium() && (
+        {(PremiumHelpers.shouldAlwaysShowAds() || !isPremium()) && (
           <Animated.View
             entering={FadeInUp.delay(300).springify()}
             style={styles.adContainer}

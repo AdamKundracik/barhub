@@ -223,7 +223,7 @@
   "support-us": "Apóyanos",
   "full": "Lleno",
   "almost-full": "Casi lleno",
-  "sparsely-occupied": "Poco ocupado",
+  "sparsely-occupied": "Poco\nocupado",
   "empty": "Vacío",
   "location": "Ubicación",
   "name": "Nombre",
@@ -256,6 +256,7 @@
   "stepCount": "Paso {{current}} de {{total}}",
   "notification-processing-error": "notification-processing-error",
   "cancel": "Cancelar",
+  "share": "Compartir",
   "permissions": {
     "title": "Permisos Requeridos",
     "location": "Acceso a Ubicación",

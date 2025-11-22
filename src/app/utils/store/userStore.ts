@@ -7,6 +7,7 @@ import {
 } from '../../types/dto';
 import { userService } from '../../services/userService';
 import { authService } from '../../services/authService';
+import { PremiumHelpers } from '../../config/premiumConfig';
 
 // Updated UserStore interface using backend DTO
 interface UserStore {
@@ -154,6 +155,12 @@ export const useUserStore = create<UserStore>()(
 
       // Premium status management
       isPremium: () => {
+        // If premium is disabled globally, always return true (all features available)
+        if (!PremiumHelpers.isPremiumEnabled()) {
+          return true;
+        }
+        
+        // If premium is enabled, check actual user premium status
         const { userData } = get();
         return userData?.premium || false;
       },

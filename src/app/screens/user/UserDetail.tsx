@@ -41,6 +41,10 @@ import {
 } from '../../utils/styles/colors';
 import { Text } from '@/components/ui/text';
 import { Center } from '@/components/ui/center';
+import { PremiumHelpers } from '@/src/app/config/premiumConfig';
+import InlineAd from '../../components/user/InlineAd';
+import { BlurView } from 'expo-blur';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 // Removed date-fns import - using native JavaScript date functions
 
 export const UserDetail = () => {
@@ -48,7 +52,7 @@ export const UserDetail = () => {
   const navigation = useNavigation();
   const { t, i18n } = useTranslation();
   const { showErrorToast } = useCustomToast();
-  const { getUserId, blockUser, unblockUser, isUserBlocked } = useUserStore();
+  const { getUserId, blockUser, unblockUser, isUserBlocked, isPremium } = useUserStore();
   const { setPlaceId, setPlaceName, setPlaceAddress } = usePlaceStore();
   const { previousPage } = useNavigationStore();
 
@@ -187,6 +191,29 @@ export const UserDetail = () => {
     }
   };
 
+  // Funkcia pre získanie správneho tvaru slova podľa jazyka
+  const getTimeText = (count: number, timeUnit: 'minute' | 'hour' | 'day' | 'month' | 'year') => {
+    if (i18n.language === 'sk') {
+      // Pre slovenčinu používame komplexnú logiku z JSON
+      return getSlovakPlural(
+        count,
+        t(`user.${timeUnit}`) || '',
+        t(`user.${timeUnit}s`) || '',
+        t(`user.${timeUnit}s_plural`) || ''
+      );
+    } else {
+      // Pre ostatné jazyky používame hardcoded anglické texty (pretože JSON preklady neexistujú)
+      const englishTexts = {
+        minute: count === 1 ? 'minute' : 'minutes',
+        hour: count === 1 ? 'hour' : 'hours',
+        day: count === 1 ? 'day' : 'days',
+        month: count === 1 ? 'month' : 'months',
+        year: count === 1 ? 'year' : 'years',
+      };
+      return englishTexts[timeUnit];
+    }
+  };
+
   const formatDate = (dateString: string) => {
     try {
       // Parse LocalDateTime string: "2025-10-07T22:29:23.517475"
@@ -208,73 +235,65 @@ export const UserDetail = () => {
       const now = new Date();
       const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
+      // Get "ago" text based on language
+      const getAgoText = () => {
+        if (i18n.language === 'sk') {
+          return t('user.ago') || 'dozadu';
+        } else if (i18n.language === 'es') {
+          return 'hace';
+        } else {
+          return 'ago'; // English and other languages
+        }
+      };
+
+      const agoText = getAgoText();
+
       if (diffInSeconds < 60) {
-        return t('user.just-now') || 'práve teraz';
+        if (i18n.language === 'sk') {
+          return t('user.just-now') || 'práve teraz';
+        } else {
+          return 'just now';
+        }
       } else if (diffInSeconds < 3600) {
         const minutes = Math.floor(diffInSeconds / 60);
-        const minutesText = getSlovakPlural(
-          minutes,
-          t('user.minute') || 'minúta',
-          t('user.minutes') || 'minúty',
-          t('user.minutes_plural') || 'minút'
-        );
+        const minutesText = getTimeText(minutes, 'minute');
         // Special handling for Spanish - "hace X min" instead of "X min hace"
         if (i18n.language === 'es') {
-          return `${t('user.ago') || 'hace'} ${minutes} ${minutesText}`;
+          return `${agoText} ${minutes} ${minutesText}`;
         }
-        return `${minutes} ${minutesText} ${t('user.ago') || 'dozadu'}`;
+        return `${minutes} ${minutesText} ${agoText}`;
       } else if (diffInSeconds < 86400) {
         const hours = Math.floor(diffInSeconds / 3600);
-        const hoursText = getSlovakPlural(
-          hours,
-          t('user.hour') || 'hodina',
-          t('user.hours') || 'hodiny',
-          t('user.hours_plural') || 'hodín'
-        );
+        const hoursText = getTimeText(hours, 'hour');
         // Special handling for Spanish - "hace X horas" instead of "X horas hace"
         if (i18n.language === 'es') {
-          return `${t('user.ago') || 'hace'} ${hours} ${hoursText}`;
+          return `${agoText} ${hours} ${hoursText}`;
         }
-        return `${hours} ${hoursText} ${t('user.ago') || 'dozadu'}`;
+        return `${hours} ${hoursText} ${agoText}`;
       } else if (diffInSeconds < 2592000) {
         const days = Math.floor(diffInSeconds / 86400);
-        const daysText = getSlovakPlural(
-          days,
-          t('user.day') || 'deň',
-          t('user.days') || 'dni',
-          t('user.days_plural') || 'dní'
-        );
+        const daysText = getTimeText(days, 'day');
         // Special handling for Spanish - "hace X días" instead of "X días hace"
         if (i18n.language === 'es') {
-          return `${t('user.ago') || 'hace'} ${days} ${daysText}`;
+          return `${agoText} ${days} ${daysText}`;
         }
-        return `${days} ${daysText} ${t('user.ago') || 'dozadu'}`;
+        return `${days} ${daysText} ${agoText}`;
       } else if (diffInSeconds < 31536000) {
         const months = Math.floor(diffInSeconds / 2592000);
-        const monthsText = getSlovakPlural(
-          months,
-          t('user.month') || 'mesiac',
-          t('user.months') || 'mesiace',
-          t('user.months_plural') || 'mesiacov'
-        );
+        const monthsText = getTimeText(months, 'month');
         // Special handling for Spanish - "hace X meses" instead of "X meses hace"
         if (i18n.language === 'es') {
-          return `${t('user.ago') || 'hace'} ${months} ${monthsText}`;
+          return `${agoText} ${months} ${monthsText}`;
         }
-        return `${months} ${monthsText} ${t('user.ago') || 'dozadu'}`;
+        return `${months} ${monthsText} ${agoText}`;
       } else {
         const years = Math.floor(diffInSeconds / 31536000);
-        const yearsText = getSlovakPlural(
-          years,
-          t('user.year') || 'rok',
-          t('user.years') || 'roky',
-          t('user.years_plural') || 'rokov'
-        );
+        const yearsText = getTimeText(years, 'year');
         // Special handling for Spanish - "hace X años" instead of "X años hace"
         if (i18n.language === 'es') {
-          return `${t('user.ago') || 'hace'} ${years} ${yearsText}`;
+          return `${agoText} ${years} ${yearsText}`;
         }
-        return `${years} ${yearsText} ${t('user.ago') || 'dozadu'}`;
+        return `${years} ${yearsText} ${agoText}`;
       }
     } catch (error) {
       return dateString;
@@ -429,7 +448,8 @@ export const UserDetail = () => {
                     size="2xl"
                     style={[
                       styles.heroAvatar,
-                      userProfile.premium && styles.premiumBorder,
+                      // Show premium border only if premium UI is enabled and user is premium
+                      PremiumHelpers.shouldShowPremiumBorders() && userProfile.premium && styles.premiumBorder,
                     ]}
                   >
                     {userProfile.photoUrl ? (
@@ -551,6 +571,18 @@ export const UserDetail = () => {
             isLoading={isLoadingHighlights}
           />
         </View>
+
+        {/* Ad Section */}
+        {(PremiumHelpers.shouldAlwaysShowAds() || !isPremium()) && (
+          <Animated.View
+            entering={FadeInUp.delay(300).springify()}
+            style={styles.adContainer}
+          >
+            <BlurView intensity={20} tint="dark" style={styles.adBlur}>
+              <InlineAd />
+            </BlurView>
+          </Animated.View>
+        )}
 
         {/* Favorite Places */}
         {userProfile.favoritePlaces &&
@@ -1290,6 +1322,24 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: 50,
+  },
+  // Ad Styles
+  adContainer: {
+    marginHorizontal: 20,
+    marginBottom: 20,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  adBlur: {
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(124, 124, 124, 0.2)',
   },
 });
 

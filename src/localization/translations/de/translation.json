@@ -223,7 +223,7 @@
   "support-us": "Unterstütze uns",
   "full": "Voll",
   "almost-full": "Fast voll",
-  "sparsely-occupied": "Wenig besetzt",
+  "sparsely-occupied": "Wenig\nbesetzt",
   "empty": "Leer",
   "location": "Standort",
   "name": "Name",
@@ -254,6 +254,7 @@
   "request": "Anfrage",
   "response": "Antwort",
   "cancel": "Abbrechen",
+  "share": "Teilen",
   "permissions": {
     "title": "Erforderliche Berechtigungen",
     "location": "Standortzugriff",
