@@ -77,7 +77,9 @@ const FilterSlider = () => {
     distance: storeDistance,
     selectedPlaces: storeSelectedPlaces,
     selectedOccupancy: storeSelectedOccupancy,
+    showHighlightedPosts: storeShowHighlightedPosts,
     updateFilters,
+    setShowHighlightedPosts,
   } = useFiltersStore();
 
   const { isFilterOpen, closeFilter } = useModalsStore();
@@ -167,7 +169,11 @@ const FilterSlider = () => {
 
   async function handleFakeLocationToggle(value: boolean) {
     // Check if fake location should be gated behind premium
-    if (PremiumHelpers.shouldGateFakeLocation() && !isPremium() && !hasAdminAccess) {
+    if (
+      PremiumHelpers.shouldGateFakeLocation() &&
+      !isPremium() &&
+      !hasAdminAccess
+    ) {
       navigation.navigate('Subscription');
       return;
     }
@@ -217,7 +223,7 @@ const FilterSlider = () => {
       backgroundStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
       onClose={handleClose}
       ref={bottomSheetRef}
-      snapPoints={['70%', '80%']}
+      snapPoints={['100%', '90%']}
       index={-1}
       backdropComponent={renderBackdrop}
       footerComponent={renderFooter}
@@ -261,6 +267,20 @@ const FilterSlider = () => {
             initialOccupancy={tempSelectedOccupancy}
           />
         </View>
+
+        <View style={styles.section}>
+          <View style={styles.fakeLocationHeader}>
+            <Text style={styles.sectionTitle}>
+              {t('show-highlighted-posts') || 'Show highlighted posts'}
+            </Text>
+            <Switch
+              value={storeShowHighlightedPosts}
+              onValueChange={setShowHighlightedPosts}
+              disabled={isRefetching}
+            />
+          </View>
+        </View>
+
         <View style={styles.fakeLocationSection}>
           <View style={styles.fakeLocationHeader}>
             <Text style={styles.sectionTitle}>{t('use-travel-mode')}</Text>

@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -283,6 +284,52 @@ export const PostDetail = () => {
     }
   };
 
+  const confirmDelete = useCallback(
+    (onConfirm: () => void) => {
+      Alert.alert(
+        t('deletePost.confirmTitle'),
+        t('deletePost.confirmMessage'),
+        [
+          { text: t('cancel'), style: 'cancel' },
+          { text: t('submit'), style: 'destructive', onPress: onConfirm },
+        ],
+        { cancelable: true }
+      );
+    },
+    [t]
+  );
+
+  const handleDelete = useCallback(async () => {
+    if (!post) return;
+
+    confirmDelete(async () => {
+      try {
+        const result: { success: boolean; message?: string } =
+          await postService.deletePost(post.id);
+        if (!result.success) {
+          throw new Error(result.message || 'Failed to delete post');
+        }
+
+        // Invalidate all related queries after delete
+        queryClient.invalidateQueries(['posts']); // Refresh main feed
+        queryClient.invalidateQueries(['userHighlights']); // Refresh highlights (in case deleted post was highlighted)
+
+        showSuccessToast(
+          t('deletePost.successTitle'),
+          t('deletePost.successDescription')
+        );
+
+        // Navigate back after successful delete
+        setIsOptionsModalOpen(false);
+        handleBackPress();
+      } catch (error: any) {
+        console.error('Failed to delete post:', error);
+        showErrorToast(t('errors.failedToDeletePost'), error.message);
+        setIsOptionsModalOpen(false);
+      }
+    });
+  }, [post, confirmDelete, queryClient, showSuccessToast, showErrorToast, t, handleBackPress]);
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -537,9 +584,7 @@ export const PostDetail = () => {
           showReport={post.canReport}
           showHighlight={post.canHighlight}
           isHighlighted={localIsHighlighted}
-          onDelete={() => {
-            // TODO: Implement delete
-          }}
+          onDelete={handleDelete}
           onReport={() => {
             setIsOptionsModalOpen(false);
             setIsReportModalOpen(true);

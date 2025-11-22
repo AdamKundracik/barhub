@@ -28,6 +28,7 @@ import {
 import { consentService } from '../services/consentService';
 import { JwtAuthenticationResponseDTO, OutdatedConsentDTO } from '../types/dto';
 import { axiosClient } from '../utils/api/axiosClient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Global reference to unsubscribe function (set by Navigation component)
 let globalUnsubscribeNotifications: (() => void) | null = null;
@@ -78,7 +79,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Zustand stores
   const { setUserData, updateCanSeeContent } = useUserStore();
-  const { setUseFakeLocation, setFakeLocationName, setInitialized } =
+  const { setUseFakeLocation, setFakeLocationName, setFakeLocation, setInitialized } =
     useLocationStore();
 
   // Save current location to backend
@@ -92,6 +93,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await userService.updateLocation(userId, location);
     } catch (error) {
       console.error('AuthProvider: Location save error:', error);
+    }
+  };
+
+  // Load saved fake location place from AsyncStorage
+  const loadSavedPlaceFromStorage = async (): Promise<void> => {
+    try {
+      const savedPlaceJson = await AsyncStorage.getItem('fakeLocationPlace');
+      if (!savedPlaceJson) return;
+      
+      const savedPlace = JSON.parse(savedPlaceJson);
+      setFakeLocation({
+        latitude: savedPlace.latitude,
+        longitude: savedPlace.longitude,
+      });
+
+      // Support both old placeName and new fakeLocationName for compatibility
+      const name = savedPlace.fakeLocationName || savedPlace.placeName;
+      if (name) {
+        setFakeLocationName(name);
+      }
+    } catch (error) {
+      console.error('AuthProvider: Error loading saved place from AsyncStorage:', error);
     }
   };
 
@@ -111,6 +134,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Set fake location usage from backend
         if (appUserData.usingFakeLocation !== undefined) {
           setUseFakeLocation(appUserData.usingFakeLocation);
+          
+          // If fake location is enabled, load saved place and location from AsyncStorage
+          if (appUserData.usingFakeLocation) {
+            await loadSavedPlaceFromStorage();
+          }
         }
 
         // Save current location to backend immediately after auth

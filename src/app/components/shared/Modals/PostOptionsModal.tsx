@@ -35,6 +35,7 @@ type PostOptionsModalProps = {
   onReport: () => void; // otvorí Report modal
   onHighlight?: () => void; // highlight/unhighlight post
   onViewDetail?: () => void; // zobrazí detail príspevku
+  onShare?: () => Promise<void> | void; // share post
 };
 
 export const PostOptionsModal = ({
@@ -44,6 +45,7 @@ export const PostOptionsModal = ({
   onReport,
   onHighlight,
   onViewDetail,
+  onShare,
   imageUrl,
   showDelete = false,
   showReport = true,
@@ -62,6 +64,7 @@ export const PostOptionsModal = ({
     if (showDelete) count++;
     if (showReport) count++;
     if (onViewDetail) count++;
+    if (onShare) count++;
     return count;
   }, [
     imageUrl,
@@ -70,6 +73,7 @@ export const PostOptionsModal = ({
     showDelete,
     showReport,
     onViewDetail,
+    onShare,
   ]);
 
   // Calculate dynamic snap points based on number of options
@@ -195,6 +199,23 @@ export const PostOptionsModal = ({
                 size={16}
                 color={isHighlighted ? '#AAA' : '#FFC107'}
               />
+            </View>
+          </TouchableOpacity>
+        )}
+
+        {onShare && (
+          <TouchableOpacity
+            style={styles.option}
+            activeOpacity={0.7}
+            onPress={async () => {
+              await onShare();
+              onClose();
+            }}
+            disabled={loading}
+          >
+            <View style={styles.optionRow}>
+              <Text style={styles.optionText}>{t('share-post')}</Text>
+              <FontAwesomeIcon icon={Icons.Share} size={16} color="white" />
             </View>
           </TouchableOpacity>
         )}
