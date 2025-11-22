@@ -396,7 +396,7 @@ export const Account = () => {
                   style={styles.avatarImage}
                 />
               ) : (
-                <AvatarFallbackText style={styles.avatarFallback}>
+                <AvatarFallbackText className={'text-white'}>
                   {userDisplayName}
                 </AvatarFallbackText>
               )}
@@ -598,6 +598,13 @@ export const Account = () => {
                 title={t('privacy.privacy-and-data')}
                 description={t('privacy.privacy-data-description')}
                 onPress={() => navigation.navigate('PrivacyData' as never)}
+              />
+
+              <ActionButton
+                icon={Icons.Ban}
+                title={t('blockedUsers.title')}
+                description={t('blockedUsers.description')}
+                onPress={() => navigation.navigate('BlockedUsers')}
               />
             </View>
           </View>

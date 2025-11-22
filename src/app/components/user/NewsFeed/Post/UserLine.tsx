@@ -60,13 +60,11 @@ const MoreOptionsButton: React.FC<{ onPress: () => void }> = ({ onPress }) => {
       style={styles.moreButton}
       activeOpacity={0.7}
     >
-      <Animated.View style={animatedStyle}>
-        <FontAwesomeIcon
-          icon={Icons.EllipsisVertical}
-          size={20}
-          color={separatorColor}
-        />
-      </Animated.View>
+      <FontAwesomeIcon
+        icon={Icons.EllipsisVertical}
+        size={20}
+        color={separatorColor}
+      />
     </TouchableOpacity>
   );
 };
@@ -113,7 +111,7 @@ const UserLineComponent = ({
   const [localIsHighlighted, setLocalIsHighlighted] = useState(isHighlighted);
   const queryClient = useQueryClient();
   const { placeId } = usePlaceStore();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { showSuccessToast, showErrorToast } = useCustomToast();
 
   // Sync local highlight state with prop when it changes
@@ -173,9 +171,17 @@ const UserLineComponent = ({
         if (diffInMinutes < 1) {
           return t('just-now') || 'práve teraz';
         } else if (diffInMinutes < 60) {
-          return `${t('ago')} ${diffInMinutes} min`;
+          // Special handling for Spanish - "hace X min" instead of "X min hace"
+          if (i18n.language === 'es') {
+            return `${t('ago')} ${diffInMinutes} min`;
+          }
+          return `${diffInMinutes} min ${t('ago')}`;
         } else {
-          return `${t('ago')} ${diffInHours}h`;
+          // Special handling for Spanish - "hace Xh" instead of "Xh hace"
+          if (i18n.language === 'es') {
+            return `${t('ago')} ${diffInHours}h`;
+          }
+          return `${diffInHours}h ${t('ago')}`;
         }
       }
 
@@ -239,7 +245,6 @@ const UserLineComponent = ({
     },
     [postId, showSuccessToast, showErrorToast, t]
   );
-
 
   const confirmDelete = useCallback(
     (onConfirm: () => void) => {
@@ -421,7 +426,7 @@ const UserLineComponent = ({
                   style={styles.avatar}
                 />
               ) : (
-                <AvatarFallbackText style={styles.avatarFallback}>
+                <AvatarFallbackText className={'text-white'}>
                   {safeUserName}
                 </AvatarFallbackText>
               )}
@@ -437,12 +442,16 @@ const UserLineComponent = ({
               </TouchableOpacity>
               {user?.role === 'ADMIN' && (
                 <View style={styles.roleBadge}>
-                  <View style={[styles.roleDot, { backgroundColor: '#FF6B6B' }]} />
+                  <View
+                    style={[styles.roleDot, { backgroundColor: '#FF6B6B' }]}
+                  />
                 </View>
               )}
               {user?.role === 'MODERATOR' && (
                 <View style={styles.roleBadge}>
-                  <View style={[styles.roleDot, { backgroundColor: '#007AFF' }]} />
+                  <View
+                    style={[styles.roleDot, { backgroundColor: '#007AFF' }]}
+                  />
                 </View>
               )}
               {localIsHighlighted && (
@@ -498,7 +507,6 @@ const UserLineComponent = ({
         onClose={() => setIsReportModalOpen(false)}
         onSave={handleReport}
       />
-
     </>
   );
 };

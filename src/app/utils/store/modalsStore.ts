@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { OccupancyEnum } from '../types/Feed/PostTypes';
 
 interface ModalsState {
   isFilterOpen: boolean;
@@ -6,6 +7,9 @@ interface ModalsState {
   isInfoOpen: boolean;
   isLogoutConfirmOpen: boolean;
   isCustomReasonOpen: boolean;
+  isOccupancyOpen: boolean;
+  occupancyValue: OccupancyEnum | null;
+  occupancyCallback: ((value: OccupancyEnum) => void) | null;
 
   openFilter: () => void;
   closeFilter: () => void;
@@ -26,14 +30,24 @@ interface ModalsState {
   openCustomReason: () => void;
   closeCustomReason: () => void;
   toggleCustomReason: () => void;
+
+  openOccupancy: (
+    initialValue?: OccupancyEnum | null,
+    callback?: (value: OccupancyEnum) => void
+  ) => void;
+  closeOccupancy: () => void;
+  setOccupancyValue: (value: OccupancyEnum | null) => void;
 }
 
-export const modalsStore = create<ModalsState>(set => ({
+export const useModalsStore = create<ModalsState>(set => ({
   isFilterOpen: false,
   isHelpOpen: false,
   isInfoOpen: false,
   isLogoutConfirmOpen: false,
   isCustomReasonOpen: false,
+  isOccupancyOpen: false,
+  occupancyValue: null,
+  occupancyCallback: null,
 
   openFilter: () => set({ isFilterOpen: true }),
   closeFilter: () => set({ isFilterOpen: false }),
@@ -56,4 +70,18 @@ export const modalsStore = create<ModalsState>(set => ({
   closeCustomReason: () => set({ isCustomReasonOpen: false }),
   toggleCustomReason: () =>
     set(state => ({ isCustomReasonOpen: !state.isCustomReasonOpen })),
+
+  openOccupancy: (initialValue, callback) =>
+    set({
+      isOccupancyOpen: true,
+      occupancyValue: initialValue || null,
+      occupancyCallback: callback || null,
+    }),
+  closeOccupancy: () =>
+    set({
+      isOccupancyOpen: false,
+      occupancyValue: null,
+      occupancyCallback: null,
+    }),
+  setOccupancyValue: value => set({ occupancyValue: value }),
 }));

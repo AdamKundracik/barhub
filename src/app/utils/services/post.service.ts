@@ -5,33 +5,17 @@ import {
 } from '../types/functions-types';
 import { GeoPointType } from '../types/types';
 import { Post } from '@/shared';
-import { authService } from '../../services/authService';
-import { API_CONFIG, ENDPOINTS } from '../../config/api';
+import { ENDPOINTS } from '../../config/api';
 import { mapBackendPostsToFrontend } from '../mappers/postMapper';
+import { axiosClient } from '../api/axiosClient';
 
 class PostService {
   public savePost = async (post: Omit<Post, 'creationTime'>) => {
     try {
-      const response = await authService.makeAuthenticatedRequest(
-        `${API_CONFIG.BASE_URL}${ENDPOINTS.POSTS.BASE}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(post),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to save post');
-      }
-
-      const data = await response.json();
+      const data = await axiosClient.post(ENDPOINTS.POSTS.BASE, post);
       return data; // Backend returns the saved post with ID
     } catch (error) {
-      console.error('Error saving post:', error);
+      console.error('PostService: Error saving post:', error);
       throw error;
     }
   };
@@ -40,28 +24,10 @@ class PostService {
     postId: string
   ): Promise<{ success: boolean; message?: string }> => {
     try {
-      const response = await authService.makeAuthenticatedRequest(
-        `${API_CONFIG.BASE_URL}${ENDPOINTS.POSTS.BY_ID(postId)}`,
-        {
-          method: 'DELETE',
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to delete post');
-      }
-
-      // Backend returns 204 No Content (empty response)
-      if (response.status === 204) {
-        return { success: true, message: 'Post deleted successfully' };
-      }
-
-      // Fallback: try to parse JSON if response has content
-      const data = await response.json();
-      return data;
+      await axiosClient.delete(ENDPOINTS.POSTS.BY_ID(postId));
+      return { success: true, message: 'Post deleted successfully' };
     } catch (error) {
-      console.error('Error deleting post:', error);
+      console.error('PostService: Error deleting post:', error);
       return {
         success: false,
         message:
@@ -78,35 +44,17 @@ export const getFreshContent = async (
   userId?: number
 ): Promise<GetFreshnessContentResult> => {
   try {
-    // Convert radius from meters to kilometers
-    const radiusKm = radius;
-
     const requestBody = {
       latitude: geoPoint._lat,
       longitude: geoPoint._long,
-      radiusKm: radiusKm,
+      radiusKm: radius,
       cursor: cursor || null,
       pageSize: 5,
       userId: userId || null,
     };
 
-    const response = await authService.makeAuthenticatedRequest(
-      `${API_CONFIG.BASE_URL}${ENDPOINTS.POSTS.FRESH_CONTENT}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch fresh content');
-    }
-
-    const data = await response.json();
-    // console.log(data);
+    const data = await axiosClient.post(ENDPOINTS.POSTS.FRESH_CONTENT, requestBody);
+    
     // Map backend posts to frontend format
     const mappedPosts = mapBackendPostsToFrontend(data.posts || []);
 
@@ -120,7 +68,7 @@ export const getFreshContent = async (
       },
     };
   } catch (error) {
-    console.error('Error fetching fresh content:', error);
+    console.error('PostService: Error fetching fresh content:', error);
     return {
       status: ServiceStatusEnum.ERROR,
       code: ServiceCodeEnum.BAD_REQUEST,
@@ -142,23 +90,8 @@ export const getPostsByPlaceId = async (
       userId: userId || null,
     };
 
-    const response = await authService.makeAuthenticatedRequest(
-      `${API_CONFIG.BASE_URL}${ENDPOINTS.POSTS.BY_PLACE}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || 'Failed to fetch posts by place');
-    }
-
-    const data = await response.json();
+    const data = await axiosClient.post(ENDPOINTS.POSTS.BY_PLACE, requestBody);
+    
     // Map backend posts to frontend format
     const mappedPosts = mapBackendPostsToFrontend(data.posts || []);
 
@@ -172,7 +105,7 @@ export const getPostsByPlaceId = async (
       },
     };
   } catch (error) {
-    console.error('[getPostsByPlaceId] Error fetching posts by place:', error);
+    console.error('PostService: Error fetching posts by place:', error);
     return {
       status: ServiceStatusEnum.ERROR,
       code: ServiceCodeEnum.BAD_REQUEST,

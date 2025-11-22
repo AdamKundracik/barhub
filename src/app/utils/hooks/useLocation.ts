@@ -82,8 +82,8 @@ export const useLocation = () => {
         stopTimeout: 10, // 10 seconds - send update when stationary, then stop
         debug: false,
         logLevel: BackgroundGeolocation.LOG_LEVEL_OFF,
-        stopOnTerminate: false,
-        startOnBoot: true,
+        stopOnTerminate: false, // Continue tracking when app is terminated
+        startOnBoot: true, // Start tracking on device boot
         showsBackgroundLocationIndicator: false,
         // Optimized settings for reasonable DB writes
         stationaryRadius: 20, // 20 meters radius for stationary detection
@@ -96,13 +96,7 @@ export const useLocation = () => {
         locationTimeout: 60, // 60 seconds timeout
         deferTime: 0, // No defer time
         // Battery optimization
-        pausesLocationUpdatesAutomatically: true, // Pause when stationary
-        backgroundPermissionRationale: {
-          title: "Allow {applicationName} to access to this device's location even when closed or not in use.",
-          message: "This app collects location data to enable features like finding nearby places and sharing your location with friends.",
-          positiveAction: 'Change to "Allow all the time"',
-          negativeAction: 'Cancel'
-        }
+        pausesLocationUpdatesAutomatically: true // Pause when stationary
       });
 
       return () => {

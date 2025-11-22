@@ -140,6 +140,7 @@ export const Navigation = () => {
   // Check if email is verified
   const isEmailVerified = user?.emailVerified ?? false;
 
+
   useEffect(() => {
     switch (appState) {
       case 'active':

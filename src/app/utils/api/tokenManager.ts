@@ -1,5 +1,13 @@
 import * as SecureStore from 'expo-secure-store';
 
+/**
+ * TokenManager - Simple JWT token storage and management
+ *
+ * Responsibilities:
+ * - Store/retrieve tokens securely using SecureStore
+ * - In-memory cache for quick access
+ * - Basic token validation (expiration check)
+ */
 class TokenManager {
   private static instance: TokenManager;
   private accessToken: string | null = null;
@@ -14,118 +22,136 @@ class TokenManager {
     return TokenManager.instance;
   }
 
+  /**
+   * Initialize tokens from SecureStore into memory cache
+   */
   async initialize(): Promise<void> {
     try {
       this.accessToken = await SecureStore.getItemAsync('accessToken');
       this.refreshToken = await SecureStore.getItemAsync('refreshToken');
-      
-      // Log token expiration info
-      if (this.accessToken) {
-        const accessTokenExp = this.getTokenExpiration(this.accessToken);
-        if (accessTokenExp) {
-          console.log('🔑 Access token expires at:', accessTokenExp.toLocaleString());
-        }
-      }
-      
-      if (this.refreshToken) {
-        const refreshTokenExp = this.getTokenExpiration(this.refreshToken);
-        if (refreshTokenExp) {
-          console.log('🔄 Refresh token expires at:', refreshTokenExp.toLocaleString());
-        }
-      }
     } catch (error) {
-      console.error('Error initializing token manager:', error);
+      console.error('TokenManager: Error initializing:', error);
+      this.accessToken = null;
+      this.refreshToken = null;
     }
   }
 
+  /**
+   * Get access token from memory cache (synchronous for backward compatibility)
+   * Note: Only returns cached value. Use getAccessTokenAsync() for fallback to SecureStore
+   */
   getAccessToken(): string | null {
     return this.accessToken;
   }
 
-  async getRefreshToken(): Promise<string | null> {
-    console.log('🔍 getRefreshToken called - memory cache:', {
-      hasRefreshToken: !!this.refreshToken,
-      tokenLength: this.refreshToken?.length,
-    });
-    
-    // If not in memory cache, try to load from SecureStore
-    if (!this.refreshToken) {
-      console.log('🔄 Refresh token not in memory - loading from SecureStore');
+  /**
+   * Get access token with fallback to SecureStore if not in memory
+   * Use this for critical operations to ensure token is always available
+   */
+  async getAccessTokenAsync(): Promise<string | null> {
+    if (!this.accessToken) {
       try {
-        this.refreshToken = await SecureStore.getItemAsync('refreshToken');
-        console.log('🔍 Loaded from SecureStore:', {
-          hasRefreshToken: !!this.refreshToken,
-          tokenLength: this.refreshToken?.length,
-        });
+        this.accessToken = await SecureStore.getItemAsync('accessToken');
       } catch (error) {
-        console.error('Error loading refresh token from SecureStore:', error);
+        console.error('TokenManager: Error loading access token:', error);
       }
     }
-    
+    return this.accessToken;
+  }
+
+  /**
+   * Get refresh token with fallback to SecureStore if not in memory
+   */
+  async getRefreshToken(): Promise<string | null> {
+    if (!this.refreshToken) {
+      try {
+        this.refreshToken = await SecureStore.getItemAsync('refreshToken');
+      } catch (error) {
+        console.error('TokenManager: Error loading refresh token:', error);
+      }
+    }
     return this.refreshToken;
   }
 
+  /**
+   * Store tokens in both memory cache and SecureStore
+   */
   async setTokens(accessToken: string, refreshToken: string): Promise<void> {
     try {
+      console.log('💾 [TOKEN] Storing new tokens');
+
       this.accessToken = accessToken;
       this.refreshToken = refreshToken;
-      
-      await SecureStore.setItemAsync('accessToken', accessToken);
-      await SecureStore.setItemAsync('refreshToken', refreshToken);
-      
-      // Log new token expiration info
-      const accessTokenExp = this.getTokenExpiration(accessToken);
-      const refreshTokenExp = this.getTokenExpiration(refreshToken);
-      
-      if (accessTokenExp) {
-        console.log('🔑 New access token expires at:', accessTokenExp.toLocaleString());
+
+      await Promise.all([
+        SecureStore.setItemAsync('accessToken', accessToken),
+        SecureStore.setItemAsync('refreshToken', refreshToken),
+      ]);
+
+      // Log expiration times
+      const accessExp = this.getTokenExpiration(accessToken);
+      const refreshExp = this.getTokenExpiration(refreshToken);
+      if (accessExp) {
+        console.log(
+          '💾 [TOKEN] Access token expires:',
+          accessExp.toLocaleString()
+        );
       }
-      if (refreshTokenExp) {
-        console.log('🔄 New refresh token expires at:', refreshTokenExp.toLocaleString());
+      if (refreshExp) {
+        console.log(
+          '💾 [TOKEN] Refresh token expires:',
+          refreshExp.toLocaleString()
+        );
       }
     } catch (error) {
-      console.error('Error storing tokens:', error);
+      console.error('❌ [TOKEN] Error storing tokens:', error);
       throw error;
     }
   }
 
+  /**
+   * Clear all tokens from memory and SecureStore
+   */
   async clearTokens(): Promise<void> {
     try {
-      console.log('🗑️ clearTokens() called - clearing all tokens');
-      
-      // Get call stack info
-      const stack = new Error().stack;
-      console.log('Call stack:', stack);
-      
+      console.log('🗑️ [TOKEN] Clearing all tokens');
+
       this.accessToken = null;
       this.refreshToken = null;
-      
-      await SecureStore.deleteItemAsync('accessToken');
-      await SecureStore.deleteItemAsync('refreshToken');
-      
-      console.log('✅ Tokens cleared successfully');
+
+      await Promise.all([
+        SecureStore.deleteItemAsync('accessToken').catch(() => {}),
+        SecureStore.deleteItemAsync('refreshToken').catch(() => {}),
+      ]);
+
+      console.log('✅ [TOKEN] Tokens cleared successfully');
     } catch (error) {
-      console.error('Error clearing tokens:', error);
+      console.error('❌ [TOKEN] Error clearing tokens:', error);
     }
   }
 
+  /**
+   * Check if token is expired
+   */
   isTokenExpired(token: string): boolean {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const currentTime = Math.floor(Date.now() / 1000);
-      return payload.exp < currentTime;
+      // Add 30 second buffer to prevent edge cases
+      return payload.exp <= currentTime + 30;
     } catch (error) {
-      console.error('Error checking token expiration:', error);
       return true;
     }
   }
 
+  /**
+   * Get token expiration as Date
+   */
   getTokenExpiration(token: string): Date | null {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       return new Date(payload.exp * 1000);
     } catch (error) {
-      console.error('Error getting token expiration:', error);
       return null;
     }
   }

@@ -1,10 +1,16 @@
 import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View, Text } from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
-import { primaryColor } from '@/src/app/utils/styles/colors';
+import { primaryBgColor, primaryColor } from '@/src/app/utils/styles/colors';
 
 interface ThankYouScreenProps {
   onClose?: () => void;
@@ -24,7 +30,7 @@ export const ThankYouScreen: React.FC<ThankYouScreenProps> = ({ onClose }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         bounces={false}
@@ -59,42 +65,42 @@ export const ThankYouScreen: React.FC<ThankYouScreenProps> = ({ onClose }) => {
               {t('subscription.premium-benefits')}
             </Text>
 
-                   <View style={styles.benefitsList}>
-                     <View style={styles.benefitItem}>
-                       <Text style={styles.benefitIcon}>🚫</Text>
-                       <Text style={styles.benefitText}>
-                         {t('subscription.no-ads')}
-                       </Text>
-                     </View>
+            <View style={styles.benefitsList}>
+              <View style={styles.benefitItem}>
+                <Text style={styles.benefitIcon}>🚫</Text>
+                <Text style={styles.benefitText}>
+                  {t('subscription.no-ads')}
+                </Text>
+              </View>
 
-                     <View style={styles.benefitItem}>
-                       <Text style={styles.benefitIcon}>🔓</Text>
-                       <Text style={styles.benefitText}>
-                         {t('subscription.access-all-benefits')}
-                       </Text>
-                     </View>
+              <View style={styles.benefitItem}>
+                <Text style={styles.benefitIcon}>🔓</Text>
+                <Text style={styles.benefitText}>
+                  {t('subscription.access-all-benefits')}
+                </Text>
+              </View>
 
-                     <View style={styles.benefitItem}>
-                       <Text style={styles.benefitIcon}>✈️</Text>
-                       <Text style={styles.benefitText}>
-                         {t('subscription.travel-mode')}
-                       </Text>
-                     </View>
+              <View style={styles.benefitItem}>
+                <Text style={styles.benefitIcon}>✈️</Text>
+                <Text style={styles.benefitText}>
+                  {t('subscription.travel-mode')}
+                </Text>
+              </View>
 
-                     <View style={styles.benefitItem}>
-                       <Text style={styles.benefitIcon}>📊</Text>
-                       <Text style={styles.benefitText}>
-                         {t('subscription.leaderboards')}
-                       </Text>
-                     </View>
+              <View style={styles.benefitItem}>
+                <Text style={styles.benefitIcon}>📊</Text>
+                <Text style={styles.benefitText}>
+                  {t('subscription.leaderboards')}
+                </Text>
+              </View>
 
-                     <View style={styles.benefitItem}>
-                       <Text style={styles.benefitIcon}>⭐</Text>
-                       <Text style={styles.benefitText}>
-                         {t('subscription.more-highlights')}
-                       </Text>
-                     </View>
-                   </View>
+              <View style={styles.benefitItem}>
+                <Text style={styles.benefitIcon}>⭐</Text>
+                <Text style={styles.benefitText}>
+                  {t('subscription.more-highlights')}
+                </Text>
+              </View>
+            </View>
           </View>
 
           {/* Thank you message */}
@@ -117,7 +123,7 @@ export const ThankYouScreen: React.FC<ThankYouScreenProps> = ({ onClose }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: primaryBgColor,
   },
   scrollContent: {
     flexGrow: 1,

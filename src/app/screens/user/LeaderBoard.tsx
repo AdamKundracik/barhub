@@ -162,7 +162,7 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
           {user.photoUrl ? (
             <AvatarImage source={{ uri: user.photoUrl }} />
           ) : (
-            <AvatarFallbackText style={styles.avatarFallback}>
+            <AvatarFallbackText className={'text-white'}>
               {user.name}
             </AvatarFallbackText>
           )}
@@ -572,8 +572,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   avatarFallback: {
-    backgroundColor: 'transparent',
-    color: 'white',
+    backgroundColor: 'black',
   },
 
   // User info

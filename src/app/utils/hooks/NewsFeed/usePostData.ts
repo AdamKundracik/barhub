@@ -48,10 +48,11 @@ export const useNewsFeedData = () => {
       getNextPageParam: lastPage => lastPage?.lastVisible || null, // lastVisible is mapped from nextCursor
       enabled: !!currentLocation && isAuthenticated, // Wait for both location and authentication
       refetchOnWindowFocus: false, // Don't refetch when app comes to foreground
-      refetchOnMount: false, // Don't refetch on mount if data exists (cache is cleared on logout)
-      staleTime: 1 * 60 * 1000, // 1 minute - data considered fresh for 1 minute
-      cacheTime: 15 * 60 * 1000, // 15 minutes - keep in cache for 15 minutes
-      refetchInterval: 3 * 60 * 1000, // Automatic refetch every 3 minutes
+      refetchOnMount: 'always', // Always refetch on mount for fresh data after app refresh
+      staleTime: 30 * 1000, // 30 seconds - shorter for fresher data
+      cacheTime: 5 * 60 * 1000, // 5 minutes - shorter cache time
+      refetchInterval: false, // DISABLED: Prevent automatic refetching that can cause refresh loops
+      refetchOnReconnect: true, // Refetch when network reconnects
     }
   );
 

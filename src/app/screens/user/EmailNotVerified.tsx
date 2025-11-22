@@ -57,7 +57,6 @@ const EmailNotVerified = () => {
         );
         setChecking(false);
       }, 500);
-
     } catch (error) {
       console.error('Error checking email verification:', error);
       showErrorToast(t('error'), t('something-went-wrong'));
@@ -97,9 +96,15 @@ const EmailNotVerified = () => {
       // Handle specific errors
       let errorMessage = t('please-try-again-later');
 
-      if (error.message?.includes('too many') || error.message?.includes('rate limit')) {
+      if (
+        error.message?.includes('too many') ||
+        error.message?.includes('rate limit')
+      ) {
         errorMessage = t('too-many-requests');
-      } else if (error.message?.includes('expired') || error.message?.includes('session')) {
+      } else if (
+        error.message?.includes('expired') ||
+        error.message?.includes('session')
+      ) {
         errorMessage = t('session-expired');
       } else if (error.message?.includes('network')) {
         errorMessage = t('network-error');
@@ -138,7 +143,7 @@ const EmailNotVerified = () => {
   };
 
   return (
-    <Layout pageTitle={t('email-not-verified')}>
+    <Layout pageTitle={t('email-not-verified')} showTopBar={false}>
       <View style={styles.container}>
         {/* Icon */}
         <Center style={styles.iconContainer}>

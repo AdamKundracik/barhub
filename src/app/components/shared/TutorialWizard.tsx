@@ -77,6 +77,12 @@ export const TutorialWizard: React.FC<TutorialWizardProps> = ({
       icon: Icons.Search,
     },
     {
+      id: 'favorites',
+      title: t('tutorial.favorites.title'),
+      description: t('tutorial.favorites.description'),
+      icon: Icons.Heart,
+    },
+    {
       id: 'profile',
       title: t('tutorial.profile.title'),
       description: t('tutorial.profile.description'),

@@ -42,6 +42,14 @@ interface UserStore {
   isUser: () => boolean;
   hasAdminAccess: () => boolean; // Admin or Moderator
 
+  // Block user management
+  blockedUsers: Set<string>;
+  blockUser: (userId: string) => Promise<void>;
+  unblockUser: (userId: string) => Promise<void>;
+  isUserBlocked: (userId: string) => boolean;
+  setBlockedUsers: (blockedUserIds: string[]) => void;
+  loadBlockedUsers: () => Promise<void>;
+
   // Helper getters
   getDisplayName: () => string;
   getEmail: () => string;
@@ -62,6 +70,7 @@ export const useUserStore = create<UserStore>()(
       isUserDataLoading: false,
       currentPushToken: null,
       canSeeContent: false,
+      blockedUsers: new Set<string>(),
 
       // Actions
       setUserData: (data: ClientDTO | null) => {
@@ -120,8 +129,16 @@ export const useUserStore = create<UserStore>()(
 
       updateCanSeeContent: () => {
         const { userData } = get();
+
+        // If no user or missing post timestamp, default to false (except admins/mods)
         if (!userData || !userData.lastUploadedPostAt) {
           set({ canSeeContent: false });
+          return;
+        }
+
+        // Admins a moderátori vždy vidia content
+        if ([RoleEnum.ADMIN, RoleEnum.MODERATOR].includes(userData.role)) {
+          set({ canSeeContent: true });
           return;
         }
 
@@ -198,6 +215,74 @@ export const useUserStore = create<UserStore>()(
           userData?.role === RoleEnum.MODERATOR
         );
       },
+
+      // Block user management
+      blockUser: async (userId: string) => {
+        const { blockedUsers } = get();
+        const newBlockedUsers = new Set(blockedUsers);
+        newBlockedUsers.add(userId);
+        set({ blockedUsers: newBlockedUsers });
+
+        try {
+          await userService.blockUser(userId);
+        } catch (error) {
+          console.error('Failed to block user:', error);
+          // Revert optimistic update on error
+          const revertedBlockedUsers = new Set(blockedUsers);
+          revertedBlockedUsers.delete(userId);
+          set({ blockedUsers: revertedBlockedUsers });
+          throw error;
+        }
+      },
+
+      unblockUser: async (userId: string) => {
+        const { blockedUsers } = get();
+        const newBlockedUsers = new Set(blockedUsers);
+        newBlockedUsers.delete(userId);
+        set({ blockedUsers: newBlockedUsers });
+
+        try {
+          await userService.unblockUser(userId);
+        } catch (error) {
+          console.error('Failed to unblock user:', error);
+          // Revert optimistic update on error
+          const revertedBlockedUsers = new Set(blockedUsers);
+          revertedBlockedUsers.add(userId);
+          set({ blockedUsers: revertedBlockedUsers });
+          throw error;
+        }
+      },
+
+      isUserBlocked: (userId: string) => {
+        const { blockedUsers } = get();
+        return blockedUsers.has(userId);
+      },
+
+      setBlockedUsers: (blockedUserIds: string[]) => {
+        set({ blockedUsers: new Set(blockedUserIds) });
+      },
+
+      loadBlockedUsers: async () => {
+        try {
+          const blockedUsersData = await userService.getBlockedUsers();
+          // Ensure blockedUsersData is an array before mapping
+          if (Array.isArray(blockedUsersData)) {
+            const blockedUserIds = blockedUsersData
+              .map(user => user.id?.toString())
+              .filter(Boolean);
+            set({ blockedUsers: new Set(blockedUserIds) });
+          } else {
+            console.warn(
+              'loadBlockedUsers: Expected array but got:',
+              typeof blockedUsersData
+            );
+            set({ blockedUsers: new Set() });
+          }
+        } catch (error) {
+          console.error('Failed to load blocked users:', error);
+          set({ blockedUsers: new Set() });
+        }
+      },
     };
   })
 );
@@ -229,4 +314,9 @@ export const userSelectors = {
     state.hasAdminAccess(),
   tutorialViewed: (state: ReturnType<typeof useUserStore.getState>) =>
     state.userData?.tutorialViewed || false,
+  blockedUsers: (state: ReturnType<typeof useUserStore.getState>) =>
+    state.blockedUsers,
+  isUserBlocked:
+    (userId: string) => (state: ReturnType<typeof useUserStore.getState>) =>
+      state.isUserBlocked(userId),
 };

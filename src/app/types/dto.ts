@@ -50,6 +50,16 @@ export interface ClientDTO extends AbstractAuditableEntityDTO {
   tutorialViewed: boolean; // Whether user has completed the tutorial
 }
 
+// Blocked User DTO - simplified version for blocked users list
+export interface BlockedUserDTO {
+  id: number | string; // Backend might return string or number
+  name: string;
+  email: string;
+  photoUrl?: string;
+  bio?: string;
+  premium: boolean;
+}
+
 export interface CreateClientRequestDTO {
   name: string;
   email: string;

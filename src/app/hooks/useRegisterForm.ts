@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../providers/AuthProvider';
-import { consentService } from '../services/consentService';
 import { AcceptConsentRequestDTO } from '../types/dto';
-import { isValidUnicodeUsername, getUnicodeValidationMessage } from '../utils/validation/unicodeValidation';
+import {
+  getUnicodeValidationMessage,
+  isValidUnicodeUsername,
+} from '../utils/validation/unicodeValidation';
 
 export interface RegisterFormData {
   email: string;
@@ -47,20 +49,8 @@ export const useRegisterForm = (t: (key: string, options?: any) => string) => {
     COMMUNITY_GUIDELINES: '1.0',
   });
 
-  // Fetch current consent versions on mount
-  useEffect(() => {
-    const fetchVersions = async () => {
-      try {
-        const versions = await consentService.getCurrentVersions();
-        setConsentVersions(versions);
-      } catch (error) {
-        console.error('Error fetching consent versions:', error);
-        // Keep default versions
-      }
-    };
-
-    fetchVersions();
-  }, []);
+  // Note: Consent versions are fetched from backend during registration
+  // No need to fetch them here as user is not authenticated yet
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [touchedFields, setTouchedFields] = useState<
@@ -100,7 +90,7 @@ export const useRegisterForm = (t: (key: string, options?: any) => string) => {
         if (!value) return t('username-required');
         if (value.trim().length < 3) return t('too-short');
         if (!isValidUnicodeUsername(value)) {
-          return getUnicodeValidationMessage(value).includes('emoji') 
+          return getUnicodeValidationMessage(value).includes('emoji')
             ? t('username-invalid-characters')
             : t('username-standard-chars-only');
         }

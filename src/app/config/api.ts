@@ -43,6 +43,9 @@ export const ENDPOINTS = {
     PUSH_TOKENS: (id: string) => `/users/${id}/push-tokens`,
     LOCATION: (id: string) => `/users/${id}/update-location`,
     SEARCH_HISTORY: (id: string) => `/users/${id}/search-history`,
+    BLOCK: (id: string) => `/users/${id}/block`,
+    UNBLOCK: (id: string) => `/users/${id}/unblock`,
+    BLOCKED_USERS: '/users/blocks',
   },
 
   // Post endpoints

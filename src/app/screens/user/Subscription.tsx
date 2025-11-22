@@ -10,28 +10,42 @@ import { useState } from 'react';
 export const Subscription = () => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { refetch } = useUserData();
-  const { currentSubscriptionType, offerings } = useRevenueCat();
+  const { currentSubscriptionType, currentOffering, offerings } =
+    useRevenueCat();
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   // If user has yearly premium subscription, show thank you screen
   if (currentSubscriptionType === 'barhub_premium_1y') {
     return (
       <ThankYouScreen 
-        onClose={() => navigation.goBack()}
+        onClose={() => {
+          if (navigation.canGoBack()) {
+            navigation.goBack();
+          } else {
+            navigation.navigate('Feed');
+          }
+        }} 
       />
     );
   }
 
   // Get the appropriate offering based on subscription type
   const getOffering = () => {
-    if (
-      currentSubscriptionType === 'barhub_premium_1m' &&
-      offerings?.month_premium
-    ) {
-      return offerings.month_premium;
+    console.log('offerings', offerings);
+    console.log('currentOffering', currentOffering);
+
+    // Use the currentOffering from the hook (which is already mapped correctly)
+    if (currentOffering) {
+      return currentOffering;
     }
+
+    // Fallback logic if currentOffering is not available
+    if (currentSubscriptionType === 'barhub_premium_1m') {
+      return offerings.all['month-premium'];
+    }
+
     // Default offering for users with no subscription or other subscription types
-    return offerings?.default || offerings?.current;
+    return offerings?.current || offerings?.all?.default;
   };
 
   const selectedOffering = getOffering();
@@ -49,18 +63,28 @@ export const Subscription = () => {
           // The paywall content is determined by the offering configuration in RevenueCat dashboard
           // Different offerings can have different paywall templates configured
         }}
-        onDismiss={navigation.goBack}
+        onDismiss={() => {
+          // Try to go back, but if it fails, navigate to Feed
+          if (navigation.canGoBack()) {
+            navigation.goBack();
+          } else {
+            console.log('Cannot go back, navigating to Feed');
+            navigation.navigate('Feed');
+          }
+        }}
         onPurchaseCompleted={async () => {
           if (refetch) refetch();
-          // Navigate back to feed first
-          navigation.goBack();
+          
+          // Navigate to Feed screen instead of using goBack
+          navigation.navigate('Feed');
+          
           // Show welcome modal after navigation
           setTimeout(() => {
             setShowWelcomeModal(true);
           }, 500); // Small delay to ensure navigation is complete
         }}
       />
-      
+
       {/* Premium Welcome Modal */}
       <PremiumWelcomeModal
         visible={showWelcomeModal}

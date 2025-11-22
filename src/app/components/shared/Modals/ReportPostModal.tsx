@@ -26,6 +26,8 @@ type PostReportModalProps = {
   visible: boolean;
   onClose: () => void;
   onSave: (reason: ReportReason, customReason?: string) => Promise<void> | void; // môže byť async
+  onBlockUser?: () => void; // Optional callback for blocking user after report
+  userName?: string; // User name for display in block option
 };
 
 export const PostReportModal = ({

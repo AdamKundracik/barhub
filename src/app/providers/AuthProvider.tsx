@@ -3,7 +3,9 @@ import React, {
   ReactNode,
   useContext,
   useEffect,
+  useRef,
   useState,
+  useCallback,
 } from 'react';
 import { useQueryClient } from 'react-query';
 import {
@@ -25,7 +27,7 @@ import {
 } from '../services/auth/appleSignIn';
 import { consentService } from '../services/consentService';
 import { JwtAuthenticationResponseDTO, OutdatedConsentDTO } from '../types/dto';
-import { useJwtTokenManager } from '../utils/hooks/useJwtTokenManager';
+import { axiosClient } from '../utils/api/axiosClient';
 
 // Global reference to unsubscribe function (set by Navigation component)
 let globalUnsubscribeNotifications: (() => void) | null = null;
@@ -67,6 +69,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [pendingConsents, setPendingConsents] = useState<
     OutdatedConsentDTO[] | null
   >(null);
+  
+  // Track if initialization is in progress to prevent race conditions
+  const isInitializingRef = useRef(false);
 
   // React Query client for cache management
   const queryClient = useQueryClient();
@@ -76,29 +81,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { setUseFakeLocation, setFakeLocationName, setInitialized } =
     useLocationStore();
 
-  // JWT Token Manager
-  const { initializeTokenManagement, stopTokenManagement } =
-    useJwtTokenManager();
-
-  // Google Sign-In hook
-  // Google Sign-In is now handled directly in signInWithGoogle function
-
-  // Initialize authentication state
-  useEffect(() => {
-    initializeAuth();
-  }, []);
-
-  // Initialize JWT token management when user is authenticated
-  useEffect(() => {
-    if (user) {
-      // Initialize automatic token refresh management
-      initializeTokenManagement();
-    } else {
-      // Stop token management when user logs out
-      stopTokenManagement();
-    }
-  }, [user, initializeTokenManagement, stopTokenManagement]);
-
   // Save current location to backend
   const saveCurrentLocationToBackend = async (
     userId: string
@@ -107,11 +89,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Get current location
       const location = await getCoords();
 
-      // Save to backend
       await userService.updateLocation(userId, location);
     } catch (error) {
-      console.error('Error saving location to backend:', error);
-      // Don't throw - location saving is not critical for auth flow
+      console.error('AuthProvider: Location save error:', error);
     }
   };
 
@@ -142,12 +122,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setInitialized(true);
       }
     } catch (error) {
-      console.error('Error loading user data:', error);
+      console.error('AuthProvider: User data load error:', error);
     }
   };
 
   const initializeAuth = async () => {
+    // Prevent multiple simultaneous initializations
+    if (isInitializingRef.current) {
+      return;
+    }
+    
     try {
+      isInitializingRef.current = true;
       setIsLoading(true);
 
       // Initialize auth service
@@ -157,60 +143,63 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const isAuth = await authService.isAuthenticated();
 
       if (isAuth) {
-        // Try to get user data from cache first
+        // Try to get cached user data first for instant UI
         let userData = await authService.getCachedUser();
-
         if (userData) {
           setUser(userData);
+          // Set loading to false immediately after we have cached user data
+          // This allows the UI to render while we load additional data in background
+          setIsLoading(false);
         }
 
-        // Then refresh from server
+        // Then fetch fresh user data from server and load additional data in background
         userData = await authService.getCurrentUser();
         if (userData) {
           setUser(userData);
-          // Load extended user data and populate stores
-          await loadUserData(userData);
-
-          // Initialize push token service and save token to backend
-          await pushTokenService.initialize(userData.id.toString());
-
-          // Check consent status on app reload
-          if (userData.id) {
-            try {
-              const consentStatus = await consentService.getConsentStatus(
-                userData.id.toString()
-              );
-
-              // Transform backend ConsentStatusDTO to OutdatedConsentDTO[]
-              const outdated: OutdatedConsentDTO[] = consentStatus.consents
-                .filter(c => !c.accepted || c.needsUpdate)
-                .map(c => ({
-                  consentType: c.consentType,
-                  currentVersion: c.currentVersion,
-                  userAcceptedVersion: c.acceptedVersion,
-                  needsUpdate: c.needsUpdate,
-                }));
-
-              if (outdated.length > 0) {
-                setPendingConsents(outdated);
-              }
-            } catch (error) {
-              console.error('Error checking consent status on reload:', error);
-            }
-          }
-        } else {
-          // If we can't get user data, logout
-          // await authService.logout(); // COMMENTED FOR DEBUGGING
-          setUser(null);
+          
+          // Run these operations in parallel in the background - don't block UI
+          Promise.allSettled([
+            loadUserData(userData),
+            pushTokenService.initialize(userData.id.toString()),
+            loadConsentStatus(userData.id.toString()),
+          ]).catch(error => {
+            console.error('AuthProvider: Background operations error:', error);
+          });
         }
+      } else {
+        setUser(null);
       }
     } catch (error) {
-      console.error('Auth initialization error:', error);
-      // On error, clear auth state
-      // await authService.logout(); // COMMENTED FOR DEBUGGING
+      console.error('AuthProvider: Initialization error:', error);
       setUser(null);
     } finally {
-      setIsLoading(false);
+      // Only set loading to false if we haven't already done so above
+      if (isInitializingRef.current) {
+        setIsLoading(false);
+      }
+      isInitializingRef.current = false;
+    }
+  };
+
+  // Separate function for consent status loading (non-blocking)
+  const loadConsentStatus = async (userId: string) => {
+    try {
+      const consentStatus = await consentService.getConsentStatus(userId);
+
+      const outdated: OutdatedConsentDTO[] = consentStatus.consents
+        .filter(c => !c.accepted || c.needsUpdate)
+        .map(c => ({
+          consentType: c.consentType,
+          currentVersion: c.currentVersion,
+          userAcceptedVersion: c.acceptedVersion,
+          needsUpdate: c.needsUpdate,
+        }));
+
+      if (outdated.length > 0) {
+        setPendingConsents(outdated);
+      }
+    } catch (error) {
+      console.error('AuthProvider: Consent check error:', error);
     }
   };
 
@@ -315,50 +304,56 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       setIsLoading(true);
 
-      // Stop JWT token management first
-      stopTokenManagement();
-
-      // Unsubscribe from notifications first
+      // Unsubscribe from notifications
       if (globalUnsubscribeNotifications) {
         globalUnsubscribeNotifications();
       }
 
-      // Remove push token from backend BEFORE clearing auth tokens
+      // Remove push token from backend
       if (user) {
         try {
           await pushTokenService.removePushTokenFromBackend(user.id.toString());
         } catch (error) {
-          console.error('Error removing push token from backend:', error);
-          // Continue with logout even if push token removal fails
+          console.error('AuthProvider: Push token removal error:', error);
         }
       }
 
-      // Now clear auth tokens and logout
+      // Logout and clear tokens
       await authService.logout();
       setUser(null);
 
-      // Clear all stores
+      // Clear stores
       setUserData(null);
-      // Reset location to default values instead of null
       setUseFakeLocation(false);
       setFakeLocationName('');
       setInitialized(false);
-
-      // Clear push token service
       pushTokenService.clearToken();
 
-      // Clear React Query cache to prevent stale data on next login
+      // Clear React Query cache
       queryClient.clear();
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('AuthProvider: Logout error:', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, setUserData, setUseFakeLocation, setFakeLocationName, setInitialized, queryClient]);
+
+  // Initialize authentication state
+  useEffect(() => {
+    initializeAuth();
+  }, []); // Remove logout dependency to prevent re-initialization
+
+  // Set up logout callback for token refresh failures - separate effect
+  useEffect(() => {
+    axiosClient.setOnTokenRefreshFailure(() => {
+      console.log('🚪 [AUTH] Token refresh failed, logging out user');
+      logout();
+    });
+  }, [logout]);
 
   const signInWithGoogle = async () => {
     try {
@@ -460,15 +455,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const userData = await authService.getCurrentUser();
       if (userData) {
         setUser(userData);
-        // Reload extended user data
         await loadUserData(userData);
-      } else {
-        // If we can't refresh user data, logout
-        // await logout();
       }
     } catch (error) {
-      console.error('Refresh user error:', error);
-      // await logout();
+      console.error('AuthProvider: Refresh user error:', error);
     }
   };
 

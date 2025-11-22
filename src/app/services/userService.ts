@@ -1,6 +1,7 @@
 import { httpClient } from '../utils/api/httpClient';
 import { ENDPOINTS } from '../config/api';
 import {
+  BlockedUserDTO,
   ClientDTO,
   PushTokenRequestDTO,
   RoleEnum,
@@ -316,6 +317,45 @@ class UserService {
     } catch (error) {
       console.error('Error updating user premium status:', error);
       throw error;
+    }
+  }
+
+  // Block user
+  async blockUser(userId: string): Promise<boolean> {
+    try {
+      await httpClient.post(ENDPOINTS.USERS.BLOCK(userId));
+      return true;
+    } catch (error) {
+      console.error('Error blocking user:', error);
+      throw error;
+    }
+  }
+
+  // Unblock user
+  async unblockUser(userId: string): Promise<boolean> {
+    try {
+      await httpClient.delete(ENDPOINTS.USERS.UNBLOCK(userId));
+      return true;
+    } catch (error) {
+      console.error('Error unblocking user:', error);
+      throw error;
+    }
+  }
+
+  // Get blocked users
+  async getBlockedUsers(): Promise<BlockedUserDTO[]> {
+    try {
+      const response = await httpClient.get<BlockedUserDTO[]>(ENDPOINTS.USERS.BLOCKED_USERS);
+      // Ensure we always return an array
+      if (Array.isArray(response)) {
+        return response;
+      }
+      // If response is not an array, return empty array
+      console.warn('getBlockedUsers: Response is not an array:', response);
+      return [];
+    } catch (error) {
+      console.error('Error fetching blocked users:', error);
+      return [];
     }
   }
 }

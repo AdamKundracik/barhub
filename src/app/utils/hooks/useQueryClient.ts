@@ -7,11 +7,12 @@ export const createQueryClientWithPersistence = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 1 * 60 * 1000, // 1 minute - data considered fresh for 1 minute
-        cacheTime: 15 * 60 * 1000, // 15 minutes - keep in cache for 15 minutes
-        refetchInterval: 3 * 60 * 1000, // Automatic refetch every 3 minutes
+        staleTime: 30 * 1000, // 30 seconds - shorter stale time for fresher data
+        cacheTime: 5 * 60 * 1000, // 5 minutes - shorter cache time
+        refetchInterval: false, // Disable automatic refetch to prevent conflicts
         refetchOnWindowFocus: false,
-        refetchOnReconnect: false,
+        refetchOnReconnect: true, // Refetch when network reconnects
+        refetchOnMount: true, // Always refetch on mount for fresh data
       },
     },
   });

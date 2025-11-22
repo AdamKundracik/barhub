@@ -8,7 +8,22 @@ export function isOlderThanMinutes(
   isoString: string,
   minutes: number
 ): boolean {
-  const dateToCheck = new Date(isoString).getTime();
+  // Parse LocalDateTime string: "2025-10-07T22:29:23.517475"
+  // Backend sends UTC time but without 'Z' suffix, so we need to treat it as UTC
+  let dateStr = isoString.includes('T')
+    ? isoString
+    : isoString.replace(' ', 'T');
+
+  // Add 'Z' suffix to indicate UTC time
+  if (
+    !dateStr.endsWith('Z') &&
+    !dateStr.includes('+') &&
+    !dateStr.includes('-', 10)
+  ) {
+    dateStr += 'Z';
+  }
+
+  const dateToCheck = new Date(dateStr).getTime();
   const currentTime = new Date().getTime();
 
   const minutesDifference = (currentTime - dateToCheck) / (1000 * 60);

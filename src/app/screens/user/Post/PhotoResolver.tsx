@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
@@ -10,18 +10,184 @@ import {
 import { useTranslation } from 'react-i18next';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { MapPinIcon } from 'lucide-react-native';
 
-import Layout from '@/src/app/components/shared/Layouts/Layout';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { fetchNearbyPlaces } from '../../../utils/helper-functions/fetchPlacesAPI';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
 import { radius } from '@/src/app/utils/constants/constants';
 import { Place } from '../../../utils/types/types';
 import { UserStackList } from '../../../utils/types/screen-types';
-import { primaryColor, primaryDeepColor } from '../../../utils/styles/colors';
+import { primaryColor } from '../../../utils/styles/colors';
+import { Icons } from '../../../utils/icons/icons';
 
 const { width } = Dimensions.get('window');
 
+// Components
+const EmptyState: React.FC<{
+  message?: string;
+  type?: 'no-results' | 'error' | 'no-location';
+  onRetry?: () => void;
+}> = ({ message, type = 'no-results', onRetry }) => {
+  const { t } = useTranslation();
+
+  const getEmptyStateContent = () => {
+    switch (type) {
+      case 'no-results':
+        return {
+          icon: <MapPinIcon size={48} color={primaryColor} />,
+          title: t('no-available-places') || 'Žiadne miesta v okolí',
+          subtitle:
+            t('photo-resolver-no-places-subtitle') ||
+            'Skúste sa presunúť na iné miesto',
+          suggestion:
+            t('photo-resolver-no-places-suggestion') ||
+            'Presuňte sa bližšie k podnikom a skúste znova',
+          showRetry: true,
+        };
+      case 'error':
+        return {
+          icon: (
+            <FontAwesomeIcon icon={Icons.XCircle} size={48} color="#FF6B6B" />
+          ),
+          title: t('photo-resolver-error-title') || 'Chyba pri načítaní miest',
+          subtitle:
+            t('photo-resolver-error-subtitle') ||
+            'Nepodarilo sa načítať miesta v okolí',
+          suggestion:
+            t('photo-resolver-error-suggestion') ||
+            'Skontrolujte internetové pripojenie a skúste znova',
+          showRetry: true,
+        };
+      case 'no-location':
+        return {
+          icon: (
+            <FontAwesomeIcon icon={Icons.Location} size={48} color="#FFA500" />
+          ),
+          title: t('photo-resolver-no-location-title') || 'Poloha nedostupná',
+          subtitle:
+            t('photo-resolver-no-location-subtitle') ||
+            'Nepodarilo sa získať vašu polohu',
+          suggestion:
+            t('photo-resolver-no-location-suggestion') ||
+            'Skontrolujte, či máte povolené služby polohy',
+          showRetry: true,
+        };
+      default:
+        return {
+          icon: <MapPinIcon size={48} color={primaryColor} />,
+          title: message || 'Žiadne miesta',
+          subtitle: '',
+          suggestion: '',
+          showRetry: false,
+        };
+    }
+  };
+
+  const content = getEmptyStateContent();
+
+  return (
+    <View style={styles.emptyStateContainer}>
+      <View style={styles.emptyStateIconContainer}>{content.icon}</View>
+      <Text style={styles.emptyStateTitle}>{content.title}</Text>
+      {content.subtitle && (
+        <Text style={styles.emptyStateSubtitle}>{content.subtitle}</Text>
+      )}
+      {content.suggestion && (
+        <View style={styles.emptyStateSuggestion}>
+          <FontAwesomeIcon
+            icon={Icons.Info}
+            size={16}
+            color="rgba(255, 255, 255, 0.6)"
+          />
+          <Text style={styles.emptyStateSuggestionText}>
+            {content.suggestion}
+          </Text>
+        </View>
+      )}
+      {content.showRetry && onRetry && (
+        <Pressable
+          style={({ pressed }) => [
+            styles.retryButton,
+            pressed && styles.retryButtonPressed,
+          ]}
+          onPress={onRetry}
+        >
+          {({ pressed }) => (
+            <Text
+              style={[
+                styles.retryButtonText,
+                pressed && styles.retryButtonTextPressed,
+              ]}
+            >
+              🔄 {t('retry') || 'Skúsiť znovu'}
+            </Text>
+          )}
+        </Pressable>
+      )}
+
+      {/* Dekoratívne elementy */}
+      <View style={styles.decorativeContainer}>
+        <View style={[styles.decorativeCircle, styles.circle1]} />
+        <View style={[styles.decorativeCircle, styles.circle2]} />
+        <View style={[styles.decorativeCircle, styles.circle3]} />
+      </View>
+    </View>
+  );
+};
+
+const LoadingIndicator: React.FC = () => {
+  const { t } = useTranslation();
+  return (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color={primaryColor} />
+      <Text style={styles.loadingText}>
+        {t('photo-resolver-loading') || 'Hľadám miesta v okolí...'}
+      </Text>
+    </View>
+  );
+};
+
+const PlaceItem: React.FC<{
+  place: Place;
+  onPress: () => void;
+}> = ({ place, onPress }) => (
+  <Pressable style={placeItemStyles.placeItem} onPress={onPress}>
+    {({ pressed }) => (
+      <View
+        style={[
+          placeItemStyles.placeItemContent,
+          pressed && placeItemStyles.placeItemPressed,
+        ]}
+      >
+        <View style={placeItemStyles.placeIconContainer}>
+          <MapPinIcon size={20} color={primaryColor} />
+        </View>
+        <View style={placeItemStyles.placeTextContainer}>
+          <Text
+            style={[
+              placeItemStyles.placeMainText,
+              pressed && placeItemStyles.textPressed,
+            ]}
+          >
+            {place?.displayName?.text || 'Neznáme miesto'}
+          </Text>
+          <Text
+            style={[
+              placeItemStyles.placeSecondaryText,
+              pressed && placeItemStyles.secondaryTextPressed,
+            ]}
+          >
+            {place.formattedAddress || ''}
+          </Text>
+        </View>
+      </View>
+    )}
+  </Pressable>
+);
+
+// Main Component
 export const PhotoResolver = ({ route }: any) => {
   const { location } = useLocationStore();
   const { t } = useTranslation();
@@ -30,6 +196,7 @@ export const PhotoResolver = ({ route }: any) => {
   const [loading, setLoading] = useState(true);
   const [places, setPlaces] = useState<Place[]>([]);
   const [image, setImage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const routeParams = route.params as { image?: string };
 
@@ -39,83 +206,80 @@ export const PhotoResolver = ({ route }: any) => {
     }
   }, [routeParams?.image]);
 
-  useEffect(() => {
-    const getPlaces = async () => {
-      if (!location) {
-        setLoading(false);
-        console.error('Location could not be retrieved');
-        return;
-      }
-
-      try {
-        const data = await fetchNearbyPlaces(location, radius);
-        setPlaces(data.places || []);
-      } catch (error) {
-        console.error('Failed to fetch places:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getPlaces();
-  }, [location]);
-
-  const renderItem = ({ item }: { item: Place; index: number }) => (
-    <Pressable
-      key={item.id}
-      style={{ paddingVertical: 10 }}
-      onPress={() => {
-        navigation.navigate('PostSummary', { image: image ?? '', place: item });
-      }}
-    >
-      {({ pressed }) => (
-        <View>
-          <Text
-            style={[
-              { fontSize: 16, fontWeight: 'bold' },
-              pressed ? { color: primaryColor } : { color: 'white' },
-            ]}
-          >
-            {item?.displayName.text}
-          </Text>
-          <Text
-            style={[
-              { fontSize: 14 },
-              pressed ? { color: primaryDeepColor } : { color: 'grey' },
-            ]}
-          >
-            {item.formattedAddress}
-          </Text>
-        </View>
-      )}
-    </Pressable>
-  );
-
-  const handleRetry = async () => {
-    setLoading(true);
+  const fetchPlaces = useCallback(async () => {
     if (!location) {
+      setError('no-location');
       setLoading(false);
       console.error('Location could not be retrieved');
       return;
     }
 
+    setLoading(true);
+    setError(null);
+
     try {
       const data = await fetchNearbyPlaces(location, radius);
       setPlaces(data.places || []);
+      if (!data.places || data.places.length === 0) {
+        setError('no-results');
+      }
     } catch (error) {
       console.error('Failed to fetch places:', error);
+      setError('error');
     } finally {
       setLoading(false);
     }
-  };
+  }, [location]);
 
-  if (loading) {
+  useEffect(() => {
+    fetchPlaces();
+  }, [fetchPlaces]);
+
+  const handleRetry = useCallback(() => {
+    fetchPlaces();
+  }, [fetchPlaces]);
+
+  const handlePlaceSelect = useCallback(
+    (place: Place) => {
+      navigation.navigate('PostSummary', { image: image ?? '', place });
+    },
+    [navigation, image]
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: Place }) => (
+      <PlaceItem place={item} onPress={() => handlePlaceSelect(item)} />
+    ),
+    [handlePlaceSelect]
+  );
+
+  const renderListEmpty = useCallback(() => {
+    if (loading) {
+      return null;
+    }
+
+    if (error) {
+      return (
+        <EmptyState
+          type={error as 'no-results' | 'error' | 'no-location'}
+          onRetry={handleRetry}
+        />
+      );
+    }
+
+    return <EmptyState type="no-results" onRetry={handleRetry} />;
+  }, [loading, error, handleRetry]);
+
+  if (loading && places.length === 0) {
     return (
-      <Layout pageTitle={'izi'}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size={32} />
-        </View>
-      </Layout>
+      <ScreenLayout
+        title={t('select-place')}
+        showTitle
+        onBackPress={navigation.goBack}
+        showBackButton
+      >
+        <LoadingIndicator />
+      </ScreenLayout>
     );
   }
 
@@ -130,128 +294,131 @@ export const PhotoResolver = ({ route }: any) => {
         data={places}
         renderItem={renderItem}
         keyExtractor={item => item.id}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            {/* Hlavná ikona */}
-            <View style={styles.iconContainer}>
-              <View style={styles.iconCircle}>
-                <Text style={styles.iconEmoji}>📍</Text>
-              </View>
-              <View style={styles.iconPulse} />
-            </View>
-
-            {/* Textový obsah */}
-            <View style={styles.textContainer}>
-              <Text style={styles.emptyTitle}>{t('no-available-places')}</Text>
-              <Text style={styles.emptyDescription}>
-                Skúste rozšíriť oblasť vyhľadávania alebo sa presunúť na iné
-                miesto
-              </Text>
-            </View>
-
-            {/* Akčné tlačidlo */}
-            <Pressable
-              style={({ pressed }) => [
-                styles.retryButton,
-                pressed && styles.retryButtonPressed,
-              ]}
-              onPress={handleRetry}
-            >
-              {({ pressed }) => (
-                <Text
-                  style={[
-                    styles.retryButtonText,
-                    pressed && styles.retryButtonTextPressed,
-                  ]}
-                >
-                  🔄 Skúsiť znovu
-                </Text>
-              )}
-            </Pressable>
-
-            {/* Dekoratívne elementy */}
-            <View style={styles.decorativeContainer}>
-              <View style={[styles.decorativeCircle, styles.circle1]} />
-              <View style={[styles.decorativeCircle, styles.circle2]} />
-              <View style={[styles.decorativeCircle, styles.circle3]} />
-            </View>
-          </View>
-        }
+        ListEmptyComponent={renderListEmpty}
+        contentContainerStyle={styles.listContent}
       />
     </ScreenLayout>
   );
 };
 
+// PlaceItem Styles
+const placeItemStyles = StyleSheet.create({
+  placeItem: {
+    marginBottom: 8,
+    marginHorizontal: 16,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  placeItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 16,
+  },
+  placeItemPressed: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    transform: [{ scale: 0.98 }],
+  },
+  placeIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  placeTextContainer: {
+    flex: 1,
+  },
+  placeMainText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
+    marginBottom: 2,
+  },
+  placeSecondaryText: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  textPressed: {
+    color: primaryColor,
+  },
+  secondaryTextPressed: {
+    color: primaryColor,
+    opacity: 0.8,
+  },
+});
+
+// Main Screen Styles
 const styles = StyleSheet.create({
+  listContent: {
+    paddingVertical: 8,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 40,
   },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  loadingText: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginTop: 16,
+  },
+  emptyStateContainer: {
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
     paddingHorizontal: 32,
-    paddingVertical: 64,
     minHeight: 400,
   },
-  iconContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 32,
-    position: 'relative',
-  },
-  iconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: primaryDeepColor,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: primaryColor,
-    shadowColor: primaryColor,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    zIndex: 2,
-  },
-  iconEmoji: {
-    fontSize: 32,
-  },
-  iconPulse: {
-    position: 'absolute',
+  emptyStateIconContainer: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: primaryColor,
-    opacity: 0.1,
-    zIndex: 1,
-  },
-  textContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     alignItems: 'center',
-    marginBottom: 32,
-    maxWidth: width * 0.8,
+    justifyContent: 'center',
+    marginBottom: 24,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
-  emptyTitle: {
-    fontSize: 24,
-    fontWeight: '700',
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: '600',
     color: 'white',
     textAlign: 'center',
-    marginBottom: 12,
-    letterSpacing: 0.5,
+    marginBottom: 8,
   },
-  emptyDescription: {
-    fontSize: 16,
-    color: '#7C7C7C',
+  emptyStateSubtitle: {
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'center',
-    lineHeight: 24,
-    maxWidth: width * 0.7,
+    marginBottom: 16,
+    lineHeight: 22,
+    maxWidth: width * 0.8,
+  },
+  emptyStateSuggestion: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    gap: 8,
+    marginBottom: 24,
+    maxWidth: width * 0.85,
+  },
+  emptyStateSuggestionText: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.6)',
+    textAlign: 'center',
+    flex: 1,
+    lineHeight: 18,
   },
   retryButton: {
     paddingHorizontal: 32,
@@ -296,25 +463,25 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     borderWidth: 1,
     borderColor: primaryColor,
-    opacity: 0.1,
+    opacity: 0.08,
   },
   circle1: {
-    width: 100,
-    height: 100,
-    top: 50,
-    left: -30,
+    width: 120,
+    height: 120,
+    top: 30,
+    left: -40,
   },
   circle2: {
-    width: 60,
-    height: 60,
-    bottom: 100,
-    right: -20,
+    width: 80,
+    height: 80,
+    bottom: 80,
+    right: -30,
   },
   circle3: {
-    width: 40,
-    height: 40,
-    top: 200,
-    right: 50,
+    width: 50,
+    height: 50,
+    top: 180,
+    right: 40,
   },
 });
 

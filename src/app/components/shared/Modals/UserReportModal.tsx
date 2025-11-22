@@ -26,12 +26,16 @@ type UserReportModalProps = {
   visible: boolean;
   onClose: () => void;
   onSave: (reason: ReportReason, customReason?: string) => Promise<void> | void;
+  onBlockUser?: () => Promise<void> | void; // Optional callback for direct blocking user after report
+  userName?: string; // User name for display in block option
 };
 
 export const UserReportModal = ({
   visible,
   onClose,
   onSave,
+  onBlockUser,
+  userName = 'Unknown User',
 }: UserReportModalProps) => {
   const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
@@ -39,6 +43,7 @@ export const UserReportModal = ({
   const [showCustomReason, setShowCustomReason] = useState(false);
   const [customReason, setCustomReason] = useState('');
   const [customReasonError, setCustomReasonError] = useState('');
+  const [showSuccessWithBlock, setShowSuccessWithBlock] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -46,6 +51,7 @@ export const UserReportModal = ({
       setShowCustomReason(false);
       setCustomReason('');
       setCustomReasonError('');
+      setShowSuccessWithBlock(false);
     } else {
       bottomSheetRef.current?.dismiss();
     }
@@ -81,6 +87,15 @@ export const UserReportModal = ({
             try {
               setLoading(true);
               await onSave(reason, undefined);
+              // Show success screen with block option if callback is provided
+              if (onBlockUser) {
+                setShowSuccessWithBlock(true);
+              } else {
+                onClose();
+              }
+            } catch (error) {
+              console.error('Error submitting report:', error);
+              // Modal sa zatvorí automaticky cez parent handleReportUser pri chybe
             } finally {
               setLoading(false);
             }
@@ -108,6 +123,15 @@ export const UserReportModal = ({
             try {
               setLoading(true);
               await onSave(ReportReason.OTHER, customReason.trim());
+              // Show success screen with block option if callback is provided
+              if (onBlockUser) {
+                setShowSuccessWithBlock(true);
+              } else {
+                onClose();
+              }
+            } catch (error) {
+              console.error('Error submitting report:', error);
+              // Modal sa zatvorí automaticky cez parent handleReportUser pri chybe
             } finally {
               setLoading(false);
             }
@@ -122,6 +146,26 @@ export const UserReportModal = ({
     setCustomReason('');
     setCustomReasonError('');
   };
+
+  const handleBlockAndClose = async () => {
+    if (!onBlockUser) return;
+    
+    try {
+      setLoading(true);
+      await onBlockUser(); // Direct blocking without opening BlockUserModal
+      onClose(); // Close modal after successful blocking
+    } catch (error) {
+      console.error('Error blocking user:', error);
+      // Error handling is done in the parent function
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSkipBlock = () => {
+    onClose();
+  };
+
 
   const reasons = [
     { value: ReportReason.SPAM, label: t('reportUser.spam') },
@@ -148,7 +192,51 @@ export const UserReportModal = ({
         style={{ flex: 1 }}
       >
         <BottomSheetView style={styles.content}>
-          {showCustomReason ? (
+          {showSuccessWithBlock ? (
+            <>
+              <View style={styles.successIconContainer}>
+                <FontAwesomeIcon
+                  icon={Icons.CheckCircle}
+                  size={32}
+                  color="#34C759"
+                />
+              </View>
+              
+              <Text style={styles.successTitle}>
+                {t('reportUser.successTitle') || 'Report Submitted'}
+              </Text>
+              
+              <Text style={styles.successMessage}>
+                {t('reportUser.successDescription') || 'Thank you for your report. We will review it shortly.'}
+              </Text>
+
+              <Text style={styles.blockPrompt}>
+                {t('reportUser.blockPrompt', { userName }) || `Would you also like to block ${userName}? You won't see their posts and they won't be able to interact with your content.`}
+              </Text>
+
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={[styles.button, styles.blockButton]}
+                  onPress={handleBlockAndClose}
+                  disabled={loading}
+                >
+                  <Text style={styles.blockButtonText}>
+                    {t('blockUser.block') || 'Block User'}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.button, styles.skipButton]}
+                  onPress={handleSkipBlock}
+                  disabled={loading}
+                >
+                  <Text style={styles.skipButtonText}>
+                    {t('reportUser.skipBlock') || 'Skip'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          ) : showCustomReason ? (
             <>
               <Text style={styles.title}>
                 {t('reportUser.customReasonTitle')}
@@ -352,6 +440,55 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+  },
+  successIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(52, 199, 89, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  successTitle: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  successMessage: {
+    color: '#ccc',
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 22,
+  },
+  blockPrompt: {
+    color: 'white',
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  blockButton: {
+    backgroundColor: '#FF3B30',
+  },
+  blockButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  skipButton: {
+    backgroundColor: '#333',
+    borderWidth: 1,
+    borderColor: '#555',
+  },
+  skipButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });
 

@@ -32,8 +32,8 @@
         "googleMapsApiKey": "AIzaSyAMoNX-aQzrjpnZ0KjYegeyhV47C8rRBVU"
       },
       "infoPlist": {
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "Barhub requires location in the background",
-        "NSLocationWhenInUseUsageDescription": "Barhub requires location while in use",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Barhub používa polohu na nájdenie miest vo vašom okolí",
+        "NSLocationWhenInUseUsageDescription": "Barhub používa polohu na nájdenie miest vo vašom okolí",
         "NSMotionUsageDescription": "Barhub uses motion-detection to determine the motion-activity of the device (walking, vehicle, bicycle, etc)",
         "UIBackgroundModes": [
           "location",
@@ -233,7 +233,7 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow barhub to use your location."
+          "locationAlwaysAndWhenInUsePermission": "Barhub používa polohu na nájdenie miest vo vašom okolí."
         }
       ],
       "react-native-background-geolocation",

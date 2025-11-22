@@ -26,6 +26,7 @@ import { FavoritePlaceDTO, ReasonTypeEnum } from '../../types/dto';
 import { usePlaceStore } from '../../utils/store/placesStore';
 import { useNavigationStore } from '../../utils/store/navigationStore';
 import { UserReportModal } from '../../components/shared/Modals/UserReportModal';
+import { BlockUserModal } from '../../components/shared/Modals/BlockUserModal';
 import { reportService } from '../../services/reportService';
 import { ReportReason } from '../../utils/types/Feed/PostTypes';
 import {
@@ -33,6 +34,7 @@ import {
   primaryBgColor,
   primaryColor,
   primaryDeepColor,
+  primaryLightGrey,
   primaryTextColor,
   secondaryTextColor,
   warningColor,
@@ -44,15 +46,16 @@ import { Center } from '@/components/ui/center';
 export const UserDetail = () => {
   const route = useRoute();
   const navigation = useNavigation();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { showErrorToast } = useCustomToast();
-  const { getUserId } = useUserStore();
+  const { getUserId, blockUser, unblockUser, isUserBlocked } = useUserStore();
   const { setPlaceId, setPlaceName, setPlaceAddress } = usePlaceStore();
   const { previousPage } = useNavigationStore();
 
   const { userId } = route.params as { userId: string };
   const currentUserId = getUserId();
   const isOwnProfile = currentUserId === userId;
+  const userIsBlocked = isUserBlocked(userId);
 
   const {
     data: userProfile,
@@ -67,6 +70,7 @@ export const UserDetail = () => {
 
   const [refreshing, setRefreshing] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -98,22 +102,74 @@ export const UserDetail = () => {
           customReason
         );
 
-        showErrorToast(
-          t('reportUser.successTitle') || 'Report Submitted',
-          t('reportUser.successDescription') || 'Thank you for your report'
-        );
+        // Nezobraziť toast tu, UserReportModal si to rieši sám
+        // showErrorToast(
+        //   t('reportUser.successTitle') || 'Report Submitted',
+        //   t('reportUser.successDescription') || 'Thank you for your report'
+        // );
       } catch (error: any) {
         console.error('Failed to report user:', error);
-        showErrorToast(
-          t('error') || 'Error',
-          error.message || t('something-went-wrong') || 'Something went wrong'
-        );
-      } finally {
+
+        // Handle specific error codes
+        let errorTitle = t('error') || 'Error';
+        let errorMessage =
+          error.message || t('something-went-wrong') || 'Something went wrong';
+
+        if (
+          error.errorCode === 'USER_ALREADY_REPORTED' ||
+          (error.message &&
+            error.message.includes('You have already reported this user'))
+        ) {
+          errorTitle =
+            t('reportUser.alreadyReportedTitle') || 'Already Reported';
+          // Use localized message instead of backend message
+          errorMessage =
+            t('reportUser.alreadyReportedMessage') ||
+            'You have already reported this user. Multiple reports from the same user are not allowed.';
+        }
+
+        showErrorToast(errorTitle, errorMessage);
+        // Zatvor modal len pri chybe
         setIsReportModalOpen(false);
+        throw error; // Re-throw error aby UserReportModal vedel o chybe
       }
+      // Neuzatváraj modal automaticky - UserReportModal si to rieši sám
     },
     [userProfile?.id, currentUserId, showErrorToast, t]
   );
+
+  const handleBlockUser = useCallback(async () => {
+    if (!userId) {
+      showErrorToast('Error', 'Unable to block user');
+      return;
+    }
+
+    try {
+      if (userIsBlocked) {
+        await unblockUser(userId);
+        showErrorToast(
+          t('blockUser.unblockSuccessTitle') || 'User Unblocked',
+          t('blockUser.unblockSuccessMessage') ||
+            'User has been unblocked successfully'
+        );
+      } else {
+        await blockUser(userId);
+        showErrorToast(
+          t('blockUser.blockSuccessTitle') || 'User Blocked',
+          t('blockUser.blockSuccessMessage') ||
+            'User has been blocked successfully'
+        );
+      }
+    } catch (error: any) {
+      console.error('Failed to block/unblock user:', error);
+      showErrorToast(
+        t('error') || 'Error',
+        error.message || t('something-went-wrong') || 'Something went wrong'
+      );
+    } finally {
+      setIsBlockModalOpen(false);
+    }
+  }, [userId, userIsBlocked, blockUser, unblockUser, showErrorToast, t]);
 
   // Funkcia pre správne slovenské množné čísla
   const getSlovakPlural = (
@@ -133,7 +189,22 @@ export const UserDetail = () => {
 
   const formatDate = (dateString: string) => {
     try {
-      const date = new Date(dateString);
+      // Parse LocalDateTime string: "2025-10-07T22:29:23.517475"
+      // Backend sends UTC time but without 'Z' suffix, so we need to treat it as UTC
+      let dateStr = dateString.includes('T')
+        ? dateString
+        : dateString.replace(' ', 'T');
+
+      // Add 'Z' suffix to indicate UTC time
+      if (
+        !dateStr.endsWith('Z') &&
+        !dateStr.includes('+') &&
+        !dateStr.includes('-', 10)
+      ) {
+        dateStr += 'Z';
+      }
+
+      const date = new Date(dateStr);
       const now = new Date();
       const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
@@ -143,31 +214,66 @@ export const UserDetail = () => {
         const minutes = Math.floor(diffInSeconds / 60);
         const minutesText = getSlovakPlural(
           minutes,
-          'minúta',
-          'minúty',
-          'minút'
+          t('user.minute') || 'minúta',
+          t('user.minutes') || 'minúty',
+          t('user.minutes_plural') || 'minút'
         );
+        // Special handling for Spanish - "hace X min" instead of "X min hace"
+        if (i18n.language === 'es') {
+          return `${t('user.ago') || 'hace'} ${minutes} ${minutesText}`;
+        }
         return `${minutes} ${minutesText} ${t('user.ago') || 'dozadu'}`;
       } else if (diffInSeconds < 86400) {
         const hours = Math.floor(diffInSeconds / 3600);
-        const hoursText = getSlovakPlural(hours, 'hodina', 'hodiny', 'hodín');
+        const hoursText = getSlovakPlural(
+          hours,
+          t('user.hour') || 'hodina',
+          t('user.hours') || 'hodiny',
+          t('user.hours_plural') || 'hodín'
+        );
+        // Special handling for Spanish - "hace X horas" instead of "X horas hace"
+        if (i18n.language === 'es') {
+          return `${t('user.ago') || 'hace'} ${hours} ${hoursText}`;
+        }
         return `${hours} ${hoursText} ${t('user.ago') || 'dozadu'}`;
       } else if (diffInSeconds < 2592000) {
         const days = Math.floor(diffInSeconds / 86400);
-        const daysText = getSlovakPlural(days, 'deň', 'dni', 'dní');
+        const daysText = getSlovakPlural(
+          days,
+          t('user.day') || 'deň',
+          t('user.days') || 'dni',
+          t('user.days_plural') || 'dní'
+        );
+        // Special handling for Spanish - "hace X días" instead of "X días hace"
+        if (i18n.language === 'es') {
+          return `${t('user.ago') || 'hace'} ${days} ${daysText}`;
+        }
         return `${days} ${daysText} ${t('user.ago') || 'dozadu'}`;
       } else if (diffInSeconds < 31536000) {
         const months = Math.floor(diffInSeconds / 2592000);
         const monthsText = getSlovakPlural(
           months,
-          'mesiac',
-          'mesiace',
-          'mesiacov'
+          t('user.month') || 'mesiac',
+          t('user.months') || 'mesiace',
+          t('user.months_plural') || 'mesiacov'
         );
+        // Special handling for Spanish - "hace X meses" instead of "X meses hace"
+        if (i18n.language === 'es') {
+          return `${t('user.ago') || 'hace'} ${months} ${monthsText}`;
+        }
         return `${months} ${monthsText} ${t('user.ago') || 'dozadu'}`;
       } else {
         const years = Math.floor(diffInSeconds / 31536000);
-        const yearsText = getSlovakPlural(years, 'rok', 'roky', 'rokov');
+        const yearsText = getSlovakPlural(
+          years,
+          t('user.year') || 'rok',
+          t('user.years') || 'roky',
+          t('user.years_plural') || 'rokov'
+        );
+        // Special handling for Spanish - "hace X años" instead of "X años hace"
+        if (i18n.language === 'es') {
+          return `${t('user.ago') || 'hace'} ${years} ${yearsText}`;
+        }
         return `${years} ${yearsText} ${t('user.ago') || 'dozadu'}`;
       }
     } catch (error) {
@@ -264,19 +370,35 @@ export const UserDetail = () => {
             color={primaryTextColor}
           />
         </TouchableOpacity>
-        <View style={styles.headerSpacer} />
-        {!isOwnProfile && (
-          <TouchableOpacity
-            onPress={() => setIsReportModalOpen(true)}
-            style={styles.reportButton}
-          >
-            <FontAwesomeIcon
-              icon={Icons.Warning}
-              size={20}
-              color={warningColor}
-            />
-          </TouchableOpacity>
-        )}
+        <View style={styles.headerActions}>
+          {!isOwnProfile && (
+            <>
+              <TouchableOpacity
+                onPress={() => setIsBlockModalOpen(true)}
+                style={[
+                  styles.actionButton,
+                  userIsBlocked && styles.unblockButton,
+                ]}
+              >
+                <FontAwesomeIcon
+                  icon={userIsBlocked ? Icons.CheckCircle : Icons.Ban}
+                  size={18}
+                  color={userIsBlocked ? primaryLightGrey : warningColor}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setIsReportModalOpen(true)}
+                style={styles.actionButton}
+              >
+                <FontAwesomeIcon
+                  icon={Icons.Warning}
+                  size={18}
+                  color={warningColor}
+                />
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
       </View>
 
       <ScrollView
@@ -313,7 +435,7 @@ export const UserDetail = () => {
                     {userProfile.photoUrl ? (
                       <AvatarImage source={{ uri: userProfile.photoUrl }} />
                     ) : (
-                      <AvatarFallbackText style={styles.avatarFallback}>
+                      <AvatarFallbackText className={'text-white'}>
                         {userProfile.name || t('anonymous-user')}
                       </AvatarFallbackText>
                     )}
@@ -331,12 +453,7 @@ export const UserDetail = () => {
                     {userProfile.totalPosts}
                   </Text>
                   <Text style={styles.quickStatLabel}>
-                    {getSlovakPlural(
-                      userProfile.totalPosts,
-                      'príspevok',
-                      'príspevky',
-                      'príspevkov'
-                    )}
+                    {t('user.posts') || 'Príspevky'}
                   </Text>
                 </View>
                 <View style={styles.quickStatDivider} />
@@ -345,12 +462,7 @@ export const UserDetail = () => {
                     {userProfile.totalLikes}
                   </Text>
                   <Text style={styles.quickStatLabel}>
-                    {getSlovakPlural(
-                      userProfile.totalLikes,
-                      'lajk',
-                      'lajky',
-                      'lajkov'
-                    )}
+                    {t('user.likes') || 'Páči sa mi'}
                   </Text>
                 </View>
                 <View style={styles.quickStatDivider} />
@@ -359,12 +471,7 @@ export const UserDetail = () => {
                     {userProfile.leaderboardPoints}
                   </Text>
                   <Text style={styles.quickStatLabel}>
-                    {getSlovakPlural(
-                      userProfile.leaderboardPoints,
-                      'bod',
-                      'body',
-                      'bodov'
-                    )}
+                    {t('user.points') || 'Body'}
                   </Text>
                 </View>
               </View>
@@ -535,24 +642,14 @@ export const UserDetail = () => {
                   />
                 </View>
                 <Text style={styles.modernStatTitle}>
-                  {getSlovakPlural(
-                    userProfile.totalHighlights,
-                    'zvýraznenie',
-                    'zvýraznenia',
-                    'zvýraznení'
-                  )}
+                  {t('user.highlights') || 'Zvýraznenia'}
                 </Text>
               </View>
               <Text style={styles.modernStatNumber}>
                 {userProfile.totalHighlights}
               </Text>
               <Text style={styles.modernStatDescription}>
-                {getSlovakPlural(
-                  userProfile.totalHighlights,
-                  'zvýraznený príspevok',
-                  'zvýraznené príspevky',
-                  'zvýraznených príspevkov'
-                )}
+                {t('user.highlights-desc') || 'Zvýraznené príspevky'}
               </Text>
             </View>
 
@@ -637,13 +734,12 @@ export const UserDetail = () => {
               </Text>
               <Text style={styles.modernStatDescription}>
                 {(() => {
-                  const avgLikes =
-                    userProfile.totalPosts > 0
-                      ? Math.round(
-                          userProfile.totalLikes / userProfile.totalPosts
-                        )
-                      : 0;
-                  return `Priemerné ${getSlovakPlural(avgLikes, 'lajk', 'lajky', 'lajkov')} na príspevok`;
+                  userProfile.totalPosts > 0
+                    ? Math.round(
+                        userProfile.totalLikes / userProfile.totalPosts
+                      )
+                    : 0;
+                  return `${t('user.avg-likes') || 'Priemerné páči sa mi na príspevok'}`;
                 })()}
               </Text>
             </View>
@@ -748,6 +844,19 @@ export const UserDetail = () => {
           visible={isReportModalOpen}
           onClose={() => setIsReportModalOpen(false)}
           onSave={handleReportUser}
+          onBlockUser={handleBlockUser}
+          userName={userProfile?.name}
+        />
+      )}
+
+      {/* Block User Modal */}
+      {!isOwnProfile && (
+        <BlockUserModal
+          visible={isBlockModalOpen}
+          onClose={() => setIsBlockModalOpen(false)}
+          onConfirm={handleBlockUser}
+          userName={userProfile?.name}
+          isBlocked={userIsBlocked}
         />
       )}
     </View>
@@ -791,13 +900,20 @@ const styles = StyleSheet.create({
   headerSpacer: {
     width: 40,
   },
-  reportButton: {
+  headerActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  unblockButton: {
+    backgroundColor: 'rgba(52, 199, 89, 0.2)',
   },
   scrollView: {
     flex: 1,
@@ -898,6 +1014,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
     color: primaryTextColor,
+    lineHeight: 22,
   },
   bioContent: {
     backgroundColor: postBgColor,
