@@ -184,6 +184,7 @@
   "click-heart-to-favorite": "Kliknite na srdce pri mieste",
   "outside-allowed-area": "Pohyboval si sa príliš ďaleko od svojej polohy. Maximum je 30km.",
   "comments": "Komentáre",
+  "comments-coming-soon": "Komentáre čoskoro",
   "no-comments": "Žiadne komentáre",
   "add-comment": "Napíš komentár...",
   "send": "Poslať",
@@ -288,7 +289,6 @@
   "copy-link": "Kopírovať odkaz",
   "link-copied": "Odkaz skopírovaný!",
   "link-copied-desc": "Odkaz na príspevok bol skopírovaný",
-  "comments-coming-soon": "Komentáre už čoskoro",
   "permissions": {
     "title": "Požadované povolenia",
     "location": "Prístup k polohe",
