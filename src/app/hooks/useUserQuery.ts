@@ -22,7 +22,7 @@ export const useUserQuery = () => {
   return useQuery({
     queryKey: USER_QUERY_KEYS.userData,
     queryFn: async (): Promise<ClientDTO | null> => {
-      console.log('🔄 [USER QUERY DEBUG] Fetching user data...');
+      console.log(' [USER QUERY DEBUG] Fetching user data...');
       const userData = await userService.getCurrentUser();
 
       // Update Zustand store with fetched data
@@ -30,7 +30,7 @@ export const useUserQuery = () => {
         console.log('✅ [USER QUERY DEBUG] User data fetched:', {
           id: userData.id,
           name: userData.name,
-          photoUrl: userData.photoUrl
+          photoUrl: userData.photoUrl,
         });
         setUserData(userData);
         updateCanSeeContent();
@@ -70,7 +70,6 @@ export const useUpdateUserMutation = () => {
     mutationFn: async (updates: Partial<ClientDTO>) => {
       const userId = getUserId();
       if (!userId) throw new Error('User not authenticated');
-
 
       // Call backend API to update user
       const updatedUser = await userService.updateUser(userId, updates);
@@ -129,7 +128,6 @@ export const useUpdateProfileMutation = () => {
       const userId = getUserId();
       if (!userId) throw new Error('User not authenticated');
 
-
       const updatedUser = await userService.updateProfile(userId, profileData);
       if (!updatedUser) throw new Error('Failed to update profile');
 
@@ -177,7 +175,6 @@ export const usePhotoMutations = () => {
       const userId = getUserId();
       if (!userId) throw new Error('User not authenticated');
 
-
       const updatedUser = await userService.updatePhoto(userId, photoUrl);
       if (!updatedUser) throw new Error('Failed to update photo');
 
@@ -215,7 +212,6 @@ export const usePhotoMutations = () => {
     mutationFn: async () => {
       const userId = getUserId();
       if (!userId) throw new Error('User not authenticated');
-
 
       const updatedUser = await userService.deletePhoto(userId);
       if (!updatedUser) throw new Error('Failed to delete photo');
@@ -334,7 +330,6 @@ export const useSearchHistoryMutations = () => {
       const userId = getUserId();
       if (!userId) throw new Error('User not authenticated');
 
-
       const success = await userService.addSearchHistoryItem(userId, item);
       if (!success) throw new Error('Failed to add search history item');
 
@@ -427,14 +422,12 @@ export const useDeleteAccountMutation = () => {
 
   return useMutation({
     mutationFn: async () => {
-
       const success = await userService.deleteCurrentUser();
       if (!success) throw new Error('Failed to delete user account');
 
       return true;
     },
     onSuccess: () => {
-
       // Clear all cached data
       queryClient.clear();
 

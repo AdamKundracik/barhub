@@ -93,6 +93,7 @@ const usePostLike = (
           throw new Error('User not found');
         }
 
+        console.log('called');
         // Call backend API to toggle
         const response = await postService.toggleLike(
           postId,
@@ -135,11 +136,11 @@ const usePostLike = (
       clearTimeout(debounceTimer.current);
     }
 
-    // Debounce backend sync (500ms)
+    // Debounce backend sync (800ms) - prevents spam clicking
     // After user stops clicking, sync final UI state with backend
     debounceTimer.current = setTimeout(() => {
       syncWithBackend(newLikedState);
-    }, 500);
+    }, 800);
   }, [liked, postId, syncWithBackend]);
 
   return { liked, likeCount, handleLikeToggle };

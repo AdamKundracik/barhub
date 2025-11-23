@@ -121,7 +121,7 @@ const EmptyState: React.FC<{
                 pressed && styles.retryButtonTextPressed,
               ]}
             >
-              🔄 {t('retry') || 'Skúsiť znovu'}
+              {t('retry') || 'Skúsiť znovu'}
             </Text>
           )}
         </Pressable>

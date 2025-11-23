@@ -200,7 +200,7 @@ class AuthService {
 
   // Refresh access token
   async refreshAccessToken(): Promise<string | null> {
-    console.log('🔄 [REFRESH] Attempting to refresh access token');
+    console.log(' [REFRESH] Attempting to refresh access token');
 
     const refreshToken = await tokenManager.getRefreshToken();
     if (!refreshToken) {
@@ -209,7 +209,7 @@ class AuthService {
     }
 
     try {
-      console.log('🔄 [REFRESH] Calling refresh endpoint');
+      console.log(' [REFRESH] Calling refresh endpoint');
       const authResponse: AuthResponse = await axiosClient.post(
         ENDPOINTS.AUTH.REFRESH,
         { refreshToken }
