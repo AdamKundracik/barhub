@@ -876,7 +876,7 @@ export const UserDetail = () => {
           visible={isReportModalOpen}
           onClose={() => setIsReportModalOpen(false)}
           onSave={handleReportUser}
-          onBlockUser={handleBlockUser}
+          onBlockUser={userIsBlocked ? undefined : handleBlockUser}
           userName={userProfile?.name}
         />
       )}
