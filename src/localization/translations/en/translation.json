@@ -300,7 +300,7 @@
     "camera": "Camera Access",
     "cameraDesc": "Required to take photos of places",
     "notification": "Push Notifications",
-    "notificationDesc": "Get updates about new places and likes",
+    "notificationDesc": "Needed to receive new likes and updates. Mainly to receive notifications from users who want a photo from you at the place where you are currently located",
     "tracking": "Tracking Permission",
     "trackingDesc": "Helps us provide better recommendations",
     "grantAccess": "Grant Access",

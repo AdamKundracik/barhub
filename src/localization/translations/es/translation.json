@@ -266,7 +266,7 @@
     "camera": "Acceso a Cámara",
     "cameraDesc": "Necesario para tomar fotos de lugares",
     "notification": "Notificaciones Push",
-    "notificationDesc": "Recibe actualizaciones sobre nuevos lugares y me gusta",
+    "notificationDesc": "Necesario para recibir nuevos me gusta y actualizaciones. Principalmente para recibir notificaciones de usuarios que quieren una foto tuya del lugar donde te encuentras actualmente",
     "tracking": "Permiso de Seguimiento",
     "trackingDesc": "Nos ayuda a proporcionar mejores recomendaciones",
     "grantAccess": "Conceder Acceso",

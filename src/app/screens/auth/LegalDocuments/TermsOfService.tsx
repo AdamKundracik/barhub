@@ -6,6 +6,7 @@ import { Text } from '@/components/ui/text';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { primaryTextColor } from '@/src/app/utils/styles/colors';
 import { getLegalDocumentContent } from '@/src/app/utils/constants/legalDocuments';
+import { LegalDocumentViewer } from '@/src/app/components/shared/LegalDocumentViewer';
 
 export const TermsOfService = () => {
   const navigation = useNavigation();
@@ -25,7 +26,7 @@ export const TermsOfService = () => {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.content}>{content}</Text>
+        <LegalDocumentViewer content={content} />
 
         <View style={styles.bottomSpacing} />
       </ScrollView>

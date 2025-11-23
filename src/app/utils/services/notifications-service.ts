@@ -76,26 +76,49 @@ const mapNotificationDTOToItem = (dto: NotificationDTO): NotificationItem => {
 
 export const getUserNotifications =
   async (): Promise<GetUserNotificationsResponse> => {
+    console.log('[getUserNotifications] Starting to fetch notifications');
     try {
       const userId = useUserStore.getState().getUserId();
+      console.log('[getUserNotifications] User ID:', userId);
+      
       if (!userId) {
-        throw new Error('User not authenticated');
+        // User not authenticated - return empty data silently
+        // This is expected during app initialization
+        console.log('[getUserNotifications] User not authenticated - returning empty data');
+        return {
+          notifications: [],
+          hasNewNotifications: false,
+          newNotificationsCount: 0,
+        };
       }
 
+      console.log('[getUserNotifications] Calling notificationService.getUserNotifications with userId:', userId);
       const response = await notificationService.getUserNotifications(userId);
+      console.log('[getUserNotifications] Response received - notifications:', response.notifications?.length || 0, 'newCount:', response.newNotificationsCount);
 
       // Convert backend DTOs to frontend NotificationItems
       const notifications = (response.notifications || []).map(
         mapNotificationDTOToItem
       );
 
+      console.log('[getUserNotifications] Mapped notifications count:', notifications.length);
+
       return {
         notifications,
         hasNewNotifications: response.hasNewNotifications,
         newNotificationsCount: response.newNotificationsCount || 0,
       };
-    } catch (error) {
-      console.error('Error fetching user notifications:', error);
+    } catch (error: any) {
+      // Only log actual errors, not "User not authenticated" which is expected
+      const errorMessage = error?.message || String(error);
+      console.error('[getUserNotifications] Error caught:', errorMessage);
+      
+      if (!errorMessage.includes('User not authenticated') && !errorMessage.includes('not authenticated')) {
+        console.error('[getUserNotifications] Actual error (not auth related):', error);
+      } else {
+        console.log('[getUserNotifications] User not authenticated error (expected) - returning empty data');
+      }
+      
       return {
         notifications: [],
         hasNewNotifications: false,

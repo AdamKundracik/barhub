@@ -264,7 +264,7 @@
     "camera": "Kamerazugriff",
     "cameraDesc": "Erforderlich um Fotos von Orten aufzunehmen",
     "notification": "Push-Benachrichtigungen",
-    "notificationDesc": "Erhalten Sie Updates über neue Orte und Likes",
+    "notificationDesc": "Erforderlich, um neue Likes und Updates zu erhalten. Vor allem, um Benachrichtigungen von Benutzern zu erhalten, die ein Foto von Ihnen an dem Ort möchten, an dem Sie sich gerade befinden",
     "tracking": "Tracking-Berechtigung",
     "trackingDesc": "Hilft uns bessere Empfehlungen zu geben",
     "grantAccess": "Zugriff gewähren",

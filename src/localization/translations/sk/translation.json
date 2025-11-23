@@ -298,7 +298,7 @@
     "camera": "Prístup ku kamere",
     "cameraDesc": "Potrebné na fotografovanie miest",
     "notification": "Push notifikácie",
-    "notificationDesc": "Získajte aktualizácie o nových miestach a lajkoch",
+    "notificationDesc": "Potrebné pre získavanie nových lajkov a aktualizácií. Najmä však pre prijímanie notifikácií od používateľov, ktorí od vás chcú fotku z miesta, kde sa práve nachádzate",
     "tracking": "Povolenie sledovania",
     "trackingDesc": "Pomáha nám poskytovať lepšie odporúčania",
     "grantAccess": "Udeliť prístup",

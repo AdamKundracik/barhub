@@ -2,184 +2,171 @@ export const getLegalDocumentContent = (
   type: 'TERMS_OF_SERVICE' | 'PRIVACY_POLICY' | 'COMMUNITY_GUIDELINES',
   version?: string
 ): string => {
+  const date = new Date().toLocaleDateString();
+
   switch (type) {
     case 'TERMS_OF_SERVICE':
-      return `Terms of Service${version ? ` - Version ${version}` : ''}
+      return `TERMS OF SERVICE${version ? ` - Version ${version}` : ''}
 
-Last Updated: ${new Date().toLocaleDateString()}
+Last Updated: ${date}
 
 1. ACCEPTANCE OF TERMS
-By accessing and using BarHub, you accept and agree to be bound by these Terms of Service.
+By creating an account or accessing Barhub ("the App"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree, please do not use the App. These Terms constitute a legally binding agreement between you and Barhub (operated by Adam Kundracik, "we," "us," or "our").
 
-2. USER ACCOUNTS
-- You must be at least 13 years old to use this service
-- You are responsible for maintaining the security of your account
-- You must provide accurate and complete information
+2. ELIGIBILITY & AGE RESTRICTION
+- You must be at least 18 years old to use Barhub. By using the App, you represent and warrant that you are 18 or older.
+- The App is intended for social discovery of nightlife venues. We do not encourage excessive alcohol consumption or illegal activities.
 
-3. PREMIUM SUBSCRIPTION & BILLING
-- Premium subscriptions are billed monthly or yearly
-- Subscriptions auto-renew unless canceled
-- Refunds are handled on a case-by-case basis
-- You can cancel your subscription at any time from your account settings
+3. USER ACCOUNTS
+- You are responsible for maintaining the confidentiality of your login credentials.
+- You agree to provide accurate, current, and complete information during registration.
+- You are solely responsible for all activities that occur under your account.
+- We reserve the right to disable any account if we suspect a violation of these Terms.
 
-4. USER CONTENT
-- You retain rights to your content
-- You grant us a license to display and distribute your content within the app
-- Prohibited content will be removed without notice
-- We reserve the right to moderate content
+4. APP FUNCTIONALITY & LOCATION SERVICES
+- **Location Tracking:** Barhub requires access to your device's location (foreground and/or background) to function. This enables features like the "Radius" feed, "Travel Mode," and location-based notifications.
+- **Photo Requests:** Users may request real-time photos from venues. By responding, you agree to share your current location and photo with the community.
+- **Leaderboard:** Points earned on the leaderboard have no monetary value and cannot be exchanged for cash or goods. We reserve the right to reset or modify the points system at any time.
 
-5. PROHIBITED ACTIVITIES
-- Fake location spoofing
-- Spam or misleading information
-- Harassment or abusive behavior
-- Violation of others' privacy
+5. USER CONTENT & LICENSE
+- **Ownership:** You retain ownership of the photos, text, and other content ("User Content") you post.
+- **License to Us:** By posting User Content, you grant Barhub a non-exclusive, worldwide, royalty-free, sublicensable, and transferable license to use, reproduce, modify, display, and distribute your User Content in connection with the App and our business (including marketing).
+- **Responsibility:** You are solely responsible for your User Content. You must not post content that is illegal, offensive, violates third-party rights, or includes sensitive personal information of others without consent.
 
-6. TERMINATION
-We reserve the right to terminate or suspend accounts that violate these terms.
+6. PREMIUM SERVICES & PAYMENTS
+- **Subscriptions:** We may offer premium features (e.g., "Travel Mode", "Highlight Post") via subscription or one-time purchase.
+- **Billing:** Payments are processed through the Apple App Store or Google Play Store. You agree to their respective terms and conditions.
+- **Auto-Renewal:** Subscriptions automatically renew unless canceled at least 24 hours before the end of the current period.
+- **Refunds:** Refunds are subject to the policies of Apple or Google. We do not issue refunds directly.
 
-7. LIMITATION OF LIABILITY
-BarHub is provided "as is" without warranties. We are not liable for indirect damages.
+7. PROHIBITED CONDUCT
+You agree not to:
+- Use the App for any illegal purpose.
+- Harass, bully, or intimidate other users.
+- Post sexually explicit, violent, or hateful content.
+- Spam or solicit other users.
+- Impersonate others or spoof your location.
+- Attempt to reverse engineer or hack the App.
 
-8. CHANGES TO TERMS
-We may update these terms. Continued use after updates constitutes acceptance of the new terms.
+8. DISCLAIMERS & LIMITATION OF LIABILITY
+- **"As Is" Basis:** The App is provided on an "as is" and "as available" basis without warranties of any kind.
+- **Venue Safety:** Barhub is a platform for information sharing. We do not control or vet the venues listed. We are not responsible for the safety, quality, or legality of any venue or event.
+- **User Interactions:** We are not responsible for your interactions with other users. Use caution and common sense.
+- **Liability Cap:** To the maximum extent permitted by law, Barhub's liability shall be limited to the amount you paid us in the last 12 months, or €50, whichever is greater.
 
-9. GOVERNING LAW
-These terms are governed by the laws of Slovakia.
+9. TERMINATION
+We may terminate or suspend your access to the App immediately, without prior notice or liability, for any reason, including breach of these Terms.
 
-For full terms, visit: https://barhub.app/terms`;
+10. GOVERNING LAW
+These Terms shall be governed by and construed in accordance with the laws of Slovakia, without regard to its conflict of law provisions.
+
+11. CONTACT
+For questions about these Terms, please contact us via the App support.`;
 
     case 'PRIVACY_POLICY':
-      return `Privacy Policy${version ? ` - Version ${version}` : ''}
+      return `PRIVACY POLICY${version ? ` - Version ${version}` : ''}
 
-Last Updated: ${new Date().toLocaleDateString()}
+Last Updated: ${date}
 
-1. INFORMATION WE COLLECT
-- Account information (name, email, date of birth)
-- Photos and posts you upload
-- Location data (when using the app)
-- Device information and analytics
-- Push notification tokens
+1. INTRODUCTION
+Barhub ("we," "us") values your privacy. This Privacy Policy explains how we collect, use, and share your personal data when you use our mobile application. We are committed to complying with the General Data Protection Regulation (GDPR).
 
-2. HOW WE USE YOUR DATA
-- To provide and improve our services
-- To personalize your experience
-- To send notifications about requests and activity
-- To ensure security and prevent fraud
-- To enforce our terms and community guidelines
+2. DATA CONTROLLER
+The data controller for your personal data is Adam Kundracik, based in Slovakia.
 
-3. LOCATION DATA
-- We collect location data to show nearby places
-- Location data is used for post verification
-- Location is stored with your posts
-- You can disable location services, but core features will be limited
+3. INFORMATION WE COLLECT
+- **Identity Data:** Name, username, date of birth, profile picture.
+- **Contact Data:** Email address, phone number (if used for auth).
+- **Location Data:** Precise and approximate location data collected from your device (GPS, Wi-Fi) to show nearby venues and posts. This may be collected in the background if you enable "Travel Mode" or specific notifications.
+- **User Content:** Photos, comments, posts, and interactions (likes, shares).
+- **Technical Data:** IP address, device ID, device model, OS version, crash reports.
+- **Usage Data:** How you use the App, features accessed, time spent.
 
-4. DATA SHARING
-- We do not sell your personal data to third parties
-- Admin and Moderators may access data for moderation purposes
-- We may share anonymized, aggregated analytics
-- Data may be shared if required by law
+4. HOW WE USE YOUR DATA
+- **Service Delivery:** To show you relevant posts, venues, and occupancy data based on your location.
+- **Community Features:** To enable photo requests, leaderboards, and user interactions.
+- **Notifications:** To send you alerts about nearby requests or activity (via Push Notifications).
+- **Analytics:** To understand user behavior and improve the App.
+- **Safety & Security:** To prevent fraud, spam, and enforce our Terms.
+- **Legal Compliance:** To comply with legal obligations.
 
-5. YOUR RIGHTS (GDPR)
-- Right to access your data
-- Right to request data deletion
-- Right to export your data
-- Right to withdraw consent
-- Right to rectification of inaccurate data
-- Right to restrict processing
+5. LEGAL BASIS FOR PROCESSING (GDPR)
+- **Contractual Necessity:** To provide the App services to you.
+- **Legitimate Interests:** To improve our services, prevent fraud, and ensure security.
+- **Consent:** For accessing your device location and camera. You can withdraw consent at any time via device settings.
 
-6. DATA RETENTION
-- Account data: Until you delete your account
-- Posts: Until you delete them
-- Location history: Stored with posts
-- Analytics: Anonymized after 90 days
-- Deleted accounts: Fully removed within 30 days
+6. DATA SHARING & THIRD PARTIES
+We do not sell your personal data. We share data with trusted service providers:
+- **Firebase (Google):** For authentication, database hosting, and cloud functions.
+- **Google Maps:** For map display and location services.
+- **RevenueCat:** For processing subscriptions and purchases.
+- **AdMob (Google):** To display advertisements (if applicable).
+- **Analytics Providers:** To analyze app usage.
+We ensure these providers have appropriate data protection safeguards in place.
 
-7. COOKIES AND TRACKING
-- We use essential cookies for authentication
-- Analytics cookies help us improve the app
-- You can disable non-essential cookies in settings
+7. DATA RETENTION
+- **Account Data:** Retained as long as your account is active.
+- **Location Data:** Precise location history is not stored permanently; it is used to tag posts. Posts are retained until deleted by you or us.
+- **Deletion:** If you delete your account, your personal data will be deleted or anonymized within 30 days, subject to legal retention requirements.
 
-8. SECURITY
-- We use industry-standard encryption
-- Access to data is restricted to authorized personnel
-- We conduct regular security audits
+8. YOUR RIGHTS (GDPR)
+You have the right to:
+- **Access:** Request a copy of your personal data.
+- **Rectification:** Correct inaccurate data.
+- **Erasure:** Request deletion of your data ("Right to be Forgotten").
+- **Restriction:** Limit how we use your data.
+- **Portability:** Receive your data in a structured format.
+- **Objection:** Object to processing based on legitimate interests.
+To exercise these rights, please contact us through the App settings or support.
 
-9. CHILDREN'S PRIVACY
-- Our service is not intended for children under 13
-- We do not knowingly collect data from children under 13
-- If we discover such data, we will delete it promptly
+9. INTERNATIONAL TRANSFERS
+Your data may be processed outside the European Economic Area (EEA). We ensure such transfers are protected by appropriate safeguards, such as Standard Contractual Clauses.
 
-10. INTERNATIONAL TRANSFERS
-- Data may be transferred and stored outside your country
-- We ensure adequate protection for such transfers
+10. CHILDREN'S PRIVACY
+Barhub is not intended for users under 18. We do not knowingly collect data from children. If we discover such data, we will delete it immediately.
 
-For full policy, visit: https://barhub.app/privacy`;
+11. CHANGES TO THIS POLICY
+We may update this policy. We will notify you of significant changes through the App.`;
 
     case 'COMMUNITY_GUIDELINES':
-      return `Community Guidelines${version ? ` - Version ${version}` : ''}
+      return `COMMUNITY GUIDELINES${version ? ` - Version ${version}` : ''}
 
-Last Updated: ${new Date().toLocaleDateString()}
+Last Updated: ${date}
 
-Welcome to BarHub! These guidelines help maintain a safe and respectful community.
+Barhub is a community for discovering nightlife and social venues. To keep this community safe, authentic, and fun, we ask you to follow these guidelines.
 
-1. BE RESPECTFUL
-- Treat others with kindness and respect
-- No harassment, hate speech, or bullying
-- Respect the privacy of others
-- Constructive criticism is okay, personal attacks are not
+1. BE AUTHENTIC
+- **Real Photos:** Only upload photos you took yourself, at the actual location, in real-time. Do not upload stock photos or old content when responding to a "Live" request.
+- **Honest Occupancy:** When reporting occupancy (Busy/Medium/Empty), be honest. The community relies on accurate info.
+- **No Spoofing:** Do not use GPS spoofing apps to fake your location. This ruins the experience for everyone and will result in a ban.
 
-2. PHOTO GUIDELINES
-- Only upload photos from the actual location at the time you're there
-- No fake location spoofing or GPS manipulation
-- Photos must be appropriate for all ages
-- No copyrighted material without permission
-- Photos should accurately represent the venue
+2. BE RESPECTFUL
+- **Zero Tolerance for Harassment:** Bullying, hate speech, threats, and harassment are strictly prohibited.
+- **No Discrimination:** Do not discriminate based on race, ethnicity, gender, religion, sexual orientation, or disability.
+- **Respect Privacy:** Do not take or post photos of specific individuals without their consent. Focus on the venue and the "vibe," not private conversations.
 
-3. AUTHENTICITY
-- Provide accurate occupancy information
-- Don't manipulate data or mislead other users
-- Be honest in your posts and interactions
-- Report fake or suspicious content
+3. SAFETY FIRST
+- **Illegal Acts:** Do not depict or promote illegal drug use, violence, or other criminal activities.
+- **Alcohol:** While Barhub is about nightlife, do not encourage dangerous behavior or excessive intoxication.
+- **Self-Harm:** Content promoting self-harm or suicide is strictly prohibited.
 
-4. REPORTING & MODERATION
-- Use the report button to flag violations
-- Moderators review reports within 24 hours
-- False reports may result in penalties
-- Repeated violations may result in account suspension
+4. PROHIBITED CONTENT
+You may NOT post:
+- Nudity or sexually explicit content.
+- Gore or graphic violence.
+- Spam, scams, or commercial advertisements (unless authorized).
+- Links to malicious websites.
 
-5. PROHIBITED CONTENT
-- Nudity or sexually explicit content
-- Violence, gore, or graphic content
-- Hate speech or discriminatory content
-- Spam, scams, or misleading information
-- Illegal activities or promotion thereof
-- Personal information of others without consent
+5. PHOTO REQUESTS & LEADERBOARD
+- **Fair Play:** Do not try to "game" the leaderboard system with fake accounts or automated scripts.
+- **Quality:** When responding to a photo request, ensure the photo is clear and actually shows the venue's current state.
 
-6. PREMIUM FEATURES
-- Premium features are for personal use only
-- Sharing premium accounts is prohibited
-- Abuse of premium features may result in subscription cancellation
+6. REPORTING & ENFORCEMENT
+- **Report:** If you see something that violates these guidelines, please use the "Report" feature in the App.
+- **Consequences:** Violations may result in content removal, temporary suspension, or permanent account termination.
+- **Appeals:** If you believe your account was banned in error, you may contact support.
 
-7. CONSEQUENCES FOR VIOLATIONS
-- First violation: Warning message
-- Second violation: Temporary suspension (7 days)
-- Third violation: Extended suspension (30 days)
-- Severe violations: Permanent account ban
-- Appeals can be submitted to support
-
-8. INTELLECTUAL PROPERTY
-- Respect copyright and trademark rights
-- Don't use BarHub branding without permission
-- Report copyright violations
-
-9. PRIVACY & SAFETY
-- Don't share personal contact information publicly
-- Block users who make you uncomfortable
-- Report safety concerns immediately
-
-Help us maintain a positive, authentic community where everyone feels welcome!
-
-For full guidelines, visit: https://barhub.app/community`;
+Let's make nightlife better together!`;
 
     default:
       return 'Document not available';
