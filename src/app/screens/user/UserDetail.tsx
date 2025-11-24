@@ -546,23 +546,23 @@ export const UserDetail = () => {
         </View>
 
         {/* Bio Section */}
-        {userProfile.bio && (
-          <View style={styles.bioSection}>
-            <View style={styles.bioHeader}>
-              <FontAwesomeIcon
-                icon={Icons.Info}
-                size={20}
-                color={primaryColor}
-              />
-              <Text style={styles.bioSectionTitle}>
-                {t('bio.label') || 'Bio'}
-              </Text>
-            </View>
-            <View style={styles.bioContent}>
-              <Text style={styles.bioText}>{userProfile.bio}</Text>
-            </View>
+        <View style={styles.bioSection}>
+          <View style={styles.bioHeader}>
+            <FontAwesomeIcon
+              icon={Icons.Info}
+              size={20}
+              color={primaryColor}
+            />
+            <Text style={styles.bioSectionTitle}>
+              {t('bio.label') || 'Bio'}
+            </Text>
           </View>
-        )}
+          <View style={styles.bioContent}>
+            <Text style={styles.bioText}>
+              {userProfile.bio || t('bio.no-bio') || 'No bio yet'}
+            </Text>
+          </View>
+        </View>
 
         {/* Highlighted Posts Grid */}
         <View style={styles.highlightsSection}>

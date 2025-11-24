@@ -154,10 +154,10 @@ const PostsList = ({
         </View>
       );
 
-      // Show ad every 3 posts (but not on first post)
+      // Show ad every 2 posts (but not on first post)
       // Check config: if ALWAYS_SHOW_ADS is true, ignore premium status
       // If ALWAYS_SHOW_ADS is false, respect premium status
-      const shouldShowAd = index > 0 && index % 3 === 0 && 
+      const shouldShowAd = index > 0 && index % 2 === 0 && 
         (PremiumHelpers.shouldAlwaysShowAds() || !isPremium());
 
       if (shouldShowAd) {

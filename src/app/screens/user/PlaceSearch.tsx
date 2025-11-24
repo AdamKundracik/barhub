@@ -9,7 +9,6 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -89,47 +88,71 @@ const useDebounce = (value: string, delay: number) => {
 };
 
 // Components
-const EmptyState: React.FC<{ message: string; type?: 'no-results' | 'error' | 'no-history' | 'no-favorites' }> = ({ 
-  message, 
-  type = 'no-results' 
-}) => {
+const EmptyState: React.FC<{
+  message: string;
+  type?: 'no-results' | 'error' | 'no-history' | 'no-favorites';
+}> = ({ message, type = 'no-results' }) => {
   const { t } = useTranslation();
   const getEmptyStateContent = () => {
     switch (type) {
       case 'no-results':
         return {
-          icon: <FontAwesomeIcon icon={Icons.Search} size={48} color={primaryColor} />,
+          icon: (
+            <FontAwesomeIcon
+              icon={Icons.Search}
+              size={48}
+              color={primaryColor}
+            />
+          ),
           title: t('no-results-found') || 'Žiadne výsledky',
-          subtitle: t('try-different-search') || 'Skúste zadať iný názov miesta',
-          suggestion: t('search-on-map') || 'Môžete tiež použiť mapu na výber miesta'
+          subtitle:
+            t('try-different-search') || 'Skúste zadať iný názov miesta',
+          suggestion:
+            t('search-on-map') || 'Môžete tiež použiť mapu na výber miesta',
         };
       case 'error':
         return {
-          icon: <FontAwesomeIcon icon={Icons.XCircle} size={48} color="#FF6B6B" />,
+          icon: (
+            <FontAwesomeIcon icon={Icons.XCircle} size={48} color="#FF6B6B" />
+          ),
           title: t('search-error') || 'Chyba pri vyhľadávaní',
           subtitle: t('try-again-later') || 'Skúste to znova neskôr',
-          suggestion: t('check-internet-connection') || 'Skontrolujte internetové pripojenie'
+          suggestion:
+            t('check-internet-connection') ||
+            'Skontrolujte internetové pripojenie',
         };
       case 'no-history':
         return {
-          icon: <FontAwesomeIcon icon={Icons.Clock} size={48} color={primaryColor} />,
+          icon: (
+            <FontAwesomeIcon
+              icon={Icons.Clock}
+              size={48}
+              color={primaryColor}
+            />
+          ),
           title: t('no-search-history') || 'Žiadna história vyhľadávania',
-          subtitle: t('search-history-desc') || 'Vaše vyhľadané miesta sa tu zobrazia',
-          suggestion: t('start-searching-places') || 'Začnite vyhľadávať miesta'
+          subtitle:
+            t('search-history-desc') || 'Vaše vyhľadané miesta sa tu zobrazia',
+          suggestion:
+            t('start-searching-places') || 'Začnite vyhľadávať miesta',
         };
       case 'no-favorites':
         return {
-          icon: <FontAwesomeIcon icon={Icons.Heart} size={48} color="#FF6B6B" />,
+          icon: (
+            <FontAwesomeIcon icon={Icons.Heart} size={48} color="#FF6B6B" />
+          ),
           title: t('no-favorites') || 'Žiadne obľúbené miesta',
-          subtitle: t('add-favorites-desc') || 'Pridajte si miesta do obľúbených',
-          suggestion: t('click-heart-to-favorite') || 'Kliknite na srdiečko pri mieste'
+          subtitle:
+            t('add-favorites-desc') || 'Pridajte si miesta do obľúbených',
+          suggestion:
+            t('click-heart-to-favorite') || 'Kliknite na srdiečko pri mieste',
         };
       default:
         return {
           icon: <MapPinIcon size={48} color={primaryColor} />,
           title: message,
           subtitle: '',
-          suggestion: ''
+          suggestion: '',
         };
     }
   };
@@ -138,17 +161,21 @@ const EmptyState: React.FC<{ message: string; type?: 'no-results' | 'error' | 'n
 
   return (
     <View style={styles.emptyStateContainer}>
-      <View style={styles.emptyStateIconContainer}>
-        {content.icon}
-      </View>
+      <View style={styles.emptyStateIconContainer}>{content.icon}</View>
       <Text style={styles.emptyStateTitle}>{content.title}</Text>
       {content.subtitle && (
         <Text style={styles.emptyStateSubtitle}>{content.subtitle}</Text>
       )}
       {content.suggestion && (
         <View style={styles.emptyStateSuggestion}>
-          <FontAwesomeIcon icon={Icons.Info} size={16} color="rgba(255, 255, 255, 0.6)" />
-          <Text style={styles.emptyStateSuggestionText}>{content.suggestion}</Text>
+          <FontAwesomeIcon
+            icon={Icons.Info}
+            size={16}
+            color="rgba(255, 255, 255, 0.6)"
+          />
+          <Text style={styles.emptyStateSuggestionText}>
+            {content.suggestion}
+          </Text>
         </View>
       )}
     </View>
@@ -160,7 +187,9 @@ const LoadingIndicator: React.FC = () => {
   return (
     <View style={styles.loadingContainer}>
       <ActivityIndicator size="small" color={primaryColor} />
-      <Text style={styles.loadingText}>{t('searching-places') || 'Hľadám miesta...'}</Text>
+      <Text style={styles.loadingText}>
+        {t('searching-places') || 'Hľadám miesta...'}
+      </Text>
     </View>
   );
 };
@@ -224,7 +253,6 @@ const SearchInput: React.FC<{
         onChangeText={onChangeText}
         placeholderTextColor={primaryDeepColor}
         style={styles.inputField}
-        autoFocus
         returnKeyType="search"
         clearButtonMode="never"
       />
@@ -336,10 +364,7 @@ export const PlaceSearch: React.FC = () => {
           )}
         </View>
         {!favorites || favorites.length === 0 ? (
-          <EmptyState 
-            message="Žiadne obľúbené miesta" 
-            type="no-favorites" 
-          />
+          <EmptyState message="Žiadne obľúbené miesta" type="no-favorites" />
         ) : (
           favorites.slice(0, MAX_FAVORITE_PLACES).map((favorite, index) => (
             <PlaceItem
@@ -367,10 +392,12 @@ export const PlaceSearch: React.FC = () => {
     if (searchHistory.length === 0) {
       return (
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>{t('search-history') || 'Nedávno vyhľadané'}</Text>
-          <EmptyState 
-            message={t('no-search-history') || 'Žiadna história vyhľadávania'} 
-            type="no-history" 
+          <Text style={styles.sectionTitle}>
+            {t('search-history') || 'Nedávno vyhľadané'}
+          </Text>
+          <EmptyState
+            message={t('no-search-history') || 'Žiadna história vyhľadávania'}
+            type="no-history"
           />
         </View>
       );
@@ -378,7 +405,9 @@ export const PlaceSearch: React.FC = () => {
 
     return (
       <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}>{t('search-history') || 'Nedávno vyhľadané'}</Text>
+        <Text style={styles.sectionTitle}>
+          {t('search-history') || 'Nedávno vyhľadané'}
+        </Text>
         {searchHistory.slice(0, 5).map((place, index) => (
           <PlaceItem
             key={`history-${index}`}
@@ -398,13 +427,20 @@ export const PlaceSearch: React.FC = () => {
     }
 
     if (error) {
-      return <EmptyState message={t('search-error') || 'Nastala chyba pri vyhľadávaní'} type="error" />;
+      return (
+        <EmptyState
+          message={t('search-error') || 'Nastala chyba pri vyhľadávaní'}
+          type="error"
+        />
+      );
     }
 
     if (places && places?.suggestions?.length > 0) {
       return (
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>{t('search-results') || 'Výsledky vyhľadávania'}</Text>
+          <Text style={styles.sectionTitle}>
+            {t('search-results') || 'Výsledky vyhľadávania'}
+          </Text>
           {places?.suggestions.map((place, index) => (
             <PlaceItem
               key={`result-${index}`}
@@ -420,7 +456,12 @@ export const PlaceSearch: React.FC = () => {
     }
 
     if (hasSearched && debouncedQuery.length >= 2) {
-      return <EmptyState message={t('no-results-found') || 'Žiadne výsledky'} type="no-results" />;
+      return (
+        <EmptyState
+          message={t('no-results-found') || 'Žiadne výsledky'}
+          type="no-results"
+        />
+      );
     }
 
     return null;
@@ -436,16 +477,27 @@ export const PlaceSearch: React.FC = () => {
 
   const renderContent = useCallback(() => {
     if (query.length === 0) {
-      // Show favorites first, then search history
+      // Show favorites first, then ad, then search history
       return (
         <>
           {renderFavoritePlaces()}
+          {(PremiumHelpers.shouldAlwaysShowAds() || !isPremium) && (
+            <View style={styles.inlineAdContainer}>
+              <InlineAd />
+            </View>
+          )}
           {renderSearchHistory()}
         </>
       );
     }
     return renderSearchResults();
-  }, [query, renderFavoritePlaces, renderSearchHistory, renderSearchResults]);
+  }, [
+    query,
+    renderFavoritePlaces,
+    renderSearchHistory,
+    renderSearchResults,
+    isPremium,
+  ]);
 
   // Main render
   if (isMapShown) {
@@ -453,7 +505,10 @@ export const PlaceSearch: React.FC = () => {
   }
 
   return (
-    <Layout pageTitle={t('search-places') || 'Vyhľadať miesta'} showTopBar={false}>
+    <Layout
+      pageTitle={t('search-places') || 'Vyhľadať miesta'}
+      showTopBar={false}
+    >
       <View style={styles.container}>
         <KeyboardAvoidingView
           style={styles.keyboardContainer}
@@ -464,7 +519,9 @@ export const PlaceSearch: React.FC = () => {
             {/* Header */}
             <View style={styles.header}>
               <View style={styles.headerTitle}>
-                <Text style={styles.titleText}>{t('where-do-you-want-to-go') || 'Kam sa chcete vybrať?'}</Text>
+                <Text style={styles.titleText}>
+                  {t('where-do-you-want-to-go') || 'Kam sa chcete vybrať?'}
+                </Text>
               </View>
               <TouchableOpacity
                 style={styles.mapButton}
@@ -495,8 +552,11 @@ export const PlaceSearch: React.FC = () => {
                   styles.scrollContent,
                   {
                     paddingBottom:
-                      tabBarHeight + insets.bottom + 
-                      ((PremiumHelpers.shouldAlwaysShowAds() || !isPremium) ? 100 : 20),
+                      tabBarHeight +
+                      insets.bottom +
+                      (PremiumHelpers.shouldAlwaysShowAds() || !isPremium
+                        ? 100
+                        : 20),
                   },
                 ]}
               >
@@ -506,20 +566,6 @@ export const PlaceSearch: React.FC = () => {
           </View>
         </KeyboardAvoidingView>
       </View>
-
-      {/* Banner Ad */}
-      {(PremiumHelpers.shouldAlwaysShowAds() || !isPremium) && (
-        <View
-          style={[
-            styles.adContainer,
-            {
-              bottom: tabBarHeight - 8,
-            },
-          ]}
-        >
-          <InlineAd />
-        </View>
-      )}
     </Layout>
   );
 };
@@ -743,6 +789,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 16,
     right: 16,
+  },
+  inlineAdContainer: {
+    marginBottom: 24,
+    marginHorizontal: -4,
   },
 });
 
