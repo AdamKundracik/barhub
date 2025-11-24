@@ -9,12 +9,14 @@ import {
   PlaceType,
 } from '@/src/app/utils/types/Feed/PostTypes';
 import { useAuth } from '@/src/app/providers/AuthProvider';
+import { useUserStore } from '../../store/userStore';
 
 export const useNewsFeedData = () => {
   const { distance, selectedPlaces, selectedOccupancy, showHighlightedPosts } = useFiltersStore();
   const { location, fakeLocation, useFakeLocation } = useLocationStore();
   const { placeId } = usePlaceStore();
   const { isAuthenticated } = useAuth();
+  const userId = useUserStore(state => state.getUserId());
   const queryClient = useQueryClient();
 
   const currentLocation = useFakeLocation ? fakeLocation : location;
@@ -46,7 +48,7 @@ export const useNewsFeedData = () => {
       handleFreshContent(distance, pageParam, placeId, currentLocation!),
     {
       getNextPageParam: lastPage => lastPage?.lastVisible || null, // lastVisible is mapped from nextCursor
-      enabled: !!currentLocation && isAuthenticated, // Wait for both location and authentication
+      enabled: !!currentLocation && isAuthenticated && !!userId, // Wait for location, authentication, and userId to be available
       refetchOnWindowFocus: false, // Don't refetch when app comes to foreground
       refetchOnMount: 'always', // Always refetch on mount for fresh data after app refresh
       staleTime: 30 * 1000, // 30 seconds - shorter for fresher data
