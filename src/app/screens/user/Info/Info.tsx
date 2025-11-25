@@ -18,15 +18,10 @@ import {
   secondaryTextColor,
 } from '../../../utils/styles/colors';
 import { useTranslation } from 'react-i18next';
-import * as WebBrowser from 'expo-web-browser';
 
 const InfoScreen = () => {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
-
-  const handlePressButtonAsync = async () => {
-    await WebBrowser.openBrowserAsync('https://buymeacoffee.com/adamkundracik');
-  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -108,19 +103,6 @@ const InfoScreen = () => {
             size={16}
             color={'white'}
           />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.infoLink}
-          onPress={handlePressButtonAsync}
-        >
-          <Text style={styles.infoText}>{t('support-us')}</Text>
-          <FontAwesomeIcon
-            style={{ alignSelf: 'center' }}
-            icon={Icons.ChevronRight}
-            size={16}
-            color={'white'}
-          ></FontAwesomeIcon>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
