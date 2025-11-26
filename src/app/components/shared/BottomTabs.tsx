@@ -102,6 +102,7 @@ const BottomTabs = () => {
         screenOptions={{
           headerShown: false,
           tabBarShowLabel: true,
+          tabBarLabelPosition: 'below-icon',
           tabBarBackground: () => (
             <BlurView
               intensity={80}

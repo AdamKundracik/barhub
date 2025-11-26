@@ -186,7 +186,7 @@ export const Register = () => {
             size="md"
             isDisabled={false}
             isReadOnly={false}
-            isRequired={true}
+            isRequired={false}
             style={styles.formControl}
             isInvalid={shouldShowError('email')}
           >
@@ -257,7 +257,7 @@ export const Register = () => {
             size="md"
             isDisabled={false}
             isReadOnly={false}
-            isRequired={true}
+            isRequired={false}
             style={styles.formControl}
             isInvalid={shouldShowError('username')}
           >
@@ -331,7 +331,7 @@ export const Register = () => {
             size="md"
             isDisabled={false}
             isReadOnly={false}
-            isRequired={true}
+            isRequired={false}
             style={styles.formControl}
             isInvalid={shouldShowError('dateOfBirth')}
           >
@@ -401,7 +401,7 @@ export const Register = () => {
             size="md"
             isDisabled={false}
             isReadOnly={false}
-            isRequired={true}
+            isRequired={false}
             style={styles.formControl}
             isInvalid={shouldShowError('password')}
           >
@@ -477,7 +477,7 @@ export const Register = () => {
             size="md"
             isDisabled={false}
             isReadOnly={false}
-            isRequired={true}
+            isRequired={false}
             style={styles.formControl}
             isInvalid={shouldShowError('repeatPassword')}
           >
@@ -551,7 +551,7 @@ export const Register = () => {
             size="md"
             isDisabled={false}
             isReadOnly={false}
-            isRequired={true}
+            isRequired={false}
             style={[styles.formControl, styles.termsControl]}
           >
             <View style={styles.checkboxRow}>
@@ -591,7 +591,7 @@ export const Register = () => {
             size="md"
             isDisabled={false}
             isReadOnly={false}
-            isRequired={true}
+            isRequired={false}
             style={[styles.formControl, styles.termsControl]}
           >
             <View style={styles.checkboxRow}>
@@ -633,7 +633,7 @@ export const Register = () => {
             size="md"
             isDisabled={false}
             isReadOnly={false}
-            isRequired={true}
+            isRequired={false}
             style={[styles.formControl, styles.termsControl]}
           >
             <View style={styles.checkboxRow}>
