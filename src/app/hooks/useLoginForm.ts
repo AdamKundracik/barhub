@@ -96,6 +96,24 @@ export const useLoginForm = () => {
       return { success: true };
     } catch (error: any) {
       console.error('Email/Password sign-in error:', error);
+      
+      // Check if it's a 401 Unauthorized error (wrong email/password)
+      if (error.response?.status === 401) {
+        const errorMessage = t('wrong-email-or-password') || 'Nesprávny email alebo heslo';
+        return { success: false, error: errorMessage };
+      }
+      
+      // Check if it's a 500 Internal Server Error
+      if (error.response?.status === 500) {
+        return { success: false, error: 'Something went wrong. Code 500' };
+      }
+      
+      // General error handling for all other unhandled errors
+      const statusCode = error.response?.status;
+      if (statusCode) {
+        return { success: false, error: `Something went wrong. Code ${statusCode}` };
+      }
+      
       const errorMessage = error.message || t('unknown-error') || 'An error occurred. Please try again.';
       return { success: false, error: errorMessage };
     } finally {
@@ -114,6 +132,18 @@ export const useLoginForm = () => {
         // User canceled the sign-in
         return { success: false, error: undefined };
       }
+      
+      // Check if it's a 500 Internal Server Error
+      if (error.response?.status === 500) {
+        return { success: false, error: 'Something went wrong. Code 500' };
+      }
+      
+      // General error handling for all other unhandled errors
+      const statusCode = error.response?.status;
+      if (statusCode) {
+        return { success: false, error: `Something went wrong. Code ${statusCode}` };
+      }
+      
       const errorMessage = error.message || t('unknown-error') || 'Sign-in failed';
       return { success: false, error: errorMessage };
     } finally {
@@ -132,6 +162,18 @@ export const useLoginForm = () => {
         // User canceled the sign-in
         return { success: false, error: undefined };
       }
+      
+      // Check if it's a 500 Internal Server Error
+      if (error.response?.status === 500) {
+        return { success: false, error: 'Something went wrong. Code 500' };
+      }
+      
+      // General error handling for all other unhandled errors
+      const statusCode = error.response?.status;
+      if (statusCode) {
+        return { success: false, error: `Something went wrong. Code ${statusCode}` };
+      }
+      
       const errorMessage = error.message || t('unknown-error') || 'Sign-in failed';
       return { success: false, error: errorMessage };
     } finally {

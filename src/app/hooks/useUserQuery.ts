@@ -8,7 +8,7 @@ import { ClientDTO, SearchHistoryItemEmbeddable } from '../types/dto';
 export const USER_QUERY_KEYS = {
   userData: ['user', 'data'] as const,
   userById: (id: string) => ['user', 'data', id] as const,
-  pushTokens: (userId: string) => ['user', 'pushTokens', userId] as const,
+  pushToken: (userId: string) => ['user', 'pushToken', userId] as const,
   location: (userId: string) => ['user', 'location', userId] as const,
   searchHistory: (userId: string) => ['user', 'searchHistory', userId] as const,
 };
@@ -264,20 +264,20 @@ export const usePushTokenMutations = () => {
     onSuccess: (_, token) => {
       const userId = getUserId();
       if (userId) {
-        queryClient.invalidateQueries(USER_QUERY_KEYS.pushTokens(userId));
+        queryClient.invalidateQueries(USER_QUERY_KEYS.pushToken(userId));
       }
     },
   });
 
-  const getPushTokens = (userId: string) =>
+  const getPushToken = (userId: string) =>
     useQuery({
-      queryKey: USER_QUERY_KEYS.pushTokens(userId),
-      queryFn: () => userService.getPushTokens(userId),
+      queryKey: USER_QUERY_KEYS.pushToken(userId),
+      queryFn: () => userService.getPushToken(userId),
       enabled: !!userId,
       staleTime: 10 * 60 * 1000, // 10 minutes
     });
 
-  return { addPushToken, getPushTokens };
+  return { addPushToken, getPushToken };
 };
 
 // Location mutations

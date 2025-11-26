@@ -113,6 +113,7 @@
   "retake": "Erneut aufnehmen",
   "save": "Speichern",
   "wrong-password": "Falsches Passwort",
+  "wrong-email-or-password": "Falsche E-Mail oder Passwort",
   "email-in-use": "E-Mail wird bereits verwendet",
   "invalid-email": "Ungültige E-Mail",
   "sing-up-error": "Fehler bei der Registrierung.",

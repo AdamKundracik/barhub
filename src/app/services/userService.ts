@@ -184,16 +184,16 @@ class UserService {
     }
   }
 
-  // Get user's push tokens
-  async getPushTokens(userId: string): Promise<string[]> {
+  // Get user's push token (single token, not array)
+  async getPushToken(userId: string): Promise<string | null> {
     try {
-      const response = await httpClient.get<{ tokens: string[] }>(
+      const response = await httpClient.get<{ token: string | null }>(
         ENDPOINTS.USERS.PUSH_TOKENS(userId)
       );
-      return response.tokens || [];
+      return response.token || null;
     } catch (error) {
-      console.error('Error fetching push tokens:', error);
-      return [];
+      console.error('Error fetching push token:', error);
+      return null;
     }
   }
 

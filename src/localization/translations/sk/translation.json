@@ -20,6 +20,7 @@
   "retake": "Odfotiť znova",
   "save": "Uložiť",
   "wrong-password": "Nesprávne heslo",
+  "wrong-email-or-password": "Nesprávny email alebo heslo",
   "email-in-use": "Email už je použitý",
   "invalid-email": "Nesprávny email",
   "sing-up-error": "Chyba pri registrácii",
