@@ -469,7 +469,7 @@
   "yearly": "Rok",
   "camera-fake-location": "Nie je možné otvoriť kameru pri cestovnom režime",
   "camera-wait-upload": "Počkajte ešte {{time}}s pred ďalším uploadom",
-  "no-available-places": "Žiadne dostupné miesta vo vašom okolí",
+  "no-available-places": "Žiadne dostupné miesta vo vašom okolí 30m",
   "photo-resolver-no-places-subtitle": "Skúste sa presunúť na iné miesto",
   "photo-resolver-no-places-suggestion": "Presuňte sa bližšie k podnikom a skúste znova",
   "photo-resolver-error-title": "Chyba pri načítaní miest",

@@ -65,6 +65,7 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
     updateProfileAsync,
     isUpdatingProfile,
     deletePhotoAsync,
+    updatePhotoAsync,
     isUpdatingPhoto,
     isDeletingPhoto,
     displayName,
@@ -72,6 +73,7 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
     photoUrl,
     isPremium,
     userId,
+    refetch,
   } = useUserData();
 
   const locales = useLocales();
@@ -91,6 +93,7 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
   const [usernameError, setUsernameError] = useState<string>('');
   const [isOpeningGallery, setIsOpeningGallery] = useState<boolean>(false);
   const [isOpeningCamera, setIsOpeningCamera] = useState<boolean>(false);
+  const [photoCacheBuster, setPhotoCacheBuster] = useState<number>(Date.now());
 
   // Track original values to detect changes
   const originalUsername = displayName;
@@ -157,13 +160,21 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
         throw new Error('User ID not found');
       }
 
+      // Upload image to storage
       const uploadedUri = await uploadService.uploadProfilePhoto(
         uri,
         parseInt(userId)
       );
 
-      // Backend already updated photoUrl in database, just invalidate cache to refresh UI
+      // Update photoUrl in database
+      await updatePhotoAsync(uploadedUri);
+
+      // Update cache buster to force image reload
+      setPhotoCacheBuster(Date.now());
+
+      // Invalidate cache and refetch to ensure UI updates
       await queryClient.invalidateQueries(['user', 'data']);
+      await refetch();
 
       showSuccessToast(t('toastPhotoUpdatedTitle'), t('toastPhotoUpdatedDesc'));
 
@@ -316,8 +327,10 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
             >
               {photoUrl ? (
                 <AvatarImage
-                  key={photoUrl} // Force re-render when photoUrl changes
-                  source={{ uri: photoUrl }}
+                  key={`${photoUrl}-${photoCacheBuster}`} // Force re-render when photoUrl or cache buster changes
+                  source={{
+                    uri: `${photoUrl}${photoUrl.includes('?') ? '&' : '?'}t=${photoCacheBuster}`,
+                  }}
                   style={styles.avatarImage}
                 />
               ) : (

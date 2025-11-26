@@ -43,7 +43,6 @@ import { Text } from '@/components/ui/text';
 import { Center } from '@/components/ui/center';
 import { PremiumHelpers } from '@/src/app/config/premiumConfig';
 import InlineAd from '../../components/user/InlineAd';
-import { BlurView } from 'expo-blur';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 // Removed date-fns import - using native JavaScript date functions
 
@@ -52,7 +51,8 @@ export const UserDetail = () => {
   const navigation = useNavigation();
   const { t, i18n } = useTranslation();
   const { showErrorToast } = useCustomToast();
-  const { getUserId, blockUser, unblockUser, isUserBlocked, isPremium } = useUserStore();
+  const { getUserId, blockUser, unblockUser, isUserBlocked, isPremium } =
+    useUserStore();
   const { setPlaceId, setPlaceName, setPlaceAddress } = usePlaceStore();
   const { previousPage } = useNavigationStore();
 
@@ -192,7 +192,10 @@ export const UserDetail = () => {
   };
 
   // Funkcia pre získanie správneho tvaru slova podľa jazyka
-  const getTimeText = (count: number, timeUnit: 'minute' | 'hour' | 'day' | 'month' | 'year') => {
+  const getTimeText = (
+    count: number,
+    timeUnit: 'minute' | 'hour' | 'day' | 'month' | 'year'
+  ) => {
     if (i18n.language === 'sk') {
       // Pre slovenčinu používame komplexnú logiku z JSON
       return getSlovakPlural(
@@ -449,7 +452,9 @@ export const UserDetail = () => {
                     style={[
                       styles.heroAvatar,
                       // Show premium border only if premium UI is enabled and user is premium
-                      PremiumHelpers.shouldShowPremiumBorders() && userProfile.premium && styles.premiumBorder,
+                      PremiumHelpers.shouldShowPremiumBorders() &&
+                        userProfile.premium &&
+                        styles.premiumBorder,
                     ]}
                   >
                     {userProfile.photoUrl ? (
@@ -548,11 +553,7 @@ export const UserDetail = () => {
         {/* Bio Section */}
         <View style={styles.bioSection}>
           <View style={styles.bioHeader}>
-            <FontAwesomeIcon
-              icon={Icons.Info}
-              size={20}
-              color={primaryColor}
-            />
+            <FontAwesomeIcon icon={Icons.Info} size={20} color={primaryColor} />
             <Text style={styles.bioSectionTitle}>
               {t('bio.label') || 'Bio'}
             </Text>
@@ -578,9 +579,7 @@ export const UserDetail = () => {
             entering={FadeInUp.delay(300).springify()}
             style={styles.adContainer}
           >
-            <BlurView intensity={20} tint="dark" style={styles.adBlur}>
-              <InlineAd />
-            </BlurView>
+            <InlineAd />
           </Animated.View>
         )}
 
@@ -1325,7 +1324,6 @@ const styles = StyleSheet.create({
   },
   // Ad Styles
   adContainer: {
-    marginHorizontal: 20,
     marginBottom: 20,
     borderRadius: 16,
     overflow: 'hidden',

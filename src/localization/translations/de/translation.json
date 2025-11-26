@@ -433,7 +433,7 @@
     "fakeLocationBlocked": "Kamera kann im Reise-Modus nicht geöffnet werden",
     "waitBeforeNextUpload": "Bitte warten Sie noch {{time}}s, bevor Sie erneut hochladen"
   },
-  "no-available-places": "Keine verfügbaren Orte in deiner Umgebung",
+  "no-available-places": "Keine verfügbaren Orte in deinem 30m Bereich",
   "photo-resolver-no-places-subtitle": "Versuche dich an einen anderen Ort zu bewegen",
   "photo-resolver-no-places-suggestion": "Bewege dich näher zu Lokalen und versuche es erneut",
   "photo-resolver-error-title": "Fehler beim Laden der Orte",

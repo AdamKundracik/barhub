@@ -358,6 +358,7 @@ const UserPost: React.FC<UserPostProps> = ({
           onPress={handleNavigateToDetail}
           onUserPress={handleNavigateToUser}
           onShare={handleShare}
+          onViewDetail={handleNavigateToDetail}
         />
 
         {/* Enhanced Image Container */}

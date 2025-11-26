@@ -497,7 +497,7 @@
     "fakeLocationBlocked": "Cannot open camera with travel mode",
     "waitBeforeNextUpload": "Please wait {{time}}s before uploading again"
   },
-  "no-available-places": "No available places in your surrounding",
+  "no-available-places": "No available places in your 30m area",
   "photo-resolver-no-places-subtitle": "Try moving to a different location",
   "photo-resolver-no-places-suggestion": "Move closer to venues and try again",
   "photo-resolver-error-title": "Error loading places",
