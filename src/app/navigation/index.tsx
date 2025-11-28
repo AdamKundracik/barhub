@@ -133,7 +133,7 @@ export const Navigation = () => {
   const { isAppInitialized } = useAppInitialization();
   const { isAuthenticated, isLoading: isAuthLoading, user } = useAuth();
 
-  const { hasAllPermissions, checkAllPermissions } = usePermissionsContext();
+  const { hasAllRequiredPermissions, checkAllPermissions } = usePermissionsContext();
   const { appState } = useAppState();
   const { isConnected, isLoading: isNetworkLoading } = useNetwork();
 
@@ -153,7 +153,7 @@ export const Navigation = () => {
     return <Loading />;
   }
 
-  if (!hasAllPermissions) {
+  if (!hasAllRequiredPermissions()) {
     return <PermissionsScreen />;
   }
 
