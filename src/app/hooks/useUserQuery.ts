@@ -205,6 +205,8 @@ export const usePhotoMutations = () => {
     },
     onSettled: () => {
       queryClient.invalidateQueries(USER_QUERY_KEYS.userData);
+      // Also invalidate posts cache to update user photos in posts
+      queryClient.invalidateQueries(['posts']);
     },
   });
 
@@ -243,6 +245,8 @@ export const usePhotoMutations = () => {
     },
     onSettled: () => {
       queryClient.invalidateQueries(USER_QUERY_KEYS.userData);
+      // Also invalidate posts cache to update user photos in posts
+      queryClient.invalidateQueries(['posts']);
     },
   });
 

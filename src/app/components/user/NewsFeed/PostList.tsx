@@ -128,7 +128,10 @@ const PostsList = ({
   };
 
   // ✅ Memoizovaný NativeAd komponent
-  const MemoizedNativeAd = React.memo(() => <NativeAdComponent />, () => true);
+  const MemoizedNativeAd = React.memo(
+    () => <NativeAdComponent />,
+    () => true
+  );
 
   // ✅ Memoizovaný renderItem
   const renderItem = useCallback(
@@ -157,7 +160,9 @@ const PostsList = ({
       // Show ad every 2 posts (but not on first post)
       // Check config: if ALWAYS_SHOW_ADS is true, ignore premium status
       // If ALWAYS_SHOW_ADS is false, respect premium status
-      const shouldShowAd = index > 0 && index % 2 === 0 && 
+      const shouldShowAd =
+        index > 0 &&
+        index % 2 === 0 &&
         (PremiumHelpers.shouldAlwaysShowAds() || !isPremium());
 
       if (shouldShowAd) {
@@ -211,9 +216,11 @@ const PostsList = ({
         onEndReachedThreshold={0.5}
         ListHeaderComponent={
           <>
-            {placeId && posts.length > 0 && isOlderThanMinutes(posts[0].creationTime, 30) && (
-              <PostOldInfo requestPhoto={requestPhoto} />
-            )}
+            {placeId &&
+              posts.length > 0 &&
+              isOlderThanMinutes(posts[0].creationTime, 30) && (
+                <PostOldInfo requestPhoto={requestPhoto} />
+              )}
           </>
         }
       />
