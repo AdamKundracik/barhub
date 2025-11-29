@@ -12,6 +12,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { useNotificationsStore } from '@/src/app/utils/store/notificationsStore';
 import { useModalsStore } from '@/src/app/utils/store/modalsStore';
+import { PremiumHelpers } from '@/src/app/config/premiumConfig';
 
 type LayoutProps = {
   children: ReactNode | ReactNode[];
@@ -73,11 +74,14 @@ export const Layout = ({ children, showTopBar = true }: LayoutProps) => {
             <TouchableOpacity onPress={toggleFilter}>
               <FontAwesomeIcon icon={Icons.Sliders} color={'white'} size={22} />
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Subscription')}
-            >
-              <FontAwesomeIcon icon={Icons.Coins} color={'#FBBC05'} size={22} />
-            </TouchableOpacity>
+            {/* Subscription Button - only show if premium features are enabled */}
+            {PremiumHelpers.shouldShowSubscriptionButton() && (
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Subscription')}
+              >
+                <FontAwesomeIcon icon={Icons.Coins} color={'#FBBC05'} size={22} />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       )}

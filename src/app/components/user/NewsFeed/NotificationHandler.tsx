@@ -60,7 +60,13 @@ export function useNotificationsHandler() {
     // Listener pre prijaté notifikácie
     notificationListener.current =
       Notifications.addNotificationReceivedListener(async () => {
-        await refetch();
+        console.log('[NotificationHandler] Notification received - calling refetch');
+        try {
+          await refetch();
+          console.log('[NotificationHandler] Refetch completed');
+        } catch (error) {
+          console.error('[NotificationHandler] Refetch error:', error);
+        }
       });
 
     // Listener pre odpoveď na notifikácie

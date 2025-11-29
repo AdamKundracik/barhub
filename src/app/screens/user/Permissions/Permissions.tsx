@@ -16,7 +16,9 @@ import Animated, {
   FadeIn,
   runOnJS,
   SlideInRight,
+  SlideInLeft,
   SlideOutLeft,
+  SlideOutRight,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -100,6 +102,8 @@ export const PermissionsScreen = () => {
 
   const [currentStep, setCurrentStep] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
+  const [animationKey, setAnimationKey] = useState(0);
   const requiredPermissions = getRequiredPermissions();
   const insets = useSafeAreaInsets();
 
@@ -210,13 +214,21 @@ export const PermissionsScreen = () => {
 
   const handleNext = () => {
     if (currentStep < requiredPermissions.length - 1) {
-      setCurrentStep(prev => prev + 1);
+      setDirection('forward');
+      setTimeout(() => {
+        setCurrentStep(prev => prev + 1);
+        setAnimationKey(prev => prev + 1);
+      }, 0);
     }
   };
 
   const handlePrevious = () => {
     if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
+      setDirection('backward');
+      setTimeout(() => {
+        setCurrentStep(prev => prev - 1);
+        setAnimationKey(prev => prev + 1);
+      }, 0);
     }
   };
 
@@ -283,9 +295,13 @@ export const PermissionsScreen = () => {
       {/* Permission Card */}
       <View style={styles.cardContainer}>
         <Animated.View
-          key={currentStep}
-          entering={SlideInRight.duration(300)}
-          exiting={SlideOutLeft.duration(300)}
+          key={animationKey}
+          entering={direction === 'forward' 
+            ? SlideInRight.duration(300) 
+            : SlideInLeft.duration(300)}
+          exiting={direction === 'forward' 
+            ? SlideOutLeft.duration(300) 
+            : SlideOutRight.duration(300)}
         >
           <PermissionCard
             config={currentPermissionConfig}
@@ -350,23 +366,6 @@ export const PermissionsScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Action Buttons */}
-      <View style={styles.actionContainer}>
-        <TouchableOpacity
-          style={styles.continueButton}
-          onPress={checkAllPermissions}
-        >
-          <Text style={styles.continueButtonText}>
-            {t('permissions.continue')}
-          </Text>
-        </TouchableOpacity>
-
-        {/* <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-          <Text style={styles.skipButtonText}>
-            {t('permissions.skipForNow')}
-          </Text>
-        </TouchableOpacity> */}
-      </View>
     </LinearGradient>
   );
 };
@@ -462,40 +461,47 @@ const styles = StyleSheet.create({
   },
   permissionCard: {
     width: '100%',
-    maxWidth: 350,
+    maxWidth: 340,
     alignItems: 'center',
-    padding: 32,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    padding: 28,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: 'rgba(255,255,255,0.18)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+    minHeight: 280,
+    justifyContent: 'center',
   },
   grantedCard: {
     borderColor: '#4CAF50',
     backgroundColor: 'rgba(76, 175, 80, 0.15)',
   },
   iconContainer: {
-    marginBottom: 24,
+    marginBottom: 20,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 50,
+    padding: 16,
   },
   permissionTitle: {
-    fontSize: 24,
-    fontWeight: '800',
+    fontSize: 22,
+    fontWeight: '700',
     color: '#fff',
-    marginBottom: 12,
+    marginBottom: 16,
     textAlign: 'center',
+    letterSpacing: 0.5,
   },
   permissionDescription: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.9)',
+    fontSize: 15,
+    color: 'rgba(255,255,255,0.85)',
     textAlign: 'center',
-    marginBottom: 32,
-    lineHeight: 22,
-    paddingHorizontal: 8,
+    marginBottom: 28,
+    lineHeight: 20,
+    paddingHorizontal: 12,
+    fontWeight: '400',
   },
   grantedContainer: {
     flexDirection: 'row',
@@ -529,7 +535,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 40,
   },
   navButton: {
     flexDirection: 'row',
@@ -551,42 +557,6 @@ const styles = StyleSheet.create({
   },
   disabledNavButtonText: {
     color: 'rgba(255, 255, 255, 0.3)',
-  },
-  actionContainer: {
-    paddingHorizontal: 20,
-    gap: 12,
-  },
-  continueButton: {
-    backgroundColor: '#fff',
-    paddingVertical: 18,
-    paddingHorizontal: 32,
-    borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  continueButtonText: {
-    color: '#333',
-    fontSize: 18,
-    fontWeight: '700',
-    textAlign: 'center',
-    flex: 1,
-  },
-  skipButton: {
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  skipButtonText: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 16,
-    fontWeight: '500',
-    textAlign: 'center',
   },
   successContainer: {
     flex: 1,

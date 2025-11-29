@@ -6,6 +6,7 @@ import { Text } from '@/components/ui/text';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { primaryColor, primaryTextColor } from '@/src/app/utils/styles/colors';
 import { getLegalDocumentContent } from '@/src/app/utils/constants/legalDocuments';
+import { LegalDocumentViewer } from '@/src/app/components/shared/LegalDocumentViewer';
 
 export const PrivacyPolicy = () => {
   const navigation = useNavigation();
@@ -20,14 +21,12 @@ export const PrivacyPolicy = () => {
       showBackButton
       onBackPress={() => navigation.goBack()}
     >
-      <ScrollView 
+      <ScrollView
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.content}>
-          {content}
-        </Text>
+        <LegalDocumentViewer content={content} />
 
         <View style={styles.bottomSpacing} />
       </ScrollView>

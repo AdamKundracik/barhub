@@ -29,6 +29,8 @@ import BluredPostFrontView from './BluredPostFrontView';
 import { UserLine } from './UserLine';
 import InteractionBar from './InteractionBar';
 import { postBgColor, primaryBgColor } from '@/src/app/utils/styles/colors';
+import { useCustomToast } from '@/src/app/components/shared/Toaster';
+import { useTranslation } from 'react-i18next';
 
 // Constants
 const isTablet = Device.isTablet();
@@ -66,6 +68,8 @@ const usePostLike = (
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
   const { getUserId } = useUserStore();
+  const { showErrorToast } = useCustomToast();
+  const { t } = useTranslation();
 
   // Reset state when post changes (when component is reused for different post)
   useEffect(() => {
@@ -92,7 +96,6 @@ const usePostLike = (
         if (!userId) {
           throw new Error('User not found');
         }
-
         // Call backend API to toggle
         const response = await postService.toggleLike(
           postId,
@@ -109,17 +112,40 @@ const usePostLike = (
 
           // Don't update cache - let natural refetch handle it
           // This prevents issues with cache corruption where all posts at position 0 get liked
+        } else {
+          // Response is null - API call failed
+          throw new Error('Failed to toggle like - no response from server');
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error syncing like with backend:', error);
         // On error, revert to backend state
         setLiked(backendLikedState.current);
         setLikeCount(prev =>
           backendLikedState.current ? prev : Math.max(prev - 1, 0)
         );
+
+        // Show error toast with code and message (same structure as other errors)
+        const statusCode = error?.response?.status;
+        const errorMessage = error?.response?.data?.message || error?.message;
+
+        let description = t('something-went-wrong') || 'Something went wrong';
+        if (statusCode || errorMessage) {
+          const parts: string[] = [];
+          if (statusCode) {
+            parts.push(`Code: ${statusCode}`);
+          }
+          if (errorMessage) {
+            parts.push(`Message: ${errorMessage}`);
+          }
+          if (parts.length > 0) {
+            description = `${description}\n${parts.join('\n')}`;
+          }
+        }
+
+        showErrorToast(t('error') || 'Error', description);
       }
     },
-    [postId, getUserId]
+    [postId, getUserId, showErrorToast, t]
   );
 
   const handleLikeToggle = useCallback(() => {
@@ -135,11 +161,11 @@ const usePostLike = (
       clearTimeout(debounceTimer.current);
     }
 
-    // Debounce backend sync (500ms)
+    // Debounce backend sync (800ms) - prevents spam clicking
     // After user stops clicking, sync final UI state with backend
     debounceTimer.current = setTimeout(() => {
       syncWithBackend(newLikedState);
-    }, 500);
+    }, 800);
   }, [liked, postId, syncWithBackend]);
 
   return { liked, likeCount, handleLikeToggle };
@@ -357,6 +383,7 @@ const UserPost: React.FC<UserPostProps> = ({
           onPress={handleNavigateToDetail}
           onUserPress={handleNavigateToUser}
           onShare={handleShare}
+          onViewDetail={handleNavigateToDetail}
         />
 
         {/* Enhanced Image Container */}
@@ -416,6 +443,7 @@ const UserPost: React.FC<UserPostProps> = ({
           comments={commentsCount}
           onLikeToggle={handleLikeToggle}
           onCommentToggle={handleCommentPress}
+          onShare={handleShare}
           isLiked={liked}
           occupancy={occupancy}
         />

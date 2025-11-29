@@ -238,7 +238,26 @@ const UserLineComponent = ({
         );
       } catch (error: any) {
         console.error('Failed to report post:', error);
-        showErrorToast(t('error'), error.message || t('something-went-wrong'));
+        
+        // Show error toast with code and message
+        const statusCode = error?.response?.status;
+        const errorMessage = error?.response?.data?.message || error?.message;
+        
+        let description = t('something-went-wrong') || 'Something went wrong';
+        if (statusCode || errorMessage) {
+          const parts: string[] = [];
+          if (statusCode) {
+            parts.push(`Code: ${statusCode}`);
+          }
+          if (errorMessage) {
+            parts.push(`Message: ${errorMessage}`);
+          }
+          if (parts.length > 0) {
+            description = `${description}\n${parts.join('\n')}`;
+          }
+        }
+        
+        showErrorToast(t('error') || 'Error', description);
       } finally {
         setIsReportModalOpen(false);
       }
@@ -286,7 +305,26 @@ const UserLineComponent = ({
         );
       } catch (error: any) {
         console.error('Failed to delete post:', error);
-        showErrorToast(t('errors.failedToDeletePost'), error.message);
+        
+        // Show error toast with code and message
+        const statusCode = error?.response?.status;
+        const errorMessage = error?.response?.data?.message || error?.message;
+        
+        let description = t('something-went-wrong') || 'Something went wrong';
+        if (statusCode || errorMessage) {
+          const parts: string[] = [];
+          if (statusCode) {
+            parts.push(`Code: ${statusCode}`);
+          }
+          if (errorMessage) {
+            parts.push(`Message: ${errorMessage}`);
+          }
+          if (parts.length > 0) {
+            description = `${description}\n${parts.join('\n')}`;
+          }
+        }
+        
+        showErrorToast(t('error') || 'Error', description);
       } finally {
         setIsOptionsModalOpen(false);
       }
@@ -369,23 +407,46 @@ const UserLineComponent = ({
       } else {
         // Revert optimistic update on failure
         setLocalIsHighlighted(localIsHighlighted);
-        showErrorToast(
-          t('highlight-error'),
-          result.message || t('something-went-wrong')
-        );
+        
+        // Show error toast with code and message
+        let description = t('something-went-wrong') || 'Something went wrong';
+        const errorMessage = result.message;
+        if (errorMessage) {
+          description = `${description}\nMessage: ${errorMessage}`;
+        }
+        
+        showErrorToast(t('error') || 'Error', description);
       }
     } catch (error: any) {
       console.error('Error toggling highlight:', error);
       // Revert optimistic update
       setLocalIsHighlighted(localIsHighlighted);
 
-      // Show user-friendly error
-      const errorMessage = error?.message || t('something-went-wrong');
-      if (errorMessage.includes('limit')) {
-        showErrorToast(t('highlight-limit-reached'), '');
-      } else {
-        showErrorToast(t('highlight-error'), errorMessage);
+      // Check for limit error first
+      const errorMessage = error?.response?.data?.message || error?.message;
+      if (errorMessage?.includes('limit')) {
+        showErrorToast(t('highlight-limit-reached') || 'Limit reached', '');
+        return;
       }
+
+      // Show error toast with code and message
+      const statusCode = error?.response?.status;
+      
+      let description = t('something-went-wrong') || 'Something went wrong';
+      if (statusCode || errorMessage) {
+        const parts: string[] = [];
+        if (statusCode) {
+          parts.push(`Code: ${statusCode}`);
+        }
+        if (errorMessage) {
+          parts.push(`Message: ${errorMessage}`);
+        }
+        if (parts.length > 0) {
+          description = `${description}\n${parts.join('\n')}`;
+        }
+      }
+      
+      showErrorToast(t('error') || 'Error', description);
     } finally {
       setIsOptionsModalOpen(false);
     }
@@ -498,7 +559,6 @@ const UserLineComponent = ({
           setIsReportModalOpen(true);
         }}
         onHighlight={handleHighlight}
-        onShare={onShare}
         onViewDetail={onViewDetail}
       />
 

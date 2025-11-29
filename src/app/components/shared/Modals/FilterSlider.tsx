@@ -32,6 +32,7 @@ import { Icons } from '@/src/app/utils/icons/icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNewsFeedData } from '@/src/app/utils/hooks/NewsFeed/usePostData';
 import { useUserStore } from '@/src/app/utils/store/userStore';
+import { PremiumHelpers } from '@/src/app/config/premiumConfig';
 import { useModalsStore } from '@/src/app/utils/store/modalsStore';
 import { useUserRole } from '@/src/app/hooks/useUserRole';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -76,7 +77,9 @@ const FilterSlider = () => {
     distance: storeDistance,
     selectedPlaces: storeSelectedPlaces,
     selectedOccupancy: storeSelectedOccupancy,
+    showHighlightedPosts: storeShowHighlightedPosts,
     updateFilters,
+    setShowHighlightedPosts,
   } = useFiltersStore();
 
   const { isFilterOpen, closeFilter } = useModalsStore();
@@ -165,16 +168,22 @@ const FilterSlider = () => {
   );
 
   async function handleFakeLocationToggle(value: boolean) {
-    // Admin/Moderator can always toggle, or user with premium
-    if (isPremium() || hasAdminAccess) {
-      setUseFakeLocation(value);
-
-      // If enabling travel mode, try to load saved place from AsyncStorage
-      if (value) {
-        await loadSavedPlaceFromStorage();
-      }
-    } else {
+    // Check if fake location should be gated behind premium
+    if (
+      PremiumHelpers.shouldGateFakeLocation() &&
+      !isPremium() &&
+      !hasAdminAccess
+    ) {
       navigation.navigate('Subscription');
+      return;
+    }
+
+    // Allow toggle for all users (when premium is disabled) or premium/admin users
+    setUseFakeLocation(value);
+
+    // If enabling travel mode, try to load saved place from AsyncStorage
+    if (value) {
+      await loadSavedPlaceFromStorage();
     }
   }
 
@@ -214,7 +223,7 @@ const FilterSlider = () => {
       backgroundStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
       onClose={handleClose}
       ref={bottomSheetRef}
-      snapPoints={['70%', '80%']}
+      snapPoints={['100%', '90%']}
       index={-1}
       backdropComponent={renderBackdrop}
       footerComponent={renderFooter}
@@ -258,6 +267,20 @@ const FilterSlider = () => {
             initialOccupancy={tempSelectedOccupancy}
           />
         </View>
+
+        <View style={styles.section}>
+          <View style={styles.fakeLocationHeader}>
+            <Text style={styles.sectionTitle}>
+              {t('show-highlighted-posts') || 'Show highlighted posts'}
+            </Text>
+            <Switch
+              value={storeShowHighlightedPosts}
+              onValueChange={setShowHighlightedPosts}
+              disabled={isRefetching}
+            />
+          </View>
+        </View>
+
         <View style={styles.fakeLocationSection}>
           <View style={styles.fakeLocationHeader}>
             <Text style={styles.sectionTitle}>{t('use-travel-mode')}</Text>

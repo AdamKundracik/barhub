@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import {
   BannerAd,
   BannerAdSize,
   TestIds,
 } from 'react-native-google-mobile-ads';
 import { osName } from 'expo-device';
-import { warningColor } from '../../utils/styles/colors';
 
 const productionID =
   osName === 'Android'
@@ -21,12 +20,6 @@ const InlineAd: React.FC = () => {
     <View style={styles.adContainer}>
       {!isAdLoaded && !hasError && (
         <ActivityIndicator size="large" color="white" />
-      )}
-
-      {hasError && (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Ad failed to load</Text>
-        </View>
       )}
 
       {!hasError && (
@@ -55,15 +48,6 @@ const styles = StyleSheet.create({
   adContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  errorContainer: {
-    backgroundColor: warningColor,
-    borderRadius: 8,
-  },
-  errorText: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
   },
 });
 

@@ -49,14 +49,8 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 
-  const MAX_BIO_LENGTH = 120;
-  const MAX_BIO_LINES = 10;
+  const MAX_BIO_LENGTH = 90;
   const remainingChars = MAX_BIO_LENGTH - bio.length;
-
-  // Count lines properly, handling various line break characters
-  const normalizedBio = bio.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-  const currentLines = normalizedBio.split('\n').length;
-  const remainingLines = MAX_BIO_LINES - currentLines;
 
   // Handle modal visibility
   useEffect(() => {
@@ -103,36 +97,45 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
     [onClose]
   );
 
+  // Check for valid Unicode characters (allows emojis and standard characters)
+  const isValidBioCharacters = (text: string): boolean => {
+    if (!text || text.trim().length === 0) {
+      return true; // Empty is valid
+    }
+
+    // Allow letters, numbers, spaces, line breaks, common punctuation, and emojis
+    // Very permissive - allows all standard Unicode characters including emojis
+    // This pattern allows:
+    // - All Unicode letters (\p{L})
+    // - All Unicode numbers (\p{N})
+    // - Whitespace, line breaks (\s, \n, \r)
+    // - Common punctuation and symbols
+    // - Emojis and other Unicode symbols
+    const permissiveUnicodePattern = /^[\p{L}\p{N}\p{M}\p{S}\p{P}\s\n\r]*$/u;
+    
+    // Check if string contains only valid Unicode characters (including emojis)
+    return permissiveUnicodePattern.test(text);
+  };
+
   const validateBio = (text: string): string => {
     // Check if bio is empty
     if (!text.trim()) {
       return '';
     }
 
+    // Check for valid characters first
+    if (!isValidBioCharacters(text)) {
+      return (
+        t('bio.invalid-characters') ||
+        t('username-invalid-characters') ||
+        'Bio cannot contain emojis or special symbols'
+      );
+    }
+
     // Check character length
     if (text.length > MAX_BIO_LENGTH) {
       return (
         t('bio.too-long') || `Bio cannot exceed ${MAX_BIO_LENGTH} characters`
-      );
-    }
-
-    // Count lines properly, handling various line break characters
-    const normalizedText = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-    const lines = normalizedText.split('\n');
-
-    // Check line count
-    if (lines.length > MAX_BIO_LINES) {
-      return (
-        t('bio.too-many-lines') || `Bio cannot exceed ${MAX_BIO_LINES} lines`
-      );
-    }
-
-    // Check for excessive empty lines (more than 2 consecutive empty lines)
-    const emptyLines = lines.filter(line => line.trim() === '');
-    if (emptyLines.length > 2) {
-      return (
-        t('bio.too-many-empty-lines') ||
-        'Bio cannot have more than 2 empty lines'
       );
     }
 
@@ -175,15 +178,10 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
   const handleBioChange = (text: string) => {
     // Filter out problematic characters that could bypass validation
     let filteredText = text
-      .replace(/[\t]/g, ' ') // Replace tabs with spaces
-      .replace(/\r\n/g, '\n') // Normalize line breaks
-      .replace(/\r/g, '\n'); // Normalize line breaks
+      .replace(/[\t]/g, ' '); // Replace tabs with spaces
 
     // Limit consecutive spaces to 3
     filteredText = filteredText.replace(/\s{4,}/g, '   ');
-
-    // Limit consecutive line breaks to 2
-    filteredText = filteredText.replace(/\n{3,}/g, '\n\n');
 
     setBio(filteredText);
     const validationError = validateBio(filteredText);
@@ -265,40 +263,23 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
               blurOnSubmit={false}
             />
 
-            {/* Character and line counters */}
+            {/* Character counter */}
             <View style={styles.counterContainer}>
-              <View style={styles.countersRow}>
-                <Text
-                  style={[
-                    styles.counter,
-                    {
-                      color:
-                        remainingChars < 0
-                          ? warningColor
-                          : remainingChars < 20
-                            ? '#F59E0B'
-                            : secondaryTextColor,
-                    },
-                  ]}
-                >
-                  {bio.length}/{MAX_BIO_LENGTH} chars
-                </Text>
-                <Text
-                  style={[
-                    styles.counter,
-                    {
-                      color:
-                        remainingLines < 0
-                          ? warningColor
-                          : remainingLines < 2
-                            ? '#F59E0B'
-                            : secondaryTextColor,
-                    },
-                  ]}
-                >
-                  {currentLines}/{MAX_BIO_LINES} lines
-                </Text>
-              </View>
+              <Text
+                style={[
+                  styles.counter,
+                  {
+                    color:
+                      remainingChars < 0
+                        ? warningColor
+                        : remainingChars < 20
+                          ? '#F59E0B'
+                          : secondaryTextColor,
+                  },
+                ]}
+              >
+                {bio.length}/{MAX_BIO_LENGTH} chars
+              </Text>
 
               {/* Quality indicators */}
               {bio.trim() && (

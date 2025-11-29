@@ -27,6 +27,7 @@ import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { useUserData } from '@/src/app/hooks/useUserQuery';
 import { AuthTypeEnum } from '@/src/app/types/dto';
+import { useQueryClient } from 'react-query';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import {
   Avatar,
@@ -42,6 +43,7 @@ import { useUserHighlights } from '@/src/app/hooks/useUserHighlights';
 import { HighlightedPostsGrid } from '@/src/app/components/user/Profile/HighlightedPostsGrid';
 import BioEditModal from '@/src/app/components/shared/Modals/BioEditModal';
 import { DeleteAccountConfirmModal } from '@/src/app/components/shared/Modals/DeleteAccountConfirmModal';
+import { PremiumHelpers } from '@/src/app/config/premiumConfig';
 
 interface ActionButtonProps {
   icon: any;
@@ -185,6 +187,7 @@ export const Account = () => {
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { currentPushToken, getUserId } = useUserStore();
+  const queryClient = useQueryClient();
   const { isAdmin, isModerator } = useUserRole();
   const userId = getUserId();
   const { highlights, isLoading: isLoadingHighlights } = useUserHighlights(
@@ -201,6 +204,8 @@ export const Account = () => {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
+      await queryClient.invalidateQueries(['user', 'data']);
+      await queryClient.invalidateQueries(['posts']);
       await refetch();
     } catch (error) {
       console.error('Error refreshing user data:', error);
@@ -387,12 +392,18 @@ export const Account = () => {
               size="xl"
               style={[
                 styles.avatarContainer,
-                isPremium && styles.premiumBorder,
+                // Show premium border only if premium UI is enabled and user is premium
+                PremiumHelpers.shouldShowPremiumBorders() &&
+                  isPremium &&
+                  styles.premiumBorder,
               ]}
             >
               {photoUrl ? (
                 <AvatarImage
-                  source={{ uri: photoUrl }}
+                  key={`${photoUrl}`}
+                  source={{
+                    uri: `${photoUrl}`,
+                  }}
                   style={styles.avatarImage}
                 />
               ) : (
@@ -406,23 +417,25 @@ export const Account = () => {
           <Text style={styles.displayName}>{userDisplayName}</Text>
 
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
-            {/* Premium Badge */}
-            <View style={styles.statusBadge}>
-              <View
-                style={[
-                  styles.statusDot,
-                  { backgroundColor: isPremium ? '#FFD700' : primaryColor },
-                ]}
-              />
-              <Text
-                style={[
-                  styles.statusText,
-                  { color: isPremium ? '#FFD700' : primaryColor },
-                ]}
-              >
-                {isPremium ? 'Premium' : 'Basic'}
-              </Text>
-            </View>
+            {/* Premium Badge - only show if premium UI is enabled */}
+            {PremiumHelpers.shouldShowPremiumBadges() && (
+              <View style={styles.statusBadge}>
+                <View
+                  style={[
+                    styles.statusDot,
+                    { backgroundColor: isPremium ? '#FFD700' : primaryColor },
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.statusText,
+                    { color: isPremium ? '#FFD700' : primaryColor },
+                  ]}
+                >
+                  {isPremium ? 'Premium' : 'Basic'}
+                </Text>
+              </View>
+            )}
 
             {/* Role Badge */}
             {(isAdmin || isModerator) && (
@@ -605,6 +618,13 @@ export const Account = () => {
                 title={t('blockedUsers.title')}
                 description={t('blockedUsers.description')}
                 onPress={() => navigation.navigate('BlockedUsers')}
+              />
+
+              <ActionButton
+                icon={Icons.FileLines}
+                title="Auth Logs"
+                description="View authentication logs for debugging"
+                onPress={() => navigation.navigate('AuthLogs')}
               />
             </View>
           </View>

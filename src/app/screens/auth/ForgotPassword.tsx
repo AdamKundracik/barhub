@@ -1,22 +1,22 @@
 import {
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
-  SafeAreaView,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { formStyles } from '../../utils/styles/styles';
 import * as React from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  postBgColor,
   primaryColor,
   primaryTextColor,
   secondaryTextColor,
   warningColor,
-  postBgColor,
 } from '../../utils/styles/colors';
 import {
   FormControl,
@@ -47,7 +47,7 @@ export const ForgotPassword = ({ navigation }: any) => {
   const { t } = useTranslation();
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const [focusedInput, setFocusedInput] = useState<InputFieldType | null>(null);
-  
+
   const {
     email,
     setEmail,
@@ -61,17 +61,15 @@ export const ForgotPassword = ({ navigation }: any) => {
 
   const handleSendResetEmail = async () => {
     const result = await sendResetEmail();
-    
+
     if (result.success) {
       showSuccessToast(
         t('reset-email-sent') || 'Reset email sent!',
-        t('reset-email-sent-desc') || 'Check your inbox for password reset instructions.'
+        t('reset-email-sent-desc') ||
+          'Check your inbox for password reset instructions.'
       );
     } else {
-      showErrorToast(
-        t('error'),
-        result.error || t('something-went-wrong')
-      );
+      showErrorToast(t('error'), result.error || t('something-went-wrong'));
     }
   };
 
@@ -92,112 +90,114 @@ export const ForgotPassword = ({ navigation }: any) => {
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.container}>
-          {/* Success Icon */}
-          <Center style={styles.iconContainer}>
-            <View style={styles.successIconCircle}>
-              <FontAwesomeIcon
-                icon={Icons.faCheckCircle}
-                size={64}
-                color={primaryColor}
-              />
-            </View>
-          </Center>
-
-          {/* Success Card */}
-          <View style={styles.card}>
-            <VStack space="lg">
-              <Center>
-                <Text style={styles.successTitle}>
-                  {t('reset-email-sent') || 'Email Sent!'}
-                </Text>
-              </Center>
-
-              <View style={styles.emailBox}>
-                <Text style={styles.emailLabel}>
-                  {t('reset-email-sent-to') || 'We sent password reset instructions to:'}
-                </Text>
-                <Text style={styles.emailText}>{email}</Text>
-              </View>
-
-              <Divider style={styles.divider} />
-
-              <VStack space="md">
-                <HStack space="sm" style={styles.instructionRow}>
+              {/* Success Icon */}
+              <Center style={styles.iconContainer}>
+                <View style={styles.successIconCircle}>
                   <FontAwesomeIcon
-                    icon={Icons.faEnvelope}
-                    size={20}
+                    icon={Icons.faCheckCircle}
+                    size={64}
                     color={primaryColor}
                   />
-                  <Text style={styles.instructionText}>
-                    {t('check-inbox-reset') || 'Check your inbox for the reset link'}
-                  </Text>
-                </HStack>
-
-                <HStack space="sm" style={styles.instructionRow}>
-                  <FontAwesomeIcon
-                    icon={Icons.faClock}
-                    size={20}
-                    color={secondaryTextColor}
-                  />
-                  <Text style={styles.instructionText}>
-                    {t('reset-link-expires') || 'Link expires in 1 hour'}
-                  </Text>
-                </HStack>
-
-                <HStack space="sm" style={styles.instructionRow}>
-                  <FontAwesomeIcon
-                    icon={Icons.faCircleExclamation}
-                    size={20}
-                    color={warningColor}
-                  />
-                  <Text style={styles.instructionText}>
-                    {t('check-spam')}
-                  </Text>
-                </HStack>
-              </VStack>
-
-              <Divider style={styles.divider} />
-
-              <Center>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  style={styles.secondaryButton}
-                  onPress={handleTryAgain}
-                >
-                  <HStack space="sm" style={styles.buttonContent}>
-                    <FontAwesomeIcon
-                      icon={Icons.faRotateLeft}
-                      size={16}
-                      color={primaryColor}
-                    />
-                    <ButtonText style={styles.secondaryButtonText}>
-                      {t('try-different-email') || 'Try different email'}
-                    </ButtonText>
-                  </HStack>
-                </Button>
+                </View>
               </Center>
-            </VStack>
-          </View>
 
-          {/* Back to Login Button */}
-          <Button
-            variant="solid"
-            size="lg"
-            style={styles.backToLoginButton}
-            onPress={() => navigation.navigate('Login')}
-          >
-            <HStack space="sm" style={styles.buttonContent}>
-              <FontAwesomeIcon
-                icon={Icons.faArrowLeft}
-                size={16}
-                color={'#000'}
-              />
-              <ButtonText style={styles.backToLoginButtonText}>
-                {t('back-to-login') || 'Back to Login'}
-              </ButtonText>
-            </HStack>
-          </Button>
+              {/* Success Card */}
+              <View style={styles.card}>
+                <VStack space="lg">
+                  <Center>
+                    <Text style={styles.successTitle}>
+                      {t('reset-email-sent') || 'Email Sent!'}
+                    </Text>
+                  </Center>
+
+                  <View style={styles.emailBox}>
+                    <Text style={styles.emailLabel}>
+                      {t('reset-email-sent-to') ||
+                        'We sent password reset instructions to:'}
+                    </Text>
+                    <Text style={styles.emailText}>{email}</Text>
+                  </View>
+
+                  <Divider style={styles.divider} />
+
+                  <VStack space="md">
+                    <HStack space="sm" style={styles.instructionRow}>
+                      <FontAwesomeIcon
+                        icon={Icons.faEnvelope}
+                        size={20}
+                        color={primaryColor}
+                      />
+                      <Text style={styles.instructionText}>
+                        {t('check-inbox-reset') ||
+                          'Check your inbox for the reset link'}
+                      </Text>
+                    </HStack>
+
+                    <HStack space="sm" style={styles.instructionRow}>
+                      <FontAwesomeIcon
+                        icon={Icons.faClock}
+                        size={20}
+                        color={secondaryTextColor}
+                      />
+                      <Text style={styles.instructionText}>
+                        {t('reset-link-expires') || 'Link expires in 1 hour'}
+                      </Text>
+                    </HStack>
+
+                    <HStack space="sm" style={styles.instructionRow}>
+                      <FontAwesomeIcon
+                        icon={Icons.faCircleExclamation}
+                        size={20}
+                        color={warningColor}
+                      />
+                      <Text style={styles.instructionText}>
+                        {t('check-spam')}
+                      </Text>
+                    </HStack>
+                  </VStack>
+
+                  <Divider style={styles.divider} />
+
+                  <Center>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      style={styles.secondaryButton}
+                      onPress={handleTryAgain}
+                    >
+                      <HStack space="sm" style={styles.buttonContent}>
+                        <FontAwesomeIcon
+                          icon={Icons.faRotateLeft}
+                          size={16}
+                          color={primaryColor}
+                        />
+                        <ButtonText style={styles.secondaryButtonText}>
+                          {t('try-different-email') || 'Try different email'}
+                        </ButtonText>
+                      </HStack>
+                    </Button>
+                  </Center>
+                </VStack>
+              </View>
+
+              {/* Back to Login Button */}
+              <Button
+                variant="solid"
+                size="lg"
+                style={styles.backToLoginButton}
+                onPress={() => navigation.navigate('Login')}
+              >
+                <HStack space="sm" style={styles.buttonContent}>
+                  <FontAwesomeIcon
+                    icon={Icons.faArrowLeft}
+                    size={16}
+                    color={'#000'}
+                  />
+                  <ButtonText style={styles.backToLoginButtonText}>
+                    {t('back-to-login') || 'Back to Login'}
+                  </ButtonText>
+                </HStack>
+              </Button>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -217,121 +217,129 @@ export const ForgotPassword = ({ navigation }: any) => {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.container}>
-        {/* Back Button */}
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-          accessibilityRole="button"
-          accessibilityLabel={t('go-back') as string}
-        >
-          <FontAwesomeIcon icon={Icons.faChevronLeft} size={24} color={'white'} />
-        </TouchableOpacity>
-
-        {/* Icon */}
-        <Center style={styles.iconContainer}>
-          <View style={styles.iconCircle}>
-            <FontAwesomeIcon
-              icon={Icons.faKey}
-              size={48}
-              color={primaryColor}
-            />
-          </View>
-        </Center>
-
-        {/* Title */}
-        <Center style={styles.titleContainer}>
-          <Text style={styles.title}>{t('forgot-password')}</Text>
-          <Text style={styles.subtitle}>
-            {t('forgot-password-desc') || 'Enter your email and we\'ll send you a link to reset your password'}
-          </Text>
-        </Center>
-
-        {/* Form Card */}
-        <View style={styles.card}>
-          <VStack space="lg">
-            <FormControl
-              size="md"
-              isDisabled={false}
-              isReadOnly={false}
-              isRequired={true}
-              style={styles.formControl}
-              isInvalid={email.length > 0 && !isValidEmail(email)}
+            {/* Back Button */}
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.backButton}
+              accessibilityRole="button"
+              accessibilityLabel={t('go-back') as string}
             >
-              <FormControlLabel>
-                <FormControlLabelText style={styles.labelText}>
-                  {t('email')} <Text style={styles.requiredStar}>*</Text>
-                </FormControlLabelText>
-              </FormControlLabel>
-              <Input
-                className="my-1"
-                variant="rounded"
-                size="xl"
-                style={[
-                  formStyles.inputPrimary,
-                  focusedInput === 'email' && styles.inputFocused,
-                ]}
-              >
-                <InputField
-                  type="text"
-                  keyboardType="email-address"
-                  placeholder={t('email')}
-                  style={{ color: primaryTextColor }}
-                  value={email}
-                  onChangeText={setEmail}
-                  onFocus={() => setFocusedInput('email')}
-                  onBlur={() => setFocusedInput(null)}
-                  autoCapitalize="none"
-                  autoComplete="email"
+              <FontAwesomeIcon
+                icon={Icons.faChevronLeft}
+                size={24}
+                color={'white'}
+              />
+            </TouchableOpacity>
+
+            {/* Icon */}
+            <Center style={styles.iconContainer}>
+              <View style={styles.iconCircle}>
+                <FontAwesomeIcon
+                  icon={Icons.faKey}
+                  size={48}
+                  color={primaryColor}
                 />
-              </Input>
-              {email.length === 0 && (
-                <FormControlHelper>
-                  <FormControlHelperText style={styles.helperText}>
-                    {t('enter-valid-email')}
-                  </FormControlHelperText>
-                </FormControlHelper>
-              )}
-              {email.length > 0 && !isValidEmail(email) && (
-                <FormControlError>
-                  <FormControlErrorIcon as={AlertCircleIcon} className="text-red-500" />
-                  <FormControlErrorText className="text-red-500">
-                    {t('invalid-email')}
-                  </FormControlErrorText>
-                </FormControlError>
-              )}
-            </FormControl>
-
-            <Center>
-              <Button
-                variant="solid"
-                size="lg"
-                style={[
-                  styles.submitButton,
-                  !isFormValid() && styles.buttonDisabled,
-                ]}
-                onPress={handleSendResetEmail}
-                isDisabled={!isFormValid() || loading}
-              >
-                {!loading && (
-                  <ButtonText style={styles.submitButtonText}>
-                    {t('send-reset-link') || t('resetPassword')}
-                  </ButtonText>
-                )}
-                {loading && <ButtonSpinner />}
-              </Button>
+              </View>
             </Center>
-          </VStack>
-        </View>
 
-        {/* Back to Login Link */}
-        <Center style={styles.linkContainer}>
-          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-            <Text style={styles.linkText}>
-              {t('remember-password') || 'Remember your password?'}{' '}
-              <Text style={styles.linkTextBold}>{t('login')}</Text>
-            </Text>
-          </TouchableOpacity>
-        </Center>
+            {/* Title */}
+            <Center style={styles.titleContainer}>
+              <Text style={styles.title}>{t('forgot-password')}</Text>
+              <Text style={styles.subtitle}>
+                {t('forgot-password-desc') ||
+                  "Enter your email and we'll send you a link to reset your password"}
+              </Text>
+            </Center>
+
+            {/* Form Card */}
+            <View style={styles.card}>
+              <VStack space="lg">
+                <FormControl
+                  size="md"
+                  isDisabled={false}
+                  isReadOnly={false}
+                  isRequired={false}
+                  style={styles.formControl}
+                  isInvalid={email.length > 0 && !isValidEmail(email)}
+                >
+                  <FormControlLabel>
+                    <FormControlLabelText style={styles.labelText}>
+                      {t('email')} <Text style={styles.requiredStar}>*</Text>
+                    </FormControlLabelText>
+                  </FormControlLabel>
+                  <Input
+                    className="my-1"
+                    variant="rounded"
+                    size="xl"
+                    style={[
+                      formStyles.inputPrimary,
+                      focusedInput === 'email' && styles.inputFocused,
+                    ]}
+                  >
+                    <InputField
+                      type="text"
+                      keyboardType="email-address"
+                      placeholder={t('email')}
+                      style={{ color: primaryTextColor }}
+                      value={email}
+                      onChangeText={setEmail}
+                      onFocus={() => setFocusedInput('email')}
+                      onBlur={() => setFocusedInput(null)}
+                      autoCapitalize="none"
+                      autoComplete="email"
+                    />
+                  </Input>
+                  {email.length === 0 && (
+                    <FormControlHelper>
+                      <FormControlHelperText style={styles.helperText}>
+                        {t('enter-valid-email')}
+                      </FormControlHelperText>
+                    </FormControlHelper>
+                  )}
+                  {email.length > 0 && !isValidEmail(email) && (
+                    <FormControlError>
+                      <FormControlErrorIcon
+                        as={AlertCircleIcon}
+                        className="text-red-500"
+                      />
+                      <FormControlErrorText className="text-red-500">
+                        {t('invalid-email')}
+                      </FormControlErrorText>
+                    </FormControlError>
+                  )}
+                </FormControl>
+
+                <Center>
+                  <Button
+                    variant="solid"
+                    size="lg"
+                    style={[
+                      styles.submitButton,
+                      !isFormValid() && styles.buttonDisabled,
+                    ]}
+                    onPress={handleSendResetEmail}
+                    isDisabled={!isFormValid() || loading}
+                  >
+                    {!loading && (
+                      <ButtonText style={styles.submitButtonText}>
+                        {t('send-reset-link') || t('resetPassword')}
+                      </ButtonText>
+                    )}
+                    {loading && <ButtonSpinner />}
+                  </Button>
+                </Center>
+              </VStack>
+            </View>
+
+            {/* Back to Login Link */}
+            <Center style={styles.linkContainer}>
+              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                <Text style={styles.linkText}>
+                  {t('remember-password') || 'Remember your password?'}{' '}
+                  <Text style={styles.linkTextBold}>{t('login')}</Text>
+                </Text>
+              </TouchableOpacity>
+            </Center>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -32,6 +32,7 @@ import { ClientDTO } from '@/src/app/types/dto';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useUserData } from '@/src/app/hooks/useUserQuery';
 import { useQueryClient } from 'react-query';
+import { PremiumHelpers } from '@/src/app/config/premiumConfig';
 import {
   getUnicodeValidationMessage,
   isValidUnicodeUsername,
@@ -64,6 +65,7 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
     updateProfileAsync,
     isUpdatingProfile,
     deletePhotoAsync,
+    updatePhotoAsync,
     isUpdatingPhoto,
     isDeletingPhoto,
     displayName,
@@ -71,6 +73,7 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
     photoUrl,
     isPremium,
     userId,
+    refetch,
   } = useUserData();
 
   const locales = useLocales();
@@ -90,6 +93,7 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
   const [usernameError, setUsernameError] = useState<string>('');
   const [isOpeningGallery, setIsOpeningGallery] = useState<boolean>(false);
   const [isOpeningCamera, setIsOpeningCamera] = useState<boolean>(false);
+  const [photoCacheBuster, setPhotoCacheBuster] = useState<number>(Date.now());
 
   // Track original values to detect changes
   const originalUsername = displayName;
@@ -156,13 +160,22 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
         throw new Error('User ID not found');
       }
 
+      // Upload image to storage
       const uploadedUri = await uploadService.uploadProfilePhoto(
         uri,
         parseInt(userId)
       );
 
-      // Backend already updated photoUrl in database, just invalidate cache to refresh UI
+      // Update photoUrl in database
+      await updatePhotoAsync(uploadedUri);
+
+      // Update cache buster to force image reload on physical devices
+      setPhotoCacheBuster(Date.now());
+
+      // Invalidate cache and refetch to ensure UI updates
       await queryClient.invalidateQueries(['user', 'data']);
+      await queryClient.invalidateQueries(['posts']);
+      await refetch();
 
       showSuccessToast(t('toastPhotoUpdatedTitle'), t('toastPhotoUpdatedDesc'));
 
@@ -244,6 +257,14 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
       // Use the new delete photo mutation with optimistic updates
       await deletePhotoAsync();
 
+      // Update cache buster to force image reload on physical devices
+      setPhotoCacheBuster(Date.now());
+
+      // Invalidate cache to ensure UI updates
+      await queryClient.invalidateQueries(['user', 'data']);
+      await queryClient.invalidateQueries(['posts']);
+      await refetch();
+
       showSuccessToast(t('toastPhotoDeletedTitle'), t('toastPhotoDeletedDesc'));
     } catch (error) {
       console.error('Error deleting photo:', error);
@@ -307,15 +328,18 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
               size="xl"
               style={[
                 styles.avatarContainer,
-                isPremium && styles.premiumBorder,
+                // Show premium border only if premium UI is enabled and user is premium
+                PremiumHelpers.shouldShowPremiumBorders() && isPremium && styles.premiumBorder,
                 (isUpdatingPhoto || isDeletingPhoto) &&
                   styles.profilePictureLoading,
               ]}
             >
               {photoUrl ? (
                 <AvatarImage
-                  key={photoUrl} // Force re-render when photoUrl changes
-                  source={{ uri: photoUrl }}
+                  key={`edit-avatar-${photoUrl}-${photoCacheBuster}`}
+                  source={{
+                    uri: `${photoUrl}${photoUrl.includes('?') ? '&' : '?'}t=${photoCacheBuster}`,
+                  }}
                   style={styles.avatarImage}
                 />
               ) : (

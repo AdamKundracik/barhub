@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -43,6 +44,7 @@ import { HStack } from '@/components/ui/hstack';
 import { VStack } from '@/components/ui/vstack';
 import { Center } from '@/components/ui/center';
 import InlineAd from '@/src/app/components/user/InlineAd';
+import { PremiumHelpers } from '@/src/app/config/premiumConfig';
 
 export const PostDetail = () => {
   const route = useRoute();
@@ -72,14 +74,34 @@ export const PostDetail = () => {
     post?.isHighlighted || false
   );
 
+  // Debounce timer for like requests to prevent spam
+  const likeDebounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const backendLikedState = useRef(post?.isLiked || false);
+
   // Sync local state with post data when it changes
   useEffect(() => {
     if (post) {
       setLocalLiked(post.isLiked);
       setLocalLikeCount(post.likesCount);
       setLocalIsHighlighted(post.isHighlighted);
+      backendLikedState.current = post.isLiked;
+
+      // Clear any pending debounce timer when post changes
+      if (likeDebounceTimer.current) {
+        clearTimeout(likeDebounceTimer.current);
+        likeDebounceTimer.current = null;
+      }
     }
-  }, [post?.isLiked, post?.likesCount, post?.isHighlighted]);
+  }, [post?.isLiked, post?.likesCount, post?.isHighlighted, post?.id]);
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (likeDebounceTimer.current) {
+        clearTimeout(likeDebounceTimer.current);
+      }
+    };
+  }, []);
 
   const handleShare = async () => {
     if (!post) return;
@@ -160,47 +182,76 @@ export const PostDetail = () => {
     }
   };
 
-  const handleLikeToggle = async () => {
+  // Sync like state with backend (called after debounce)
+  const syncLikeWithBackend = useCallback(
+    async (currentUIState: boolean) => {
+      if (!post) return;
+
+      // Only call API if UI state differs from backend state
+      if (currentUIState === backendLikedState.current) {
+        return; // States match - no API call needed
+      }
+
+      const userId = getUserId();
+      if (!userId) {
+        showErrorToast(t('error'), t('user-not-found'));
+        return;
+      }
+
+      try {
+        // Call backend API to toggle
+        const response = await postService.toggleLike(
+          post.id,
+          parseInt(userId, 10)
+        );
+
+        if (response) {
+          // Update backend state tracker
+          backendLikedState.current = response.liked;
+
+          // Sync UI with actual backend response (source of truth)
+          setLocalLiked(response.liked);
+          setLocalLikeCount(response.totalLikes);
+
+          // Invalidate 'posts' feed cache to trigger refetch when user navigates back
+          await queryClient.invalidateQueries(['posts'], {
+            refetchActive: true,
+          });
+        }
+      } catch (error) {
+        console.error('Error syncing like with backend:', error);
+        // On error, revert to backend state
+        setLocalLiked(backendLikedState.current);
+        setLocalLikeCount(prev =>
+          backendLikedState.current ? prev : Math.max(prev - 1, 0)
+        );
+        showErrorToast(t('error'), t('something-went-wrong'));
+      }
+    },
+    [post, getUserId, t, queryClient, showErrorToast]
+  );
+
+  const handleLikeToggle = useCallback(() => {
     if (!post) return;
 
-    const userId = getUserId();
-    if (!userId) {
-      showErrorToast(t('error'), t('user-not-found'));
-      return;
+    // Immediate optimistic UI update
+    const newLikedState = !localLiked;
+    setLocalLiked(newLikedState);
+    setLocalLikeCount(prev =>
+      newLikedState ? prev + 1 : Math.max(prev - 1, 0)
+    );
+
+    // Clear existing debounce timer
+    if (likeDebounceTimer.current) {
+      clearTimeout(likeDebounceTimer.current);
     }
 
-    try {
-      // Optimistic update
-      const newLikedState = !localLiked;
-      setLocalLiked(newLikedState);
-      setLocalLikeCount(prev =>
-        newLikedState ? prev + 1 : Math.max(prev - 1, 0)
-      );
-
-      // Call backend API
-      const response = await postService.toggleLike(
-        post.id,
-        parseInt(userId, 10)
-      );
-
-      if (response) {
-        // Update local state with backend response
-        setLocalLiked(response.liked);
-        setLocalLikeCount(response.totalLikes);
-
-        // Invalidate 'posts' feed cache to trigger refetch when user navigates back
-        await queryClient.invalidateQueries(['posts'], {
-          refetchActive: true,
-        });
-      }
-    } catch (error) {
-      console.error('Error toggling like:', error);
-      // Revert optimistic update
-      setLocalLiked(!localLiked);
-      setLocalLikeCount(prev => (localLiked ? prev - 1 : prev + 1));
-      showErrorToast(t('error'), t('something-went-wrong'));
-    }
-  };
+    // Debounce backend sync (800ms) - prevents spam clicking
+    // After user stops clicking, sync final UI state with backend
+    likeDebounceTimer.current = setTimeout(() => {
+      syncLikeWithBackend(newLikedState);
+    }, 800);
+  }, [post, localLiked, syncLikeWithBackend]);
 
   const handleHighlight = async () => {
     if (!post) return;
@@ -282,6 +333,52 @@ export const PostDetail = () => {
     }
   };
 
+  const confirmDelete = useCallback(
+    (onConfirm: () => void) => {
+      Alert.alert(
+        t('deletePost.confirmTitle'),
+        t('deletePost.confirmMessage'),
+        [
+          { text: t('cancel'), style: 'cancel' },
+          { text: t('submit'), style: 'destructive', onPress: onConfirm },
+        ],
+        { cancelable: true }
+      );
+    },
+    [t]
+  );
+
+  const handleDelete = useCallback(async () => {
+    if (!post) return;
+
+    confirmDelete(async () => {
+      try {
+        const result: { success: boolean; message?: string } =
+          await postService.deletePost(post.id);
+        if (!result.success) {
+          throw new Error(result.message || 'Failed to delete post');
+        }
+
+        // Invalidate all related queries after delete
+        queryClient.invalidateQueries(['posts']); // Refresh main feed
+        queryClient.invalidateQueries(['userHighlights']); // Refresh highlights (in case deleted post was highlighted)
+
+        showSuccessToast(
+          t('deletePost.successTitle'),
+          t('deletePost.successDescription')
+        );
+
+        // Navigate back after successful delete
+        setIsOptionsModalOpen(false);
+        handleBackPress();
+      } catch (error: any) {
+        console.error('Failed to delete post:', error);
+        showErrorToast(t('errors.failedToDeletePost'), error.message);
+        setIsOptionsModalOpen(false);
+      }
+    });
+  }, [post, confirmDelete, queryClient, showSuccessToast, showErrorToast, t, handleBackPress]);
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -352,14 +449,6 @@ export const PostDetail = () => {
           </TouchableOpacity>
 
           <HStack space="md">
-            <TouchableOpacity style={styles.headerButton} onPress={handleShare}>
-              <FontAwesomeIcon
-                icon={Icons.faShareNodes}
-                size={20}
-                color="#fff"
-              />
-            </TouchableOpacity>
-
             <TouchableOpacity
               style={styles.headerButton}
               onPress={() => setIsOptionsModalOpen(true)}
@@ -480,7 +569,7 @@ export const PostDetail = () => {
           </View>
 
           {/* Inline Ad */}
-          {!isPremium() && (
+          {(PremiumHelpers.shouldAlwaysShowAds() || !isPremium()) && (
             <View style={styles.adContainer}>
               <InlineAd />
             </View>
@@ -544,9 +633,7 @@ export const PostDetail = () => {
           showReport={post.canReport}
           showHighlight={post.canHighlight}
           isHighlighted={localIsHighlighted}
-          onDelete={() => {
-            // TODO: Implement delete
-          }}
+          onDelete={handleDelete}
           onReport={() => {
             setIsOptionsModalOpen(false);
             setIsReportModalOpen(true);

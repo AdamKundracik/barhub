@@ -34,8 +34,8 @@ type PostOptionsModalProps = {
   onDelete: () => Promise<void> | void;
   onReport: () => void; // otvorí Report modal
   onHighlight?: () => void; // highlight/unhighlight post
-  onShare?: () => void; // share post
   onViewDetail?: () => void; // zobrazí detail príspevku
+  onShare?: () => Promise<void> | void; // share post
 };
 
 export const PostOptionsModal = ({
@@ -44,8 +44,8 @@ export const PostOptionsModal = ({
   onDelete,
   onReport,
   onHighlight,
-  onShare,
   onViewDetail,
+  onShare,
   imageUrl,
   showDelete = false,
   showReport = true,
@@ -59,21 +59,21 @@ export const PostOptionsModal = ({
   // Calculate number of visible options
   const getVisibleOptionsCount = useCallback(() => {
     let count = 0;
-    if (onShare) count++;
     if (imageUrl) count++;
     if (showHighlight && onHighlight) count++;
     if (showDelete) count++;
     if (showReport) count++;
     if (onViewDetail) count++;
+    if (onShare) count++;
     return count;
   }, [
-    onShare,
     imageUrl,
     showHighlight,
     onHighlight,
     showDelete,
     showReport,
     onViewDetail,
+    onShare,
   ]);
 
   // Calculate dynamic snap points based on number of options
@@ -160,22 +160,6 @@ export const PostOptionsModal = ({
           </TouchableOpacity>
         )}
 
-        {onShare && (
-          <TouchableOpacity
-            style={styles.option}
-            activeOpacity={0.7}
-            onPress={() => {
-              onShare();
-              onClose();
-            }}
-            disabled={loading}
-          >
-            <View style={styles.optionRow}>
-              <Text style={styles.optionText}>{t('share-post')}</Text>
-              <FontAwesomeIcon icon={Icons.Share} size={16} color="white" />
-            </View>
-          </TouchableOpacity>
-        )}
 
         {imageUrl && (
           <TouchableOpacity
@@ -215,6 +199,23 @@ export const PostOptionsModal = ({
                 size={16}
                 color={isHighlighted ? '#AAA' : '#FFC107'}
               />
+            </View>
+          </TouchableOpacity>
+        )}
+
+        {onShare && (
+          <TouchableOpacity
+            style={styles.option}
+            activeOpacity={0.7}
+            onPress={async () => {
+              await onShare();
+              onClose();
+            }}
+            disabled={loading}
+          >
+            <View style={styles.optionRow}>
+              <Text style={styles.optionText}>{t('share-post')}</Text>
+              <FontAwesomeIcon icon={Icons.Share} size={16} color="white" />
             </View>
           </TouchableOpacity>
         )}

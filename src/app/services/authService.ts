@@ -200,7 +200,7 @@ class AuthService {
 
   // Refresh access token
   async refreshAccessToken(): Promise<string | null> {
-    console.log('🔄 [REFRESH] Attempting to refresh access token');
+    console.log(' [REFRESH] Attempting to refresh access token');
 
     const refreshToken = await tokenManager.getRefreshToken();
     if (!refreshToken) {
@@ -209,7 +209,7 @@ class AuthService {
     }
 
     try {
-      console.log('🔄 [REFRESH] Calling refresh endpoint');
+      console.log(' [REFRESH] Calling refresh endpoint');
       const authResponse: AuthResponse = await axiosClient.post(
         ENDPOINTS.AUTH.REFRESH,
         { refreshToken }
@@ -217,13 +217,50 @@ class AuthService {
 
       console.log('✅ [REFRESH] Refresh endpoint successful');
 
-      // Store new tokens
-      await this.storeTokens(authResponse.token, authResponse.refreshToken);
+      // Store new tokens - this won't throw even if SecureStore fails
+      // Tokens will be stored in memory and retried later
+      try {
+        await this.storeTokens(authResponse.token, authResponse.refreshToken);
+        console.log('✅ [REFRESH] New tokens stored successfully');
+      } catch (storeError: any) {
+        // Even if storing fails (e.g., SecureStore error), tokens are in memory
+        // Don't fail the refresh - tokens will work for current session
+        const errorMessage = storeError?.message || String(storeError);
+        if (errorMessage.includes('User interaction is not allowed') ||
+            errorMessage.includes('setValueWithKeyAsync')) {
+          console.warn(
+            '⚠️ [REFRESH] SecureStore error, but tokens are in memory - refresh still successful',
+            errorMessage
+          );
+          // Return token anyway - it's in memory and will work
+        } else {
+          // Some other error - log but still return token (it's in memory)
+          console.warn('⚠️ [REFRESH] Error storing tokens, but they are in memory:', errorMessage);
+        }
+      }
 
-      console.log('✅ [REFRESH] New tokens stored successfully');
+      // Return the token even if SecureStore failed - it's in memory
       return authResponse.token;
     } catch (error) {
       console.error('❌ [REFRESH] Token refresh failed:', error);
+      
+      // Check if this is a SecureStore error from storing tokens
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const isSecureStoreError = errorMessage.includes('User interaction is not allowed') ||
+        errorMessage.includes('setValueWithKeyAsync');
+
+      if (isSecureStoreError) {
+        // SecureStore error - tokens are in memory, don't clear them
+        console.warn('⚠️ [REFRESH] SecureStore error, but tokens are in memory - not clearing');
+        // Try to get token from memory
+        const tokenFromMemory = tokenManager.getAccessToken();
+        if (tokenFromMemory) {
+          console.log('✅ [REFRESH] Using token from memory');
+          return tokenFromMemory;
+        }
+      }
+
+      // Real auth error - clear tokens and logout
       console.log('🗑️ [REFRESH] Clearing tokens due to refresh failure');
       await tokenManager.clearTokens();
       return null;
@@ -308,16 +345,21 @@ class AuthService {
   }
 
   // Store tokens securely using Expo SecureStore
+  // Note: This won't throw if SecureStore fails - tokens will be in memory
   private async storeTokens(
     accessToken: string,
     refreshToken: string
   ): Promise<void> {
     try {
       // Store tokens using token manager
+      // tokenManager.setTokens() won't throw if SecureStore fails
+      // Tokens will be stored in memory and retried later
       await tokenManager.setTokens(accessToken, refreshToken);
     } catch (error) {
-      console.error('Error storing tokens:', error);
-      throw error;
+      // This should rarely happen now, but if it does, log it
+      // Tokens are still in memory, so we can continue
+      console.error('Error storing tokens (tokens still in memory):', error);
+      // Don't throw - tokens are in memory and will work
     }
   }
 

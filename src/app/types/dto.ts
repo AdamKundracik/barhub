@@ -45,7 +45,7 @@ export interface ClientDTO extends AbstractAuditableEntityDTO {
   premium: boolean;
   role: RoleEnum;
   authType: AuthTypeEnum;
-  pushTokens: string[];
+  pushToken: string | null;
   searchHistory: SearchHistoryItemEmbeddable[];
   tutorialViewed: boolean; // Whether user has completed the tutorial
 }
