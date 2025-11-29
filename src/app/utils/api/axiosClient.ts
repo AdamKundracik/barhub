@@ -4,6 +4,7 @@ import axios, {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from 'axios';
+import { AppState, AppStateStatus } from 'react-native';
 import { API_CONFIG } from '../../config/api';
 import { tokenManager } from './tokenManager';
 
@@ -79,6 +80,19 @@ class AxiosClient {
             originalRequest.url
           );
 
+          // Check if app is in foreground - SecureStore requires user interaction
+          const appState = AppState.currentState;
+          if (appState !== 'active') {
+            console.warn(
+              '⚠️ [AUTH] App not in foreground, skipping token refresh',
+              appState
+            );
+
+            // Return original error - don't logout, just fail the request
+            // User can retry when app comes to foreground
+            return Promise.reject(error);
+          }
+
           // If refresh already running → queue this request
           if (this.isRefreshing) {
             return new Promise((resolve, reject) => {
@@ -119,6 +133,29 @@ class AxiosClient {
               refreshError
             );
 
+            // Check if error is related to SecureStore
+            const errorMessage = refreshError instanceof Error 
+              ? refreshError.message 
+              : String(refreshError);
+            
+            const isSecureStoreError = errorMessage.includes('User interaction is not allowed') ||
+              errorMessage.includes('setValueWithKeyAsync');
+
+            if (isSecureStoreError) {
+              // Don't logout if it's just a SecureStore error - tokens are in memory
+              console.warn(
+                '⚠️ [AUTH] SecureStore error during refresh, but tokens are in memory',
+                errorMessage
+              );
+
+              // Don't logout - tokens are in memory and will work
+              // Just fail this request, user can retry
+              this.processQueue(refreshError);
+              this.isRefreshing = false;
+              return Promise.reject(error);
+            }
+
+            // Real auth error - logout
             this.processQueue(refreshError);
             await tokenManager.clearTokens();
             if (this.onTokenRefreshFailure) this.onTokenRefreshFailure();
