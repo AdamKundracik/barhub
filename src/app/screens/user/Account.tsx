@@ -27,6 +27,7 @@ import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { useUserData } from '@/src/app/hooks/useUserQuery';
 import { AuthTypeEnum } from '@/src/app/types/dto';
+import { useQueryClient } from 'react-query';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import {
   Avatar,
@@ -186,6 +187,7 @@ export const Account = () => {
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { currentPushToken, getUserId } = useUserStore();
+  const queryClient = useQueryClient();
   const { isAdmin, isModerator } = useUserRole();
   const userId = getUserId();
   const { highlights, isLoading: isLoadingHighlights } = useUserHighlights(
@@ -202,6 +204,8 @@ export const Account = () => {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
+      await queryClient.invalidateQueries(['user', 'data']);
+      await queryClient.invalidateQueries(['posts']);
       await refetch();
     } catch (error) {
       console.error('Error refreshing user data:', error);
@@ -389,12 +393,17 @@ export const Account = () => {
               style={[
                 styles.avatarContainer,
                 // Show premium border only if premium UI is enabled and user is premium
-                PremiumHelpers.shouldShowPremiumBorders() && isPremium && styles.premiumBorder,
+                PremiumHelpers.shouldShowPremiumBorders() &&
+                  isPremium &&
+                  styles.premiumBorder,
               ]}
             >
               {photoUrl ? (
                 <AvatarImage
-                  source={{ uri: photoUrl }}
+                  key={`${photoUrl}`}
+                  source={{
+                    uri: `${photoUrl}`,
+                  }}
                   style={styles.avatarImage}
                 />
               ) : (
@@ -609,6 +618,13 @@ export const Account = () => {
                 title={t('blockedUsers.title')}
                 description={t('blockedUsers.description')}
                 onPress={() => navigation.navigate('BlockedUsers')}
+              />
+
+              <ActionButton
+                icon={Icons.FileLines}
+                title="Auth Logs"
+                description="View authentication logs for debugging"
+                onPress={() => navigation.navigate('AuthLogs')}
               />
             </View>
           </View>

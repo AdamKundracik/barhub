@@ -169,11 +169,12 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
       // Update photoUrl in database
       await updatePhotoAsync(uploadedUri);
 
-      // Update cache buster to force image reload
+      // Update cache buster to force image reload on physical devices
       setPhotoCacheBuster(Date.now());
 
       // Invalidate cache and refetch to ensure UI updates
       await queryClient.invalidateQueries(['user', 'data']);
+      await queryClient.invalidateQueries(['posts']);
       await refetch();
 
       showSuccessToast(t('toastPhotoUpdatedTitle'), t('toastPhotoUpdatedDesc'));
@@ -256,6 +257,14 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
       // Use the new delete photo mutation with optimistic updates
       await deletePhotoAsync();
 
+      // Update cache buster to force image reload on physical devices
+      setPhotoCacheBuster(Date.now());
+
+      // Invalidate cache to ensure UI updates
+      await queryClient.invalidateQueries(['user', 'data']);
+      await queryClient.invalidateQueries(['posts']);
+      await refetch();
+
       showSuccessToast(t('toastPhotoDeletedTitle'), t('toastPhotoDeletedDesc'));
     } catch (error) {
       console.error('Error deleting photo:', error);
@@ -327,7 +336,7 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
             >
               {photoUrl ? (
                 <AvatarImage
-                  key={`${photoUrl}-${photoCacheBuster}`} // Force re-render when photoUrl or cache buster changes
+                  key={`edit-avatar-${photoUrl}-${photoCacheBuster}`}
                   source={{
                     uri: `${photoUrl}${photoUrl.includes('?') ? '&' : '?'}t=${photoCacheBuster}`,
                   }}
