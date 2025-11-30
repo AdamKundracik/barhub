@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, Dimensions } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import Device from 'react-native-device-info';
 import { useTranslation } from 'react-i18next';
@@ -17,11 +17,15 @@ interface InteractionBarProps {
   onShare?: () => void;
   isLiked: boolean | undefined;
   occupancy: string;
+  isHighlighted?: boolean;
+  isFiltering?: boolean;
 }
 
 // Constants
 const isTablet = Device.isTablet();
 const ICON_SIZE = isTablet ? 30 : 24;
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const isSmallDevice = SCREEN_WIDTH < 375; // iPhone SE and similar small devices
 
 // Custom hook for occupancy translation
 const useOccupancyTranslation = () => {
@@ -55,6 +59,7 @@ const InteractionButton: React.FC<{
   onPress?: () => void;
   isActive?: boolean;
   activeColor?: string;
+  isCompact?: boolean;
 }> = ({
   icon,
   count,
@@ -62,18 +67,23 @@ const InteractionButton: React.FC<{
   onPress,
   isActive,
   activeColor = 'red',
+  isCompact = false,
 }) => {
   const buttonColor = isActive ? activeColor : color;
+  const textStyle = useMemo(
+    () => [styles.count, isCompact && compactStyles.count],
+    [isCompact]
+  );
 
   if (onPress) {
     return (
-      <TouchableOpacity onPress={onPress} style={styles.iconContainer}>
+      <TouchableOpacity onPress={onPress} style={[styles.iconContainer, isCompact && compactStyles.iconContainer]}>
         <FontAwesomeIcon icon={icon} size={ICON_SIZE} color={buttonColor} />
         <Text 
-          style={styles.count}
+          style={textStyle}
           numberOfLines={2}
           adjustsFontSizeToFit={true}
-          minimumFontScale={0.8}
+          minimumFontScale={0.7}
         >
           {count}
         </Text>
@@ -82,13 +92,13 @@ const InteractionButton: React.FC<{
   }
 
   return (
-    <View style={styles.iconContainer}>
+    <View style={[styles.iconContainer, isCompact && compactStyles.iconContainer]}>
       <FontAwesomeIcon icon={icon} size={ICON_SIZE} color={buttonColor} />
       <Text 
-        style={styles.count}
+        style={textStyle}
         numberOfLines={2}
         adjustsFontSizeToFit={true}
-        minimumFontScale={0.8}
+        minimumFontScale={0.7}
       >
         {count}
       </Text>
@@ -105,6 +115,8 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
   onShare,
   isLiked,
   occupancy,
+  isHighlighted = false,
+  isFiltering = false,
 }) => {
   const { t } = useTranslation();
   const getOccupancyTranslation = useOccupancyTranslation();
@@ -113,14 +125,21 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
     [occupancy, getOccupancyTranslation]
   );
 
-  const containerStyle = useMemo(
-    () => [styles.container, isTablet && tabletStyles.container],
-    []
-  );
+  // Use compact mode when highlighted and filtering (border takes up space)
+  // More aggressive on smaller devices
+  const isCompact = useMemo(() => {
+    if (!isHighlighted || !isFiltering) return false;
+    // Always use compact on very small devices, or on devices < 390px when highlighted+filtered
+    return isSmallDevice || SCREEN_WIDTH < 390;
+  }, [isHighlighted, isFiltering]);
 
-  const countStyle = useMemo(
-    () => [styles.count, isTablet && tabletStyles.count],
-    []
+  const containerStyle = useMemo(
+    () => [
+      styles.container,
+      isTablet && tabletStyles.container,
+      isCompact && compactStyles.container,
+    ],
+    [isCompact]
   );
 
   return (
@@ -130,6 +149,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
         icon={Icons.Group}
         count={occupancyText}
         color="white"
+        isCompact={isCompact}
       />
 
       {/* Like Button */}
@@ -140,6 +160,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
         onPress={onLikeToggle}
         isActive={isLiked}
         activeColor="red"
+        isCompact={isCompact}
       />
 
       {/* Commented out Comments Button - keeping for future use */}
@@ -149,6 +170,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
         count={comments}
         color={primaryColor}
         onPress={onCommentToggle}
+        isCompact={isCompact}
       />
       */}
 
@@ -159,6 +181,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
           count={t('share')}
           color="white"
           onPress={onShare}
+          isCompact={isCompact}
         />
       )}
     </View>
@@ -179,6 +202,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     paddingHorizontal: 4,
+    minHeight: 50,
+    justifyContent: 'center',
   },
   count: {
     fontWeight: 'bold',
@@ -188,6 +213,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     flexWrap: 'wrap',
     lineHeight: 14,
+    paddingHorizontal: 2,
   },
 });
 
@@ -202,12 +228,29 @@ const tabletStyles = StyleSheet.create({
   },
 });
 
+const compactStyles = StyleSheet.create({
+  container: {
+    paddingVertical: 10,
+    paddingBottom: 12,
+  },
+  iconContainer: {
+    paddingHorizontal: 2,
+  },
+  count: {
+    marginTop: 3,
+    fontSize: 10,
+    lineHeight: 12,
+  },
+});
+
 export default React.memo(InteractionBar, (prevProps, nextProps) => {
   return (
     prevProps.likes === nextProps.likes &&
     prevProps.comments === nextProps.comments &&
     prevProps.isLiked === nextProps.isLiked &&
     prevProps.occupancy === nextProps.occupancy &&
-    prevProps.onShare === nextProps.onShare
+    prevProps.onShare === nextProps.onShare &&
+    prevProps.isHighlighted === nextProps.isHighlighted &&
+    prevProps.isFiltering === nextProps.isFiltering
   );
 });

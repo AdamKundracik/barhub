@@ -171,14 +171,14 @@ const UserLineComponent = ({
         if (diffInMinutes < 1) {
           return t('just-now') || 'práve teraz';
         } else if (diffInMinutes < 60) {
-          // Special handling for Spanish - "hace X min" instead of "X min hace"
-          if (i18n.language === 'es') {
+          // Special handling for Spanish, Slovak, and German - "hace/pred/vor X min" instead of "X min hace/dozadu/vor"
+          if (i18n.language === 'es' || i18n.language === 'sk' || i18n.language === 'de') {
             return `${t('ago')} ${diffInMinutes} min`;
           }
           return `${diffInMinutes} min ${t('ago')}`;
         } else {
-          // Special handling for Spanish - "hace Xh" instead of "Xh hace"
-          if (i18n.language === 'es') {
+          // Special handling for Spanish, Slovak, and German - "hace/pred/vor Xh" instead of "Xh hace/dozadu/vor"
+          if (i18n.language === 'es' || i18n.language === 'sk' || i18n.language === 'de') {
             return `${t('ago')} ${diffInHours}h`;
           }
           return `${diffInHours}h ${t('ago')}`;

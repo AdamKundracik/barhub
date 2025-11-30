@@ -446,6 +446,8 @@ const UserPost: React.FC<UserPostProps> = ({
           onShare={handleShare}
           isLiked={liked}
           occupancy={occupancy}
+          isHighlighted={isHighlighted}
+          isFiltering={isFiltering}
         />
       </View>
     </Animated.View>

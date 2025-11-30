@@ -522,6 +522,7 @@
   "hour": "hodinou",
   "hours_2_4": "hodinami",
   "hours_5_plus": "hodinami",
+  "ago": "pred",
   "success": "Úspech",
   "userBlocked": {
     "title": "Účet zablokovaný",

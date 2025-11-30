@@ -123,14 +123,18 @@ class UploadService {
       // Manipulate image (resize, compress, convert to WEBP)
       const manipulatedImage = await this.manipulateImage(uri);
 
+      // Generate timestamp for unique filename
+      const timestamp = Date.now();
+
       // Create FormData
       const formData = new FormData();
 
       // React Native FormData requires object with uri, type, name (not blob)
+      // Include timestamp in filename: userId_timestamp.webp
       formData.append('image', {
         uri: manipulatedImage.uri,
         type: 'image/webp',
-        name: `${userId}.webp`,
+        name: `${userId}_${timestamp}.webp`,
       } as any);
 
       formData.append('userId', userId.toString());
@@ -140,7 +144,7 @@ class UploadService {
 
       console.log('🚀 [PROFILE UPLOAD DEBUG] Starting profile photo upload...');
       console.log('🚀 [PROFILE UPLOAD DEBUG] FormData created with fields:');
-      console.log('  - image: [FILE]', `${userId}.webp`);
+      console.log('  - image: [FILE]', `${userId}_${timestamp}.webp`);
       console.log('  - userId:', userId);
       console.log('  - folderId: profile_photos');
 

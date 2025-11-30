@@ -5,11 +5,12 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Dimensions,
 } from 'react-native';
 import {
   BottomSheetBackdrop,
   BottomSheetModal,
-  BottomSheetView,
+  BottomSheetScrollView,
 } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -39,6 +40,13 @@ export const BlockUserModal = ({
   const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [loading, setLoading] = useState(false);
+  
+  // Get screen height for responsive snap points
+  const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+  const isSmallDevice = SCREEN_HEIGHT < 700;
+  
+  // Calculate dynamic snap points based on device size
+  const snapPoints = isSmallDevice ? ['75%'] : ['60%'];
 
   useEffect(() => {
     if (visible) {
@@ -89,14 +97,21 @@ export const BlockUserModal = ({
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
-      snapPoints={['60%']}
+      snapPoints={snapPoints}
       backdropComponent={renderBackdrop}
       onDismiss={onClose}
       backgroundStyle={styles.container}
       handleIndicatorStyle={styles.handleIndicator}
       enablePanDownToClose
+      android_keyboardInputMode="adjustResize"
+      keyboardBehavior="extend"
+      keyboardBlurBehavior="restore"
     >
-      <BottomSheetView style={styles.content}>
+      <BottomSheetScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.iconContainer}>
           <FontAwesomeIcon
             icon={isBlocked ? Icons.CheckCircle : Icons.Ban}
@@ -136,7 +151,7 @@ export const BlockUserModal = ({
             </Text>
           </TouchableOpacity>
         </View>
-      </BottomSheetView>
+      </BottomSheetScrollView>
     </BottomSheetModal>
   );
 };
@@ -150,7 +165,9 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 24,
     paddingVertical: 20,
+    paddingBottom: 40, // Extra padding for small devices
     alignItems: 'center',
+    flexGrow: 1,
   },
   iconContainer: {
     width: 64,
@@ -175,6 +192,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 32,
     paddingHorizontal: 8,
+    flexShrink: 1,
   },
   buttonContainer: {
     width: '100%',

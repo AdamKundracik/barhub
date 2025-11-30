@@ -620,12 +620,6 @@ export const Account = () => {
                 onPress={() => navigation.navigate('BlockedUsers')}
               />
 
-              <ActionButton
-                icon={Icons.FileLines}
-                title="Auth Logs"
-                description="View authentication logs for debugging"
-                onPress={() => navigation.navigate('AuthLogs')}
-              />
             </View>
           </View>
         </BlurView>

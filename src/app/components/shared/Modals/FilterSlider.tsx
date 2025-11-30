@@ -5,14 +5,13 @@ import {
   StyleSheet,
   Switch,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
-  BottomSheetFooter,
-  BottomSheetFooterProps,
   BottomSheetModal,
 } from '@gorhom/bottom-sheet';
 import {
@@ -23,13 +22,11 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '@/src/app/utils/types/screen-types';
 import { useFiltersStore } from '@/src/app/utils/store/filtersStorage';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
-import Button from '@/src/app/components/shared/Button';
 import { primaryColor } from '@/src/app/utils/styles/colors';
 import Slider from '@react-native-community/slider';
 import MultiSelectPlaceChips from '@/src/app/components/user/NewsFeed/Filters/MultiSelectPlaceChips';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNewsFeedData } from '@/src/app/utils/hooks/NewsFeed/usePostData';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { PremiumHelpers } from '@/src/app/config/premiumConfig';
@@ -55,7 +52,6 @@ export const OCCUPANCY_TYPES: OccupancyTypes[] = [
 
 const FilterSlider = () => {
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 
@@ -199,25 +195,6 @@ const FilterSlider = () => {
     []
   );
 
-  const renderFooter = useCallback(
-    (props: BottomSheetFooterProps) => (
-      <BottomSheetFooter
-        {...props}
-        style={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
-        bottomInset={insets.bottom + 20}
-      >
-        <View style={styles.footerContainer}>
-          <Button
-            color={primaryColor}
-            text={t('save-changes')}
-            clickFuntion={handleSaveChanges}
-          />
-        </View>
-      </BottomSheetFooter>
-    ),
-    [handleSaveChanges, t]
-  );
-
   return (
     <BottomSheet
       backgroundStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
@@ -226,110 +203,142 @@ const FilterSlider = () => {
       snapPoints={['100%', '90%']}
       index={-1}
       backdropComponent={renderBackdrop}
-      footerComponent={renderFooter}
-      handleHeight={60}
+      handleHeight={50}
       enablePanDownToClose
-      handleIndicatorStyle={{
-        backgroundColor: 'white',
-        width: '10%',
-        margin: 5,
-      }}
-      handleStyle={{ padding: 10 }}
+      handleIndicatorStyle={styles.handleIndicator}
+      handleStyle={styles.handleStyle}
     >
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View>
-          <Text style={styles.title}>{t('filters')}</Text>
-        </View>
+      <View style={styles.container}>
+        {/* Save button in top right corner */}
+        <TouchableOpacity onPress={handleSaveChanges} style={styles.saveButton}>
+          <Text style={styles.saveButtonText}>{t('save')}</Text>
+        </TouchableOpacity>
 
-        <View style={styles.section}>
-          <View style={styles.distanceHeader}>
-            <Text style={styles.sectionTitle}>{t('distance')}</Text>
-            <Text style={styles.sectionTitle}>{tempDistance} km</Text>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View>
+            <Text style={styles.title}>{t('filters')}</Text>
           </View>
-          <Slider
-            style={styles.slider}
-            minimumTrackTintColor={primaryColor}
-            value={tempDistance}
-            minimumValue={1}
-            maximumValue={30}
-            onValueChange={value => setTempDistance(Number(value.toFixed(0)))}
-          />
-        </View>
 
-        <View style={styles.section}>
-          <MultiSelectPlaceChips
-            onSelectionChange={handleSelectionChange}
-            initialSelected={tempSelectedPlaces}
-            initialOccupancy={tempSelectedOccupancy}
-          />
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.fakeLocationHeader}>
-            <Text style={styles.sectionTitle}>
-              {t('show-highlighted-posts') || 'Show highlighted posts'}
-            </Text>
-            <Switch
-              value={storeShowHighlightedPosts}
-              onValueChange={setShowHighlightedPosts}
-              disabled={isRefetching}
-            />
-          </View>
-        </View>
-
-        <View style={styles.fakeLocationSection}>
-          <View style={styles.fakeLocationHeader}>
-            <Text style={styles.sectionTitle}>{t('use-travel-mode')}</Text>
-            <Switch
-              value={useFakeLocation}
-              onValueChange={handleFakeLocationToggle}
-              disabled={isRefetching}
+          <View style={styles.section}>
+            <View style={styles.distanceHeader}>
+              <Text style={styles.sectionTitle}>{t('distance')}</Text>
+              <Text style={styles.sectionTitle}>{tempDistance} km</Text>
+            </View>
+            <Slider
+              style={styles.slider}
+              minimumTrackTintColor={primaryColor}
+              value={tempDistance}
+              minimumValue={1}
+              maximumValue={30}
+              onValueChange={value => setTempDistance(Number(value.toFixed(0)))}
             />
           </View>
 
-          <Pressable
-            disabled={!useFakeLocation}
-            onPress={() => navigation.navigate('SelectFakeLocation')}
-            style={[
-              styles.fakeLocationButton,
-              {
-                backgroundColor: useFakeLocation ? '#222' : '#444',
-                opacity: useFakeLocation ? 1 : 0.5,
-              },
-            ]}
-          >
-            <View style={styles.fakeLocationButtonContent}>
-              <Text
-                style={styles.fakeLocationButtonText}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {useFakeLocation
-                  ? fakeLocationName || t('select-city')
-                  : t('Selected-location')}
+          <View style={styles.section}>
+            <MultiSelectPlaceChips
+              onSelectionChange={handleSelectionChange}
+              initialSelected={tempSelectedPlaces}
+              initialOccupancy={tempSelectedOccupancy}
+            />
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.fakeLocationHeader}>
+              <Text style={styles.sectionTitle}>
+                {t('show-highlighted-posts') || 'Show highlighted posts'}
               </Text>
-              <FontAwesomeIcon
-                icon={Icons.ChevronRight}
-                color={'white'}
-                size={14}
-                style={styles.icon}
+              <Switch
+                value={storeShowHighlightedPosts}
+                onValueChange={setShowHighlightedPosts}
+                disabled={isRefetching}
               />
             </View>
-          </Pressable>
-        </View>
-      </ScrollView>
+          </View>
+
+          <View style={styles.fakeLocationSection}>
+            <View style={styles.fakeLocationHeader}>
+              <Text style={styles.sectionTitle}>{t('use-travel-mode')}</Text>
+              <Switch
+                value={useFakeLocation}
+                onValueChange={handleFakeLocationToggle}
+                disabled={isRefetching}
+              />
+            </View>
+
+            <Pressable
+              disabled={!useFakeLocation}
+              onPress={() => navigation.navigate('SelectFakeLocation')}
+              style={[
+                styles.fakeLocationButton,
+                {
+                  backgroundColor: useFakeLocation ? '#222' : '#444',
+                  opacity: useFakeLocation ? 1 : 0.5,
+                },
+              ]}
+            >
+              <View style={styles.fakeLocationButtonContent}>
+                <Text
+                  style={styles.fakeLocationButtonText}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {useFakeLocation
+                    ? fakeLocationName || t('select-city')
+                    : t('Selected-location')}
+                </Text>
+                <FontAwesomeIcon
+                  icon={Icons.ChevronRight}
+                  color={'white'}
+                  size={14}
+                  style={styles.icon}
+                />
+              </View>
+            </Pressable>
+          </View>
+        </ScrollView>
+      </View>
     </BottomSheet>
   );
 };
 
 const styles = StyleSheet.create({
+  handleIndicator: {
+    backgroundColor: '#444',
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    alignSelf: 'center',
+  },
+  handleStyle: {
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
+  container: {
+    flex: 1,
+    position: 'relative',
+  },
+  saveButton: {
+    position: 'absolute',
+    top: 10,
+    right: 15,
+    zIndex: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  saveButtonText: {
+    color: primaryColor,
+    fontSize: 17,
+    fontWeight: '600',
+  },
   content: {
     paddingHorizontal: 15,
     paddingBottom: 150,
+    paddingTop: 50, // Space for save button
   },
   section: {
     marginVertical: 10,
@@ -344,12 +353,6 @@ const styles = StyleSheet.create({
   },
   slider: {
     paddingVertical: 10,
-  },
-  footerContainer: {
-    padding: 12,
-    margin: 12,
-    alignSelf: 'center',
-    backgroundColor: 'rgba(0,0,0,0.8)',
   },
   title: {
     color: 'white',
