@@ -34,7 +34,11 @@ export const useRegisterForm = (t: (key: string, options?: any) => string) => {
     username: '',
     password: '',
     repeatPassword: '',
-    dateOfBirth: new Date(2000, 0, 1),
+    dateOfBirth: (() => {
+      const date = new Date();
+      date.setFullYear(date.getFullYear() - 13);
+      return date;
+    })(),
     acceptsTermsOfUse: false,
     acceptsPrivacyPolicy: false,
     acceptsCommunityGuidelines: false,

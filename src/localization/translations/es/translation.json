@@ -259,6 +259,14 @@
   "notification-processing-error": "notification-processing-error",
   "cancel": "Cancelar",
   "share": "Compartir",
+  "locationRequired": {
+    "title": "Ubicación requerida",
+    "subtitle": "No hay publicaciones disponibles porque la ubicación está deshabilitada",
+    "descriptionWithButton": "Para mostrarte publicaciones de bares y locales cerca de ti, necesitamos acceso a tu ubicación. Esto nos ayuda a mostrarte contenido relevante en tu área.",
+    "descriptionSettings": "Para ver publicaciones de bares y locales cerca de ti, por favor habilita el acceso a la ubicación en la configuración de tu dispositivo. El permiso de ubicación es necesario para la funcionalidad principal de la aplicación.",
+    "allowLocation": "Permitir acceso a ubicación",
+    "requesting": "Solicitando..."
+  },
   "permissions": {
     "title": "Permisos Requeridos",
     "location": "Acceso a Ubicación",
@@ -270,6 +278,7 @@
     "notificationDesc": "Para recibir me gusta, actualizaciones y solicitudes de fotos de otros usuarios cuando estés en lugares interesantes.",
     "tracking": "Permiso de Seguimiento",
     "trackingDesc": "Para darte mejores recomendaciones de lugares basadas en tus gustos y preferencias personales.",
+    "locationRequiredForPosts": "Se requiere permiso de ubicación para mostrar publicaciones. Por favor, habilite el acceso a la ubicación en la configuración de su dispositivo para ver publicaciones cerca de usted.",
     "grantAccess": "Conceder Acceso",
     "allGranted": "¡Todos los permisos concedidos! ✨",
     "tapToGrant": "Toca para conceder permiso",
@@ -433,7 +442,9 @@
   "yearly": "Año",
   "camera": {
     "fakeLocationBlocked": "No se puede abrir la cámara con modo de viaje",
-    "waitBeforeNextUpload": "Espere {{time}}s antes de subir otra foto"
+    "waitBeforeNextUpload": "Espere {{time}}s antes de subir otra foto",
+    "permissionDeniedTitle": "Acceso a la cámara requerido",
+    "permissionDeniedMessage": "Para tomar fotos y compartir tus experiencias, necesitamos acceso a tu cámara. Por favor, habilita el permiso de la cámara en la configuración de tu dispositivo para usar esta función."
   },
   "no-available-places": "No hay lugares disponibles en tu área de 30m",
   "photo-resolver-no-places-subtitle": "Intenta moverte a una ubicación diferente",
@@ -610,7 +621,8 @@
     },
     "feed": {
       "title": "Descubre bares",
-      "description": "Navega por publicaciones de otros usuarios para descubrir bares, restaurantes y vida nocturna increíbles en tu área."
+      "description": "Navega por publicaciones de otros usuarios para descubrir bares, restaurantes y vida nocturna increíbles en tu área.",
+      "locationRequiredMessage": "Se requiere permiso de ubicación para mostrar publicaciones. Por favor, habilite el acceso a la ubicación en la configuración de su dispositivo para ver publicaciones cerca de usted."
     },
     "posts": {
       "title": "Comparte la ocupación actual",

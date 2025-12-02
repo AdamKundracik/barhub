@@ -10,8 +10,6 @@ export type UserStackList = {
 
   PhotoResolver: { image: string };
 
-  Subscription: undefined;
-
   PlaceSearch: undefined;
 
   Help: undefined;

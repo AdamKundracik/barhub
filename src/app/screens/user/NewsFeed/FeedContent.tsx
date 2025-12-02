@@ -3,7 +3,9 @@ import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import PostsList from '../../../components/user/NewsFeed/PostList';
 import PostLoaderView from '../../../components/user/NewsFeed/Post/Loaders/PostLoaderView';
 import EmptyState from '../../../components/user/NewsFeed/EmptyState';
+import LocationRequiredState from '../../../components/user/NewsFeed/LocationRequiredState';
 import { primaryColor } from '../../../utils/styles/colors';
+import { usePermissionsContext } from '../../../providers/PermissionsProvider';
 
 interface FeedContentProps {
   isLoading: boolean;
@@ -39,11 +41,41 @@ export const FeedContent: React.FC<FeedContentProps> = ({
   isFetchingNextPage,
   fetchMorePosts,
 }) => {
+  const { permissions } = usePermissionsContext();
+
+  // Debug log
+  console.log('[FeedContent] Current permissions:', permissions);
+  console.log('[FeedContent] Has geolocation:', permissions.geolocation);
+  console.log('[FeedContent] Posts count:', posts?.length);
+
   if (isLoading) {
     return <PostLoaderView />;
   }
 
+  // If no location permission, show location required state
+  if (!permissions.geolocation) {
+    console.log('[FeedContent] Showing LocationRequiredState');
+    return (
+      <ScrollView
+        contentContainerStyle={styles.scrollViewContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={onRefresh}
+            tintColor={primaryColor}
+            colors={[primaryColor]}
+          />
+        }
+      >
+        <LocationRequiredState requestPhoto={requestPhoto} />
+      </ScrollView>
+    );
+  }
+
+  // If we have location permission and posts, show the list
   if (posts?.length > 0) {
+    console.log('[FeedContent] Showing PostsList');
     return (
       <PostsList
         hasMorePosts={hasNextPage}
@@ -63,23 +95,23 @@ export const FeedContent: React.FC<FeedContentProps> = ({
     );
   }
 
+  // If we have location permission but no posts, show empty state
+  console.log('[FeedContent] Showing EmptyState');
   return (
-    <>
-      <ScrollView
-        contentContainerStyle={styles.scrollViewContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefetching}
-            onRefresh={onRefresh}
-            tintColor={primaryColor}
-            colors={[primaryColor]}
-          />
-        }
-      >
-        <EmptyState requestPhoto={requestPhoto} />
-      </ScrollView>
-    </>
+    <ScrollView
+      contentContainerStyle={styles.scrollViewContent}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefetching}
+          onRefresh={onRefresh}
+          tintColor={primaryColor}
+          colors={[primaryColor]}
+        />
+      }
+    >
+      <EmptyState requestPhoto={requestPhoto} />
+    </ScrollView>
   );
 };
 

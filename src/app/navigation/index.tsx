@@ -144,10 +144,18 @@ export const Navigation = () => {
   useEffect(() => {
     switch (appState) {
       case 'active':
+        console.log('[Navigation] App became active, checking permissions...');
         checkAllPermissions();
         break;
     }
-  }, [appState]);
+  }, [appState, checkAllPermissions]);
+
+  // Always check permissions when app starts, even if none are required
+  useEffect(() => {
+    if (isAppInitialized && !isAuthLoading && !isNetworkLoading) {
+      checkAllPermissions();
+    }
+  }, [isAppInitialized, isAuthLoading, isNetworkLoading]); // Removed checkAllPermissions from deps
 
   if (!isAppInitialized || isNetworkLoading || isAuthLoading) {
     return <Loading />;

@@ -66,6 +66,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Auth Provider Component
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticatedState, setIsAuthenticatedState] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(true);
   const [pendingConsents, setPendingConsents] = useState<
     OutdatedConsentDTO[] | null
@@ -167,8 +168,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Initialize auth service
       await authService.initialize();
 
-      // Check if user is authenticated
+      // Check if user is authenticated based on token (not user state)
       const isAuth = await authService.isAuthenticated();
+      setIsAuthenticatedState(isAuth);
 
       if (isAuth) {
         // Try to get cached user data first for instant UI
@@ -181,6 +183,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
 
         // Then fetch fresh user data from server and load additional data in background
+        // If this fails, token is still valid, so we don't logout - just retry later
         userData = await authService.getCurrentUser();
         if (userData) {
           setUser(userData);
@@ -194,12 +197,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             console.error('AuthProvider: Background operations error:', error);
           });
         }
+        // If userData is null but token is valid, keep isAuthenticatedState = true
+        // User data will be fetched on next refresh or when needed
       } else {
         setUser(null);
+        setIsAuthenticatedState(false);
       }
     } catch (error) {
       console.error('AuthProvider: Initialization error:', error);
       setUser(null);
+      setIsAuthenticatedState(false);
     } finally {
       // Only set loading to false if we haven't already done so above
       if (isInitializingRef.current) {
@@ -248,10 +255,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setPendingConsents(authResponse.consentStatus.outdatedConsents);
       }
 
-      // Get user data
+      // Verify we have valid token (primary check)
+      const isAuth = await authService.isAuthenticated();
+      setIsAuthenticatedState(isAuth);
+      
+      if (!isAuth) {
+        throw new Error('Authentication failed after login');
+      }
+
+      // Get user data (if this fails, token is still valid - just retry later)
       const userData = await authService.getCurrentUser();
       if (userData) {
         setUser(userData);
+
         // Load extended user data and populate stores
         await loadUserData(userData);
 
@@ -260,9 +276,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         // Save current location to backend immediately after login
         await saveCurrentLocationToBackend(userData.id.toString());
-      } else {
-        throw new Error('Failed to get user data after login');
       }
+      // If userData is null, token is still valid - user data will be fetched on refresh
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -277,10 +292,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Register and get tokens
       await authService.register(credentials);
 
-      // Get user data
+      // Verify we have valid token (primary check)
+      const isAuth = await authService.isAuthenticated();
+      setIsAuthenticatedState(isAuth);
+      
+      if (!isAuth) {
+        throw new Error('Authentication failed after registration');
+      }
+
+      // Get user data (if this fails, token is still valid - just retry later)
       const userData = await authService.getCurrentUser();
       if (userData) {
         setUser(userData);
+
         // Load extended user data and populate stores
         await loadUserData(userData);
 
@@ -289,11 +313,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         // Save current location to backend immediately after registration
         await saveCurrentLocationToBackend(userData.id.toString());
-      } else {
-        throw new Error('Failed to get user data after registration');
       }
+      // If userData is null, token is still valid - user data will be fetched on refresh
     } catch (error) {
       console.error('Registration error:', error);
+      setIsAuthenticatedState(false);
       throw error;
     } finally {
       setIsLoading(false);
@@ -309,10 +333,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Register with photo and get tokens
       await authService.registerWithPhoto(credentials, photoUri);
 
-      // Get user data
+      // Verify we have valid token (primary check)
+      const isAuth = await authService.isAuthenticated();
+      setIsAuthenticatedState(isAuth);
+      
+      if (!isAuth) {
+        throw new Error('Authentication failed after registration');
+      }
+
+      // Get user data (if this fails, token is still valid - just retry later)
       const userData = await authService.getCurrentUser();
       if (userData) {
         setUser(userData);
+
         // Load extended user data and populate stores
         await loadUserData(userData);
 
@@ -321,11 +354,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         // Save current location to backend immediately after registration
         await saveCurrentLocationToBackend(userData.id.toString());
-      } else {
-        throw new Error('Failed to get user data after registration');
       }
+      // If userData is null, token is still valid - user data will be fetched on refresh
     } catch (error) {
       console.error('Registration with photo error:', error);
+      setIsAuthenticatedState(false);
       throw error;
     } finally {
       setIsLoading(false);
@@ -353,6 +386,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Logout and clear tokens
       await authService.logout();
       setUser(null);
+      setIsAuthenticatedState(false);
 
       // Clear stores
       setUserData(null);
@@ -413,14 +447,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Store tokens and user data
       await authService.handleSocialAuthResponse(authResponse);
 
-      // Set user and load data
+      // Verify we have valid token (primary check)
+      const isAuth = await authService.isAuthenticated();
+      setIsAuthenticatedState(isAuth);
+      
+      if (!isAuth) {
+        throw new Error('Authentication failed after Google sign-in');
+      }
+
+      // Set user and load data (user data from response is just cache)
       if (authResponse.user) {
         setUser(authResponse.user);
         await loadUserData(authResponse.user);
         await pushTokenService.initialize(authResponse.user.id.toString());
         await saveCurrentLocationToBackend(authResponse.user.id.toString());
+      } else {
+        // If no user in response, fetch it (token is valid)
+        const userData = await authService.getCurrentUser();
+        if (userData) {
+          setUser(userData);
+          await loadUserData(userData);
+          await pushTokenService.initialize(userData.id.toString());
+          await saveCurrentLocationToBackend(userData.id.toString());
+        }
       }
     } catch (error: any) {
+      setIsAuthenticatedState(false);
       throw error;
     } finally {
       setIsLoading(false);
@@ -464,14 +516,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Store tokens and user data
       await authService.handleSocialAuthResponse(authResponse);
 
-      // Set user and load data
+      // Verify we have valid token (primary check)
+      const isAuth = await authService.isAuthenticated();
+      setIsAuthenticatedState(isAuth);
+      
+      if (!isAuth) {
+        throw new Error('Authentication failed after Apple sign-in');
+      }
+
+      // Set user and load data (user data from response is just cache)
       if (authResponse.user) {
         setUser(authResponse.user);
         await loadUserData(authResponse.user);
         await pushTokenService.initialize(authResponse.user.id.toString());
         await saveCurrentLocationToBackend(authResponse.user.id.toString());
+      } else {
+        // If no user in response, fetch it (token is valid)
+        const userData = await authService.getCurrentUser();
+        if (userData) {
+          setUser(userData);
+          await loadUserData(userData);
+          await pushTokenService.initialize(userData.id.toString());
+          await saveCurrentLocationToBackend(userData.id.toString());
+        }
       }
     } catch (error: any) {
+      setIsAuthenticatedState(false);
       throw error;
     } finally {
       setIsLoading(false);
@@ -480,19 +550,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const refreshUser = async () => {
     try {
+      // Check if still authenticated (based on token)
+      const isAuth = await authService.isAuthenticated();
+      setIsAuthenticatedState(isAuth);
+      
+      if (!isAuth) {
+        setUser(null);
+        return;
+      }
+
+      // If authenticated, try to get user data (if fails, token is still valid)
       const userData = await authService.getCurrentUser();
       if (userData) {
         setUser(userData);
         await loadUserData(userData);
       }
+      // If userData is null but token is valid, keep isAuthenticatedState = true
+      // User data will be fetched on next refresh
     } catch (error) {
       console.error('AuthProvider: Refresh user error:', error);
+      // On error, check if still authenticated
+      const isAuth = await authService.isAuthenticated();
+      setIsAuthenticatedState(isAuth);
+      if (!isAuth) {
+        setUser(null);
+      }
     }
   };
 
   const contextValue: AuthContextType = {
     user,
-    isAuthenticated: !!user,
+    isAuthenticated: isAuthenticatedState, // Based on token, not just user state
     isLoading,
     login,
     register,

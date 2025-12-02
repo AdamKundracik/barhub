@@ -164,17 +164,7 @@ const FilterSlider = () => {
   );
 
   async function handleFakeLocationToggle(value: boolean) {
-    // Check if fake location should be gated behind premium
-    if (
-      PremiumHelpers.shouldGateFakeLocation() &&
-      !isPremium() &&
-      !hasAdminAccess
-    ) {
-      navigation.navigate('Subscription');
-      return;
-    }
-
-    // Allow toggle for all users (when premium is disabled) or premium/admin users
+    // Premium/subscription features are disabled - allow toggle for all users
     setUseFakeLocation(value);
 
     // If enabling travel mode, try to load saved place from AsyncStorage

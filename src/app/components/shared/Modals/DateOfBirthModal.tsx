@@ -30,10 +30,10 @@ export const DateOfBirthModal: React.FC<DateOfBirthModalProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  // Default date: 18 years ago
+  // Default date: 13 years ago
   const getDefaultDate = () => {
     const date = new Date();
-    date.setFullYear(date.getFullYear() - 18);
+    date.setFullYear(date.getFullYear() - 13);
     return date;
   };
 

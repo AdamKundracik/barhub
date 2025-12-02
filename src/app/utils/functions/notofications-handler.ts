@@ -31,10 +31,10 @@ export async function registerForPushNotificationsAsync() {
     const { status } = await Notifications.requestPermissionsAsync();
     finalStatus = status;
   }
+  // Push notifications are optional per Apple guidelines 4.5.4
+  // Don't throw error if permission is denied - app should function without it
   if (finalStatus !== 'granted') {
-    handleRegistrationError(
-      'Permission not granted to get push token for push notification!'
-    );
+    console.log('Push notification permission denied - continuing without notifications');
     return;
   }
   const projectId =

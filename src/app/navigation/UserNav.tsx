@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import PhotoResolver from '../screens/user/Post/PhotoResolver';
-import Subscription from '../screens/user/Subscription';
 import Info from '../screens/user/Info/Info';
 import PostSummary from '../screens/user/Post/PostSummary';
 import PostDetail from '../screens/user/Post/PostDetail';
@@ -48,7 +47,6 @@ export function UserNav() {
 
       {/* Extra screens mimo tabs */}
       <RootStack.Screen name="PhotoResolver" component={PhotoResolver} />
-      <RootStack.Screen name="Subscription" component={Subscription} />
       <RootStack.Screen name="PostSummary" component={PostSummary} />
       <RootStack.Screen name="PostDetail" component={PostDetail} />
       <RootStack.Screen name="UserDetail" component={UserDetail} />

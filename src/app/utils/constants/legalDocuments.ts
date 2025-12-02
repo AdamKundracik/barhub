@@ -6,40 +6,49 @@ export const getLegalDocumentContent = (
 
   switch (type) {
     case 'TERMS_OF_SERVICE':
-      return `TERMS OF SERVICE${version ? ` - Version ${version}` : ''}
+      return `TERMS OF SERVICE & EULA${version ? ` - Version ${version}` : ''}
 
-Last Updated: ${date}
+Last Updated: December 02, 2025
 
-1. ACCEPTANCE OF TERMS
-By creating an account or accessing Barhub ("the App"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree, please do not use the App. These Terms constitute a legally binding agreement between you and Barhub (operated by Adam Kundracik, "we," "us," or "our").
+1. ACKNOWLEDGEMENT
+This End User License Agreement ("Agreement") is between you ("End-User") and Barhub (operated by Adam Kundracik, "we," "us," or "our"), not with Apple. We are solely responsible for the App and its content. Your use of the App must comply with the Apple Media Services Terms and Conditions.
 
-2. ELIGIBILITY & AGE RESTRICTION
-- You must be at least 18 years old to use Barhub. By using the App, you represent and warrant that you are 18 or older.
+2. SCOPE OF LICENSE
+You are granted a non-transferable, non-exclusive license to use the App on any Apple-branded Products that you own or control and as permitted by the Usage Rules set forth in the Apple Media Services Terms and Conditions, except that such Licensed Application may be accessed and used by other accounts associated with the purchaser via Family Sharing or volume purchasing.
+
+3. ELIGIBILITY & AGE RESTRICTION
+- You must be at least 13 years old to use Barhub. By using the App, you represent and warrant that you are 13 or older.
 - The App is intended for social discovery of nightlife venues. We do not encourage excessive alcohol consumption or illegal activities.
 
-3. USER ACCOUNTS
+4. USER ACCOUNTS
 - You are responsible for maintaining the confidentiality of your login credentials.
 - You agree to provide accurate, current, and complete information during registration.
 - You are solely responsible for all activities that occur under your account.
 - We reserve the right to disable any account if we suspect a violation of these Terms.
 
-4. APP FUNCTIONALITY & LOCATION SERVICES
+5. APP FUNCTIONALITY & LOCATION SERVICES
 - **Location Tracking:** Barhub requires access to your device's location (foreground and/or background) to function. This enables features like the "Radius" feed, "Travel Mode," and location-based notifications.
 - **Photo Requests:** Users may request real-time photos from venues. By responding, you agree to share your current location and photo with the community.
 - **Leaderboard:** Points earned on the leaderboard have no monetary value and cannot be exchanged for cash or goods. We reserve the right to reset or modify the points system at any time.
 
-5. USER CONTENT & LICENSE
+6. USER CONTENT & LICENSE
 - **Ownership:** You retain ownership of the photos, text, and other content ("User Content") you post.
 - **License to Us:** By posting User Content, you grant Barhub a non-exclusive, worldwide, royalty-free, sublicensable, and transferable license to use, reproduce, modify, display, and distribute your User Content in connection with the App and our business (including marketing).
 - **Responsibility:** You are solely responsible for your User Content. You must not post content that is illegal, offensive, violates third-party rights, or includes sensitive personal information of others without consent.
 
-6. PREMIUM SERVICES & PAYMENTS
-- **Subscriptions:** We may offer premium features (e.g., "Travel Mode", "Highlight Post") via subscription or one-time purchase.
-- **Billing:** Payments are processed through the Apple App Store or Google Play Store. You agree to their respective terms and conditions.
-- **Auto-Renewal:** Subscriptions automatically renew unless canceled at least 24 hours before the end of the current period.
-- **Refunds:** Refunds are subject to the policies of Apple or Google. We do not issue refunds directly.
+7. MAINTENANCE & SUPPORT
+We are solely responsible for providing any maintenance and support services with respect to the App, as specified in this Agreement, or as required under applicable law. Apple has no obligation whatsoever to furnish any maintenance and support services with respect to the App.
 
-7. PROHIBITED CONDUCT
+8. WARRANTY
+We are solely responsible for any product warranties, whether express or implied by law, to the extent not effectively disclaimed. In the event of any failure of the App to conform to any applicable warranty, you may notify Apple, and Apple will refund the purchase price for the App to you. To the maximum extent permitted by applicable law, Apple will have no other warranty obligation whatsoever with respect to the App, and any other claims, losses, liabilities, damages, costs or expenses attributable to any failure to conform to any warranty will be our sole responsibility.
+
+9. PRODUCT CLAIMS
+We, not Apple, are responsible for addressing any claims of the End-User or any third party relating to the App or your possession and/or use of the App, including, but not limited to: (i) product liability claims; (ii) any claim that the App fails to conform to any applicable legal or regulatory requirement; and (iii) claims arising under consumer protection, privacy, or similar legislation.
+
+10. INTELLECTUAL PROPERTY RIGHTS
+In the event of any third party claim that the App or your possession and use of the App infringes that third party’s intellectual property rights, we, not Apple, will be solely responsible for the investigation, defense, settlement and discharge of any such intellectual property infringement claim.
+
+11. PROHIBITED CONDUCT
 You agree not to:
 - Use the App for any illegal purpose.
 - Harass, bully, or intimidate other users.
@@ -48,20 +57,32 @@ You agree not to:
 - Impersonate others or spoof your location.
 - Attempt to reverse engineer or hack the App.
 
-8. DISCLAIMERS & LIMITATION OF LIABILITY
+12. LEGAL COMPLIANCE
+You represent and warrant that (i) you are not located in a country that is subject to a U.S. Government embargo, or that has been designated by the U.S. Government as a “terrorist supporting” country; and (ii) you are not listed on any U.S. Government list of prohibited or restricted parties.
+
+13. DISCLAIMERS & LIMITATION OF LIABILITY
 - **"As Is" Basis:** The App is provided on an "as is" and "as available" basis without warranties of any kind.
 - **Venue Safety:** Barhub is a platform for information sharing. We do not control or vet the venues listed. We are not responsible for the safety, quality, or legality of any venue or event.
 - **User Interactions:** We are not responsible for your interactions with other users. Use caution and common sense.
-- **Liability Cap:** To the maximum extent permitted by law, Barhub's liability shall be limited to the amount you paid us in the last 12 months, or €50, whichever is greater.
+- **Liability Cap:** To the maximum extent permitted by law, our liability shall be limited to €50. The EULA may not limit our liability to you beyond what is permitted by applicable law.
 
-9. TERMINATION
+14. THIRD PARTY TERMS OF AGREEMENT
+You must comply with applicable third party terms of agreement when using the App (e.g., if you have a VoIP application, then you must not be in violation of their wireless data service agreement when using the App).
+
+15. THIRD PARTY BENEFICIARY
+Apple, and Apple’s subsidiaries, are third party beneficiaries of this Agreement. Upon your acceptance of this Agreement, Apple will have the right (and will be deemed to have accepted the right) to enforce this Agreement against you as a third party beneficiary thereof.
+
+16. TERMINATION
 We may terminate or suspend your access to the App immediately, without prior notice or liability, for any reason, including breach of these Terms.
 
-10. GOVERNING LAW
+17. GOVERNING LAW
 These Terms shall be governed by and construed in accordance with the laws of Slovakia, without regard to its conflict of law provisions.
 
-11. CONTACT
-For questions about these Terms, please contact us via the App support.`;
+18. DEVELOPER NAME & CONTACT
+For questions, complaints or claims with respect to the App, please contact us:
+Developer: Adam Kundracik
+Address: Slovakia
+Email: support@barhubapp.com`;
 
     case 'PRIVACY_POLICY':
       return `PRIVACY POLICY FOR BARHUB APP${version ? ` - Version ${version}` : ''}

@@ -9,7 +9,6 @@ import {
 
 import { Navigation } from './src/app/navigation';
 import { AuthProvider } from './src/app/providers/AuthProvider';
-import { RevenueCatProvider } from './src/app/providers/RevenueCatProvider';
 import { PermissionsProvider } from './src/app/providers/PermissionsProvider';
 import { AppStateProvider } from './src/app/providers/AppStateProvider';
 import { NetworkProvider } from './src/app/providers/NetworkProvider';
@@ -43,11 +42,9 @@ export default function App() {
                 <NetworkProvider>
                   <AppStateProvider>
                     <PermissionsProvider>
-                      <RevenueCatProvider>
-                        <BottomSheetModalProvider>
-                          <Navigation />
-                        </BottomSheetModalProvider>
-                      </RevenueCatProvider>
+                      <BottomSheetModalProvider>
+                        <Navigation />
+                      </BottomSheetModalProvider>
                     </PermissionsProvider>
                   </AppStateProvider>
                 </NetworkProvider>

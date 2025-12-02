@@ -74,14 +74,6 @@ export const Layout = ({ children, showTopBar = true }: LayoutProps) => {
             <TouchableOpacity onPress={toggleFilter}>
               <FontAwesomeIcon icon={Icons.Sliders} color={'white'} size={22} />
             </TouchableOpacity>
-            {/* Subscription Button - only show if premium features are enabled */}
-            {PremiumHelpers.shouldShowSubscriptionButton() && (
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Subscription')}
-              >
-                <FontAwesomeIcon icon={Icons.Coins} color={'#FBBC05'} size={22} />
-              </TouchableOpacity>
-            )}
           </View>
         </View>
       )}

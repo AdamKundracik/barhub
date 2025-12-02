@@ -177,28 +177,11 @@ export const PermissionsScreen = () => {
     try {
       const result = await requestPermission(currentPermissionConfig.key);
       
+      // Don't show any alert or redirect to Settings when permission is denied
+      // Respect user's decision per Apple guidelines
       if (!result) {
-        // Permission was denied, show alert with specific instructions
-        const isTracking = currentPermissionConfig.key === 'tracking';
-        const messageKey = isTracking 
-          ? 'permissions.permissionDeniedMessageTracking' 
-          : 'permissions.permissionDeniedMessage';
-        
-        Alert.alert(
-          t('permissions.permissionDenied'),
-          t(messageKey),
-          [
-            { text: t('cancel'), style: 'cancel' },
-            { 
-              text: t('permissions.openSettings'), 
-              onPress: () => {
-                Linking.openSettings().catch(err => {
-                  console.error('Failed to open settings:', err);
-                });
-              }
-            }
-          ]
-        );
+        // Permission denied - silently accept the user's choice
+        // User can still proceed with the app
       }
     } catch (error) {
       console.error('Permission request error:', error);

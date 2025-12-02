@@ -291,6 +291,14 @@
   "copy-link": "Kopírovať odkaz",
   "link-copied": "Odkaz skopírovaný!",
   "link-copied-desc": "Odkaz na príspevok bol skopírovaný",
+  "locationRequired": {
+    "title": "Poloha je potrebná",
+    "subtitle": "Žiadne príspevky nie sú dostupné, pretože je poloha vypnutá",
+    "descriptionWithButton": "Aby sme vám mohli zobraziť príspevky z barov a podnikov vo vašom okolí, potrebujeme prístup k vašej polohe. Pomôže nám to zobraziť vám relevantný obsah vo vašej oblasti.",
+    "descriptionSettings": "Aby ste videli príspevky z barov a podnikov vo vašom okolí, prosím povoľte prístup k polohe v nastaveniach zariadenia. Povolenie polohy je potrebné pre základnú funkcionalitu aplikácie.",
+    "allowLocation": "Povoliť prístup k polohe",
+    "requesting": "Žiadam..."
+  },
   "permissions": {
     "title": "Požadované povolenia",
     "location": "Prístup k polohe",
@@ -302,6 +310,7 @@
     "notificationDesc": "Na prijímanie lajkov, aktualizácií a žiadostí o fotky od ostatných používateľov, keď ste na zaujímavých miestach.",
     "tracking": "Povolenie sledovania",
     "trackingDesc": "Na lepšie odporúčania miest založené na vašich osobných preferenciách a záujmoch.",
+    "locationRequiredForPosts": "Pre zobrazovanie príspevkov je potrebné povolenie na prístup k polohe. Prosím, povoľte prístup k polohe v nastaveniach zariadenia, aby ste videli príspevky vo vašom okolí.",
     "grantAccess": "Udeliť prístup",
     "stepCount": "Krok {{current}} z {{total}}",
     "allGranted": "Všetky povolenia udelené! ✨",
@@ -616,7 +625,8 @@
     },
     "feed": {
       "title": "Objavujte bary",
-      "description": "Prehliadajte príspevky od ostatných používateľov a objavte úžasné bary, reštaurácie a nočné podniky vo vašej oblasti."
+      "description": "Prehliadajte príspevky od ostatných používateľov a objavte úžasné bary, reštaurácie a nočné podniky vo vašej oblasti.",
+      "locationRequiredMessage": "Pre zobrazovanie príspevkov je potrebné povoliť prístup k polohe. Povoľte prístup k polohe v nastaveniach zariadenia, aby ste videli príspevky vo vašom okolí."
     },
     "posts": {
       "title": "Zdieľajte aktuálnu obsadenosť",
@@ -794,6 +804,10 @@
     "welcome-badge": "Nový Premium používateľ",
     "welcome-message": "Teraz máte prístup ku všetkým prémiovým funkciám! Užite si bezplatné používanie bez reklám a všetky výhody, ktoré Barhub Premium ponúka.",
     "start-enjoying": "Začať užívať"
+  },
+  "camera": {
+    "permissionDeniedTitle": "Prístup ku kamere je potrebný",
+    "permissionDeniedMessage": "Na fotografovanie a zdieľanie vašich zážitkov potrebujeme prístup k vašej kamere. Prosím, povoľte prístup ku kamere v nastaveniach zariadenia, aby ste mohli použiť túto funkciu."
   }
 }
 

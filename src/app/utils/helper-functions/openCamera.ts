@@ -3,6 +3,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Place } from '../types/types';
 import { mapPlaceDetailToPlace } from './mapPlaceDetailToPlace';
 import { fetchPlaceDetails } from './fetchPlacesAPI';
+import i18n from '../../../localization/i18n';
 
 export const openCamera = async (
   placeId?: string | null,
@@ -14,9 +15,12 @@ export const openCamera = async (
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
     if (!permissionResult.granted) {
+      // Inform user why camera access is needed (per Apple guidelines 5.1.1)
+      // This is acceptable as it explains why the feature doesn't work
       Alert.alert(
-        'Permission Denied',
-        'Permission to access the camera is required.'
+        i18n.t('camera.permissionDeniedTitle'),
+        i18n.t('camera.permissionDeniedMessage'),
+        [{ text: 'OK', style: 'default' }]
       );
       return;
     }

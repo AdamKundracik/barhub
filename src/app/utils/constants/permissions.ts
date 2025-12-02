@@ -18,15 +18,7 @@ export const PERMISSION_CONFIGS: PermissionConfig[] = [
     gradient: ['#087A72', '#14252A'],
     titleKey: 'permissions.location',
     descriptionKey: 'permissions.locationDesc',
-    required: Platform.OS !== 'web',
-  },
-  {
-    key: 'camera',
-    icon: Icons.Camera,
-    gradient: ['#010A0D', '#065C55'],
-    titleKey: 'permissions.camera',
-    descriptionKey: 'permissions.cameraDesc',
-    required: true,
+    required: false, // TEMPORARILY DISABLED FOR TESTING
   },
   {
     key: 'notification',
@@ -34,7 +26,7 @@ export const PERMISSION_CONFIGS: PermissionConfig[] = [
     gradient: ['#14252A', '#065C55'],
     titleKey: 'permissions.notification',
     descriptionKey: 'permissions.notificationDesc',
-    required: true,
+    required: false, // Optional per Apple guidelines 4.5.4
   },
   {
     key: 'tracking',
@@ -42,7 +34,7 @@ export const PERMISSION_CONFIGS: PermissionConfig[] = [
     gradient: ['#065C55', '#5A6A6A'],
     titleKey: 'permissions.tracking',
     descriptionKey: 'permissions.trackingDesc',
-    required: Platform.OS === 'ios',
+    required: false, // Optional per Apple guidelines 5.1.2(i) - users should not be forced to enable tracking
   },
 ];
 

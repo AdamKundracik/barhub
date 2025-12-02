@@ -293,6 +293,14 @@
   "link-copied": "Link copied!",
   "link-copied-desc": "Post link has been copied to clipboard",
   "comments-coming-soon": "Comments coming soon",
+  "locationRequired": {
+    "title": "Location Required",
+    "subtitle": "No posts available because location is disabled",
+    "descriptionWithButton": "To see posts from bars and venues near you, we need access to your location. This helps us show you relevant content in your area.",
+    "descriptionSettings": "To see posts from bars and venues near you, please enable location access in your device settings. Location permission is required for the core functionality of the app.",
+    "allowLocation": "Allow Location Access",
+    "requesting": "Requesting..."
+  },
   "permissions": {
     "title": "Required Permissions",
     "location": "Location Access",
@@ -304,6 +312,7 @@
     "notificationDesc": "To receive likes, updates, and photo requests from other users when you're at interesting places.",
     "tracking": "Tracking Permission",
     "trackingDesc": "To provide better place recommendations based on your personal preferences and interests.",
+    "locationRequiredForPosts": "Location permission is required to display posts. Please enable location access in your device settings to see posts near you.",
     "grantAccess": "Grant Access",
     "allGranted": "All permissions granted! ✨",
     "tapToGrant": "Tap to grant permission",
@@ -498,7 +507,9 @@
   "yearly": "Year",
   "camera": {
     "fakeLocationBlocked": "Cannot open camera with travel mode",
-    "waitBeforeNextUpload": "Please wait {{time}}s before uploading again"
+    "waitBeforeNextUpload": "Please wait {{time}}s before uploading again",
+    "permissionDeniedTitle": "Camera Access Required",
+    "permissionDeniedMessage": "To take photos and share your experiences, we need access to your camera. Please enable camera permission in your device settings to use this feature."
   },
   "no-available-places": "No available places in your 30m area",
   "photo-resolver-no-places-subtitle": "Try moving to a different location",
@@ -637,6 +648,7 @@
       "description": "Discover the best bars, restaurants, and nightlife spots in your city. Share your experiences and connect with fellow bar enthusiasts!"
     },
     "feed": {
+    "locationRequiredMessage": "Location permission is required to display posts. Please enable location access in your device settings to see posts near you.",
       "title": "Discover Bars",
       "description": "Browse through posts from other users to discover amazing bars, restaurants, and nightlife spots in your area."
     },

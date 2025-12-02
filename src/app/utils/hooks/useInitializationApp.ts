@@ -71,6 +71,8 @@ export const useAppInitialization = () => {
 
   const initializeTrackingAndAds = async () => {
     try {
+      // Request tracking permission (optional - user can deny)
+      // Ads will work with or without tracking permission
       const { status } = await getTrackingPermissionsAsync();
       if (status === PermissionStatus.UNDETERMINED) {
         await requestTrackingPermissionsAsync();

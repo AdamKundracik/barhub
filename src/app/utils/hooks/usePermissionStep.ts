@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Alert, Linking } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { PermissionType } from './usePermissions';
 
@@ -7,32 +6,14 @@ export const usePermissionStep = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const { t } = useTranslation();
 
-  const showSettingsAlert = () => {
-    Alert.alert(
-      t('permissions.open-settings'),
-      t('permissions.allow-in-settings'),
-      [
-        {
-          text: t('permissions.settings'),
-          onPress: () => Linking.openSettings(),
-        },
-        {
-          text: t('cancel'),
-          style: 'destructive',
-        },
-      ]
-    );
-  };
-
   const handlePermissionRequest = async (
     type: PermissionType,
     requestFn: () => Promise<boolean>
   ) => {
     try {
       const granted = await requestFn();
-      if (!granted) {
-        showSettingsAlert();
-      }
+      // Respect user's decision - don't redirect to Settings or ask to reconsider
+      // per Apple guidelines 5.1.1
       return granted;
     } catch (error) {
       console.error(`Error requesting ${type} permission:`, error);

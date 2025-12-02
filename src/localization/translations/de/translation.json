@@ -257,6 +257,14 @@
   "response": "Antwort",
   "cancel": "Abbrechen",
   "share": "Teilen",
+  "locationRequired": {
+    "title": "Standort erforderlich",
+    "subtitle": "Keine Beiträge verfügbar, da der Standort deaktiviert ist",
+    "descriptionWithButton": "Um Ihnen Beiträge von Bars und Lokalen in Ihrer Nähe zu zeigen, benötigen wir Zugriff auf Ihren Standort. Dies hilft uns, Ihnen relevante Inhalte in Ihrer Umgebung zu zeigen.",
+    "descriptionSettings": "Um Beiträge von Bars und Lokalen in Ihrer Nähe zu sehen, aktivieren Sie bitte den Standortzugriff in Ihren Geräteeinstellungen. Die Standortberechtigung ist für die Kernfunktionalität der App erforderlich.",
+    "allowLocation": "Standortzugriff erlauben",
+    "requesting": "Wird angefragt..."
+  },
   "permissions": {
     "title": "Erforderliche Berechtigungen",
     "location": "Standortzugriff",
@@ -268,6 +276,7 @@
     "notificationDesc": "Um Likes, Updates und Foto-Anfragen von anderen Benutzern zu erhalten, wenn Sie an interessanten Orten sind.",
     "tracking": "Tracking-Berechtigung",
     "trackingDesc": "Für bessere Ortsempfehlungen basierend auf Ihren persönlichen Vorlieben und Interessen.",
+    "locationRequiredForPosts": "Für die Anzeige von Beiträgen ist eine Standortberechtigung erforderlich. Bitte aktivieren Sie den Standortzugriff in Ihren Geräteeinstellungen, um Beiträge in Ihrer Nähe zu sehen.",
     "grantAccess": "Zugriff gewähren",
     "allGranted": "Alle Berechtigungen erteilt! ✨",
     "tapToGrant": "Tippen Sie hier, um Berechtigung zu erteilen",
@@ -432,7 +441,9 @@
   "yearly": "Jahr",
   "camera": {
     "fakeLocationBlocked": "Kamera kann im Reise-Modus nicht geöffnet werden",
-    "waitBeforeNextUpload": "Bitte warten Sie noch {{time}}s, bevor Sie erneut hochladen"
+    "waitBeforeNextUpload": "Bitte warten Sie noch {{time}}s, bevor Sie erneut hochladen",
+    "permissionDeniedTitle": "Kamerazugriff erforderlich",
+    "permissionDeniedMessage": "Um Fotos zu machen und Ihre Erlebnisse zu teilen, benötigen wir Zugriff auf Ihre Kamera. Bitte aktivieren Sie die Kameraberechtigung in Ihren Geräteeinstellungen, um diese Funktion zu nutzen."
   },
   "no-available-places": "Keine verfügbaren Orte in deinem 30m Bereich",
   "photo-resolver-no-places-subtitle": "Versuche dich an einen anderen Ort zu bewegen",
@@ -609,7 +620,8 @@
     },
     "feed": {
       "title": "Bars entdecken",
-      "description": "Durchsuchen Sie Beiträge von anderen Benutzern, um erstaunliche Bars, Restaurants und Nachtleben in Ihrer Nähe zu entdecken."
+      "description": "Durchsuchen Sie Beiträge von anderen Benutzern, um erstaunliche Bars, Restaurants und Nachtleben in Ihrer Nähe zu entdecken.",
+      "locationRequiredMessage": "Für die Anzeige von Beiträgen ist die Standortberechtigung erforderlich. Bitte aktivieren Sie den Standortzugriff in Ihren Geräteeinstellungen, um Beiträge in Ihrer Nähe zu sehen."
     },
     "posts": {
       "title": "Teilen Sie aktuelle Auslastung",
