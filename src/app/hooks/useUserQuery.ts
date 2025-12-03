@@ -3,6 +3,7 @@ import { userService } from '../services/userService';
 import { useUserStore } from '../utils/store/userStore';
 import { useAuth } from '../providers/AuthProvider';
 import { ClientDTO, SearchHistoryItemEmbeddable } from '../types/dto';
+import { updateImageCacheBuster } from '../utils/cache/imageCacheUtils';
 
 // Query keys
 export const USER_QUERY_KEYS = {
@@ -204,6 +205,9 @@ export const usePhotoMutations = () => {
       }
     },
     onSettled: () => {
+      // Update image cache buster to force all profile images to reload
+      updateImageCacheBuster();
+      
       queryClient.invalidateQueries(USER_QUERY_KEYS.userData);
       // Also invalidate posts cache to update user photos in posts
       queryClient.invalidateQueries(['posts']);
@@ -244,6 +248,9 @@ export const usePhotoMutations = () => {
       }
     },
     onSettled: () => {
+      // Update image cache buster to force all profile images to reload
+      updateImageCacheBuster();
+      
       queryClient.invalidateQueries(USER_QUERY_KEYS.userData);
       // Also invalidate posts cache to update user photos in posts
       queryClient.invalidateQueries(['posts']);

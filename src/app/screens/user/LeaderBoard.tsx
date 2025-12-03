@@ -19,6 +19,7 @@ import {
   AvatarImage,
 } from '@/components/ui/avatar';
 import { useTranslation } from 'react-i18next';
+import { addCacheBuster, createImageKey } from '../../utils/cache/imageCacheUtils';
 import { useLeaderboard } from '@/src/app/utils/hooks/useLeaderboard';
 import { BlurView } from 'expo-blur';
 import { FlashList } from '@shopify/flash-list';
@@ -160,7 +161,12 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
           ]}
         >
           {user.photoUrl ? (
-            <AvatarImage source={{ uri: user.photoUrl }} />
+            <AvatarImage 
+              key={createImageKey('leaderboard', user.userId, user.photoUrl)}
+              source={{ 
+                uri: addCacheBuster(user.photoUrl, user.userId)
+              }} 
+            />
           ) : (
             <AvatarFallbackText className={'text-white'}>
               {user.name}

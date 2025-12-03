@@ -44,6 +44,7 @@ import { HighlightedPostsGrid } from '@/src/app/components/user/Profile/Highligh
 import BioEditModal from '@/src/app/components/shared/Modals/BioEditModal';
 import { DeleteAccountConfirmModal } from '@/src/app/components/shared/Modals/DeleteAccountConfirmModal';
 import { PremiumHelpers } from '@/src/app/config/premiumConfig';
+import { addCacheBuster, createImageKey } from '../../utils/cache/imageCacheUtils';
 
 interface ActionButtonProps {
   icon: any;
@@ -400,9 +401,9 @@ export const Account = () => {
             >
               {photoUrl ? (
                 <AvatarImage
-                  key={`${photoUrl}`}
+                  key={createImageKey('account', userId, photoUrl)}
                   source={{
-                    uri: `${photoUrl}`,
+                    uri: addCacheBuster(photoUrl, userId),
                   }}
                   style={styles.avatarImage}
                 />

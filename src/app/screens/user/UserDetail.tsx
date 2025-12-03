@@ -28,6 +28,7 @@ import { useNavigationStore } from '../../utils/store/navigationStore';
 import { UserReportModal } from '../../components/shared/Modals/UserReportModal';
 import { BlockUserModal } from '../../components/shared/Modals/BlockUserModal';
 import { reportService } from '../../services/reportService';
+import { addCacheBuster, createImageKey } from '../../utils/cache/imageCacheUtils';
 import { ReportReason } from '../../utils/types/Feed/PostTypes';
 import {
   postBgColor,
@@ -458,7 +459,12 @@ export const UserDetail = () => {
                     ]}
                   >
                     {userProfile.photoUrl ? (
-                      <AvatarImage source={{ uri: userProfile.photoUrl }} />
+                      <AvatarImage 
+                        key={createImageKey('userdetail', userProfile.id, userProfile.photoUrl)}
+                        source={{ 
+                          uri: addCacheBuster(userProfile.photoUrl, userProfile.id)
+                        }} 
+                      />
                     ) : (
                       <AvatarFallbackText className={'text-white'}>
                         {userProfile.name || t('anonymous-user')}

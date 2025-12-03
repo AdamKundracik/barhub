@@ -30,6 +30,10 @@ import { usePlaceStore } from '@/src/app/utils/store/placesStore';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import {
+  addCacheBuster,
+  createImageKey,
+} from '@/src/app/utils/cache/imageCacheUtils';
+import {
   Avatar,
   AvatarFallbackText,
   AvatarImage,
@@ -172,13 +176,21 @@ const UserLineComponent = ({
           return t('just-now') || 'práve teraz';
         } else if (diffInMinutes < 60) {
           // Special handling for Spanish, Slovak, and German - "hace/pred/vor X min" instead of "X min hace/dozadu/vor"
-          if (i18n.language === 'es' || i18n.language === 'sk' || i18n.language === 'de') {
+          if (
+            i18n.language === 'es' ||
+            i18n.language === 'sk' ||
+            i18n.language === 'de'
+          ) {
             return `${t('ago')} ${diffInMinutes} min`;
           }
           return `${diffInMinutes} min ${t('ago')}`;
         } else {
           // Special handling for Spanish, Slovak, and German - "hace/pred/vor Xh" instead of "Xh hace/dozadu/vor"
-          if (i18n.language === 'es' || i18n.language === 'sk' || i18n.language === 'de') {
+          if (
+            i18n.language === 'es' ||
+            i18n.language === 'sk' ||
+            i18n.language === 'de'
+          ) {
             return `${t('ago')} ${diffInHours}h`;
           }
           return `${diffInHours}h ${t('ago')}`;
@@ -238,11 +250,11 @@ const UserLineComponent = ({
         );
       } catch (error: any) {
         console.error('Failed to report post:', error);
-        
+
         // Show error toast with code and message
         const statusCode = error?.response?.status;
         const errorMessage = error?.response?.data?.message || error?.message;
-        
+
         let description = t('something-went-wrong') || 'Something went wrong';
         if (statusCode || errorMessage) {
           const parts: string[] = [];
@@ -256,7 +268,7 @@ const UserLineComponent = ({
             description = `${description}\n${parts.join('\n')}`;
           }
         }
-        
+
         showErrorToast(t('error') || 'Error', description);
       } finally {
         setIsReportModalOpen(false);
@@ -305,11 +317,11 @@ const UserLineComponent = ({
         );
       } catch (error: any) {
         console.error('Failed to delete post:', error);
-        
+
         // Show error toast with code and message
         const statusCode = error?.response?.status;
         const errorMessage = error?.response?.data?.message || error?.message;
-        
+
         let description = t('something-went-wrong') || 'Something went wrong';
         if (statusCode || errorMessage) {
           const parts: string[] = [];
@@ -323,7 +335,7 @@ const UserLineComponent = ({
             description = `${description}\n${parts.join('\n')}`;
           }
         }
-        
+
         showErrorToast(t('error') || 'Error', description);
       } finally {
         setIsOptionsModalOpen(false);
@@ -407,14 +419,14 @@ const UserLineComponent = ({
       } else {
         // Revert optimistic update on failure
         setLocalIsHighlighted(localIsHighlighted);
-        
+
         // Show error toast with code and message
         let description = t('something-went-wrong') || 'Something went wrong';
         const errorMessage = result.message;
         if (errorMessage) {
           description = `${description}\nMessage: ${errorMessage}`;
         }
-        
+
         showErrorToast(t('error') || 'Error', description);
       }
     } catch (error: any) {
@@ -431,7 +443,7 @@ const UserLineComponent = ({
 
       // Show error toast with code and message
       const statusCode = error?.response?.status;
-      
+
       let description = t('something-went-wrong') || 'Something went wrong';
       if (statusCode || errorMessage) {
         const parts: string[] = [];
@@ -445,7 +457,7 @@ const UserLineComponent = ({
           description = `${description}\n${parts.join('\n')}`;
         }
       }
-      
+
       showErrorToast(t('error') || 'Error', description);
     } finally {
       setIsOptionsModalOpen(false);
@@ -483,7 +495,10 @@ const UserLineComponent = ({
             <Avatar size="md" style={styles.avatarContainer}>
               {user?.photoUrl ? (
                 <AvatarImage
-                  source={{ uri: user.photoUrl }}
+                  key={createImageKey('userline', user.id, user.photoUrl)}
+                  source={{
+                    uri: addCacheBuster(user.photoUrl, user.id),
+                  }}
                   style={styles.avatar}
                 />
               ) : (
