@@ -21,7 +21,7 @@ const UIAvatar = createAvatar({
 });
 
 const avatarStyle = tva({
-  base: 'rounded-full justify-center items-center relative bg-primary-600 group-[.avatar-group]/avatar-group:-ml-2.5',
+  base: 'rounded-full justify-center items-center relative group-[.avatar-group]/avatar-group:-ml-2.5',
   variants: {
     size: {
       'xs': 'w-6 h-6',
@@ -35,7 +35,7 @@ const avatarStyle = tva({
 });
 
 const avatarFallbackTextStyle = tva({
-  base: 'text-typography-0 font-semibold overflow-hidden text-transform:uppercase web:cursor-default',
+  base: 'text-white font-semibold overflow-hidden text-transform:uppercase web:cursor-default',
 
   parentVariants: {
     size: {
@@ -80,12 +80,13 @@ type IAvatarProps = Omit<
 const Avatar = React.forwardRef<
   React.ComponentRef<typeof UIAvatar>,
   IAvatarProps
->(function Avatar({ className, size = 'md', ...props }, ref) {
+>(function Avatar({ className, size = 'md', style, ...props }, ref) {
   return (
     <UIAvatar
       ref={ref}
       {...props}
       className={avatarStyle({ size, class: className })}
+      style={[{ backgroundColor: '#4F46E5' }, style]}
       context={{ size }}
     />
   );

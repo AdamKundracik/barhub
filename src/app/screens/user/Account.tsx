@@ -206,7 +206,7 @@ export const Account = () => {
     setRefreshing(true);
     try {
       await queryClient.invalidateQueries(['user', 'data']);
-      await queryClient.invalidateQueries(['posts']);
+      // Posts invalidation removed - only needed after profile photo change (handled in EditProfile)
       await refetch();
     } catch (error) {
       console.error('Error refreshing user data:', error);

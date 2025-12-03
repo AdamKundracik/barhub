@@ -166,7 +166,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
 
       // Initialize auth service
-      await authService.initialize();
+      // Removed authService.initialize() - using lazy token loading instead
 
       // Check if user is authenticated based on token (not user state)
       const isAuth = await authService.isAuthenticated();

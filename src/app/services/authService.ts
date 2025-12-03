@@ -29,14 +29,7 @@ class AuthService {
     this.onUserDataUpdateCallback = callback;
   }
 
-  // Initialize tokens from secure storage
-  async initialize(): Promise<void> {
-    try {
-      await tokenManager.initialize();
-    } catch (error) {
-      console.error('Error initializing auth service:', error);
-    }
-  }
+  // Removed initialize() - using lazy token loading instead
 
   // Login with email and password
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
@@ -226,8 +219,10 @@ class AuthService {
         // Even if storing fails (e.g., SecureStore error), tokens are in memory
         // Don't fail the refresh - tokens will work for current session
         const errorMessage = storeError?.message || String(storeError);
-        if (errorMessage.includes('User interaction is not allowed') ||
-            errorMessage.includes('setValueWithKeyAsync')) {
+        if (
+          errorMessage.includes('User interaction is not allowed') ||
+          errorMessage.includes('setValueWithKeyAsync')
+        ) {
           console.warn(
             '⚠️ [REFRESH] SecureStore error, but tokens are in memory - refresh still successful',
             errorMessage
@@ -235,7 +230,10 @@ class AuthService {
           // Return token anyway - it's in memory and will work
         } else {
           // Some other error - log but still return token (it's in memory)
-          console.warn('⚠️ [REFRESH] Error storing tokens, but they are in memory:', errorMessage);
+          console.warn(
+            '⚠️ [REFRESH] Error storing tokens, but they are in memory:',
+            errorMessage
+          );
         }
       }
 
@@ -243,17 +241,21 @@ class AuthService {
       return authResponse.token;
     } catch (error) {
       console.error('❌ [REFRESH] Token refresh failed:', error);
-      
+
       // Check if this is a SecureStore error from storing tokens
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      const isSecureStoreError = errorMessage.includes('User interaction is not allowed') ||
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const isSecureStoreError =
+        errorMessage.includes('User interaction is not allowed') ||
         errorMessage.includes('setValueWithKeyAsync');
 
       if (isSecureStoreError) {
         // SecureStore error - tokens are in memory, don't clear them
-        console.warn('⚠️ [REFRESH] SecureStore error, but tokens are in memory - not clearing');
+        console.warn(
+          '⚠️ [REFRESH] SecureStore error, but tokens are in memory - not clearing'
+        );
         // Try to get token from memory
-        const tokenFromMemory = tokenManager.getAccessToken();
+        const tokenFromMemory = await tokenManager.getAccessTokenAsync();
         if (tokenFromMemory) {
           console.log('✅ [REFRESH] Using token from memory');
           return tokenFromMemory;
@@ -302,23 +304,28 @@ class AuthService {
     return tokenManager.getAccessToken();
   }
 
-  // Check if user is authenticated
+  // Check if user is authenticated (has valid token) - now uses lazy loading
   async isAuthenticated(): Promise<boolean> {
-    await this.initialize();
-    // Use async method with SecureStore fallback
-    const token = await tokenManager.getAccessTokenAsync();
+    try {
+      // Use async token loading to handle SecureStore properly (no more initialize())
+      const token = await tokenManager.getAccessTokenAsync();
+      if (!token) {
+        console.log('❌ [AUTH] No access token available');
+        return false;
+      }
 
-    if (!token) {
+      if (tokenManager.isTokenExpired(token)) {
+        console.log('❌ [AUTH] Access token is expired');
+        const newToken = await this.refreshAccessToken();
+        return !!newToken;
+      }
+
+      console.log('✅ [AUTH] User is authenticated');
+      return true;
+    } catch (error) {
+      console.error('❌ [AUTH] Error checking authentication:', error);
       return false;
     }
-
-    // If token is expired, try to refresh
-    if (tokenManager.isTokenExpired(token)) {
-      const newToken = await this.refreshAccessToken();
-      return !!newToken;
-    }
-
-    return true;
   }
 
   // Logout user
