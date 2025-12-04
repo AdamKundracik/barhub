@@ -149,8 +149,7 @@ export const useUserStore = create<UserStore>()(
         const daysDiff = Math.floor(
           (now.getTime() - lastUploadDate.getTime()) / (1000 * 60 * 60 * 24)
         );
-
-        set({ canSeeContent: daysDiff < 7 });
+        set({ canSeeContent: daysDiff < 14 });
       },
 
       // Premium status management
@@ -159,7 +158,7 @@ export const useUserStore = create<UserStore>()(
         if (!PremiumHelpers.isPremiumEnabled()) {
           return true;
         }
-        
+
         // If premium is enabled, check actual user premium status
         const { userData } = get();
         return userData?.premium || false;

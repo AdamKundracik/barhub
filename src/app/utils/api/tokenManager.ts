@@ -104,9 +104,12 @@ class TokenManager {
 
     // Smart AppState handling for physical devices
     const currentState = AppState.currentState;
+    
+    // During initialization, always try to load from SecureStore regardless of AppState
+    // This prevents issues where app starts in 'background' or 'unknown' state
     const shouldSkipSecureStore = !forInitialization && 
       currentState !== 'active' && 
-      currentState !== 'inactive'; // Allow 'inactive' state for app startup
+      currentState !== 'inactive';
 
     if (shouldSkipSecureStore) {
       console.log(
@@ -146,10 +149,40 @@ class TokenManager {
           `⚠️ [TOKEN] SecureStore requires user interaction for ${tokenType} (AppState: ${currentState})`
         );
         
-        // During initialization, try to wait and retry once
+        // During initialization, try multiple retries with progressive delays
         if (forInitialization) {
-          console.log(`🔄 [TOKEN] Retrying ${tokenType} load after brief delay...`);
-          await new Promise(resolve => setTimeout(resolve, 100));
+          const maxRetries = 3;
+          for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            const delay = 100 * attempt; // Progressive delay: 100ms, 200ms, 300ms
+            console.log(`🔄 [TOKEN] Retry ${attempt}/${maxRetries} for ${tokenType} after ${delay}ms delay...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            
+            try {
+              const retryToken = await SecureStore.getItemAsync(tokenType);
+              if (retryToken) {
+                if (tokenType === 'accessToken') {
+                  this.accessToken = retryToken;
+                } else {
+                  this.refreshToken = retryToken;
+                }
+                console.log(`✅ [TOKEN] ${tokenType} loaded on retry ${attempt}`);
+                return retryToken;
+              }
+            } catch (retryError: any) {
+              const retryErrorMessage = retryError?.message || String(retryError);
+              if (attempt === maxRetries) {
+                console.warn(`⚠️ [TOKEN] All ${maxRetries} retries failed for ${tokenType}:`, retryErrorMessage);
+              }
+            }
+          }
+        }
+      } else {
+        console.error(`❌ [TOKEN] Error loading ${tokenType}:`, errorMessage);
+        
+        // During initialization, attempt retry even for non-"User interaction" errors
+        if (forInitialization) {
+          console.log(`🔄 [TOKEN] Retrying ${tokenType} load after error during initialization...`);
+          await new Promise(resolve => setTimeout(resolve, 200));
           try {
             const retryToken = await SecureStore.getItemAsync(tokenType);
             if (retryToken) {
@@ -158,15 +191,13 @@ class TokenManager {
               } else {
                 this.refreshToken = retryToken;
               }
-              console.log(`✅ [TOKEN] ${tokenType} loaded on retry`);
+              console.log(`✅ [TOKEN] ${tokenType} loaded on retry after error`);
               return retryToken;
             }
           } catch (retryError) {
             console.warn(`⚠️ [TOKEN] Retry failed for ${tokenType}:`, retryError);
           }
         }
-      } else {
-        console.error(`❌ [TOKEN] Error loading ${tokenType}:`, errorMessage);
       }
 
       return null;

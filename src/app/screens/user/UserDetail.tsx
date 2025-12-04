@@ -460,9 +460,9 @@ export const UserDetail = () => {
                   >
                     {userProfile.photoUrl ? (
                       <AvatarImage 
-                        key={createImageKey('userdetail', userProfile.id.toString(), userProfile.photoUrl)}
+                        key={createImageKey('userdetail', userProfile.id, userProfile.photoUrl)}
                         source={{ 
-                          uri: addCacheBuster(userProfile.photoUrl, userProfile.id.toString())
+                          uri: addCacheBuster(userProfile.photoUrl, userProfile.id)
                         }} 
                       />
                     ) : (

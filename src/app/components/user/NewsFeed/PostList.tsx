@@ -161,9 +161,8 @@ const PostsList = ({
       // Check config: if ALWAYS_SHOW_ADS is true, ignore premium status
       // If ALWAYS_SHOW_ADS is false, respect premium status
       const shouldShowAd =
-        index > 0 &&
-        index % 2 === 0 &&
-        (PremiumHelpers.shouldAlwaysShowAds() || !isPremium());
+        index > 0 && index % 2 === 0 && PremiumHelpers.shouldAlwaysShowAds();
+      // || !isPremium()
 
       if (shouldShowAd) {
         return (

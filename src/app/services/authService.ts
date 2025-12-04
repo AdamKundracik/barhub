@@ -351,14 +351,15 @@ class AuthService {
       if (tokenManager.isTokenExpired(token)) {
         console.log('⏰ [AUTH] Access token is expired, attempting refresh');
         
-        // Only attempt refresh if we're not in a critical initialization phase
+        // During initialization, verify refresh token is available before attempting refresh
         if (forInitialization) {
-          // During initialization, be more conservative with refresh attempts
+          // Pre-load refresh token to ensure it's cached
           const refreshToken = await tokenManager.getRefreshToken(true);
           if (!refreshToken) {
             console.log('❌ [AUTH] No refresh token available during initialization');
             return false;
           }
+          console.log('✅ [AUTH] Refresh token available, proceeding with token refresh');
         }
         
         const newToken = await this.refreshAccessToken();

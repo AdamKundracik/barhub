@@ -52,3 +52,4 @@ export const createImageKey = (
 ): string => {
   return `${componentName}-avatar-${userId}-${photoUrl}-${globalCacheBuster}`;
 };
+
