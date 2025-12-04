@@ -191,18 +191,26 @@ class AuthService {
     }
   }
 
-  // Refresh access token
+  // Refresh access token with enhanced error handling and recovery
   async refreshAccessToken(): Promise<string | null> {
-    console.log(' [REFRESH] Attempting to refresh access token');
+    console.log('🔄 [REFRESH] Attempting to refresh access token');
 
+    // Get refresh token with better error handling
     const refreshToken = await tokenManager.getRefreshToken();
     if (!refreshToken) {
       console.log('❌ [REFRESH] No refresh token available');
       return null;
     }
 
+    // Validate refresh token before using it
+    if (tokenManager.isTokenExpired(refreshToken)) {
+      console.log('❌ [REFRESH] Refresh token is expired');
+      await tokenManager.clearTokens();
+      return null;
+    }
+
     try {
-      console.log(' [REFRESH] Calling refresh endpoint');
+      console.log('📡 [REFRESH] Calling refresh endpoint');
       const authResponse: AuthResponse = await axiosClient.post(
         ENDPOINTS.AUTH.REFRESH,
         { refreshToken }
@@ -210,61 +218,84 @@ class AuthService {
 
       console.log('✅ [REFRESH] Refresh endpoint successful');
 
-      // Store new tokens - this won't throw even if SecureStore fails
-      // Tokens will be stored in memory and retried later
+      // Store new tokens with enhanced error handling
       try {
         await this.storeTokens(authResponse.token, authResponse.refreshToken);
         console.log('✅ [REFRESH] New tokens stored successfully');
       } catch (storeError: any) {
-        // Even if storing fails (e.g., SecureStore error), tokens are in memory
-        // Don't fail the refresh - tokens will work for current session
+        // Enhanced error handling for token storage failures
         const errorMessage = storeError?.message || String(storeError);
-        if (
-          errorMessage.includes('User interaction is not allowed') ||
-          errorMessage.includes('setValueWithKeyAsync')
-        ) {
+        
+        if (errorMessage.includes('User interaction is not allowed') ||
+            errorMessage.includes('setValueWithKeyAsync')) {
           console.warn(
-            '⚠️ [REFRESH] SecureStore error, but tokens are in memory - refresh still successful',
+            '⚠️ [REFRESH] SecureStore error during token storage - tokens are in memory and functional',
             errorMessage
           );
-          // Return token anyway - it's in memory and will work
         } else {
-          // Some other error - log but still return token (it's in memory)
           console.warn(
-            '⚠️ [REFRESH] Error storing tokens, but they are in memory:',
+            '⚠️ [REFRESH] Unexpected error storing tokens - tokens are in memory:',
             errorMessage
           );
         }
+        
+        // Verify tokens are actually in memory
+        const memoryToken = tokenManager.getAccessToken();
+        if (!memoryToken) {
+          console.error('❌ [REFRESH] Tokens not in memory after storage failure!');
+          throw new Error('Token storage failed and tokens not in memory');
+        }
       }
 
-      // Return the token even if SecureStore failed - it's in memory
+      // Verify the new token is valid before returning
+      if (!authResponse.token || tokenManager.isTokenExpired(authResponse.token)) {
+        console.error('❌ [REFRESH] Received invalid token from server');
+        await tokenManager.clearTokens();
+        return null;
+      }
+
+      console.log('✅ [REFRESH] Token refresh completed successfully');
       return authResponse.token;
-    } catch (error) {
+      
+    } catch (error: any) {
       console.error('❌ [REFRESH] Token refresh failed:', error);
 
-      // Check if this is a SecureStore error from storing tokens
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      const isSecureStoreError =
-        errorMessage.includes('User interaction is not allowed') ||
-        errorMessage.includes('setValueWithKeyAsync');
+      // Enhanced error classification
+      const errorMessage = error?.message || String(error);
+      const isNetworkError = error?.code === 'NETWORK_ERROR' || 
+                           error?.message?.includes('Network Error') ||
+                           error?.message?.includes('timeout');
+      const isSecureStoreError = errorMessage.includes('User interaction is not allowed') ||
+                               errorMessage.includes('setValueWithKeyAsync');
+      const isAuthError = error?.response?.status === 401 || 
+                         error?.response?.status === 403;
 
       if (isSecureStoreError) {
-        // SecureStore error - tokens are in memory, don't clear them
-        console.warn(
-          '⚠️ [REFRESH] SecureStore error, but tokens are in memory - not clearing'
-        );
-        // Try to get token from memory
-        const tokenFromMemory = await tokenManager.getAccessTokenAsync();
-        if (tokenFromMemory) {
-          console.log('✅ [REFRESH] Using token from memory');
+        // SecureStore error - check if tokens are still in memory
+        console.warn('⚠️ [REFRESH] SecureStore error detected - checking memory tokens');
+        const tokenFromMemory = tokenManager.getAccessToken();
+        if (tokenFromMemory && !tokenManager.isTokenExpired(tokenFromMemory)) {
+          console.log('✅ [REFRESH] Using valid token from memory');
           return tokenFromMemory;
         }
+      } else if (isNetworkError) {
+        // Network error - don't clear tokens, user might be offline
+        console.warn('⚠️ [REFRESH] Network error during refresh - keeping tokens');
+        const tokenFromMemory = tokenManager.getAccessToken();
+        if (tokenFromMemory) {
+          console.log('ℹ️ [REFRESH] Returning existing token due to network error');
+          return tokenFromMemory;
+        }
+      } else if (isAuthError) {
+        // Authentication error - tokens are invalid
+        console.log('🗑️ [REFRESH] Authentication error - clearing invalid tokens');
+        await tokenManager.clearTokens();
+      } else {
+        // Unknown error - be conservative and clear tokens
+        console.log('🗑️ [REFRESH] Unknown error - clearing tokens as precaution');
+        await tokenManager.clearTokens();
       }
 
-      // Real auth error - clear tokens and logout
-      console.log('🗑️ [REFRESH] Clearing tokens due to refresh failure');
-      await tokenManager.clearTokens();
       return null;
     }
   }
@@ -304,26 +335,52 @@ class AuthService {
     return tokenManager.getAccessToken();
   }
 
-  // Check if user is authenticated (has valid token) - now uses lazy loading
-  async isAuthenticated(): Promise<boolean> {
+  // Check if user is authenticated (has valid token) - enhanced for physical devices
+  async isAuthenticated(forInitialization: boolean = false): Promise<boolean> {
     try {
-      // Use async token loading to handle SecureStore properly (no more initialize())
-      const token = await tokenManager.getAccessTokenAsync();
+      console.log(`🔍 [AUTH] Checking authentication (forInitialization: ${forInitialization})`);
+      
+      // Use async token loading with enhanced error handling
+      const token = await tokenManager.getAccessTokenAsync(forInitialization);
       if (!token) {
-        console.log('❌ [AUTH] No access token available');
+        console.log(`❌ [AUTH] No access token available (forInitialization: ${forInitialization})`);
         return false;
       }
 
+      // Check token expiration with enhanced logic
       if (tokenManager.isTokenExpired(token)) {
-        console.log('❌ [AUTH] Access token is expired');
+        console.log('⏰ [AUTH] Access token is expired, attempting refresh');
+        
+        // Only attempt refresh if we're not in a critical initialization phase
+        if (forInitialization) {
+          // During initialization, be more conservative with refresh attempts
+          const refreshToken = await tokenManager.getRefreshToken(true);
+          if (!refreshToken) {
+            console.log('❌ [AUTH] No refresh token available during initialization');
+            return false;
+          }
+        }
+        
         const newToken = await this.refreshAccessToken();
-        return !!newToken;
+        const isAuthenticated = !!newToken;
+        console.log(`${isAuthenticated ? '✅' : '❌'} [AUTH] Token refresh ${isAuthenticated ? 'successful' : 'failed'}`);
+        return isAuthenticated;
       }
 
-      console.log('✅ [AUTH] User is authenticated');
+      console.log('✅ [AUTH] User is authenticated with valid token');
       return true;
     } catch (error) {
       console.error('❌ [AUTH] Error checking authentication:', error);
+      
+      // During initialization, don't immediately fail - token might be in memory
+      if (forInitialization) {
+        const memoryToken = tokenManager.getAccessToken();
+        if (memoryToken && !tokenManager.isTokenExpired(memoryToken)) {
+          console.log('✅ [AUTH] Using valid token from memory during initialization');
+          return true;
+        }
+      }
+      
       return false;
     }
   }
