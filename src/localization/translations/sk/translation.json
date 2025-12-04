@@ -331,13 +331,12 @@
     "of": "z",
     "skipForNow": "Preskočiť zatiaľ",
     "readyToUse": "Aplikácia je pripravená na používanie!",
-    "getStarted": "Začať",
+    "getStarted": "Začať používať",
     "openSettings": "Otvoriť nastavenia",
     "allowInSettings": "Povoľte toto oprávnenie v nastaveniach aplikácie",
     "skipTitle": "Preskočiť oprávnenia?",
     "skipMessage": "Niektoré funkcie aplikácie nebudú fungovať správne bez týchto oprávnení.",
     "skipConfirm": "Preskočiť",
-    "getStarted": "Začať používať",
     "permissionDenied": "Oprávnenie zamietnuté",
     "permissionDeniedMessage": "Toto oprávnenie bolo zamietnuté. Pre jeho povolenie choďte do Nastavenia > Aplikácie > Barhub a povoľte toto oprávnenie.",
     "permissionDeniedMessageTracking": "Toto oprávnenie bolo zamietnuté. Pre jeho povolenie choďte do Nastavenia > Súkromie a zabezpečenie > Sledovanie aplikácií a povoľte sledovanie pre Barhub.",
@@ -478,7 +477,7 @@
   "explore": "Objavuj",
   "search": "Hľadaj",
   "yearly": "Rok",
-  "camera-fake-location": "Nie je možné otvoriť kameru pri cestovnom režime",
+  "camera-fake-location": "Nie je možné otvoriť kameru počas cestovného režimu",
   "camera-wait-upload": "Počkajte ešte {{time}}s pred ďalším uploadom",
   "no-available-places": "Žiadne dostupné miesta vo vašom okolí 30m",
   "photo-resolver-no-places-subtitle": "Skúste sa presunúť na iné miesto",
@@ -806,6 +805,8 @@
     "start-enjoying": "Začať užívať"
   },
   "camera": {
+    "fakeLocationBlocked": "Nie je možné otvoriť kameru počas cestovného režimu",
+    "waitBeforeNextUpload": "Počkajte ešte {{time}}s pred ďalším uploadom",
     "permissionDeniedTitle": "Prístup ku kamere je potrebný",
     "permissionDeniedMessage": "Na fotografovanie a zdieľanie vašich zážitkov potrebujeme prístup k vašej kamere. Prosím, povoľte prístup ku kamere v nastaveniach zariadenia, aby ste mohli použiť túto funkciu."
   }

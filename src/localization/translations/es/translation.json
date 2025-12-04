@@ -441,7 +441,7 @@
   "search": "Buscar",
   "yearly": "Año",
   "camera": {
-    "fakeLocationBlocked": "No se puede abrir la cámara con modo de viaje",
+    "fakeLocationBlocked": "No se puede abrir la cámara durante el modo de viaje",
     "waitBeforeNextUpload": "Espere {{time}}s antes de subir otra foto",
     "permissionDeniedTitle": "Acceso a la cámara requerido",
     "permissionDeniedMessage": "Para tomar fotos y compartir tus experiencias, necesitamos acceso a tu cámara. Por favor, habilita el permiso de la cámara en la configuración de tu dispositivo para usar esta función."

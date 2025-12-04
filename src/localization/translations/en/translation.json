@@ -506,7 +506,7 @@
   "search": "Search",
   "yearly": "Year",
   "camera": {
-    "fakeLocationBlocked": "Cannot open camera with travel mode",
+    "fakeLocationBlocked": "Cannot open camera during travel mode",
     "waitBeforeNextUpload": "Please wait {{time}}s before uploading again",
     "permissionDeniedTitle": "Camera Access Required",
     "permissionDeniedMessage": "To take photos and share your experiences, we need access to your camera. Please enable camera permission in your device settings to use this feature."
