@@ -422,10 +422,11 @@
     "monthly": "Monat",
     "yearly": "Jahr"
   },
-  "liked-your-photo": "hat dein Foto mit „Gefällt mir“ markiert",
+  "liked-your-photo": "hat dein Foto mit \"Gefällt mir\" markiert",
   "commented-your-photo": "hat dein Foto kommentiert",
   "sent-request": "hat dir eine Anfrage gesendet",
   "responded-to-request": "hat auf deine Anfrage geantwortet",
+  "someone": "Jemand",
   "something-went-wrong": "Etwas ist schiefgelaufen",
   "account-deleted-success": "Konto erfolgreich gelöscht",
   "password-changed-success": "Passwort erfolgreich geändert",

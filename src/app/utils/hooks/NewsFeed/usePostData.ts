@@ -4,15 +4,12 @@ import { handleFreshContent } from '../../functions/posts-functions';
 import { useFiltersStore } from '../../store/filtersStorage';
 import { useLocationStore } from '../../store/locationStore';
 import { usePlaceStore } from '../../store/placesStore';
-import {
-  OccupancyTypes,
-  PlaceType,
-} from '@/src/app/utils/types/Feed/PostTypes';
 import { useAuth } from '@/src/app/providers/AuthProvider';
 import { useUserStore } from '../../store/userStore';
 
 export const useNewsFeedData = () => {
-  const { distance, selectedPlaces, selectedOccupancy, showHighlightedPosts } = useFiltersStore();
+  const { distance, selectedPlaces, selectedOccupancy, showHighlightedPosts } =
+    useFiltersStore();
   const { location, fakeLocation, useFakeLocation } = useLocationStore();
   const { placeId } = usePlaceStore();
   const { isAuthenticated } = useAuth();
@@ -23,16 +20,31 @@ export const useNewsFeedData = () => {
 
   // Round GPS coordinates to 4 decimal places (~11 meters precision)
   // This prevents query key from changing on tiny location updates
-  const roundedLat = currentLocation?.latitude 
-    ? Math.round(currentLocation.latitude * 10000) / 10000 
+  const roundedLat = currentLocation?.latitude
+    ? Math.round(currentLocation.latitude * 10000) / 10000
     : null;
-  const roundedLong = currentLocation?.longitude 
-    ? Math.round(currentLocation.longitude * 10000) / 10000 
+  const roundedLong = currentLocation?.longitude
+    ? Math.round(currentLocation.longitude * 10000) / 10000
     : null;
 
-  const queryKey = placeId 
-    ? ['posts', placeId, roundedLat, roundedLong, distance] 
-    : ['posts', roundedLat, roundedLong, distance];
+  const queryKey = placeId
+    ? [
+        'posts',
+        placeId,
+        roundedLat,
+        roundedLong,
+        distance,
+        selectedPlaces,
+        selectedOccupancy,
+      ]
+    : [
+        'posts',
+        roundedLat,
+        roundedLong,
+        distance,
+        selectedPlaces,
+        selectedOccupancy,
+      ];
 
   const {
     data: postsData,
@@ -45,7 +57,14 @@ export const useNewsFeedData = () => {
   } = useInfiniteQuery(
     queryKey,
     ({ pageParam = null }) =>
-      handleFreshContent(distance, pageParam, placeId, currentLocation!),
+      handleFreshContent(
+        distance,
+        pageParam,
+        placeId,
+        currentLocation!,
+        selectedPlaces.length > 0 ? selectedPlaces : undefined,
+        selectedOccupancy.length > 0 ? selectedOccupancy : undefined
+      ),
     {
       getNextPageParam: lastPage => lastPage?.lastVisible || null, // lastVisible is mapped from nextCursor
       enabled: !!currentLocation && isAuthenticated && !!userId, // Wait for location, authentication, and userId to be available
@@ -58,7 +77,7 @@ export const useNewsFeedData = () => {
     }
   );
 
-  const filteredPosts = useMemo(() => {
+  const posts = useMemo(() => {
     if (!postsData?.pages) return [];
 
     const allPosts = postsData.pages.flatMap(page => page.posts);
@@ -66,33 +85,13 @@ export const useNewsFeedData = () => {
       new Map(allPosts.map(post => [post.id, post])).values()
     );
 
-    // First filter: Remove highlighted posts if showHighlightedPosts is false
-    let postsAfterHighlightFilter = uniquePosts;
+    // Only filter highlighted posts - place type and occupancy filtering is now done on server
     if (!showHighlightedPosts) {
-      postsAfterHighlightFilter = uniquePosts.filter(
-        post => !post.isHighlighted
-      );
+      return uniquePosts.filter(post => !post.isHighlighted);
     }
 
-    // Second filter: Apply place type and occupancy filters
-    if (selectedPlaces.length === 0 && selectedOccupancy.length === 0) {
-      return postsAfterHighlightFilter;
-    }
-
-    return postsAfterHighlightFilter.filter(post => {
-      const matchesPlaceType =
-        selectedPlaces.length === 0 ||
-        post.placeTypes?.some(type =>
-          selectedPlaces.includes(type as PlaceType)
-        );
-
-      const matchesOccupancy =
-        selectedOccupancy.length === 0 ||
-        selectedOccupancy.includes(post.occupancy as OccupancyTypes);
-
-      return matchesPlaceType && matchesOccupancy;
-    });
-  }, [postsData?.pages, selectedPlaces, selectedOccupancy, showHighlightedPosts]);
+    return uniquePosts;
+  }, [postsData?.pages, showHighlightedPosts]);
 
   const fetchMorePosts = async () => {
     if (hasNextPage) {
@@ -104,13 +103,13 @@ export const useNewsFeedData = () => {
   const forceRefetch = async () => {
     // Invalidate the query to force fresh data fetch
     await queryClient.invalidateQueries(queryKey);
-    
+
     // Then refetch
     await refetch();
   };
 
   return {
-    posts: filteredPosts,
+    posts,
     isLoading,
     isRefetching,
     isFetchingNextPage,

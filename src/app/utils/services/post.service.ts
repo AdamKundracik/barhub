@@ -41,7 +41,9 @@ export const getFreshContent = async (
   geoPoint: GeoPointType,
   radius: number,
   cursor?: string,
-  userId?: number
+  userId?: number,
+  placeTypes?: string[],
+  occupancyTypes?: string[]
 ): Promise<GetFreshnessContentResult> => {
   try {
     const requestBody = {
@@ -51,6 +53,8 @@ export const getFreshContent = async (
       cursor: cursor || null,
       pageSize: 5,
       userId: userId || null,
+      ...(placeTypes && placeTypes.length > 0 && { placeTypes }),
+      ...(occupancyTypes && occupancyTypes.length > 0 && { occupancyTypes }),
     };
 
     const data = await axiosClient.post(ENDPOINTS.POSTS.FRESH_CONTENT, requestBody);
@@ -80,7 +84,9 @@ export const getFreshContent = async (
 export const getPostsByPlaceId = async (
   placeId: string,
   cursor?: string,
-  userId?: number
+  userId?: number,
+  placeTypes?: string[],
+  occupancyTypes?: string[]
 ): Promise<GetFreshnessContentResult> => {
   try {
     const requestBody = {
@@ -88,6 +94,8 @@ export const getPostsByPlaceId = async (
       cursor: cursor || null,
       pageSize: 5,
       userId: userId || null,
+      ...(placeTypes && placeTypes.length > 0 && { placeTypes }),
+      ...(occupancyTypes && occupancyTypes.length > 0 && { occupancyTypes }),
     };
 
     const data = await axiosClient.post(ENDPOINTS.POSTS.BY_PLACE, requestBody);
