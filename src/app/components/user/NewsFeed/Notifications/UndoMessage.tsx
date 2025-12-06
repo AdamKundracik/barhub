@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { primaryColor } from '../../../../utils/styles/colors';
+import { useThemeColors } from '@/src/app/utils/styles/themeColors';
 
 interface UndoMessageProps {
   onUndo: () => void;
@@ -11,6 +11,7 @@ interface UndoMessageProps {
 export const UndoMessage: React.FC<UndoMessageProps> = ({ onUndo, onHide }) => {
   const translateY = useRef(new Animated.Value(100)).current;
   const { t } = useTranslation();
+  const colors = useThemeColors();
 
   useEffect(() => {
     Animated.spring(translateY, {
@@ -41,11 +42,22 @@ export const UndoMessage: React.FC<UndoMessageProps> = ({ onUndo, onHide }) => {
 
   return (
     <Animated.View
-      style={[styles.undoContainer, { transform: [{ translateY }] }]}
+      style={[
+        styles.undoContainer,
+        {
+          transform: [{ translateY }],
+          backgroundColor: colors.postBgColor,
+          shadowColor: colors.primaryTextColor,
+        },
+      ]}
     >
-      <Text style={styles.undoText}>{t('notification-deleted')}</Text>
+      <Text style={[styles.undoText, { color: colors.primaryTextColor }]}>
+        {t('notification-deleted')}
+      </Text>
       <TouchableOpacity onPress={handleUndo} style={styles.undoButton}>
-        <Text style={styles.undoButtonText}>{t('undo')}</Text>
+        <Text style={[styles.undoButtonText, { color: colors.primaryColor }]}>
+          {t('undo')}
+        </Text>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -81,18 +93,18 @@ export const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '700',
-    color: 'white',
+    // color is set inline to use theme colors
     textTransform: 'uppercase',
     marginBottom: 4,
   },
   text: {
     fontSize: 14,
-    color: 'white',
+    // color is set inline to use theme colors
     marginBottom: 4,
   },
   time: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.7)',
+    // color is set inline to use theme colors
   },
   contentRow: {
     flexDirection: 'row',
@@ -110,13 +122,12 @@ export const styles = StyleSheet.create({
     bottom: 20,
     left: 20,
     right: 20,
-    backgroundColor: 'rgba(0, 0, 0, 1)',
+    // backgroundColor and shadowColor are set inline to use theme colors
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -126,7 +137,7 @@ export const styles = StyleSheet.create({
     elevation: 5,
   },
   undoText: {
-    color: 'white',
+    // color is set inline to use theme colors
     fontSize: 14,
   },
   undoButton: {
@@ -134,7 +145,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   undoButtonText: {
-    color: primaryColor,
+    // color is set inline to use theme colors
     fontSize: 14,
     fontWeight: '600',
   },

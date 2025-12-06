@@ -33,12 +33,7 @@ import {
 import { useQueryClient } from 'react-query';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { ReportReason } from '@/src/app/utils/types/Feed/PostTypes';
-import {
-  postBgColor,
-  primaryColor,
-  primaryTextColor,
-  secondaryTextColor,
-} from '@/src/app/utils/styles/colors';
+import { useThemeColors } from '@/src/app/utils/styles/themeColors';
 import { Text } from '@/components/ui/text';
 import { HStack } from '@/components/ui/hstack';
 import { VStack } from '@/components/ui/vstack';
@@ -50,6 +45,7 @@ export const PostDetail = () => {
   const route = useRoute();
   const navigation = useNavigation();
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const queryClient = useQueryClient();
   const { getUserId, isPremium } = useUserStore();
@@ -381,33 +377,33 @@ export const PostDetail = () => {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={primaryColor} />
+      <View style={[styles.loadingContainer, { backgroundColor: colors.primaryBgColor }]}>
+        <ActivityIndicator size="large" color={colors.primaryColor} />
       </View>
     );
   }
 
   if (error || !post) {
     return (
-      <View style={styles.errorContainer}>
+      <View style={[styles.errorContainer, { backgroundColor: colors.primaryBgColor }]}>
         <FontAwesomeIcon
           icon={Icons.faExclamationCircle}
           size={64}
-          color={secondaryTextColor}
+          color={colors.secondaryTextColor}
         />
-        <Text style={styles.errorText}>{t('post-not-found')}</Text>
+        <Text style={[styles.errorText, { color: colors.primaryTextColor }]}>{t('post-not-found')}</Text>
 
         <HStack space="md" style={{ marginTop: 24 }}>
           <TouchableOpacity
-            style={styles.secondaryButton}
+            style={[styles.secondaryButton, { backgroundColor: colors.primaryTextColor + '1A', borderColor: colors.primaryTextColor + '33' }]}
             onPress={handleBackPress}
           >
-            <FontAwesomeIcon icon={Icons.faArrowLeft} size={16} color="#fff" />
-            <Text style={styles.secondaryButtonText}>{t('go-back')}</Text>
+            <FontAwesomeIcon icon={Icons.faArrowLeft} size={16} color={colors.primaryTextColor} />
+            <Text style={[styles.secondaryButtonText, { color: colors.primaryTextColor }]}>{t('go-back')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.backButton}
+            style={[styles.backButton, { backgroundColor: colors.primaryColor }]}
             onPress={async () => {
               setIsRefreshing(true);
               await refetch();
@@ -416,15 +412,15 @@ export const PostDetail = () => {
             disabled={isRefreshing}
           >
             {isRefreshing ? (
-              <ActivityIndicator size="small" color="#000" />
+              <ActivityIndicator size="small" color={colors.primaryBgColor} />
             ) : (
               <FontAwesomeIcon
                 icon={Icons.faRotateBack}
                 size={16}
-                color="#000"
+                color={colors.primaryBgColor}
               />
             )}
-            <Text style={styles.backButtonText}>
+            <Text style={[styles.backButtonText, { color: colors.primaryBgColor }]}>
               {isRefreshing ? t('loading') : t('retry')}
             </Text>
           </TouchableOpacity>
@@ -434,7 +430,7 @@ export const PostDetail = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.primaryBgColor }]}>
       {/* Header */}
       <LinearGradient
         colors={['rgba(0,0,0,0.8)', 'rgba(0,0,0,0)']}
@@ -469,8 +465,8 @@ export const PostDetail = () => {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            tintColor={primaryColor}
-            colors={[primaryColor]}
+            tintColor={colors.primaryColor}
+            colors={[colors.primaryColor]}
           />
         }
       >
@@ -487,9 +483,9 @@ export const PostDetail = () => {
         </TouchableOpacity>
 
         {/* Post Content */}
-        <View style={styles.contentContainer}>
+        <View style={[styles.contentContainer, { backgroundColor: colors.postBgColor }]}>
           {/* User Info - Only name and time */}
-          <View style={styles.userSection}>
+          <View style={[styles.userSection, { borderBottomColor: colors.separatorColor + '14' }]}>
             <HStack space="md" style={styles.userInfo}>
               <TouchableOpacity onPress={handleNavigateToUser}>
                 <Avatar size="md" style={styles.avatarContainer}>
@@ -509,7 +505,7 @@ export const PostDetail = () => {
               <VStack style={{ flex: 1 }}>
                 <HStack space="sm" style={{ alignItems: 'center' }}>
                   <TouchableOpacity onPress={handleNavigateToUser}>
-                    <Text style={styles.userName}>
+                    <Text style={[styles.userName, { color: colors.primaryTextColor }]}>
                       {post.user?.displayName}
                     </Text>
                   </TouchableOpacity>
@@ -526,7 +522,7 @@ export const PostDetail = () => {
                     </View>
                   )}
                 </HStack>
-                <Text style={styles.postTime}>
+                <Text style={[styles.postTime, { color: colors.secondaryTextColor }]}>
                   {new Date(post.creationTime).toLocaleString('sk-SK', {
                     day: 'numeric',
                     month: 'short',
@@ -551,32 +547,32 @@ export const PostDetail = () => {
           />
 
           {/* Place Info Card */}
-          <View style={styles.placeCard}>
+          <View style={[styles.placeCard, { backgroundColor: colors.primaryTextColor + '08', borderColor: colors.primaryTextColor + '14' }]}>
             <HStack space="md" style={styles.placeHeader}>
               <FontAwesomeIcon
                 icon={Icons.faMapMarkerAlt}
                 size={20}
-                color={primaryColor}
+                color={colors.primaryColor}
               />
-              <Text style={styles.placeName} numberOfLines={2}>
+              <Text style={[styles.placeName, { color: colors.primaryTextColor }]} numberOfLines={2}>
                 {post.placeName}
               </Text>
             </HStack>
 
-            <Text style={styles.placeAddress} numberOfLines={3}>
+            <Text style={[styles.placeAddress, { color: colors.secondaryTextColor }]} numberOfLines={3}>
               {post.placeAddress}
             </Text>
           </View>
 
           {/* Inline Ad */}
           {(PremiumHelpers.shouldAlwaysShowAds() || !isPremium()) && (
-            <View style={styles.adContainer}>
+            <View style={[styles.adContainer, { backgroundColor: colors.primaryTextColor + '05', borderColor: colors.primaryTextColor + '0D' }]}>
               <InlineAd />
             </View>
           )}
 
           {/* Quick Actions Bar */}
-          <HStack style={styles.quickActions}>
+          <HStack style={[styles.quickActions, { backgroundColor: colors.primaryTextColor + '08', borderColor: colors.primaryTextColor + '14' }]}>
             <TouchableOpacity
               style={styles.quickActionButton}
               onPress={handleShare}
@@ -584,12 +580,12 @@ export const PostDetail = () => {
               <FontAwesomeIcon
                 icon={Icons.faShareNodes}
                 size={20}
-                color={primaryColor}
+                color={colors.primaryColor}
               />
-              <Text style={styles.quickActionText}>{t('share')}</Text>
+              <Text style={[styles.quickActionText, { color: colors.primaryTextColor }]}>{t('share')}</Text>
             </TouchableOpacity>
 
-            <View style={styles.actionDivider} />
+            <View style={[styles.actionDivider, { backgroundColor: colors.primaryTextColor + '1A' }]} />
 
             <TouchableOpacity
               style={styles.quickActionButton}
@@ -598,25 +594,25 @@ export const PostDetail = () => {
               <FontAwesomeIcon
                 icon={Icons.faLink}
                 size={20}
-                color={primaryColor}
+                color={colors.primaryColor}
               />
-              <Text style={styles.quickActionText}>{t('copy-link')}</Text>
+              <Text style={[styles.quickActionText, { color: colors.primaryTextColor }]}>{t('copy-link')}</Text>
             </TouchableOpacity>
           </HStack>
 
           {/* Comments Section - Placeholder */}
-          <View style={styles.commentsSection}>
+          <View style={[styles.commentsSection, { borderTopColor: colors.separatorColor + '14' }]}>
             <HStack style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{t('comments')}</Text>
-              <Text style={styles.commentCount}>{post.commentsCount || 0}</Text>
+              <Text style={[styles.sectionTitle, { color: colors.primaryTextColor }]}>{t('comments')}</Text>
+              <Text style={[styles.commentCount, { color: colors.secondaryTextColor, backgroundColor: colors.primaryTextColor + '14' }]}>{post.commentsCount || 0}</Text>
             </HStack>
             <Center style={styles.commentsPlaceholder}>
               <FontAwesomeIcon
                 icon={Icons.faComments}
                 size={32}
-                color={secondaryTextColor}
+                color={colors.secondaryTextColor}
               />
-              <Text style={styles.placeholderText}>
+              <Text style={[styles.placeholderText, { color: colors.secondaryTextColor }]}>
                 {t('comments-coming-soon')}
               </Text>
             </Center>
@@ -658,29 +654,29 @@ export const PostDetail = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    // backgroundColor is set inline to use theme colors
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000',
+    // backgroundColor is set inline to use theme colors
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000',
+    // backgroundColor is set inline to use theme colors
     padding: 20,
   },
   errorText: {
     fontSize: 18,
-    color: primaryTextColor,
+    // color is set inline to use theme colors
     marginTop: 16,
     marginBottom: 24,
   },
   backButton: {
-    backgroundColor: primaryColor,
+    // backgroundColor is set inline to use theme colors
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,
@@ -689,12 +685,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   backButtonText: {
-    color: '#000',
+    // color is set inline to use theme colors
     fontSize: 16,
     fontWeight: '600',
   },
   secondaryButton: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    // backgroundColor and borderColor are set inline to use theme colors
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,
@@ -702,10 +698,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
   },
   secondaryButtonText: {
-    color: '#fff',
+    // color is set inline to use theme colors
     fontSize: 16,
     fontWeight: '600',
   },
@@ -740,14 +735,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#111',
   },
   contentContainer: {
-    backgroundColor: postBgColor,
+    // backgroundColor is set inline to use theme colors
     paddingBottom: 40,
   },
   userSection: {
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.05)',
+    // borderBottomColor is set inline to use theme colors
   },
   userInfo: {
     alignItems: 'center',
@@ -766,7 +761,7 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 16,
     fontWeight: '700',
-    color: primaryTextColor,
+    // color is set inline to use theme colors
   },
   highlightBadge: {
     flexDirection: 'row',
@@ -786,17 +781,16 @@ const styles = StyleSheet.create({
   },
   postTime: {
     fontSize: 13,
-    color: secondaryTextColor,
+    // color is set inline to use theme colors
     marginTop: 2,
   },
   placeCard: {
     marginHorizontal: 16,
     marginTop: 16,
     padding: 16,
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    // backgroundColor and borderColor are set inline to use theme colors
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
   },
   placeHeader: {
     alignItems: 'center',
@@ -805,12 +799,12 @@ const styles = StyleSheet.create({
   placeName: {
     fontSize: 17,
     fontWeight: '700',
-    color: primaryTextColor,
+    // color is set inline to use theme colors
     flex: 1,
   },
   placeAddress: {
     fontSize: 14,
-    color: secondaryTextColor,
+    // color is set inline to use theme colors
     lineHeight: 20,
     marginTop: 4,
     paddingLeft: 32,
@@ -821,9 +815,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255,255,255,0.02)',
+    // backgroundColor and borderColor are set inline to use theme colors
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
   },
   quickActions: {
     flexDirection: 'row',
@@ -833,10 +826,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginHorizontal: 16,
     marginTop: 8,
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    // backgroundColor and borderColor are set inline to use theme colors
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
   },
   quickActionButton: {
     flex: 1,
@@ -848,20 +840,20 @@ const styles = StyleSheet.create({
   },
   quickActionText: {
     fontSize: 15,
-    color: primaryTextColor,
+    // color is set inline to use theme colors
     fontWeight: '600',
   },
   actionDivider: {
     width: 1,
     height: 30,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    // backgroundColor is set inline to use theme colors
   },
   commentsSection: {
     marginTop: 20,
     paddingHorizontal: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.05)',
+    // borderTopColor is set inline to use theme colors
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -872,13 +864,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: primaryTextColor,
+    // color is set inline to use theme colors
   },
   commentCount: {
     fontSize: 14,
     fontWeight: '600',
-    color: secondaryTextColor,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    // color and backgroundColor are set inline to use theme colors
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 12,
@@ -888,7 +879,7 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     fontSize: 14,
-    color: secondaryTextColor,
+    // color is set inline to use theme colors
     marginTop: 12,
   },
 });

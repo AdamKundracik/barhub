@@ -173,6 +173,13 @@ module.exports = {
           info: 'rgb(var(--color-indicator-info)/<alpha-value>)',
           error: 'rgb(var(--color-indicator-error)/<alpha-value>)',
         },
+        brand: {
+          primary: 'rgb(var(--color-brand-primary)/<alpha-value>)',
+          'primary-deep': 'rgb(var(--color-brand-primary-deep)/<alpha-value>)',
+          bg: 'rgb(var(--color-brand-bg)/<alpha-value>)',
+          text: 'rgb(var(--color-brand-text)/<alpha-value>)',
+          separator: 'rgb(var(--color-brand-separator)/<alpha-value>)',
+        },
       },
       fontFamily: {
         heading: undefined,

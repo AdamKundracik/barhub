@@ -48,6 +48,7 @@ const styles = StyleSheet.create({
   adContainer: {
     alignItems: 'center',
     justifyContent: 'center',
+    width: '100%',
   },
 });
 

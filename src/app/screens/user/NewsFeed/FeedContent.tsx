@@ -4,7 +4,7 @@ import PostsList from '../../../components/user/NewsFeed/PostList';
 import PostLoaderView from '../../../components/user/NewsFeed/Post/Loaders/PostLoaderView';
 import EmptyState from '../../../components/user/NewsFeed/EmptyState';
 import LocationRequiredState from '../../../components/user/NewsFeed/LocationRequiredState';
-import { primaryColor } from '../../../utils/styles/colors';
+import { useThemeColors } from '../../../utils/styles/themeColors';
 import { usePermissionsContext } from '../../../providers/PermissionsProvider';
 
 interface FeedContentProps {
@@ -42,6 +42,7 @@ export const FeedContent: React.FC<FeedContentProps> = ({
   fetchMorePosts,
 }) => {
   const { permissions } = usePermissionsContext();
+  const colors = useThemeColors();
 
   // Debug log
   // console.log('[FeedContent] Current permissions:', permissions);
@@ -63,8 +64,8 @@ export const FeedContent: React.FC<FeedContentProps> = ({
           <RefreshControl
             refreshing={isRefetching}
             onRefresh={onRefresh}
-            tintColor={primaryColor}
-            colors={[primaryColor]}
+            tintColor={colors.primaryColor}
+            colors={[colors.primaryColor]}
           />
         }
       >
@@ -105,8 +106,8 @@ export const FeedContent: React.FC<FeedContentProps> = ({
         <RefreshControl
           refreshing={isRefetching}
           onRefresh={onRefresh}
-          tintColor={primaryColor}
-          colors={[primaryColor]}
+          tintColor={colors.primaryColor}
+          colors={[colors.primaryColor]}
         />
       }
     >

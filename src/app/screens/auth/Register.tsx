@@ -5,15 +5,10 @@ import * as React from 'react';
 import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import * as Icons from '@fortawesome/free-solid-svg-icons';
-import { formStyles } from '../../utils/styles/styles';
+import { formStyles, getFormStyles } from '../../utils/styles/styles';
 import { useTranslation } from 'react-i18next';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
-import {
-  primaryColor,
-  primaryTextColor,
-  secondaryTextColor,
-  warningColor,
-} from '../../utils/styles/colors';
+import { useThemeColors } from '../../utils/styles/themeColors';
 import * as ImagePicker from 'expo-image-picker';
 import Svg, { Circle, Path } from 'react-native-svg';
 import {
@@ -41,6 +36,8 @@ type InputFieldType = 'email' | 'username' | 'password' | 'repeatPassword';
 export const Register = () => {
   const { t } = useTranslation();
   const navigation = useNavigation();
+  const colors = useThemeColors();
+  const themeFormStyles = getFormStyles(colors);
   const [togglePassword, setTogglePassword] = useState(false);
   const [toggleRepeatPassword, setToggleRepeatPassword] = useState(false);
   const [datePickerOpened, setDatePickerOpened] = useState(false);
@@ -108,7 +105,7 @@ export const Register = () => {
           <FontAwesomeIcon
             icon={Icons.faChevronLeft}
             size={24}
-            color={'white'}
+            color={colors.primaryTextColor}
           />
         </TouchableOpacity>
         {/* Profile Photo Section */}
@@ -155,14 +152,14 @@ export const Register = () => {
                       cx="100"
                       cy="100"
                       r="97"
-                      fill="#031824"
-                      stroke="#10D9B9"
+                      fill={colors.primaryBgColor}
+                      stroke={colors.primaryColor}
                       strokeWidth="6"
                     />
                     <Path
                       d="M121.666 107.558L119.148 109.821L122.345 110.934C131.86 114.247 140.115 120.452 145.966 128.691C151.817 136.93 154.975 146.795 155 156.919C155 158.004 154.57 159.043 153.809 159.808C153.049 160.572 152.019 161 150.947 161C149.876 161 148.846 160.572 148.085 159.808C147.324 159.043 146.895 158.003 146.895 156.917V156.915C146.884 146.147 142.622 135.82 135.043 128.203C127.463 120.585 117.183 116.299 106.459 116.288H106.457H92.5434H92.5413C81.8172 116.299 71.5374 120.585 63.9573 128.203C56.3775 135.82 52.1162 146.147 52.1053 156.915V156.917C52.1053 158.003 51.6759 159.043 50.9148 159.808C50.154 160.572 49.1242 161 48.0526 161C46.981 161 45.9513 160.572 45.1905 159.808C44.4297 159.043 44.0003 158.004 44 156.918C44.0139 146.812 47.1493 136.96 52.972 128.723C58.7949 120.486 67.0175 114.27 76.5036 110.932L79.6849 109.812L77.1767 107.558C72.1385 103.029 68.586 97.0682 66.9909 90.4636C65.3959 83.859 65.834 76.9232 68.2469 70.5747C70.6598 64.2262 74.9332 58.7653 80.5 54.9134C86.0668 51.0617 92.6649 49 99.4214 49C106.178 49 112.776 51.0617 118.343 54.9134C123.91 58.7653 128.183 64.2262 130.596 70.5747C133.009 76.9232 133.447 83.859 131.852 90.4636C130.257 97.0682 126.704 103.029 121.666 107.558ZM54.1053 156.917C54.1157 146.675 58.1687 136.856 65.375 129.614C72.5813 122.371 82.3522 118.298 92.5434 118.288H106.457C116.648 118.298 126.419 122.371 133.625 129.614C140.831 136.856 144.884 146.675 144.895 156.917H54.1053ZM113.397 61.7348C109.261 58.9575 104.398 57.4744 99.4214 57.4744C92.7481 57.4744 86.3502 60.1387 81.6346 64.8778C79.2997 67.2243 77.4482 70.0094 76.1851 73.0739C74.922 76.1385 74.272 79.4226 74.272 82.7391C74.272 87.7337 75.7457 92.617 78.5079 96.7715C81.2702 100.926 85.1973 104.166 89.7939 106.079C94.3906 107.993 99.4492 108.493 104.33 107.518C109.21 106.542 113.692 104.134 117.208 100.6C120.725 97.0664 123.118 92.565 124.088 87.6661C125.057 82.7672 124.56 77.6892 122.658 73.0739C120.755 68.4586 117.533 64.5121 113.397 61.7348Z"
-                      fill="#10D9B9"
-                      stroke="#031824"
+                      fill={colors.primaryColor}
+                      stroke={colors.primaryBgColor}
                       strokeWidth="4"
                     />
                     <Path
@@ -180,7 +177,7 @@ export const Register = () => {
 
         {/* Account Information Section */}
         <View style={styles.formSection}>
-          <Text style={styles.sectionTitle}>{t('account-info')}</Text>
+          <Text style={[styles.sectionTitle, { color: colors.primaryColor }]}>{t('account-info')}</Text>
 
           <FormControl
             size="md"
@@ -191,8 +188,8 @@ export const Register = () => {
             isInvalid={shouldShowError('email')}
           >
             <FormControlLabel>
-              <FormControlLabelText style={styles.labelText}>
-                {t('email')} <Text style={styles.requiredStar}>*</Text>
+              <FormControlLabelText style={[styles.labelText, { color: colors.primaryColor }]}>
+                {t('email')} <Text style={[styles.requiredStar, { color: colors.warningColor }]}>*</Text>
               </FormControlLabelText>
             </FormControlLabel>
             <Input
@@ -200,14 +197,22 @@ export const Register = () => {
               variant="rounded"
               size="xl"
               style={[
-                formStyles.inputPrimary,
-                focusedInput === 'email' && styles.inputFocused,
+                themeFormStyles.inputPrimary,
+                focusedInput === 'email' && {
+                  borderColor: colors.primaryColor,
+                  borderWidth: 2,
+                  shadowColor: colors.primaryColor,
+                  shadowOpacity: 0.2,
+                  shadowRadius: 4,
+                  elevation: 2,
+                },
               ]}
             >
               <InputField
                 type="text"
                 placeholder={t('email')}
-                style={{ color: primaryTextColor }}
+                placeholderTextColor={colors.secondaryTextColor}
+                style={{ color: colors.primaryTextColor }}
                 onChangeText={value => updateField('email', value)}
                 onFocus={() => setFocusedInput('email')}
                 onBlur={() => {
@@ -224,7 +229,7 @@ export const Register = () => {
             </Input>
             {!shouldShowError('email') && formData.email.length === 0 && (
               <FormControlHelper>
-                <FormControlHelperText style={styles.helperText}>
+                <FormControlHelperText style={[styles.helperText, { color: colors.secondaryTextColor }]}>
                   {t('enter-valid-email')}
                 </FormControlHelperText>
               </FormControlHelper>
@@ -234,7 +239,7 @@ export const Register = () => {
               !/[^\s@]+@[^\s@]+\.[^\s@]+/.test(formData.email) && (
                 <FormControlHelper>
                   <FormControlHelperText
-                    style={[styles.helperText, { color: warningColor }]}
+                    style={[styles.helperText, { color: colors.warningColor }]}
                   >
                     {t('invalid-email')}
                   </FormControlHelperText>
@@ -262,8 +267,8 @@ export const Register = () => {
             isInvalid={shouldShowError('username')}
           >
             <FormControlLabel>
-              <FormControlLabelText style={styles.labelText}>
-                {t('user-name')} <Text style={styles.requiredStar}>*</Text>
+              <FormControlLabelText style={[styles.labelText, { color: colors.primaryColor }]}>
+                {t('user-name')} <Text style={[styles.requiredStar, { color: colors.warningColor }]}>*</Text>
               </FormControlLabelText>
             </FormControlLabel>
             <Input
@@ -272,13 +277,21 @@ export const Register = () => {
               size="xl"
               style={[
                 formStyles.inputPrimary,
-                focusedInput === 'username' && styles.inputFocused,
+                focusedInput === 'username' && {
+                  borderColor: colors.primaryColor,
+                  borderWidth: 2,
+                  shadowColor: colors.primaryColor,
+                  shadowOpacity: 0.2,
+                  shadowRadius: 4,
+                  elevation: 2,
+                },
               ]}
             >
               <InputField
                 type="text"
                 placeholder={t('user-name')}
-                style={{ color: primaryTextColor }}
+                placeholderTextColor={colors.secondaryTextColor}
+                style={{ color: colors.primaryTextColor }}
                 onChangeText={value => updateField('username', value)}
                 onFocus={() => setFocusedInput('username')}
                 onBlur={() => {
@@ -295,12 +308,12 @@ export const Register = () => {
             </Input>
             {!shouldShowError('username') && formData.username.length === 0 && (
               <FormControlHelper>
-                <FormControlHelperText style={styles.helperText}>
+                <FormControlHelperText style={[styles.helperText, { color: colors.secondaryTextColor }]}>
                   {t('min-characters', { count: 3 })}
                 </FormControlHelperText>
               </FormControlHelper>
             )}
-            <Text style={styles.charCount}>
+            <Text style={[styles.charCount, { color: colors.secondaryTextColor }]}>
               {formData.username?.length || 0}/30
             </Text>
             {!shouldShowError('username') &&
@@ -308,7 +321,7 @@ export const Register = () => {
               formData.username.length < 3 && (
                 <FormControlHelper>
                   <FormControlHelperText
-                    style={[styles.helperText, { color: warningColor }]}
+                    style={[styles.helperText, { color: colors.warningColor }]}
                   >
                     {t('username-min-length')}
                   </FormControlHelperText>
@@ -336,8 +349,8 @@ export const Register = () => {
             isInvalid={shouldShowError('dateOfBirth')}
           >
             <FormControlLabel>
-              <FormControlLabelText style={styles.labelText}>
-                {t('date-of-birth')} <Text style={styles.requiredStar}>*</Text>
+              <FormControlLabelText style={[styles.labelText, { color: colors.primaryColor }]}>
+                {t('date-of-birth')} <Text style={[styles.requiredStar, { color: colors.warningColor }]}>*</Text>
               </FormControlLabelText>
             </FormControlLabel>
             <TouchableOpacity
@@ -356,7 +369,7 @@ export const Register = () => {
                 >
                   <InputField
                     value={formData.dateOfBirth.toLocaleDateString()}
-                    style={{ color: primaryTextColor }}
+                    style={{ color: colors.primaryTextColor }}
                     editable={false}
                   />
                 </Input>
@@ -395,7 +408,7 @@ export const Register = () => {
 
         {/* Security Section */}
         <View style={styles.formSection}>
-          <Text style={styles.sectionTitle}>{t('security')}</Text>
+          <Text style={[styles.sectionTitle, { color: colors.primaryColor }]}>{t('security')}</Text>
 
           <FormControl
             size="md"
@@ -406,8 +419,8 @@ export const Register = () => {
             isInvalid={shouldShowError('password')}
           >
             <FormControlLabel>
-              <FormControlLabelText style={styles.labelText}>
-                {t('password')} <Text style={styles.requiredStar}>*</Text>
+              <FormControlLabelText style={[styles.labelText, { color: colors.primaryColor }]}>
+                {t('password')} <Text style={[styles.requiredStar, { color: colors.warningColor }]}>*</Text>
               </FormControlLabelText>
             </FormControlLabel>
             <Input
@@ -416,13 +429,21 @@ export const Register = () => {
               size="xl"
               style={[
                 formStyles.inputPrimary,
-                focusedInput === 'password' && styles.inputFocused,
+                focusedInput === 'password' && {
+                  borderColor: colors.primaryColor,
+                  borderWidth: 2,
+                  shadowColor: colors.primaryColor,
+                  shadowOpacity: 0.2,
+                  shadowRadius: 4,
+                  elevation: 2,
+                },
               ]}
             >
               <InputField
                 type={togglePassword ? 'text' : 'password'}
                 placeholder={t('password')}
-                style={{ color: primaryTextColor }}
+                placeholderTextColor={colors.secondaryTextColor}
+                style={{ color: colors.primaryTextColor }}
                 onChangeText={value => updateField('password', value)}
                 onFocus={() => setFocusedInput('password')}
                 onBlur={() => {
@@ -444,7 +465,7 @@ export const Register = () => {
             </Input>
             {!shouldShowError('password') && formData.password.length === 0 && (
               <FormControlHelper>
-                <FormControlHelperText style={styles.helperText}>
+                <FormControlHelperText style={[styles.helperText, { color: colors.secondaryTextColor }]}>
                   {t('password-requirement') || 'Must be at least 6 characters'}
                 </FormControlHelperText>
               </FormControlHelper>
@@ -454,7 +475,7 @@ export const Register = () => {
               formData.password.length < 6 && (
                 <FormControlHelper>
                   <FormControlHelperText
-                    style={[styles.helperText, { color: warningColor }]}
+                    style={[styles.helperText, { color: colors.warningColor }]}
                   >
                     {t('min-characters', { count: 6 })}
                   </FormControlHelperText>
@@ -482,8 +503,8 @@ export const Register = () => {
             isInvalid={shouldShowError('repeatPassword')}
           >
             <FormControlLabel>
-              <FormControlLabelText style={styles.labelText}>
-                {t('repeatPassword')} <Text style={styles.requiredStar}>*</Text>
+              <FormControlLabelText style={[styles.labelText, { color: colors.primaryColor }]}>
+                {t('repeatPassword')} <Text style={[styles.requiredStar, { color: colors.warningColor }]}>*</Text>
               </FormControlLabelText>
             </FormControlLabel>
             <Input
@@ -492,13 +513,21 @@ export const Register = () => {
               size="xl"
               style={[
                 formStyles.inputPrimary,
-                focusedInput === 'repeatPassword' && styles.inputFocused,
+                focusedInput === 'repeatPassword' && {
+                  borderColor: colors.primaryColor,
+                  borderWidth: 2,
+                  shadowColor: colors.primaryColor,
+                  shadowOpacity: 0.2,
+                  shadowRadius: 4,
+                  elevation: 2,
+                },
               ]}
             >
               <InputField
                 type={toggleRepeatPassword ? 'text' : 'password'}
                 placeholder={t('repeatPassword')}
-                style={{ color: primaryTextColor }}
+                placeholderTextColor={colors.secondaryTextColor}
+                style={{ color: colors.primaryTextColor }}
                 onChangeText={value => updateField('repeatPassword', value)}
                 onFocus={() => setFocusedInput('repeatPassword')}
                 onBlur={() => {
@@ -557,7 +586,7 @@ export const Register = () => {
             <View style={styles.checkboxRow}>
               <BouncyCheckbox
                 style={styles.checkbox}
-                fillColor={primaryColor}
+                fillColor={colors.primaryColor}
                 isChecked={formData.acceptsTermsOfUse}
                 onPress={() =>
                   updateField('acceptsTermsOfUse', !formData.acceptsTermsOfUse)
@@ -566,10 +595,10 @@ export const Register = () => {
                 disableText
               />
               <View style={styles.checkboxTextContainer}>
-                <Text style={styles.checkboxText}>
+                <Text style={[styles.checkboxText, { color: colors.primaryTextColor }]}>
                   {t('i-accept')}{' '}
                   <Text
-                    style={styles.linkText}
+                    style={[styles.linkText, { color: colors.primaryColor }]}
                     onPress={() =>
                       (navigation as any).navigate('TermsOfService')
                     }
@@ -581,7 +610,7 @@ export const Register = () => {
               </View>
             </View>
             {submitted && !formData.acceptsTermsOfUse && (
-              <Text style={styles.termsError}>
+              <Text style={[styles.termsError, { color: colors.warningColor }]}>
                 {t('accept-terms-required')}
               </Text>
             )}
@@ -597,7 +626,7 @@ export const Register = () => {
             <View style={styles.checkboxRow}>
               <BouncyCheckbox
                 style={styles.checkbox}
-                fillColor={primaryColor}
+                fillColor={colors.primaryColor}
                 isChecked={formData.acceptsPrivacyPolicy}
                 onPress={() =>
                   updateField(
@@ -609,10 +638,10 @@ export const Register = () => {
                 disableText
               />
               <View style={styles.checkboxTextContainer}>
-                <Text style={styles.checkboxText}>
+                <Text style={[styles.checkboxText, { color: colors.primaryTextColor }]}>
                   {t('i-accept')}{' '}
                   <Text
-                    style={styles.linkText}
+                    style={[styles.linkText, { color: colors.primaryColor }]}
                     onPress={() =>
                       (navigation as any).navigate('PrivacyPolicy')
                     }
@@ -623,7 +652,7 @@ export const Register = () => {
               </View>
             </View>
             {submitted && !formData.acceptsPrivacyPolicy && (
-              <Text style={styles.termsError}>
+              <Text style={[styles.termsError, { color: colors.warningColor }]}>
                 {t('accept-privacy-required')}
               </Text>
             )}
@@ -639,7 +668,7 @@ export const Register = () => {
             <View style={styles.checkboxRow}>
               <BouncyCheckbox
                 style={styles.checkbox}
-                fillColor={primaryColor}
+                fillColor={colors.primaryColor}
                 isChecked={formData.acceptsCommunityGuidelines}
                 onPress={() =>
                   updateField(
@@ -651,10 +680,10 @@ export const Register = () => {
                 disableText
               />
               <View style={styles.checkboxTextContainer}>
-                <Text style={styles.checkboxText}>
+                <Text style={[styles.checkboxText, { color: colors.primaryTextColor }]}>
                   {t('i-accept')}{' '}
                   <Text
-                    style={styles.linkText}
+                    style={[styles.linkText, { color: colors.primaryColor }]}
                     onPress={() =>
                       (navigation as any).navigate('CommunityGuidelines')
                     }
@@ -666,7 +695,7 @@ export const Register = () => {
               </View>
             </View>
             {submitted && !formData.acceptsCommunityGuidelines && (
-              <Text style={styles.termsError}>
+              <Text style={[styles.termsError, { color: colors.warningColor }]}>
                 {t('accept-community-required')}
               </Text>
             )}
@@ -715,7 +744,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   backButtonText: {
-    color: primaryColor,
+    color: '#10D9B9', // Static color for StyleSheet
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
@@ -727,12 +756,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: primaryColor,
+    // color is set inline to use theme colors
     marginBottom: 4,
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: secondaryTextColor,
+    color: '#a0a0a0', // Static color for StyleSheet
     marginBottom: 16,
   },
   photoContainer: {
@@ -759,13 +788,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   photoOverlayText: {
-    color: primaryColor,
+    color: '#10D9B9', // Static color for StyleSheet
     fontSize: 14,
     fontWeight: '600',
   },
   sectionDivider: {
     marginVertical: 24,
-    backgroundColor: primaryColor,
+    backgroundColor: '#10D9B9', // Static color for StyleSheet
     opacity: 0.3,
   },
   formSection: {
@@ -774,25 +803,18 @@ const styles = StyleSheet.create({
   formControl: {
     marginBottom: 16,
   },
-  inputFocused: {
-    borderColor: primaryColor,
-    borderWidth: 2,
-    shadowColor: primaryColor,
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
-  },
+  // inputFocused styles are now inline
   labelText: {
-    color: primaryColor,
+    // color is set inline to use theme colors
     fontSize: 16,
     fontWeight: '500',
   },
   requiredStar: {
-    color: warningColor,
+    // color is set inline to use theme colors
     fontSize: 16,
   },
   helperText: {
-    color: secondaryTextColor,
+    // color is set inline to use theme colors
     fontSize: 12,
   },
   termsControl: {
@@ -813,24 +835,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   checkboxText: {
-    color: primaryTextColor,
+    // color is set inline to use theme colors
     fontSize: 14,
     lineHeight: 20,
   },
   linkText: {
-    color: primaryColor,
+    // color is set inline to use theme colors
     fontSize: 14,
     fontWeight: '600',
     textDecorationLine: 'underline',
   },
   termsError: {
-    color: warningColor,
+    // color is set inline to use theme colors
     fontSize: 12,
     marginTop: 4,
     marginLeft: 8,
   },
   legalNotice: {
-    color: secondaryTextColor,
+    color: '#a0a0a0', // Static color for StyleSheet
     fontSize: 12,
     marginTop: 16,
     marginHorizontal: 8,
@@ -839,7 +861,7 @@ const styles = StyleSheet.create({
   },
   charCount: {
     fontSize: 12,
-    color: secondaryTextColor,
+    // color is set inline to use theme colors
     textAlign: 'right',
     marginTop: 6,
   },

@@ -6,14 +6,35 @@ import {
   primaryGrey,
   primaryTextColor,
 } from './colors';
+import { useThemeColors } from './themeColors';
 
+// Theme-aware form styles function
+export const getFormStyles = (colors: ReturnType<typeof useThemeColors>) =>
+  StyleSheet.create({
+    inputPrimary: {
+      paddingHorizontal: 10,
+      backgroundColor: colors.primaryTextColor + '0D', // 5% opacity
+      borderColor: colors.separatorColor,
+      borderWidth: 1,
+      color: colors.primaryTextColor,
+    },
+    inputPrimaryFocused: {
+      paddingHorizontal: 10,
+      backgroundColor: colors.primaryTextColor + '0D',
+      borderColor: colors.primaryColor,
+      borderWidth: 2,
+      color: colors.primaryTextColor,
+    },
+  });
+
+// Static form styles for backward compatibility
 export const formStyles = StyleSheet.create({
   inputPrimary: {
     paddingHorizontal: 10,
-    backgroundColor: primaryGrey,
-    borderColor: primaryColor,
+    backgroundColor: '#FFFFFF0D', // Static fallback
+    borderColor: '#6c6b6b', // Static fallback
     borderWidth: 1,
-    color: primaryTextColor,
+    color: '#FFFFFF', // Static fallback
   },
   inputPrimaryFocused: {
     paddingHorizontal: 10,

@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FastImage from 'react-native-fast-image';
-import { primaryColor } from '../../utils/styles/colors';
+import { useThemeColors } from '../../utils/styles/themeColors';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import {
   Avatar,
@@ -60,6 +60,7 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
   animationKey,
 }) => {
   const navigation = useNavigation();
+  const colors = useThemeColors();
   const isTopThree = rank !== null && rank < 3;
 
   // Animácia pre každý riadok - použitie useRef pre perzistentnosť
@@ -94,19 +95,19 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
         return {
           text: '#FFD700',
           border: '#FFD700',
-          background: 'rgba(255, 215, 0, 0.1)',
+          background: '#FFD700' + '1A', // ~10% opacity
         };
       case 1: // 2. miesto - Strieborná
         return {
           text: '#C0C0C0',
           border: '#C0C0C0',
-          background: 'rgba(192, 192, 192, 0.1)',
+          background: '#C0C0C0' + '1A', // ~10% opacity
         };
       case 2: // 3. miesto - Bronzová
         return {
           text: '#CD7F32',
           border: '#CD7F32',
-          background: 'rgba(205, 127, 50, 0.1)',
+          background: '#CD7F32' + '1A', // ~10% opacity
         };
       default:
         return null;
@@ -124,7 +125,16 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
       <Animated.View
         style={[
           styles.row,
-          highlight && styles.currentUserHighlight,
+          {
+            backgroundColor: colors.primaryTextColor + '0D', // ~5% opacity
+          },
+          highlight && [
+            styles.currentUserHighlight,
+            {
+              backgroundColor: colors.primaryColor + '26', // ~15% opacity
+              borderColor: colors.primaryColor,
+            },
+          ],
           isTopThree && {
             backgroundColor: topThreeColors?.background,
             borderWidth: 1,
@@ -141,8 +151,15 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
           {isTopThree ? (
             <FastImage source={medalMap[rank]} style={styles.medal} />
           ) : (
-            <View style={styles.rankBadge}>
-              <Text style={styles.rank}>
+            <View
+              style={[
+                styles.rankBadge,
+                {
+                  backgroundColor: colors.primaryTextColor + '1A', // ~10% opacity
+                },
+              ]}
+            >
+              <Text style={[styles.rank, { color: colors.primaryTextColor }]}>
                 {rank !== null ? `${rank + 1}` : '?'}
               </Text>
             </View>
@@ -154,8 +171,12 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
           size="lg"
           style={[
             styles.avatar,
+            {
+              borderColor: isTopThree
+                ? topThreeColors?.border
+                : colors.primaryTextColor + '33', // ~20% opacity
+            },
             isTopThree && {
-              borderColor: topThreeColors?.border,
               borderWidth: 2.5,
             },
           ]}
@@ -179,8 +200,8 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
           <Text
             style={[
               styles.username,
+              { color: isTopThree ? topThreeColors?.text : colors.primaryTextColor },
               isTopThree && {
-                color: topThreeColors?.text,
                 fontWeight: 'bold',
               },
             ]}
@@ -193,9 +214,9 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
         <Text
           style={[
             styles.points,
-            isTopThree && {
-              color: topThreeColors?.text,
-              fontSize: 17,
+            {
+              color: isTopThree ? topThreeColors?.text : colors.primaryTextColor,
+              fontSize: isTopThree ? 17 : 16,
             },
           ]}
         >
@@ -213,6 +234,7 @@ const LeaderboardScreen = () => {
   const [animationKey, setAnimationKey] = useState('0'); // Kľúč pre resetovanie animácií
   const { data, isLoading, error, refetch } = useLeaderboard(selectedTab);
   const { isAdmin, isModerator } = useUserRole();
+  const colors = useThemeColors();
 
   const { t } = useTranslation();
 
@@ -300,7 +322,7 @@ const LeaderboardScreen = () => {
     <ScreenLayout title={`🏆 ${t('leaderboard.topUsers')}`} showTitle>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.subtitle}>
+        <Text style={[styles.subtitle, { color: colors.secondaryTextColor }]}>
           {selectedTab === 'week'
             ? t('leaderboard.week')
             : selectedTab === 'monthly'
@@ -311,7 +333,12 @@ const LeaderboardScreen = () => {
         {/* Export Button - Only for Admin/Moderator */}
         {(isAdmin || isModerator) && (
           <TouchableOpacity
-            style={styles.exportButton}
+            style={[
+              styles.exportButton,
+              {
+                backgroundColor: colors.primaryColor,
+              },
+            ]}
             onPress={exportToCSV}
             activeOpacity={0.7}
           >
@@ -322,12 +349,25 @@ const LeaderboardScreen = () => {
       </View>
 
       {/* Tab Switcher */}
-      <View style={styles.tabSwitcher}>
+      <View
+        style={[
+          styles.tabSwitcher,
+          {
+            backgroundColor: colors.primaryTextColor + '1A', // ~10% opacity
+          },
+        ]}
+      >
         <BlurView intensity={20} tint="dark" style={styles.tabBlur}>
           <TouchableOpacity
             style={[
               styles.tabButton,
-              selectedTab === 'week' && styles.tabButtonActive,
+              selectedTab === 'week' && [
+                styles.tabButtonActive,
+                {
+                  backgroundColor: colors.primaryColor,
+                  shadowColor: colors.primaryColor,
+                },
+              ],
             ]}
             onPress={() => handleTabChange('week')}
             activeOpacity={selectedTab === 'week' ? 1 : 0.7}
@@ -336,6 +376,7 @@ const LeaderboardScreen = () => {
             <Text
               style={[
                 styles.tabText,
+                { color: colors.primaryTextColor },
                 selectedTab === 'week' && styles.tabTextActive,
               ]}
             >
@@ -346,7 +387,13 @@ const LeaderboardScreen = () => {
           <TouchableOpacity
             style={[
               styles.tabButton,
-              selectedTab === 'monthly' && styles.tabButtonActive,
+              selectedTab === 'monthly' && [
+                styles.tabButtonActive,
+                {
+                  backgroundColor: colors.primaryColor,
+                  shadowColor: colors.primaryColor,
+                },
+              ],
             ]}
             onPress={() => handleTabChange('monthly')}
             activeOpacity={selectedTab === 'monthly' ? 1 : 0.7}
@@ -355,6 +402,7 @@ const LeaderboardScreen = () => {
             <Text
               style={[
                 styles.tabText,
+                { color: colors.primaryTextColor },
                 selectedTab === 'monthly' && styles.tabTextActive,
               ]}
             >
@@ -365,7 +413,13 @@ const LeaderboardScreen = () => {
           <TouchableOpacity
             style={[
               styles.tabButton,
-              selectedTab === 'yearly' && styles.tabButtonActive,
+              selectedTab === 'yearly' && [
+                styles.tabButtonActive,
+                {
+                  backgroundColor: colors.primaryColor,
+                  shadowColor: colors.primaryColor,
+                },
+              ],
             ]}
             onPress={() => handleTabChange('yearly')}
             activeOpacity={selectedTab === 'yearly' ? 1 : 0.7}
@@ -374,6 +428,7 @@ const LeaderboardScreen = () => {
             <Text
               style={[
                 styles.tabText,
+                { color: colors.primaryTextColor },
                 selectedTab === 'yearly' && styles.tabTextActive,
               ]}
             >
@@ -394,15 +449,19 @@ const LeaderboardScreen = () => {
           <RefreshControl
             refreshing={isLoading}
             onRefresh={refetch}
-            tintColor={primaryColor}
-            colors={[primaryColor]}
+            tintColor={colors.primaryColor}
+            colors={[colors.primaryColor]}
           />
         }
         data={topUsers}
         keyExtractor={item => item.userId}
         ListEmptyComponent={
           <View>
-            {!topUsers && <Text style={styles.emptyText}>{t('no-data')}</Text>}
+            {!topUsers && (
+              <Text style={[styles.emptyText, { color: colors.primaryTextColor }]}>
+                {t('no-data')}
+              </Text>
+            )}
           </View>
         }
         renderItem={({ item, index }) => (
@@ -432,7 +491,7 @@ const LeaderboardScreen = () => {
       {/* Error handling */}
       {error && (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>
+          <Text style={[styles.errorText, { color: colors.warningColor }]}>
             Error: {error instanceof Error ? error.message : 'Unknown error'}
           </Text>
         </View>
@@ -451,7 +510,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: primaryColor,
+    // color is set inline to use theme colors
     textAlign: 'center',
     marginVertical: 10,
   },
@@ -464,7 +523,7 @@ const styles = StyleSheet.create({
   exportButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: primaryColor,
+    // backgroundColor is set inline to use theme colors
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 10,
@@ -479,13 +538,13 @@ const styles = StyleSheet.create({
   mainTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: primaryColor,
+    // color is set inline to use theme colors
     textAlign: 'center',
     marginBottom: 5,
   },
   subtitle: {
     fontSize: 16,
-    color: '#999',
+    // color is set inline to use theme colors
     fontWeight: '500',
   },
 
@@ -495,7 +554,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderRadius: 25,
     overflow: 'hidden',
-    backgroundColor: 'rgba(51, 51, 51, 0.3)',
+    // backgroundColor is set inline to use theme colors
   },
   tabBlur: {
     flexDirection: 'row',
@@ -509,15 +568,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tabButtonActive: {
-    backgroundColor: primaryColor,
-    shadowColor: primaryColor,
+    // backgroundColor and shadowColor are set inline to use theme colors
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 3,
   },
   tabText: {
-    color: 'white',
+    // color is set inline to use theme colors
     fontWeight: '600',
     fontSize: 16,
   },
@@ -534,12 +592,11 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginVertical: 3,
     borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    // backgroundColor is set inline to use theme colors
   },
   currentUserHighlight: {
-    backgroundColor: 'rgba(16, 217, 185, 0.15)',
+    // backgroundColor and borderColor are set inline to use theme colors
     borderWidth: 1,
-    borderColor: primaryColor,
   },
 
   // Medal/Rank container - jednotná šírka
@@ -558,14 +615,14 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    // backgroundColor is set inline to use theme colors
     alignItems: 'center',
     justifyContent: 'center',
   },
   rank: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: 'white',
+    // color is set inline to use theme colors
   },
 
   // Avatar - jednotná veľkosť
@@ -575,7 +632,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginRight: 12,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    // borderColor is set inline to use theme colors
   },
   avatarFallback: {
     backgroundColor: 'black',
@@ -588,19 +645,19 @@ const styles = StyleSheet.create({
   username: {
     fontSize: 16,
     fontWeight: '600',
-    color: 'white',
+    // color is set inline to use theme colors
   },
 
   // Points
   points: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: 'white',
+    // color is set inline to use theme colors
   },
 
   emptyText: {
     textAlign: 'center',
-    color: 'white',
+    // color is set inline to use theme colors
     marginVertical: 24,
     fontSize: 16,
   },
@@ -609,7 +666,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   errorText: {
-    color: 'red',
+    // color is set inline to use theme colors
     fontWeight: 'bold',
   },
 });

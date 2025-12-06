@@ -4,7 +4,7 @@ import UserPost from './Post/UserPost';
 import LoadingIndicator from './LoadingIndicator';
 import PostOldInfo from './Post/PostOldInfo';
 import { usePlaceStore } from '../../../utils/store/placesStore';
-import { primaryColor } from '../../../utils/styles/colors';
+import { useThemeColors } from '../../../utils/styles/themeColors';
 import { useTranslation } from 'react-i18next';
 import NativeAdComponent from '@/src/app/components/user/NativeAd';
 import { useUserStore } from '@/src/app/utils/store/userStore';
@@ -50,6 +50,7 @@ const PostsList = ({
 }: PostsListProps) => {
   const { t } = useTranslation();
   const { placeId } = usePlaceStore();
+  const colors = useThemeColors();
   const { isPremium } = useUserStore();
   const flatListRef = useRef<FlashListRef<any>>(null);
   // const [showScrollTopButton, setShowScrollTopButton] = useState(false);
@@ -207,8 +208,8 @@ const PostsList = ({
           <RefreshControl
             refreshing={loading}
             onRefresh={onForceRefresh || onRefresh}
-            tintColor={primaryColor}
-            colors={[primaryColor]}
+            tintColor={colors.primaryColor}
+            colors={[colors.primaryColor]}
           />
         }
         onEndReached={hasMorePosts ? fetchMorePosts : null}
@@ -263,7 +264,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 10,
     right: 20,
-    backgroundColor: primaryColor,
+    backgroundColor: '#10D9B9', // Static color for StyleSheet
     borderRadius: 30,
     elevation: 5,
     shadowColor: '#000',

@@ -23,7 +23,7 @@ import commentService from '../../../../../utils/services/comment.service';
 import { PostComment } from '@/src/app/types/commentTypes';
 import { User } from '@/shared';
 import { auth } from '@/firebaseConfig';
-import { primaryColor, primaryGrey } from '@/src/app/utils/styles/colors';
+import { useThemeColors } from '@/src/app/utils/styles/themeColors';
 import { Icons } from '@/src/app/utils/icons/icons';
 import { getTimeAgoFromTimestampSeconds } from '@/src/app/utils/helper-functions/timeAgo';
 import FastImage from 'react-native-fast-image';
@@ -41,6 +41,7 @@ type Props = {
 
 const CommentsSlider = (props: Props) => {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const { hasAdminAccess } = useUserRole();
 
@@ -232,12 +233,12 @@ const CommentsSlider = (props: Props) => {
         style={{ flex: 1, justifyContent: 'space-between' }}
       >
         <BottomSheetView style={styles.header}>
-          <Text style={[styles.headerText, { color: primaryColor }]}>
+          <Text style={[styles.headerText, { color: colors.primaryColor }]}>
             {allComments.length}
           </Text>
-          <Text style={styles.headerText}>{t('comments')}</Text>
+          <Text style={[styles.headerText, { color: colors.primaryTextColor }]}>{t('comments')}</Text>
           <TouchableOpacity onPress={handleCloseComments}>
-            <FontAwesomeIcon icon={Icons.Remove} size={28} color="#fff" />
+            <FontAwesomeIcon icon={Icons.Remove} size={28} color={colors.primaryTextColor} />
           </TouchableOpacity>
         </BottomSheetView>
 
@@ -295,11 +296,11 @@ const CommentsSlider = (props: Props) => {
                       )}
 
                       <BottomSheetView style={styles.commentContent}>
-                        <Text style={styles.commentBy}>
+                        <Text style={[styles.commentBy, { color: colors.primaryTextColor }]}>
                           {props.users?.find(user => user.uid === item?.userId)
                             ?.displayName ?? 'Deleted user'}
                         </Text>
-                        <Text style={styles.commentText}>{item?.text}</Text>
+                        <Text style={[styles.commentText, { color: colors.secondaryTextColor }]}>{item?.text}</Text>
                       </BottomSheetView>
                     </BottomSheetView>
 
@@ -314,7 +315,7 @@ const CommentsSlider = (props: Props) => {
                       <Text
                         style={[
                           styles.commentTime,
-                          { color: 'white', fontSize: 14 },
+                          { color: colors.secondaryTextColor, fontSize: 14 },
                         ]}
                       >
                         {getTimeAgoFromTimestampSeconds(
@@ -329,7 +330,7 @@ const CommentsSlider = (props: Props) => {
                           <FontAwesomeIcon
                             icon={Icons.Remove}
                             size={16}
-                            color="#fff"
+                            color={colors.primaryTextColor}
                           />
                         </TouchableOpacity>
                       )}
@@ -353,7 +354,7 @@ const CommentsSlider = (props: Props) => {
                   <Text
                     style={{
                       textAlign: 'center',
-                      color: '#aaaaaa',
+                      color: colors.secondaryTextColor,
                       fontSize: 18,
                     }}
                   >
@@ -382,9 +383,16 @@ const CommentsSlider = (props: Props) => {
           />
 
           <BottomSheetTextInput
-            style={[styles.input, { height: Math.max(40, inputHeight) }]}
+            style={[
+              styles.input,
+              {
+                height: Math.max(40, inputHeight),
+                color: colors.primaryTextColor,
+                borderColor: colors.separatorColor,
+              },
+            ]}
             placeholder={t('add-comment')}
-            placeholderTextColor="#ccc"
+            placeholderTextColor={colors.secondaryTextColor}
             value={newComment}
             onChangeText={setNewComment}
             onContentSizeChange={event => {
@@ -396,10 +404,10 @@ const CommentsSlider = (props: Props) => {
             disabled={
               !newComment || newComment.trim().length === 0 || isCommentPosting
             }
-            style={styles.sendButton}
+            style={[styles.sendButton, { backgroundColor: colors.primaryColor }]}
             onPress={() => handleAddComment()}
           >
-            <FontAwesomeIcon icon={Icons.Right} size={16} color={primaryGrey} />
+            <FontAwesomeIcon icon={Icons.Right} size={16} color={colors.primaryGrey} />
           </TouchableOpacity>
         </BottomSheetView>
       </KeyboardAvoidingView>
@@ -421,7 +429,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 18,
-    color: '#fff',
+    // color is set inline to use theme colors
     fontWeight: 'bold',
     letterSpacing: 1,
   },
@@ -444,15 +452,15 @@ const styles = StyleSheet.create({
   },
   commentBy: {
     fontWeight: 'bold',
-    color: '#fff',
+    // color is set inline to use theme colors
     fontSize: 12,
   },
   commentText: {
-    color: '#ccc',
+    // color is set inline to use theme colors
     fontSize: 16,
   },
   commentTime: {
-    color: '#999',
+    // color is set inline to use theme colors
     fontSize: 12,
   },
   image: {
@@ -464,22 +472,21 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    borderColor: '#444',
+    // borderColor and color are set inline to use theme colors
     borderWidth: 1,
     borderRadius: 30,
     paddingHorizontal: 25,
     paddingVertical: 12,
     marginRight: 10,
-    color: '#fff',
   },
   sendButton: {
-    backgroundColor: '#00FFBF',
+    // backgroundColor is set inline to use theme colors
     paddingHorizontal: 15,
     paddingVertical: 10,
     borderRadius: 30,
   },
   sendText: {
-    color: '#000',
+    // color is set inline to use theme colors
     fontWeight: 'bold',
   },
   trashButton: {

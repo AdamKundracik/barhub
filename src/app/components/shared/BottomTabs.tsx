@@ -9,7 +9,7 @@ import {
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
-import { primaryBgColor, separatorColor } from '@/src/app/utils/styles/colors';
+import { useThemeColors } from '@/src/app/utils/styles/themeColors';
 import { openCamera } from '@/src/app/utils/helper-functions/openCamera';
 import { auth } from '@/firebaseConfig';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
@@ -41,6 +41,7 @@ const BottomTabs = () => {
   const { hasAdminAccess } = useUserRole();
   const { showTutorial, markTutorialAsViewed, skipTutorial } = useTutorial();
   const { setPreviousPage } = useNavigationStore();
+  const colors = useThemeColors();
 
   // console.log('[BottomTabs] showTutorial:', showTutorial);
 
@@ -107,14 +108,19 @@ const BottomTabs = () => {
             <BlurView
               intensity={80}
               tint="dark"
-              style={styles.blurBackground}
+              style={[
+                styles.blurBackground,
+                {
+                  backgroundColor: colors.primaryBgColor + '26', // ~15% opacity
+                },
+              ]}
             />
           ),
           tabBarStyle: styles.tabBar,
           tabBarLabelStyle: styles.tabBarLabel,
           tabBarItemStyle: { paddingVertical: 0 },
-          tabBarActiveTintColor: 'white',
-          tabBarInactiveTintColor: separatorColor,
+          tabBarActiveTintColor: colors.primaryTextColor,
+          tabBarInactiveTintColor: colors.separatorColor,
         }}
       >
         <Tab.Screen
@@ -158,13 +164,19 @@ const BottomTabs = () => {
             tabBarButton: () => (
               <TouchableOpacity
                 onPress={handleOpenCamera}
-                style={styles.cameraButton}
+                style={[
+                  styles.cameraButton,
+                  {
+                    backgroundColor: colors.primaryColor,
+                    shadowColor: colors.primaryTextColor,
+                  },
+                ]}
                 activeOpacity={0.5}
               >
                 <FontAwesomeIcon
                   icon={Icons.Camera}
                   size={26}
-                  color={primaryBgColor}
+                  color={colors.primaryBgColor}
                 />
               </TouchableOpacity>
             ),
@@ -222,17 +234,16 @@ const styles = StyleSheet.create({
   },
   blurBackground: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(7,5,5,0.15)',
+    // backgroundColor is set inline to use theme colors
   },
   cameraButton: {
     width: 50,
     height: 50,
     borderRadius: 30,
-    backgroundColor: 'white',
+    // backgroundColor and shadowColor are set inline to use theme colors
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Platform.OS === 'ios' ? 20 : 10,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 4,

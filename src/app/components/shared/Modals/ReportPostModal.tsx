@@ -20,7 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { ReportReason } from '@/src/app/utils/types/Feed/PostTypes';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
-import { bottomModalBgColor } from '@/src/app/utils/styles/colors';
+import { useThemeColors } from '@/src/app/utils/styles/themeColors';
 
 type PostReportModalProps = {
   visible: boolean;
@@ -36,6 +36,7 @@ export const PostReportModal = ({
   onSave,
 }: PostReportModalProps) => {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [loading, setLoading] = useState(false);
   const [showCustomReason, setShowCustomReason] = useState(false);
@@ -138,8 +139,14 @@ export const PostReportModal = ({
       snapPoints={showCustomReason ? ['90%'] : ['60%']}
       backdropComponent={renderBackdrop}
       onDismiss={onClose}
-      backgroundStyle={styles.container}
-      handleIndicatorStyle={styles.handleIndicator}
+        backgroundStyle={[
+          styles.container,
+          { backgroundColor: colors.bottomModalBgColor },
+        ]}
+        handleIndicatorStyle={[
+          styles.handleIndicator,
+          { backgroundColor: colors.separatorColor },
+        ]}
       enablePanDownToClose
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
@@ -152,17 +159,22 @@ export const PostReportModal = ({
         <BottomSheetView style={styles.content}>
           {showCustomReason ? (
             <>
-              <Text style={styles.title}>
+              <Text style={[styles.title, { color: colors.primaryTextColor }]}>
                 {t('reportPost.customReasonTitle')}
               </Text>
 
               <TextInput
                 style={[
                   styles.textInput,
+                  {
+                    backgroundColor: colors.primaryTextColor + '0D', // ~5% opacity
+                    color: colors.primaryTextColor,
+                    borderColor: customReasonError ? colors.warningColor : colors.separatorColor,
+                  },
                   customReasonError ? styles.textInputError : null,
                 ]}
                 placeholder={t('reportPost.customReasonPlaceholder')}
-                placeholderTextColor="#666"
+                placeholderTextColor={colors.secondaryTextColor}
                 value={customReason}
                 onChangeText={text => {
                   setCustomReason(text);
@@ -179,54 +191,73 @@ export const PostReportModal = ({
               />
 
               {customReasonError ? (
-                <Text style={styles.errorText}>{customReasonError}</Text>
+                <Text style={[styles.errorText, { color: colors.warningColor }]}>
+                  {customReasonError}
+                </Text>
               ) : null}
 
-              <Text style={styles.characterCount}>
+              <Text style={[styles.characterCount, { color: colors.secondaryTextColor }]}>
                 {customReason.length}/500
               </Text>
 
               {/* Buttons inside content */}
               <View style={styles.buttonContainer}>
                 <TouchableOpacity
-                  style={[styles.button, styles.submitButton]}
+                  style={[
+                    styles.button,
+                    styles.submitButton,
+                    { backgroundColor: colors.primaryColor },
+                  ]}
                   onPress={handleCustomReasonSubmit}
                   disabled={loading || !customReason.trim()}
                 >
-                  <Text style={styles.submitButtonText}>
+                  <Text style={[styles.submitButtonText, { color: colors.primaryBgColor }]}>
                     {t('reportPost.submit')}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.button, styles.cancelButton]}
+                  style={[
+                    styles.button,
+                    styles.cancelButton,
+                    { backgroundColor: colors.separatorColor + '33' }, // ~20% opacity
+                  ]}
                   onPress={handleBackToReasons}
                   disabled={loading}
                 >
-                  <Text style={styles.cancelButtonText}>{t('go-back')}</Text>
+                  <Text style={[styles.cancelButtonText, { color: colors.primaryTextColor }]}>
+                    {t('go-back')}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </>
           ) : (
             <>
-              <Text style={styles.title}>{t('reportPost.title')}</Text>
-              <Text style={styles.subtitle}>
-                {t('reportPost.chooseReason')}
-              </Text>
+            <Text style={[styles.title, { color: colors.primaryTextColor }]}>
+              {t('reportPost.title')}
+            </Text>
+            <Text style={[styles.subtitle, { color: colors.secondaryTextColor }]}>
+              {t('reportPost.chooseReason')}
+            </Text>
 
               {reasons.map(r => (
                 <TouchableOpacity
                   key={r.value}
-                  style={styles.option}
+                  style={[
+                    styles.option,
+                    { borderBottomColor: colors.separatorColor },
+                  ]}
                   activeOpacity={0.7}
                   onPress={() => handleSelect(r.value, r.label)}
                   disabled={loading}
                 >
                   <View style={styles.optionRow}>
-                    <Text style={styles.optionText}>{r.label}</Text>
+                    <Text style={[styles.optionText, { color: colors.primaryTextColor }]}>
+                      {r.label}
+                    </Text>
                     <FontAwesomeIcon
                       icon={Icons.ChevronRight}
                       size={16}
-                      color={'white'}
+                      color={colors.primaryTextColor}
                     />
                   </View>
                 </TouchableOpacity>
@@ -236,7 +267,7 @@ export const PostReportModal = ({
 
           {loading && (
             <View style={styles.loaderOverlay}>
-              <ActivityIndicator size="large" color="#fff" />
+              <ActivityIndicator size="large" color={colors.primaryTextColor} />
             </View>
           )}
         </BottomSheetView>
@@ -247,7 +278,6 @@ export const PostReportModal = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: bottomModalBgColor,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },

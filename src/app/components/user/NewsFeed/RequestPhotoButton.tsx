@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { commonAppStyles } from '../../../utils/styles/styles';
 import { useTranslation } from 'react-i18next';
-import { primaryColor, separatorColor } from '../../../utils/styles/colors';
+import { useThemeColors } from '../../../utils/styles/themeColors';
 import { useRequestStore } from '../../../utils/store/requestStore';
 import { usePlaceStore } from '../../../utils/store/placesStore';
 import { Center } from '@/components/ui/center';
@@ -13,6 +13,7 @@ interface RequestPhotoButtonProps {
 
 const RequestPhotoButton = ({ requestPhoto }: RequestPhotoButtonProps) => {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const { placeId } = usePlaceStore();
   const { addRequest, canRequest } = useRequestStore();
   const isDisabled = !canRequest(placeId ?? '');
@@ -23,9 +24,15 @@ const RequestPhotoButton = ({ requestPhoto }: RequestPhotoButtonProps) => {
         style={({ pressed }) => [
           !isDisabled
             ? !pressed
-              ? styles.button
-              : styles.buttonPressed
-            : styles.buttonDisabled,
+              ? [styles.button, { borderColor: colors.primaryColor }]
+              : [
+                  styles.buttonPressed,
+                  {
+                    backgroundColor: colors.primaryColor,
+                    borderColor: colors.primaryColor,
+                  },
+                ]
+            : [styles.buttonDisabled, { borderColor: colors.separatorColor }],
         ]}
         onPress={() => {
           requestPhoto();
@@ -37,7 +44,7 @@ const RequestPhotoButton = ({ requestPhoto }: RequestPhotoButtonProps) => {
           pressed ? (
             <Text
               style={[
-                { color: '#fff' },
+                { color: colors.primaryBgColor },
                 { fontSize: 16, fontWeight: 'bold' },
               ]}
             >
@@ -48,7 +55,7 @@ const RequestPhotoButton = ({ requestPhoto }: RequestPhotoButtonProps) => {
               style={{
                 fontSize: 16,
                 fontWeight: 'bold',
-                color: separatorColor,
+                color: colors.separatorColor,
               }}
             >
               {t('request-photo')}
@@ -56,7 +63,7 @@ const RequestPhotoButton = ({ requestPhoto }: RequestPhotoButtonProps) => {
           ) : (
             <Text
               style={[
-                commonAppStyles.textPrimary,
+                { color: colors.primaryColor },
                 { fontSize: 16, fontWeight: 'bold' },
               ]}
             >
@@ -71,19 +78,18 @@ const RequestPhotoButton = ({ requestPhoto }: RequestPhotoButtonProps) => {
 
 const styles = StyleSheet.create({
   button: {
-    borderColor: primaryColor,
+    // borderColor is set inline to use theme colors
     borderWidth: 1,
     height: 40,
   },
   buttonDisabled: {
-    borderColor: separatorColor,
+    // borderColor is set inline to use theme colors
     borderWidth: 1,
     height: 40,
   },
   buttonPressed: {
     borderRadius: 30,
-    backgroundColor: primaryColor,
-    borderColor: primaryColor,
+    // backgroundColor and borderColor are set inline to use theme colors
     borderWidth: 1,
     height: 40,
     justifyContent: 'center',

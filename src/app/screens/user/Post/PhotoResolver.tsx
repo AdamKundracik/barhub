@@ -19,7 +19,7 @@ import { useLocationStore } from '@/src/app/utils/store/locationStore';
 import { radius } from '@/src/app/utils/constants/constants';
 import { Place } from '../../../utils/types/types';
 import { UserStackList } from '../../../utils/types/screen-types';
-import { primaryColor } from '../../../utils/styles/colors';
+import { useThemeColors } from '../../../utils/styles/themeColors';
 import { Icons } from '../../../utils/icons/icons';
 
 const { width } = Dimensions.get('window');
@@ -31,12 +31,13 @@ const EmptyState: React.FC<{
   onRetry?: () => void;
 }> = ({ message, type = 'no-results', onRetry }) => {
   const { t } = useTranslation();
+  const colors = useThemeColors();
 
   const getEmptyStateContent = () => {
     switch (type) {
       case 'no-results':
         return {
-          icon: <MapPinIcon size={48} color={primaryColor} />,
+          icon: <MapPinIcon size={48} color={colors.primaryColor} />,
           title: t('no-available-places') || 'Žiadne miesta v okolí',
           subtitle:
             t('photo-resolver-no-places-subtitle') ||
@@ -49,7 +50,7 @@ const EmptyState: React.FC<{
       case 'error':
         return {
           icon: (
-            <FontAwesomeIcon icon={Icons.XCircle} size={48} color="#FF6B6B" />
+            <FontAwesomeIcon icon={Icons.XCircle} size={48} color={colors.warningColor} />
           ),
           title: t('photo-resolver-error-title') || 'Chyba pri načítaní miest',
           subtitle:
@@ -63,7 +64,7 @@ const EmptyState: React.FC<{
       case 'no-location':
         return {
           icon: (
-            <FontAwesomeIcon icon={Icons.Location} size={48} color="#FFA500" />
+            <FontAwesomeIcon icon={Icons.Location} size={48} color={colors.warningColor} />
           ),
           title: t('photo-resolver-no-location-title') || 'Poloha nedostupná',
           subtitle:
@@ -76,7 +77,7 @@ const EmptyState: React.FC<{
         };
       default:
         return {
-          icon: <MapPinIcon size={48} color={primaryColor} />,
+          icon: <MapPinIcon size={48} color={colors.primaryColor} />,
           title: message || 'Žiadne miesta',
           subtitle: '',
           suggestion: '',
@@ -89,19 +90,19 @@ const EmptyState: React.FC<{
 
   return (
     <View style={styles.emptyStateContainer}>
-      <View style={styles.emptyStateIconContainer}>{content.icon}</View>
-      <Text style={styles.emptyStateTitle}>{content.title}</Text>
+      <View style={[styles.emptyStateIconContainer, { backgroundColor: colors.primaryTextColor + '0D', borderColor: colors.primaryTextColor + '1A' }]}>{content.icon}</View>
+      <Text style={[styles.emptyStateTitle, { color: colors.primaryTextColor }]}>{content.title}</Text>
       {content.subtitle && (
-        <Text style={styles.emptyStateSubtitle}>{content.subtitle}</Text>
+        <Text style={[styles.emptyStateSubtitle, { color: colors.secondaryTextColor }]}>{content.subtitle}</Text>
       )}
       {content.suggestion && (
-        <View style={styles.emptyStateSuggestion}>
+        <View style={[styles.emptyStateSuggestion, { backgroundColor: colors.primaryTextColor + '0D', borderColor: colors.primaryTextColor + '1A' }]}>
           <FontAwesomeIcon
             icon={Icons.Info}
             size={16}
-            color="rgba(255, 255, 255, 0.6)"
+            color={colors.secondaryTextColor}
           />
-          <Text style={styles.emptyStateSuggestionText}>
+          <Text style={[styles.emptyStateSuggestionText, { color: colors.secondaryTextColor }]}>
             {content.suggestion}
           </Text>
         </View>
@@ -110,7 +111,12 @@ const EmptyState: React.FC<{
         <Pressable
           style={({ pressed }) => [
             styles.retryButton,
-            pressed && styles.retryButtonPressed,
+            {
+              borderColor: colors.primaryColor,
+              shadowColor: colors.primaryColor,
+              backgroundColor: pressed ? colors.primaryColor : 'transparent',
+            },
+            pressed && { transform: [{ scale: 0.98 }] },
           ]}
           onPress={onRetry}
         >
@@ -118,7 +124,9 @@ const EmptyState: React.FC<{
             <Text
               style={[
                 styles.retryButtonText,
-                pressed && styles.retryButtonTextPressed,
+                {
+                  color: pressed ? colors.primaryBgColor : colors.primaryColor,
+                },
               ]}
             >
               {t('retry') || 'Skúsiť znovu'}
@@ -129,9 +137,9 @@ const EmptyState: React.FC<{
 
       {/* Dekoratívne elementy */}
       <View style={styles.decorativeContainer}>
-        <View style={[styles.decorativeCircle, styles.circle1]} />
-        <View style={[styles.decorativeCircle, styles.circle2]} />
-        <View style={[styles.decorativeCircle, styles.circle3]} />
+        <View style={[styles.decorativeCircle, styles.circle1, { borderColor: colors.primaryColor }]} />
+        <View style={[styles.decorativeCircle, styles.circle2, { borderColor: colors.primaryColor }]} />
+        <View style={[styles.decorativeCircle, styles.circle3, { borderColor: colors.primaryColor }]} />
       </View>
     </View>
   );
@@ -139,10 +147,11 @@ const EmptyState: React.FC<{
 
 const LoadingIndicator: React.FC = () => {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   return (
     <View style={styles.loadingContainer}>
-      <ActivityIndicator size="large" color={primaryColor} />
-      <Text style={styles.loadingText}>
+      <ActivityIndicator size="large" color={colors.primaryColor} />
+      <Text style={[styles.loadingText, { color: colors.secondaryTextColor }]}>
         {t('photo-resolver-loading') || 'Hľadám miesta v okolí...'}
       </Text>
     </View>
@@ -152,40 +161,54 @@ const LoadingIndicator: React.FC = () => {
 const PlaceItem: React.FC<{
   place: Place;
   onPress: () => void;
-}> = ({ place, onPress }) => (
-  <Pressable style={placeItemStyles.placeItem} onPress={onPress}>
-    {({ pressed }) => (
-      <View
-        style={[
-          placeItemStyles.placeItemContent,
-          pressed && placeItemStyles.placeItemPressed,
-        ]}
-      >
-        <View style={placeItemStyles.placeIconContainer}>
-          <MapPinIcon size={20} color={primaryColor} />
+}> = ({ place, onPress }) => {
+  const colors = useThemeColors();
+  return (
+    <Pressable style={placeItemStyles.placeItem} onPress={onPress}>
+      {({ pressed }) => (
+        <View
+          style={[
+            placeItemStyles.placeItemContent,
+            {
+              backgroundColor: pressed
+                ? colors.primaryTextColor + '26'
+                : colors.primaryTextColor + '0D',
+            },
+            pressed && { transform: [{ scale: 0.98 }] },
+          ]}
+        >
+          <View style={[placeItemStyles.placeIconContainer, { backgroundColor: colors.primaryTextColor + '1A' }]}>
+            <MapPinIcon size={20} color={colors.primaryColor} />
+          </View>
+          <View style={placeItemStyles.placeTextContainer}>
+            <Text
+              style={[
+                placeItemStyles.placeMainText,
+                {
+                  color: pressed ? colors.primaryColor : colors.primaryTextColor,
+                },
+              ]}
+            >
+              {place?.displayName?.text || 'Neznáme miesto'}
+            </Text>
+            <Text
+              style={[
+                placeItemStyles.placeSecondaryText,
+                {
+                  color: pressed
+                    ? colors.primaryColor + 'CC'
+                    : colors.secondaryTextColor,
+                },
+              ]}
+            >
+              {place.formattedAddress || ''}
+            </Text>
+          </View>
         </View>
-        <View style={placeItemStyles.placeTextContainer}>
-          <Text
-            style={[
-              placeItemStyles.placeMainText,
-              pressed && placeItemStyles.textPressed,
-            ]}
-          >
-            {place?.displayName?.text || 'Neznáme miesto'}
-          </Text>
-          <Text
-            style={[
-              placeItemStyles.placeSecondaryText,
-              pressed && placeItemStyles.secondaryTextPressed,
-            ]}
-          >
-            {place.formattedAddress || ''}
-          </Text>
-        </View>
-      </View>
-    )}
-  </Pressable>
-);
+      )}
+    </Pressable>
+  );
+};
 
 // Main Component
 export const PhotoResolver = ({ route }: any) => {
@@ -313,18 +336,17 @@ const placeItemStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    // backgroundColor is set inline to use theme colors
     borderRadius: 16,
   },
   placeItemPressed: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    transform: [{ scale: 0.98 }],
+    // backgroundColor and transform are set inline to use theme colors
   },
   placeIconContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    // backgroundColor is set inline to use theme colors
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -335,19 +357,18 @@ const placeItemStyles = StyleSheet.create({
   placeMainText: {
     fontSize: 16,
     fontWeight: '600',
-    color: 'white',
+    // color is set inline to use theme colors
     marginBottom: 2,
   },
   placeSecondaryText: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
+    // color is set inline to use theme colors
   },
   textPressed: {
-    color: primaryColor,
+    // color is set inline to use theme colors
   },
   secondaryTextPressed: {
-    color: primaryColor,
-    opacity: 0.8,
+    // color is set inline to use theme colors
   },
 });
 
@@ -364,7 +385,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.7)',
+    // color is set inline to use theme colors
     marginTop: 16,
   },
   emptyStateContainer: {
@@ -378,23 +399,22 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    // backgroundColor and borderColor are set inline to use theme colors
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   emptyStateTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: 'white',
+    // color is set inline to use theme colors
     textAlign: 'center',
     marginBottom: 8,
   },
   emptyStateSubtitle: {
     fontSize: 15,
-    color: 'rgba(255, 255, 255, 0.7)',
+    // color is set inline to use theme colors
     textAlign: 'center',
     marginBottom: 16,
     lineHeight: 22,
@@ -403,19 +423,18 @@ const styles = StyleSheet.create({
   emptyStateSuggestion: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    // backgroundColor and borderColor are set inline to use theme colors
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     gap: 8,
     marginBottom: 24,
     maxWidth: width * 0.85,
   },
   emptyStateSuggestionText: {
     fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.6)',
+    // color is set inline to use theme colors
     textAlign: 'center',
     flex: 1,
     lineHeight: 18,
@@ -425,12 +444,10 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 25,
     borderWidth: 2,
-    borderColor: primaryColor,
-    backgroundColor: 'transparent',
+    // borderColor, backgroundColor, and shadowColor are set inline to use theme colors
     minWidth: 160,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: primaryColor,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -440,17 +457,16 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   retryButtonPressed: {
-    backgroundColor: primaryColor,
-    transform: [{ scale: 0.98 }],
+    // backgroundColor and transform are set inline to use theme colors
   },
   retryButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: primaryColor,
+    // color is set inline to use theme colors
     letterSpacing: 0.5,
   },
   retryButtonTextPressed: {
-    color: '#020213',
+    // color is set inline to use theme colors
   },
   decorativeContainer: {
     position: 'absolute',
@@ -462,7 +478,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     borderRadius: 50,
     borderWidth: 1,
-    borderColor: primaryColor,
+    // borderColor is set inline to use theme colors
     opacity: 0.08,
   },
   circle1: {

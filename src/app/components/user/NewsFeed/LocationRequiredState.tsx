@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, AppState } from 'react-native';
+import {
+  AppState,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import * as Icons from '@fortawesome/free-solid-svg-icons';
 import { useTranslation } from 'react-i18next';
-import { primaryColor, secondaryTextColor } from '../../../utils/styles/colors';
+import { useThemeColors } from '../../../utils/styles/themeColors';
 import { getGeolocationPermissionStatus } from '../../../utils/services/permission.service';
 import { usePermissionsContext } from '../../../providers/PermissionsProvider';
 
@@ -11,11 +17,11 @@ interface LocationRequiredStateProps {
   requestPhoto: () => void;
 }
 
-const LocationRequiredState: React.FC<LocationRequiredStateProps> = ({
-  requestPhoto,
-}) => {
+const LocationRequiredState: React.FC<LocationRequiredStateProps> = ({}) => {
   const { t } = useTranslation();
-  const { requestPermission, permissions, checkAllPermissions } = usePermissionsContext();
+  const { requestPermission, permissions, checkAllPermissions } =
+    usePermissionsContext();
+  const colors = useThemeColors();
   const [canRequestPermission, setCanRequestPermission] = useState(false);
   const [isRequesting, setIsRequesting] = useState(false);
 
@@ -24,26 +30,31 @@ const LocationRequiredState: React.FC<LocationRequiredStateProps> = ({
       const status = await getGeolocationPermissionStatus();
       setCanRequestPermission(status.canRequest);
     };
-    
+
     checkPermissionStatus();
 
     // Listen for app state changes to detect when user returns from Settings
     const handleAppStateChange = (nextAppState: string) => {
       if (nextAppState === 'active') {
         // Re-check permission status when app becomes active
-        console.log('[LocationRequiredState] App became active, re-checking permissions...');
+        console.log(
+          '[LocationRequiredState] App became active, re-checking permissions...'
+        );
         checkAllPermissions(); // This will update the permissions context
         checkPermissionStatus();
       }
     };
 
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
-    
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange
+    );
+
     return () => {
       subscription?.remove();
     };
   }, [checkAllPermissions]);
-  
+
   // Also listen to permissions changes from context
   useEffect(() => {
     console.log('[LocationRequiredState] Permissions changed:', permissions);
@@ -62,7 +73,7 @@ const LocationRequiredState: React.FC<LocationRequiredStateProps> = ({
 
   const handleRequestPermission = async () => {
     if (!canRequestPermission || isRequesting) return;
-    
+
     setIsRequesting(true);
     try {
       await requestPermission('geolocation');
@@ -76,42 +87,39 @@ const LocationRequiredState: React.FC<LocationRequiredStateProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.iconContainer}>
-        <FontAwesomeIcon 
-          icon={Icons.faLocationDot} 
-          size={60} 
-          color={primaryColor} 
+        <FontAwesomeIcon
+          icon={Icons.faLocationDot}
+          size={60}
+          color={colors.primaryColor}
         />
       </View>
-      
-      <Text style={styles.title}>
-        {t('locationRequired.title')}
-      </Text>
-      
-      <Text style={styles.subtitle}>
-        {t('locationRequired.subtitle')}
-      </Text>
-      
+
+      <Text style={styles.title}>{t('locationRequired.title')}</Text>
+
+      <Text style={styles.subtitle}>{t('locationRequired.subtitle')}</Text>
+
       <Text style={styles.description}>
-        {canRequestPermission 
+        {canRequestPermission
           ? t('locationRequired.descriptionWithButton')
-          : t('locationRequired.descriptionSettings')
-        }
+          : t('locationRequired.descriptionSettings')}
       </Text>
 
       {canRequestPermission && (
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.requestButton}
           onPress={handleRequestPermission}
           disabled={isRequesting}
         >
-          <FontAwesomeIcon 
-            icon={Icons.faLocationDot} 
-            size={16} 
-            color="white" 
+          <FontAwesomeIcon
+            icon={Icons.faLocationDot}
+            size={16}
+            color="white"
             style={styles.buttonIcon}
           />
           <Text style={styles.buttonText}>
-            {isRequesting ? t('locationRequired.requesting') : t('locationRequired.allowLocation')}
+            {isRequesting
+              ? t('locationRequired.requesting')
+              : t('locationRequired.allowLocation')}
           </Text>
         </TouchableOpacity>
       )}
@@ -131,7 +139,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: `${primaryColor}20`,
+    backgroundColor: '#10D9B920', // Static color for StyleSheet
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
@@ -145,14 +153,14 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: secondaryTextColor,
+    color: '#a0a0a0', // Static color for StyleSheet
     textAlign: 'center',
     marginBottom: 20,
     lineHeight: 22,
   },
   description: {
     fontSize: 14,
-    color: secondaryTextColor,
+    color: '#a0a0a0', // Static color for StyleSheet
     textAlign: 'center',
     lineHeight: 20,
     opacity: 0.8,
@@ -161,7 +169,7 @@ const styles = StyleSheet.create({
   requestButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: primaryColor,
+    backgroundColor: '#10D9B9', // Static color for StyleSheet
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,

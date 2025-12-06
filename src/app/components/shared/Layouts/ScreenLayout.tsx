@@ -2,7 +2,7 @@ import React, { ReactNode } from 'react';
 import { SafeAreaView, StyleSheet } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
-import { primaryBgColor } from '../../../utils/styles/colors';
+import { useThemeColors } from '../../../utils/styles/themeColors';
 import { Box } from '@/components/ui/box';
 import { Pressable } from '@/components/ui/pressable';
 import { Center } from '@/components/ui/center';
@@ -23,9 +23,11 @@ export const ScreenLayout = ({
   showBackButton = false,
   onBackPress,
 }: ScreenLayoutProps) => {
+  const colors = useThemeColors();
+  
   return (
     <SafeAreaView
-      style={[styles.safeArea, { backgroundColor: primaryBgColor }]}
+      style={[styles.safeArea, { backgroundColor: colors.primaryBgColor }]}
     >
       <Box style={styles.container}>
         {(showTitle || showBackButton) && (
@@ -36,7 +38,7 @@ export const ScreenLayout = ({
                 <FontAwesomeIcon
                   icon={Icons.ChevronLeft}
                   size={24}
-                  color="white"
+                  color={colors.primaryTextColor}
                 />
               </Pressable>
             ) : (
@@ -51,7 +53,7 @@ export const ScreenLayout = ({
                   !showBackButton && styles.titleContainerFullWidth,
                 ]}
               >
-                <Text numberOfLines={1} style={styles.titleText}>
+                <Text numberOfLines={1} style={[styles.titleText, { color: colors.primaryTextColor }]}>
                   {title}
                 </Text>
               </Center>
@@ -91,7 +93,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   titleText: {
-    color: 'white',
     fontSize: 24,
     fontWeight: '700',
     letterSpacing: 0.5,

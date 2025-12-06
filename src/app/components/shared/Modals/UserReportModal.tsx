@@ -20,7 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { ReportReason } from '@/src/app/utils/types/Feed/PostTypes';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
-import { bottomModalBgColor } from '@/src/app/utils/styles/colors';
+import { useThemeColors } from '@/src/app/utils/styles/themeColors';
 
 type UserReportModalProps = {
   visible: boolean;
@@ -38,6 +38,7 @@ export const UserReportModal = ({
   userName = 'Unknown User',
 }: UserReportModalProps) => {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [loading, setLoading] = useState(false);
   const [showCustomReason, setShowCustomReason] = useState(false);
@@ -149,7 +150,7 @@ export const UserReportModal = ({
 
   const handleBlockAndClose = async () => {
     if (!onBlockUser) return;
-    
+
     try {
       setLoading(true);
       await onBlockUser(); // Direct blocking without opening BlockUserModal
@@ -166,7 +167,6 @@ export const UserReportModal = ({
     onClose();
   };
 
-
   const reasons = [
     { value: ReportReason.SPAM, label: t('reportUser.spam') },
     { value: ReportReason.INAPPROPRIATE, label: t('reportUser.inappropriate') },
@@ -180,8 +180,14 @@ export const UserReportModal = ({
       snapPoints={showCustomReason ? ['90%'] : ['60%']}
       backdropComponent={renderBackdrop}
       onDismiss={onClose}
-      backgroundStyle={styles.container}
-      handleIndicatorStyle={styles.handleIndicator}
+      backgroundStyle={[
+        styles.container,
+        { backgroundColor: colors.bottomModalBgColor },
+      ]}
+      handleIndicatorStyle={[
+        styles.handleIndicator,
+        { backgroundColor: colors.separatorColor },
+      ]}
       enablePanDownToClose
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
@@ -198,39 +204,52 @@ export const UserReportModal = ({
                 <FontAwesomeIcon
                   icon={Icons.CheckCircle}
                   size={32}
-                  color="#34C759"
+                  color={colors.successColor}
                 />
               </View>
-              
-              <Text style={styles.successTitle}>
+
+              <Text style={[styles.successTitle, { color: colors.primaryTextColor }]}>
                 {t('reportUser.successTitle') || 'Report Submitted'}
               </Text>
-              
-              <Text style={styles.successMessage}>
-                {t('reportUser.successDescription') || 'Thank you for your report. We will review it shortly.'}
+
+              <Text style={[styles.successMessage, { color: colors.secondaryTextColor }]}>
+                {t('reportUser.successDescription') ||
+                  'Thank you for your report. We will review it shortly.'}
               </Text>
 
-              <Text style={styles.blockPrompt}>
-                {t('reportUser.blockPrompt', { userName }) || `Would you also like to block ${userName}? You won't see their posts and they won't be able to interact with your content.`}
+              <Text style={[styles.blockPrompt, { color: colors.primaryTextColor }]}>
+                {t('reportUser.blockPrompt', { userName }) ||
+                  `Would you also like to block ${userName}? You won't see their posts and they won't be able to interact with your content.`}
               </Text>
 
               <View style={styles.buttonContainer}>
                 <TouchableOpacity
-                  style={[styles.button, styles.blockButton]}
+                  style={[
+                    styles.button,
+                    styles.blockButton,
+                    { backgroundColor: colors.warningColor },
+                  ]}
                   onPress={handleBlockAndClose}
                   disabled={loading}
                 >
-                  <Text style={styles.blockButtonText}>
+                  <Text style={[styles.blockButtonText, { color: colors.primaryBgColor }]}>
                     {t('blockUser.block') || 'Block User'}
                   </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[styles.button, styles.skipButton]}
+                  style={[
+                    styles.button,
+                    styles.skipButton,
+                    {
+                      backgroundColor: colors.separatorColor + '33',
+                      borderColor: colors.separatorColor,
+                    },
+                  ]}
                   onPress={handleSkipBlock}
                   disabled={loading}
                 >
-                  <Text style={styles.skipButtonText}>
+                  <Text style={[styles.skipButtonText, { color: colors.primaryTextColor }]}>
                     {t('reportUser.skipBlock') || 'Skip'}
                   </Text>
                 </TouchableOpacity>
@@ -238,17 +257,21 @@ export const UserReportModal = ({
             </>
           ) : showCustomReason ? (
             <>
-              <Text style={styles.title}>
+              <Text style={[styles.title, { color: colors.primaryTextColor }]}>
                 {t('reportUser.customReasonTitle')}
               </Text>
 
               <TextInput
                 style={[
                   styles.textInput,
-                  customReasonError ? styles.textInputError : null,
+                  {
+                    backgroundColor: colors.primaryTextColor + '0D',
+                    color: colors.primaryTextColor,
+                    borderColor: customReasonError ? colors.warningColor : colors.separatorColor,
+                  },
                 ]}
                 placeholder={t('reportUser.customReasonPlaceholder')}
-                placeholderTextColor="#666"
+                placeholderTextColor={colors.secondaryTextColor}
                 value={customReason}
                 onChangeText={text => {
                   setCustomReason(text);
@@ -265,37 +288,48 @@ export const UserReportModal = ({
               />
 
               {customReasonError ? (
-                <Text style={styles.errorText}>{customReasonError}</Text>
+                <Text style={[styles.errorText, { color: colors.warningColor }]}>{customReasonError}</Text>
               ) : null}
 
-              <Text style={styles.characterCount}>
+              <Text style={[styles.characterCount, { color: colors.secondaryTextColor }]}>
                 {customReason.length}/500
               </Text>
 
               {/* Buttons inside content */}
               <View style={styles.buttonContainer}>
                 <TouchableOpacity
-                  style={[styles.button, styles.submitButton]}
+                  style={[
+                    styles.button,
+                    styles.submitButton,
+                    { backgroundColor: colors.primaryColor },
+                  ]}
                   onPress={handleCustomReasonSubmit}
                   disabled={loading || !customReason.trim()}
                 >
-                  <Text style={styles.submitButtonText}>
+                  <Text style={[styles.submitButtonText, { color: colors.primaryBgColor }]}>
                     {t('reportUser.submit')}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.button, styles.cancelButton]}
+                  style={[
+                    styles.button,
+                    styles.cancelButton,
+                    {
+                      backgroundColor: colors.separatorColor + '33',
+                      borderColor: colors.separatorColor,
+                    },
+                  ]}
                   onPress={handleBackToReasons}
                   disabled={loading}
                 >
-                  <Text style={styles.cancelButtonText}>{t('go-back')}</Text>
+                  <Text style={[styles.cancelButtonText, { color: colors.primaryTextColor }]}>{t('go-back')}</Text>
                 </TouchableOpacity>
               </View>
             </>
           ) : (
             <>
-              <Text style={styles.title}>{t('reportUser.title')}</Text>
-              <Text style={styles.subtitle}>
+              <Text style={[styles.title, { color: colors.primaryTextColor }]}>{t('reportUser.title')}</Text>
+              <Text style={[styles.subtitle, { color: colors.secondaryTextColor }]}>
                 {t('reportUser.chooseReason')}
               </Text>
 
@@ -307,12 +341,12 @@ export const UserReportModal = ({
                   onPress={() => handleSelect(r.value, r.label)}
                   disabled={loading}
                 >
-                  <View style={styles.optionRow}>
-                    <Text style={styles.optionText}>{r.label}</Text>
+                  <View style={[styles.optionRow, { borderBottomColor: colors.separatorColor }]}>
+                    <Text style={[styles.optionText, { color: colors.primaryTextColor }]}>{r.label}</Text>
                     <FontAwesomeIcon
                       icon={Icons.ChevronRight}
                       size={16}
-                      color={'white'}
+                      color={colors.primaryTextColor}
                     />
                   </View>
                 </TouchableOpacity>
@@ -322,7 +356,7 @@ export const UserReportModal = ({
 
           {loading && (
             <View style={styles.loaderOverlay}>
-              <ActivityIndicator size="large" color="#fff" />
+              <ActivityIndicator size="large" color={colors.primaryTextColor} />
             </View>
           )}
         </BottomSheetView>
@@ -333,7 +367,6 @@ export const UserReportModal = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: bottomModalBgColor,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
@@ -342,31 +375,31 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   title: {
-    color: 'white',
+    // color is set inline to use theme colors
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 8,
   },
   subtitle: {
-    color: '#ccc',
+    // color is set inline to use theme colors
     fontSize: 14,
     marginBottom: 16,
   },
   option: {
     paddingVertical: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#333',
+    // borderBottomColor is set inline to use theme colors
   },
   optionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   optionText: {
-    color: 'white',
+    // color is set inline to use theme colors
     fontSize: 16,
   },
   handleIndicator: {
-    backgroundColor: '#444',
+    // backgroundColor is set inline to use theme colors
     width: 40,
     height: 4,
     borderRadius: 2,
@@ -384,52 +417,51 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   submitButton: {
-    backgroundColor: '#007AFF',
+    // backgroundColor is set inline to use theme colors
   },
   submitButtonText: {
-    color: '#fff',
+    // color is set inline to use theme colors
     fontSize: 16,
     fontWeight: '600',
   },
   cancelButton: {
     marginTop: 12,
     borderRadius: 12,
-    backgroundColor: '#222',
+    // backgroundColor and borderColor are set inline to use theme colors
     paddingVertical: 16,
     alignItems: 'center',
+    borderWidth: 1,
   },
   cancelText: {
-    color: '#fff',
+    // color is set inline to use theme colors
     fontSize: 16,
     fontWeight: '500',
   },
   cancelButtonText: {
-    color: '#fff',
+    // color is set inline to use theme colors
     fontSize: 16,
     fontWeight: '500',
   },
   textInput: {
-    backgroundColor: '#333',
-    color: 'white',
+    // backgroundColor, color, and borderColor are set inline to use theme colors
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
     textAlignVertical: 'top',
     minHeight: 120,
     borderWidth: 1,
-    borderColor: '#444',
     marginBottom: 8,
   },
   textInputError: {
-    borderColor: '#ff4444',
+    // borderColor is set inline to use theme colors
   },
   errorText: {
-    color: '#ff4444',
+    // color is set inline to use theme colors
     fontSize: 14,
     marginBottom: 8,
   },
   characterCount: {
-    color: '#666',
+    // color is set inline to use theme colors
     fontSize: 12,
     textAlign: 'right',
   },
@@ -452,44 +484,41 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   successTitle: {
-    color: 'white',
+    // color is set inline to use theme colors
     fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
     marginBottom: 8,
   },
   successMessage: {
-    color: '#ccc',
+    // color is set inline to use theme colors
     fontSize: 16,
     textAlign: 'center',
     marginBottom: 20,
     lineHeight: 22,
   },
   blockPrompt: {
-    color: 'white',
+    // color is set inline to use theme colors
     fontSize: 16,
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 22,
   },
   blockButton: {
-    backgroundColor: '#FF3B30',
+    // backgroundColor is set inline to use theme colors
   },
   blockButtonText: {
-    color: '#fff',
+    // color is set inline to use theme colors
     fontSize: 16,
     fontWeight: '600',
   },
   skipButton: {
-    backgroundColor: '#333',
+    // backgroundColor and borderColor are set inline to use theme colors
     borderWidth: 1,
-    borderColor: '#555',
   },
   skipButtonText: {
-    color: '#fff',
+    // color is set inline to use theme colors
     fontSize: 16,
     fontWeight: '500',
   },
 });
-
-

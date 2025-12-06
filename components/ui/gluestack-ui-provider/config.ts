@@ -153,6 +153,13 @@ export const config = {
     '--color-indicator-primary': '55 55 55',
     '--color-indicator-info': '83 153 236',
     '--color-indicator-error': '185 28 28',
+
+    /* Brand/Accent Colors */
+    '--color-brand-primary': '16 217 185',
+    '--color-brand-primary-deep': '37 78 72',
+    '--color-brand-bg': '255 255 255',
+    '--color-brand-text': '23 23 23',
+    '--color-brand-separator': '115 115 115',
   }),
   dark: vars({
     '--color-primary-0': '166 166 166',
@@ -305,5 +312,12 @@ export const config = {
     '--color-indicator-primary': '247 247 247',
     '--color-indicator-info': '161 199 245',
     '--color-indicator-error': '232 70 69',
+
+    /* Brand/Accent Colors */
+    '--color-brand-primary': '16 217 185',
+    '--color-brand-primary-deep': '37 78 72',
+    '--color-brand-bg': '2 2 19',
+    '--color-brand-text': '255 255 255',
+    '--color-brand-separator': '124 124 124',
   }),
 };

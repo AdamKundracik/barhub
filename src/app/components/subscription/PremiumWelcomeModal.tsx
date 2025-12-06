@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { primaryBgColor, primaryColor } from '@/src/app/utils/styles/colors';
+import { useThemeColors } from '@/src/app/utils/styles/themeColors';
 
 interface PremiumWelcomeModalProps {
   visible: boolean;
@@ -20,6 +20,7 @@ export const PremiumWelcomeModal: React.FC<PremiumWelcomeModalProps> = ({
   onClose,
 }) => {
   const { t } = useTranslation();
+  const colors = useThemeColors();
 
   return (
     <Modal
@@ -29,7 +30,7 @@ export const PremiumWelcomeModal: React.FC<PremiumWelcomeModalProps> = ({
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.modalContainer}>
+        <View style={[styles.modalContainer, { backgroundColor: colors.primaryBgColor, borderColor: colors.separatorColor, shadowColor: colors.primaryTextColor }]}>
           <ScrollView
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
@@ -39,21 +40,21 @@ export const PremiumWelcomeModal: React.FC<PremiumWelcomeModalProps> = ({
             <View style={styles.content}>
               {/* Header */}
               <View style={styles.header}>
-                <Text style={styles.title}>
+                <Text style={[styles.title, { color: colors.primaryTextColor }]}>
                   {t('subscription.welcome-title')}
                 </Text>
-                <Text style={styles.subtitle}>
+                <Text style={[styles.subtitle, { color: colors.secondaryTextColor }]}>
                   {t('subscription.welcome-subtitle')}
                 </Text>
               </View>
 
               {/* Premium Badge */}
               <View style={styles.badgeContainer}>
-                <View style={styles.badge}>
-                  <Text style={styles.badgeTitle}>
+                <View style={[styles.badge, { backgroundColor: colors.postBgColor, borderColor: colors.primaryColor, shadowColor: colors.primaryColor }]}>
+                  <Text style={[styles.badgeTitle, { color: colors.primaryColor }]}>
                     {t('subscription.premium-badge')}
                   </Text>
-                  <Text style={styles.badgeSubtitle}>
+                  <Text style={[styles.badgeSubtitle, { color: colors.secondaryTextColor }]}>
                     {t('subscription.welcome-badge')}
                   </Text>
                 </View>
@@ -61,42 +62,42 @@ export const PremiumWelcomeModal: React.FC<PremiumWelcomeModalProps> = ({
 
               {/* Benefits */}
               <View style={styles.benefits}>
-                <Text style={styles.benefitsTitle}>
+                <Text style={[styles.benefitsTitle, { color: colors.primaryTextColor }]}>
                   {t('subscription.premium-benefits')}
                 </Text>
 
                 <View style={styles.benefitsList}>
                   <View style={styles.benefitItem}>
                     <Text style={styles.benefitIcon}>🚫</Text>
-                    <Text style={styles.benefitText}>
+                    <Text style={[styles.benefitText, { color: colors.secondaryTextColor }]}>
                       {t('subscription.no-ads')}
                     </Text>
                   </View>
 
                   <View style={styles.benefitItem}>
                     <Text style={styles.benefitIcon}>🔓</Text>
-                    <Text style={styles.benefitText}>
+                    <Text style={[styles.benefitText, { color: colors.secondaryTextColor }]}>
                       {t('subscription.access-all-benefits')}
                     </Text>
                   </View>
 
                   <View style={styles.benefitItem}>
                     <Text style={styles.benefitIcon}>✈️</Text>
-                    <Text style={styles.benefitText}>
+                    <Text style={[styles.benefitText, { color: colors.secondaryTextColor }]}>
                       {t('subscription.travel-mode')}
                     </Text>
                   </View>
 
                   <View style={styles.benefitItem}>
                     <Text style={styles.benefitIcon}>📊</Text>
-                    <Text style={styles.benefitText}>
+                    <Text style={[styles.benefitText, { color: colors.secondaryTextColor }]}>
                       {t('subscription.leaderboards')}
                     </Text>
                   </View>
 
                   <View style={styles.benefitItem}>
                     <Text style={styles.benefitIcon}>⭐</Text>
-                    <Text style={styles.benefitText}>
+                    <Text style={[styles.benefitText, { color: colors.secondaryTextColor }]}>
                       {t('subscription.more-highlights')}
                     </Text>
                   </View>
@@ -104,15 +105,15 @@ export const PremiumWelcomeModal: React.FC<PremiumWelcomeModalProps> = ({
               </View>
 
               {/* Thank you message */}
-              <View style={styles.thankYouMessage}>
-                <Text style={styles.messageText}>
+              <View style={[styles.thankYouMessage, { backgroundColor: colors.postBgColor, borderColor: colors.separatorColor, borderLeftColor: colors.primaryColor }]}>
+                <Text style={[styles.messageText, { color: colors.primaryTextColor }]}>
                   {t('subscription.welcome-message')}
                 </Text>
               </View>
 
               {/* Close button */}
-              <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                <Text style={styles.buttonText}>
+              <TouchableOpacity onPress={onClose} style={[styles.closeButton, { backgroundColor: colors.primaryColor, shadowColor: colors.primaryColor }]}>
+                <Text style={[styles.buttonText, { color: colors.primaryBgColor }]}>
                   {t('subscription.start-enjoying')}
                 </Text>
               </TouchableOpacity>
@@ -133,14 +134,12 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalContainer: {
-    backgroundColor: primaryBgColor,
+    // backgroundColor, borderColor, and shadowColor are set inline to use theme colors
     borderRadius: 24,
     maxHeight: '85%',
     width: '100%',
     maxWidth: 380,
     borderWidth: 2,
-    borderColor: '#444',
-    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 10,
@@ -166,14 +165,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    // color is set inline to use theme colors
     textAlign: 'center',
     marginBottom: 6,
     letterSpacing: 0.5,
   },
   subtitle: {
     fontSize: 15,
-    color: '#aaa',
+    // color is set inline to use theme colors
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -182,15 +181,13 @@ const styles = StyleSheet.create({
     marginBottom: 36,
   },
   badge: {
-    backgroundColor: '#2a2a2a',
+    // backgroundColor, borderColor, and shadowColor are set inline to use theme colors
     paddingHorizontal: 32,
     paddingVertical: 20,
     borderRadius: 18,
     borderWidth: 2,
-    borderColor: primaryColor,
     alignItems: 'center',
     minWidth: 220,
-    shadowColor: primaryColor,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -202,12 +199,12 @@ const styles = StyleSheet.create({
   badgeTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: primaryColor,
+    // color is set inline to use theme colors
     letterSpacing: 1.2,
   },
   badgeSubtitle: {
     fontSize: 13,
-    color: '#bbb',
+    // color is set inline to use theme colors
     marginTop: 2,
   },
   benefits: {
@@ -216,7 +213,7 @@ const styles = StyleSheet.create({
   benefitsTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#fff',
+    // color is set inline to use theme colors
     marginBottom: 12,
     textAlign: 'center',
     letterSpacing: 0.3,
@@ -237,35 +234,32 @@ const styles = StyleSheet.create({
   },
   benefitText: {
     fontSize: 14,
-    color: '#ccc',
+    // color is set inline to use theme colors
     flex: 1,
   },
   thankYouMessage: {
-    backgroundColor: '#2a2a2a',
+    // backgroundColor, borderColor, and borderLeftColor are set inline to use theme colors
     padding: 20,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#444',
     marginBottom: 24,
     borderLeftWidth: 3,
-    borderLeftColor: primaryColor,
   },
   messageText: {
     fontSize: 14,
-    color: '#ddd',
+    // color is set inline to use theme colors
     lineHeight: 20,
     textAlign: 'center',
     fontWeight: '500',
   },
   closeButton: {
-    backgroundColor: primaryColor,
+    // backgroundColor and shadowColor are set inline to use theme colors
     paddingVertical: 18,
     paddingHorizontal: 32,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 'auto',
-    shadowColor: primaryColor,
     shadowOffset: {
       width: 0,
       height: 6,
@@ -275,7 +269,7 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   buttonText: {
-    color: '#000',
+    // color is set inline to use theme colors
     fontSize: 17,
     fontWeight: '700',
     letterSpacing: 0.5,

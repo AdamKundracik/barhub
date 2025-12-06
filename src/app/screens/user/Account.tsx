@@ -16,14 +16,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
-import {
-  primaryBgColor,
-  primaryColor,
-  separatorColor,
-  warningColor,
-} from '../../utils/styles/colors';
+import { useThemeColors } from '../../utils/styles/themeColors';
 import EditProfile from '../../components/user/Account/EditProfile';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
+import { ThemeToggle } from '../../components/shared/ThemeToggle';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { useUserData } from '@/src/app/hooks/useUserQuery';
 import { AuthTypeEnum } from '@/src/app/types/dto';
@@ -72,28 +68,30 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   showChevron = true,
   loading = false,
 }) => {
+  const themeColors = useThemeColors();
+  
   const getVariantColors = () => {
     switch (variant) {
       case 'warning':
         return {
-          background: 'rgba(254, 120, 120, 0.1)',
-          border: 'rgba(254, 120, 120, 0.3)',
-          iconColor: warningColor,
-          textColor: warningColor,
+          background: themeColors.warningColor + '1A', // ~10% opacity
+          border: themeColors.warningColor + '4D', // ~30% opacity
+          iconColor: themeColors.warningColor,
+          textColor: themeColors.warningColor,
         };
       case 'premium':
         return {
-          background: 'rgba(255, 193, 7, 0.1)',
-          border: 'rgba(255, 193, 7, 0.3)',
+          background: '#FFC107' + '1A', // ~10% opacity
+          border: '#FFC107' + '4D', // ~30% opacity
           iconColor: '#FFC107',
           textColor: '#FFC107',
         };
       default:
         return {
-          background: 'rgba(16, 217, 185, 0.08)',
-          border: 'rgba(16, 217, 185, 0.2)',
-          iconColor: primaryColor,
-          textColor: 'white',
+          background: themeColors.primaryColor + '14', // ~8% opacity
+          border: themeColors.primaryColor + '33', // ~20% opacity
+          iconColor: themeColors.primaryColor,
+          textColor: themeColors.primaryTextColor,
         };
     }
   };
@@ -119,7 +117,10 @@ const ActionButton: React.FC<ActionButtonProps> = ({
           <View
             style={[
               styles.actionButtonIconContainer,
-              { backgroundColor: colors.background },
+              {
+                backgroundColor: colors.background,
+                borderColor: themeColors.primaryTextColor + '1A', // ~10% opacity
+              },
             ]}
           >
             <FontAwesomeIcon icon={icon} size={20} color={colors.iconColor} />
@@ -131,7 +132,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
               {title}
             </Text>
             {description && (
-              <Text style={styles.actionButtonDescription}>{description}</Text>
+              <Text style={[styles.actionButtonDescription, { color: themeColors.secondaryTextColor }]}>{description}</Text>
             )}
           </View>
         </View>
@@ -144,7 +145,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
             <FontAwesomeIcon
               icon={Icons.ChevronRight}
               size={16}
-              color={separatorColor}
+              color={themeColors.separatorColor}
             />
           </View>
         ) : null}
@@ -157,20 +158,32 @@ const InfoItem: React.FC<InfoItemProps> = ({
   icon,
   label,
   value,
-  iconColor = primaryColor,
-}) => (
+  iconColor,
+}) => {
+  const themeColors = useThemeColors();
+  const defaultIconColor = iconColor || themeColors.primaryColor;
+  
+  return (
   <View style={styles.infoItem}>
-    <View style={styles.infoItemIcon}>
-      <FontAwesomeIcon icon={icon} size={18} color={iconColor} />
+    <View
+      style={[
+        styles.infoItemIcon,
+        {
+          backgroundColor: themeColors.primaryColor + '1A', // ~10% opacity
+        },
+      ]}
+    >
+      <FontAwesomeIcon icon={icon} size={18} color={defaultIconColor} />
     </View>
     <View style={styles.infoItemContent}>
-      <Text style={styles.infoItemLabel}>{label}</Text>
-      <Text style={styles.infoItemValue} numberOfLines={2}>
+      <Text style={[styles.infoItemLabel, { color: themeColors.secondaryTextColor }]}>{label}</Text>
+      <Text style={[styles.infoItemValue, { color: themeColors.primaryTextColor }]} numberOfLines={2}>
         {value}
       </Text>
     </View>
   </View>
-);
+  );
+};
 
 export const Account = () => {
   const {
@@ -187,6 +200,7 @@ export const Account = () => {
   const { t } = useTranslation();
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
+  const colors = useThemeColors();
   const { currentPushToken, getUserId } = useUserStore();
   const queryClient = useQueryClient();
   const { isAdmin, isModerator } = useUserRole();
@@ -341,33 +355,45 @@ export const Account = () => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.primaryBgColor }]}>
       {/* Modern Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <TouchableOpacity
             onPress={confirmSignOut}
-            style={[styles.headerButton, styles.signOutButton]}
+            style={[
+              styles.headerButton,
+              styles.signOutButton,
+              {
+                backgroundColor: colors.primaryTextColor + '14', // ~8% opacity
+              },
+            ]}
             activeOpacity={0.7}
           >
             <FontAwesomeIcon
               icon={Icons.LogOut}
               size={20}
-              color={warningColor}
+              color={colors.warningColor}
             />
           </TouchableOpacity>
 
-          <Text style={styles.headerTitle}>{t('account')}</Text>
+          <Text style={[styles.headerTitle, { color: colors.primaryTextColor }]}>{t('account')}</Text>
 
           <TouchableOpacity
             onPress={() => setIsEditing(true)}
-            style={[styles.headerButton, styles.editButton]}
+            style={[
+              styles.headerButton,
+              styles.editButton,
+              {
+                backgroundColor: colors.primaryColor + '1A', // ~10% opacity
+              },
+            ]}
             activeOpacity={0.7}
           >
             <FontAwesomeIcon
               icon={Icons.Pencil}
               size={20}
-              color={primaryColor}
+              color={colors.primaryColor}
             />
           </TouchableOpacity>
         </View>
@@ -381,8 +407,8 @@ export const Account = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={primaryColor}
-            colors={[primaryColor]}
+            tintColor={colors.primaryColor}
+            colors={[colors.primaryColor]}
           />
         }
       >
@@ -393,6 +419,7 @@ export const Account = () => {
               size="xl"
               style={[
                 styles.avatarContainer,
+                { borderColor: colors.separatorColor },
                 // Show premium border only if premium UI is enabled and user is premium
                 PremiumHelpers.shouldShowPremiumBorders() &&
                   isPremium &&
@@ -405,7 +432,7 @@ export const Account = () => {
                   source={{
                     uri: addCacheBuster(photoUrl, userId),
                   }}
-                  style={styles.avatarImage}
+                  style={[styles.avatarImage, { borderColor: colors.separatorColor }]}
                 />
               ) : (
                 <AvatarFallbackText className={'text-white'}>
@@ -415,22 +442,30 @@ export const Account = () => {
             </Avatar>
           </View>
 
-          <Text style={styles.displayName}>{userDisplayName}</Text>
+          <Text style={[styles.displayName, { color: colors.primaryTextColor }]}>{userDisplayName}</Text>
 
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
             {/* Premium Badge - only show if premium UI is enabled */}
             {PremiumHelpers.shouldShowPremiumBadges() && (
-              <View style={styles.statusBadge}>
+              <View
+                style={[
+                  styles.statusBadge,
+                  {
+                    backgroundColor: colors.primaryTextColor + '0D', // ~5% opacity
+                    borderColor: colors.primaryTextColor + '1A', // ~10% opacity
+                  },
+                ]}
+              >
                 <View
                   style={[
                     styles.statusDot,
-                    { backgroundColor: isPremium ? '#FFD700' : primaryColor },
+                    { backgroundColor: isPremium ? '#FFD700' : colors.primaryColor },
                   ]}
                 />
                 <Text
                   style={[
                     styles.statusText,
-                    { color: isPremium ? '#FFD700' : primaryColor },
+                    { color: isPremium ? '#FFD700' : colors.primaryColor },
                   ]}
                 >
                   {isPremium ? 'Premium' : 'Basic'}
@@ -445,11 +480,11 @@ export const Account = () => {
                   styles.statusBadge,
                   {
                     backgroundColor: isAdmin
-                      ? 'rgba(239, 68, 68, 0.15)'
-                      : 'rgba(59, 130, 246, 0.15)',
+                      ? '#EF4444' + '26' // ~15% opacity
+                      : '#3B82F6' + '26', // ~15% opacity
                     borderColor: isAdmin
-                      ? 'rgba(239, 68, 68, 0.3)'
-                      : 'rgba(59, 130, 246, 0.3)',
+                      ? '#EF4444' + '4D' // ~30% opacity
+                      : '#3B82F6' + '4D', // ~30% opacity
                   },
                 ]}
               >
@@ -470,10 +505,19 @@ export const Account = () => {
         </View>
 
         {/* Personal Information Card */}
-        <BlurView intensity={20} tint="dark" style={styles.card}>
+        <BlurView
+          intensity={20}
+          tint="dark"
+          style={[
+            styles.card,
+            {
+              borderColor: colors.primaryTextColor + '14', // ~8% opacity
+            },
+          ]}
+        >
           <View style={styles.cardHeader}>
-            <FontAwesomeIcon icon={Icons.User} size={20} color={primaryColor} />
-            <Text style={styles.cardTitle}>{t('about-me')}</Text>
+            <FontAwesomeIcon icon={Icons.User} size={20} color={colors.primaryColor} />
+            <Text style={[styles.cardTitle, { color: colors.primaryTextColor }]}>{t('about-me')}</Text>
           </View>
 
           <View style={styles.cardContent}>
@@ -490,18 +534,24 @@ export const Account = () => {
             />
 
             {/* Bio Section */}
-            <View style={styles.bioSection}>
+            <View style={[styles.bioSection, { borderTopColor: colors.separatorColor }]}>
               <View style={styles.bioHeader}>
-                <Text style={styles.bioLabel}>{t('bio.label') || 'Bio'}</Text>
+                <Text style={[styles.bioLabel, { color: colors.secondaryTextColor }]}>{t('bio.label') || 'Bio'}</Text>
                 <TouchableOpacity
-                  style={styles.editBioButton}
+                  style={[
+                    styles.editBioButton,
+                    {
+                      backgroundColor: colors.primaryColor + '26', // ~15% opacity
+                      borderColor: colors.primaryColor + '4D', // ~30% opacity
+                    },
+                  ]}
                   onPress={() => setIsBioModalOpen(true)}
                 >
-                  <Text style={styles.editBioText}>{t('bio.edit')}</Text>
+                  <Text style={[styles.editBioText, { color: colors.primaryColor }]}>{t('bio.edit')}</Text>
                 </TouchableOpacity>
               </View>
               <View style={styles.bioContent}>
-                <Text style={styles.bioText}>
+                <Text style={[styles.bioText, { color: colors.primaryTextColor }]}>
                   {userData?.bio || t('bio.no-bio') || 'No bio yet'}
                 </Text>
               </View>
@@ -529,14 +579,23 @@ export const Account = () => {
 
         {/* Admin Panel Card (Admin/Moderator only) */}
         {(isAdmin || isModerator) && (
-          <BlurView intensity={20} tint="dark" style={styles.card}>
+          <BlurView
+            intensity={20}
+            tint="dark"
+            style={[
+              styles.card,
+              {
+                borderColor: colors.primaryTextColor + '14', // ~8% opacity
+              },
+            ]}
+          >
             <View style={styles.cardHeader}>
               <FontAwesomeIcon
                 icon={Icons.ShieldHalved}
                 size={20}
                 color={isAdmin ? '#EF4444' : '#3B82F6'}
               />
-              <Text style={styles.cardTitle}>Admin Panel</Text>
+              <Text style={[styles.cardTitle, { color: colors.primaryTextColor }]}>Admin Panel</Text>
             </View>
 
             <View style={styles.cardContent}>
@@ -576,10 +635,19 @@ export const Account = () => {
         )}
 
         {/* Actions Card */}
-        <BlurView intensity={20} tint="dark" style={styles.card}>
+        <BlurView
+          intensity={20}
+          tint="dark"
+          style={[
+            styles.card,
+            {
+              borderColor: colors.primaryTextColor + '14', // ~8% opacity
+            },
+          ]}
+        >
           <View style={styles.cardHeader}>
-            <FontAwesomeIcon icon={Icons.Gear} size={20} color={primaryColor} />
-            <Text style={styles.cardTitle}>{t('settings')}</Text>
+            <FontAwesomeIcon icon={Icons.Gear} size={20} color={colors.primaryColor} />
+            <Text style={[styles.cardTitle, { color: colors.primaryTextColor }]}>{t('settings')}</Text>
           </View>
 
           <View style={styles.cardContent}>
@@ -621,12 +689,23 @@ export const Account = () => {
                 onPress={() => navigation.navigate('BlockedUsers')}
               />
 
+              {/* Theme Toggle */}
+              <ThemeToggle />
             </View>
           </View>
         </BlurView>
 
         {/* Danger Zone Card */}
-        <BlurView intensity={20} tint="dark" style={styles.card}>
+        <BlurView
+          intensity={20}
+          tint="dark"
+          style={[
+            styles.card,
+            {
+              borderColor: colors.warningColor + '33', // ~20% opacity
+            },
+          ]}
+        >
           <View style={styles.cardContent}>
             <ActionButton
               icon={Icons.TrashCan}
@@ -668,7 +747,6 @@ export const Account = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: primaryBgColor,
   },
 
   // Header
@@ -683,7 +761,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   headerTitle: {
-    color: 'white',
     fontSize: 24,
     fontWeight: '700',
     letterSpacing: 0.5,
@@ -694,13 +771,13 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    // backgroundColor is set inline to use theme colors
   },
   signOutButton: {
-    backgroundColor: 'rgba(254, 120, 120, 0.1)',
+    // backgroundColor is set inline to use theme colors
   },
   editButton: {
-    backgroundColor: 'rgba(16, 217, 185, 0.1)',
+    // backgroundColor is set inline to use theme colors
   },
 
   // Scroll View
@@ -732,15 +809,13 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderWidth: 3,
-    borderColor: separatorColor,
   },
   avatarImage: {
     borderWidth: 3,
-    borderColor: separatorColor,
   },
   avatarFallback: {
     backgroundColor: 'transparent',
-    color: 'white',
+    // color is set inline to use theme colors
   },
   premiumBadge: {
     position: 'absolute',
@@ -749,7 +824,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: primaryBgColor,
     borderWidth: 2,
     borderColor: '#FFD700',
     justifyContent: 'center',
@@ -757,7 +831,7 @@ const styles = StyleSheet.create({
     zIndex: 3,
   },
   displayName: {
-    color: 'white',
+    // color is set inline to use theme colors
     fontSize: 28,
     fontWeight: '700',
     marginBottom: 6,
@@ -769,10 +843,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    // backgroundColor and borderColor are set inline to use theme colors
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   statusDot: {
     width: 8,
@@ -792,7 +865,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    // borderColor is set inline to use theme colors
   },
   cardHeader: {
     flexDirection: 'row',
@@ -802,7 +875,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   cardTitle: {
-    color: 'white',
+    // color is set inline to use theme colors
     fontSize: 20,
     fontWeight: '700',
     marginLeft: 12,
@@ -824,7 +897,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(16, 217, 185, 0.1)',
+    // backgroundColor is set inline to use theme colors
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 14,
@@ -834,14 +907,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   infoItemLabel: {
-    color: separatorColor,
     fontSize: 14,
     fontWeight: '500',
     marginBottom: 3,
     letterSpacing: 0.2,
   },
   infoItemValue: {
-    color: 'white',
     fontSize: 16,
     fontWeight: '600',
     lineHeight: 20,
@@ -881,7 +952,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    // borderColor is set inline to use theme colors
   },
   actionButtonText: {
     flex: 1,
@@ -894,7 +965,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   actionButtonDescription: {
-    color: separatorColor,
     fontSize: 14,
     fontWeight: '400',
     lineHeight: 16,
@@ -905,7 +975,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: separatorColor,
   },
   bioHeader: {
     flexDirection: 'row',
@@ -914,7 +983,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   bioLabel: {
-    color: separatorColor,
     fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
@@ -924,12 +992,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: 'rgba(16, 217, 185, 0.15)',
+    // backgroundColor and borderColor are set inline to use theme colors
     borderWidth: 1,
-    borderColor: 'rgba(16, 217, 185, 0.3)',
   },
   editBioText: {
-    color: primaryColor,
     fontSize: 12,
     fontWeight: '600',
     letterSpacing: 0.3,
@@ -938,7 +1004,7 @@ const styles = StyleSheet.create({
     marginLeft: 0,
   },
   bioText: {
-    color: 'white',
+    // color is set inline to use theme colors
     fontSize: 16,
     fontWeight: '400',
     lineHeight: 24,

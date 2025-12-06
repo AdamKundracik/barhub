@@ -3,7 +3,6 @@ import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import Animated, {
   FadeIn,
-  useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
@@ -13,11 +12,7 @@ import { ReportReason } from '@/src/app/utils/types/Feed/PostTypes';
 import { useTranslation } from 'react-i18next';
 import { getLocales } from 'expo-localization';
 import { UserInfo } from '@/shared';
-import {
-  postBgColor,
-  primaryColor,
-  separatorColor,
-} from '@/src/app/utils/styles/colors';
+import { useThemeColors } from '@/src/app/utils/styles/themeColors';
 import { Icons } from '@/src/app/utils/icons/icons';
 import {
   ReasonTypeEnum,
@@ -41,12 +36,9 @@ import {
 
 // Enhanced More Options Button
 const MoreOptionsButton: React.FC<{ onPress: () => void }> = ({ onPress }) => {
+  const colors = useThemeColors();
   const scale = useSharedValue(1);
   const rotation = useSharedValue(0);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }, { rotate: `${rotation.value}deg` }],
-  }));
 
   const handlePress = () => {
     scale.value = withSpring(0.9, { duration: 100 }, () => {
@@ -61,13 +53,19 @@ const MoreOptionsButton: React.FC<{ onPress: () => void }> = ({ onPress }) => {
   return (
     <TouchableOpacity
       onPress={handlePress}
-      style={styles.moreButton}
+      style={[
+        styles.moreButton,
+        {
+          backgroundColor: colors.primaryTextColor + '0D', // ~5% opacity
+          borderColor: colors.primaryTextColor + '14', // ~8% opacity
+        },
+      ]}
       activeOpacity={0.7}
     >
       <FontAwesomeIcon
         icon={Icons.EllipsisVertical}
         size={20}
-        color={separatorColor}
+        color={colors.separatorColor}
       />
     </TouchableOpacity>
   );
@@ -100,13 +98,11 @@ const UserLineComponent = ({
   address,
   canDelete = false,
   canReport = false,
-  canReportUser = false,
   canHighlight = false,
   isHighlighted = false,
   imageUrl,
   onPress,
   onUserPress,
-  onShare,
   onHighlightChange,
   onViewDetail,
 }: Props) => {
@@ -117,6 +113,7 @@ const UserLineComponent = ({
   const { placeId } = usePlaceStore();
   const { t, i18n } = useTranslation();
   const { showSuccessToast, showErrorToast } = useCustomToast();
+  const colors = useThemeColors();
 
   // Sync local highlight state with prop when it changes
   useEffect(() => {
@@ -479,7 +476,10 @@ const UserLineComponent = ({
 
   return (
     <>
-      <Animated.View entering={FadeIn.duration(400)} style={styles.container}>
+      <Animated.View
+        entering={FadeIn.duration(400)}
+        style={[styles.container, { backgroundColor: colors.postBgColor }]}
+      >
         <TouchableOpacity
           style={styles.leftSection}
           onPress={onPress}
@@ -512,7 +512,10 @@ const UserLineComponent = ({
           <View style={styles.textContainer}>
             <View style={styles.nameRow}>
               <TouchableOpacity onPress={onUserPress} disabled={!onUserPress}>
-                <Text style={styles.name} numberOfLines={1}>
+                <Text
+                  style={[styles.name, { color: colors.primaryTextColor }]}
+                  numberOfLines={1}
+                >
                   {safeUserName}
                 </Text>
               </TouchableOpacity>
@@ -544,7 +547,10 @@ const UserLineComponent = ({
             {/* Adresa na vlastnom riadku - bez ikony a bez marginLeft */}
             {safeAddress && (
               <View style={styles.addressRow}>
-                <Text style={styles.address} numberOfLines={2}>
+                <Text
+                  style={[styles.address, { color: colors.secondaryTextColor }]}
+                  numberOfLines={2}
+                >
                   {safeAddress}
                 </Text>
               </View>
@@ -552,7 +558,9 @@ const UserLineComponent = ({
 
             {/* Čas na vlastnom riadku - vylepšené formátovanie */}
             <View style={styles.timeRow}>
-              <Text style={styles.timeText}>{formattedTime}</Text>
+              <Text style={[styles.timeText, { color: colors.primaryColor }]}>
+                {formattedTime}
+              </Text>
             </View>
           </View>
         </TouchableOpacity>
@@ -622,7 +630,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: postBgColor,
+    // backgroundColor is set inline to use theme colors
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderTopLeftRadius: 24,
@@ -661,7 +669,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 17,
     fontWeight: '700',
-    color: 'white',
+    // color is set inline to use theme colors
     letterSpacing: 0.3,
   },
   highlightBadge: {
@@ -688,7 +696,7 @@ const styles = StyleSheet.create({
   },
   address: {
     fontSize: 13,
-    color: separatorColor,
+    // color is set inline to use theme colors
     flex: 1,
     fontWeight: '500',
     lineHeight: 18,
@@ -698,17 +706,16 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontSize: 13,
-    color: primaryColor,
+    // color is set inline to use theme colors
     fontWeight: '600',
   },
   moreButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    // backgroundColor and borderColor are set inline to use theme colors
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
 });

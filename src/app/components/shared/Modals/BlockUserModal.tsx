@@ -15,12 +15,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
-import {
-  bottomModalBgColor,
-  primaryTextColor,
-  secondaryTextColor,
-  warningColor,
-} from '@/src/app/utils/styles/colors';
+import { useThemeColors } from '@/src/app/utils/styles/themeColors';
 
 type BlockUserModalProps = {
   visible: boolean;
@@ -38,6 +33,7 @@ export const BlockUserModal = ({
   isBlocked = false,
 }: BlockUserModalProps) => {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [loading, setLoading] = useState(false);
   
@@ -100,8 +96,8 @@ export const BlockUserModal = ({
       snapPoints={snapPoints}
       backdropComponent={renderBackdrop}
       onDismiss={onClose}
-      backgroundStyle={styles.container}
-      handleIndicatorStyle={styles.handleIndicator}
+      backgroundStyle={[styles.container, { backgroundColor: colors.bottomModalBgColor }]}
+      handleIndicatorStyle={[styles.handleIndicator, { backgroundColor: colors.separatorColor }]}
       enablePanDownToClose
       android_keyboardInputMode="adjustResize"
       keyboardBehavior="extend"
@@ -112,17 +108,17 @@ export const BlockUserModal = ({
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.iconContainer}>
+        <View style={[styles.iconContainer, { backgroundColor: colors.primaryTextColor + '1A' }]}>
           <FontAwesomeIcon
             icon={isBlocked ? Icons.CheckCircle : Icons.Ban}
             size={32}
-            color={isBlocked ? primaryTextColor : warningColor}
+            color={isBlocked ? colors.primaryTextColor : colors.warningColor}
           />
         </View>
 
-        <Text style={styles.title}>{title}</Text>
+        <Text style={[styles.title, { color: colors.primaryTextColor }]}>{title}</Text>
 
-        <Text style={styles.message}>{message}</Text>
+        <Text style={[styles.message, { color: colors.secondaryTextColor }]}>{message}</Text>
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity
@@ -130,23 +126,31 @@ export const BlockUserModal = ({
               styles.button,
               styles.confirmButton,
               isBlocked ? styles.unblockButton : styles.blockButton,
+              { backgroundColor: isBlocked ? colors.successColor : colors.warningColor },
             ]}
             onPress={handleConfirm}
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color={colors.primaryBgColor} />
             ) : (
-              <Text style={styles.confirmButtonText}>{confirmText}</Text>
+              <Text style={[styles.confirmButtonText, { color: colors.primaryBgColor }]}>{confirmText}</Text>
             )}
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.button, styles.cancelButton]}
+            style={[
+              styles.button,
+              styles.cancelButton,
+              {
+                backgroundColor: colors.primaryTextColor + '1A',
+                borderColor: colors.primaryTextColor + '33',
+              },
+            ]}
             onPress={onClose}
             disabled={loading}
           >
-            <Text style={styles.cancelButtonText}>
+            <Text style={[styles.cancelButtonText, { color: colors.primaryTextColor }]}>
               {t('cancel') || 'Cancel'}
             </Text>
           </TouchableOpacity>
@@ -158,7 +162,7 @@ export const BlockUserModal = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: bottomModalBgColor,
+    // backgroundColor is set inline to use theme colors
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
@@ -173,20 +177,20 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    // backgroundColor is set inline to use theme colors
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
   },
   title: {
-    color: primaryTextColor,
+    // color is set inline to use theme colors
     fontSize: 20,
     fontWeight: '700',
     marginBottom: 12,
     textAlign: 'center',
   },
   message: {
-    color: secondaryTextColor,
+    // color is set inline to use theme colors
     fontSize: 16,
     lineHeight: 24,
     textAlign: 'center',
@@ -206,31 +210,30 @@ const styles = StyleSheet.create({
     minHeight: 52,
   },
   confirmButton: {
-    backgroundColor: warningColor,
+    // backgroundColor is set inline to use theme colors
   },
   blockButton: {
-    backgroundColor: '#FF3B30', // Red for block action
+    // backgroundColor is set inline to use theme colors
   },
   unblockButton: {
-    backgroundColor: '#34C759', // Green for unblock action
+    // backgroundColor is set inline to use theme colors
   },
   confirmButtonText: {
-    color: '#fff',
+    // color is set inline to use theme colors
     fontSize: 16,
     fontWeight: '600',
   },
   cancelButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    // backgroundColor and borderColor are set inline to use theme colors
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   cancelButtonText: {
-    color: primaryTextColor,
+    // color is set inline to use theme colors
     fontSize: 16,
     fontWeight: '500',
   },
   handleIndicator: {
-    backgroundColor: '#444',
+    // backgroundColor is set inline to use theme colors
     width: 40,
     height: 4,
     borderRadius: 2,

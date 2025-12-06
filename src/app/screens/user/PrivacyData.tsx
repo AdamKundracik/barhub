@@ -34,6 +34,7 @@ import {
   separatorColor,
   warningColor,
 } from '@/src/app/utils/styles/colors';
+import { useThemeColors } from '@/src/app/utils/styles/themeColors';
 import { UserStackList } from '@/src/app/utils/types/screen-types';
 
 interface ActionButtonProps {
@@ -53,6 +54,8 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   variant = 'default',
   disabled = false,
 }) => {
+  const themeColors = useThemeColors();
+  
   const getVariantColors = () => {
     switch (variant) {
       case 'warning':
@@ -74,12 +77,12 @@ const ActionButton: React.FC<ActionButtonProps> = ({
           background: 'rgba(16, 217, 185, 0.08)',
           border: 'rgba(16, 217, 185, 0.2)',
           iconColor: primaryColor,
-          textColor: 'white',
+          textColor: themeColors.primaryTextColor,
         };
     }
   };
 
-  const colors = getVariantColors();
+  const variantColors = getVariantColors();
 
   return (
     <Pressable
@@ -90,8 +93,8 @@ const ActionButton: React.FC<ActionButtonProps> = ({
         {
           backgroundColor: disabled
             ? 'rgba(128, 128, 128, 0.1)'
-            : colors.background,
-          borderColor: disabled ? 'rgba(128, 128, 128, 0.2)' : colors.border,
+            : variantColors.background,
+          borderColor: disabled ? 'rgba(128, 128, 128, 0.2)' : variantColors.border,
         },
       ]}
     >
@@ -99,14 +102,14 @@ const ActionButton: React.FC<ActionButtonProps> = ({
         <FontAwesomeIcon
           icon={icon}
           size={20}
-          color={disabled ? '#888' : colors.iconColor}
+          color={disabled ? '#888' : variantColors.iconColor}
         />
       </View>
       <View style={styles.actionButtonContent}>
         <Text
           style={[
             styles.actionButtonTitle,
-            { color: disabled ? '#888' : colors.textColor },
+            { color: disabled ? '#888' : variantColors.textColor },
           ]}
         >
           {title}
@@ -138,6 +141,7 @@ export const PrivacyData: React.FC = () => {
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const { setPendingConsents } = useAuth();
   const queryClient = useQueryClient();
+  const colors = useThemeColors();
 
   const userId = getUserId();
 
@@ -309,7 +313,7 @@ export const PrivacyData: React.FC = () => {
             size={48}
             color={primaryColor}
           />
-          <Text style={styles.headerTitle}>
+          <Text style={[styles.headerTitle, { color: colors.primaryTextColor }]}>
             {t('privacy.your-privacy-matters')}
           </Text>
           <Text style={styles.headerSubtitle}>
@@ -319,7 +323,7 @@ export const PrivacyData: React.FC = () => {
 
         {/* GDPR Rights Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('privacy.your-rights')}</Text>
+          <Text style={[styles.sectionTitle, { color: colors.primaryTextColor }]}>{t('privacy.your-rights')}</Text>
 
           {/* Export Data */}
           <ActionButton
@@ -366,21 +370,21 @@ export const PrivacyData: React.FC = () => {
 
         {/* Info Section */}
         <View style={styles.infoSection}>
-          <Text style={styles.infoTitle}>
+          <Text style={[styles.infoTitle, { color: colors.primaryTextColor }]}>
             {t('privacy.what-is-data-export')}
           </Text>
           <Text style={styles.infoText}>
             {t('privacy.data-export-explanation')}
           </Text>
 
-          <Text style={styles.infoTitle}>
+          <Text style={[styles.infoTitle, { color: colors.primaryTextColor }]}>
             {t('privacy.what-is-consent-withdrawal')}
           </Text>
           <Text style={styles.infoText}>
             {t('privacy.consent-withdrawal-explanation')}
           </Text>
 
-          <Text style={styles.infoTitle}>{t('privacy.your-gdpr-rights')}</Text>
+          <Text style={[styles.infoTitle, { color: colors.primaryTextColor }]}>{t('privacy.your-gdpr-rights')}</Text>
           <Text style={styles.infoText}>
             {t('privacy.gdpr-rights-explanation')}
           </Text>
@@ -388,7 +392,7 @@ export const PrivacyData: React.FC = () => {
 
         {/* Legal Links */}
         <View style={styles.legalSection}>
-          <Text style={styles.legalTitle}>{t('legal-documents')}</Text>
+          <Text style={[styles.legalTitle, { color: colors.primaryTextColor }]}>{t('legal-documents')}</Text>
           <ActionButton
             icon={Icons.FileContract}
             title={t('terms-of-service')}
@@ -428,7 +432,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'white',
+    // color is set inline to use theme colors
     marginTop: 16,
     marginBottom: 8,
     textAlign: 'center',
@@ -445,7 +449,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: 'white',
+    // color is set inline to use theme colors
     marginBottom: 16,
   },
   actionButton: {
@@ -496,7 +500,7 @@ const styles = StyleSheet.create({
   infoTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: 'white',
+    // color is set inline to use theme colors
     marginTop: 16,
     marginBottom: 8,
   },
@@ -512,7 +516,7 @@ const styles = StyleSheet.create({
   legalTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: 'white',
+    // color is set inline to use theme colors
     marginBottom: 16,
   },
 });

@@ -12,7 +12,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
 import { useTranslation } from 'react-i18next';
 import { BottomSheetBackdrop, BottomSheetModal } from '@gorhom/bottom-sheet';
-import { bottomModalBgColor } from '@/src/app/utils/styles/colors';
+import { useThemeColors } from '@/src/app/utils/styles/themeColors';
 
 const { width } = Dimensions.get('window');
 
@@ -38,6 +38,8 @@ export const SlidingView = ({
   isDeletingPhoto = false,
 }: SlidingViewProps) => {
   const { t } = useTranslation();
+  const colors = useThemeColors();
+
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 
   useEffect(() => {
@@ -66,52 +68,52 @@ export const SlidingView = ({
       snapPoints={['40%']}
       backdropComponent={renderBackdrop}
       onDismiss={onClose}
-      backgroundStyle={{ backgroundColor: bottomModalBgColor }}
+      backgroundStyle={{ backgroundColor: colors.bottomModalBgColor }}
       handleHeight={50}
       enablePanDownToClose
-      handleIndicatorStyle={styles.handleIndicator}
+      handleIndicatorStyle={[styles.handleIndicator, { backgroundColor: colors.separatorColor }]}
     >
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <TouchableOpacity 
-          style={[styles.option, isOpeningGallery && styles.disabledOption]} 
+        <TouchableOpacity
+          style={[styles.option, isOpeningGallery && styles.disabledOption]}
           onPress={openGallery}
           disabled={isOpeningGallery}
         >
           {isOpeningGallery ? (
-            <ActivityIndicator size="small" color="white" />
+            <ActivityIndicator size="small" color={colors.primaryTextColor} />
           ) : (
-            <FontAwesomeIcon icon={Icons.Image} size={24} color={'white'} />
+            <FontAwesomeIcon icon={Icons.Image} size={24} color={colors.primaryTextColor} />
           )}
-          <Text style={styles.text}>{t('pick-from-gallery')}</Text>
+          <Text style={[styles.text, { color: colors.primaryTextColor }]}>{t('pick-from-gallery')}</Text>
         </TouchableOpacity>
-        <View style={styles.separator}></View>
-        <TouchableOpacity 
-          style={[styles.option, isOpeningCamera && styles.disabledOption]} 
+        <View style={[styles.separator, { backgroundColor: colors.separatorColor }]}></View>
+        <TouchableOpacity
+          style={[styles.option, isOpeningCamera && styles.disabledOption]}
           onPress={openCamera}
           disabled={isOpeningCamera}
         >
           {isOpeningCamera ? (
-            <ActivityIndicator size="small" color="white" />
+            <ActivityIndicator size="small" color={colors.primaryTextColor} />
           ) : (
-            <FontAwesomeIcon icon={Icons.Camera} size={24} color={'white'} />
+            <FontAwesomeIcon icon={Icons.Camera} size={24} color={colors.primaryTextColor} />
           )}
-          <Text style={styles.text}>{t('take-new-picture')}</Text>
+          <Text style={[styles.text, { color: colors.primaryTextColor }]}>{t('take-new-picture')}</Text>
         </TouchableOpacity>
-        <View style={styles.separator}></View>
-        <TouchableOpacity 
-          style={[styles.option, isDeletingPhoto && styles.disabledOption]} 
+        <View style={[styles.separator, { backgroundColor: colors.separatorColor }]}></View>
+        <TouchableOpacity
+          style={[styles.option, isDeletingPhoto && styles.disabledOption]}
           onPress={removePicture}
           disabled={isDeletingPhoto}
         >
           {isDeletingPhoto ? (
-            <ActivityIndicator size="small" color="white" />
+            <ActivityIndicator size="small" color={colors.primaryTextColor} />
           ) : (
-            <FontAwesomeIcon icon={Icons.Ban} size={24} color={'white'} />
+            <FontAwesomeIcon icon={Icons.Ban} size={24} color={colors.primaryTextColor} />
           )}
-          <Text style={styles.text}>{t('remove-picture')}</Text>
+          <Text style={[styles.text, { color: colors.primaryTextColor }]}>{t('remove-picture')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </BottomSheetModal>
@@ -134,16 +136,16 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: 1,
-    backgroundColor: '#434343',
+    // backgroundColor is set inline to use theme colors
     marginVertical: 5,
   },
   text: {
-    color: 'white',
+    // color is set inline to use theme colors
     fontSize: 16,
     flexShrink: 1,
   },
   handleIndicator: {
-    backgroundColor: 'white',
+    // backgroundColor is set inline to use theme colors
     width: '10%',
     margin: 5,
   },
@@ -153,7 +155,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   footerText: {
-    color: 'white',
+    // color is set inline to use theme colors
     fontSize: 16,
     fontWeight: '600',
   },

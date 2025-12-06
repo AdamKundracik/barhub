@@ -7,14 +7,7 @@ import {
   Modal,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import {
-  primaryBgColor,
-  postBgColor,
-  primaryTextColor,
-  secondaryTextColor,
-  primaryColor,
-  warningColor,
-} from '../../../utils/styles/colors';
+import { useThemeColors } from '../../../utils/styles/themeColors';
 import DatePicker from 'react-native-date-picker';
 
 interface DateOfBirthModalProps {
@@ -29,6 +22,7 @@ export const DateOfBirthModal: React.FC<DateOfBirthModalProps> = ({
   isLoading = false,
 }) => {
   const { t } = useTranslation();
+  const colors = useThemeColors();
 
   // Default date: 13 years ago
   const getDefaultDate = () => {
@@ -75,13 +69,13 @@ export const DateOfBirthModal: React.FC<DateOfBirthModalProps> = ({
       statusBarTranslucent
     >
       <View style={styles.overlay}>
-        <View style={[styles.container, { backgroundColor: postBgColor }]}>
+        <View style={[styles.container, { backgroundColor: colors.postBgColor }]}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={[styles.title, { color: primaryTextColor }]}>
+            <Text style={[styles.title, { color: colors.primaryTextColor }]}>
               {t('set-date-of-birth')}
             </Text>
-            <Text style={[styles.subtitle, { color: secondaryTextColor }]}>
+            <Text style={[styles.subtitle, { color: colors.secondaryTextColor }]}>
               {t('date-of-birth-required-message')}
             </Text>
           </View>
@@ -90,12 +84,12 @@ export const DateOfBirthModal: React.FC<DateOfBirthModalProps> = ({
           <TouchableOpacity
             style={[
               styles.dateButton,
-              { backgroundColor: primaryBgColor, borderColor: primaryColor },
+              { backgroundColor: colors.primaryBgColor, borderColor: colors.primaryColor },
             ]}
             onPress={() => setDatePickerOpened(true)}
             disabled={isLoading}
           >
-            <Text style={[styles.dateText, { color: primaryTextColor }]}>
+            <Text style={[styles.dateText, { color: colors.primaryTextColor }]}>
               {formatDate(selectedDate)}
             </Text>
           </TouchableOpacity>
@@ -125,13 +119,13 @@ export const DateOfBirthModal: React.FC<DateOfBirthModalProps> = ({
 
           {/* Error Message */}
           {error && (
-            <Text style={[styles.errorText, { color: warningColor }]}>
+            <Text style={[styles.errorText, { color: colors.warningColor }]}>
               {error}
             </Text>
           )}
 
           {/* Age Notice */}
-          <Text style={[styles.notice, { color: secondaryTextColor }]}>
+          <Text style={[styles.notice, { color: colors.secondaryTextColor }]}>
             {t('minimum-age-notice')}
           </Text>
 
@@ -139,7 +133,7 @@ export const DateOfBirthModal: React.FC<DateOfBirthModalProps> = ({
           <TouchableOpacity
             style={[
               styles.submitButton,
-              { backgroundColor: primaryColor },
+              { backgroundColor: colors.primaryColor },
               (isLoading || !!error) && styles.submitButtonDisabled,
             ]}
             onPress={handleSubmit}

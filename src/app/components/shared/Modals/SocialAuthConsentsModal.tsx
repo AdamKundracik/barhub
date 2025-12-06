@@ -1,13 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import {
-  postBgColor,
-  primaryColor,
-  primaryTextColor,
-  secondaryTextColor,
-  warningColor,
-} from '../../../utils/styles/colors';
+import { useThemeColors } from '../../../utils/styles/themeColors';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import { consentService } from '../../../services/consentService';
 
@@ -31,6 +25,7 @@ export const SocialAuthConsentsModal: React.FC<
   isLoading = false,
 }) => {
   const { t } = useTranslation();
+  const colors = useThemeColors();
 
   const [acceptsTerms, setAcceptsTerms] = useState(false);
   const [acceptsPrivacy, setAcceptsPrivacy] = useState(false);
@@ -76,13 +71,13 @@ export const SocialAuthConsentsModal: React.FC<
       statusBarTranslucent
     >
       <View style={styles.overlay}>
-        <View style={[styles.container, { backgroundColor: postBgColor }]}>
+        <View style={[styles.container, { backgroundColor: colors.postBgColor }]}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={[styles.title, { color: primaryTextColor }]}>
+            <Text style={[styles.title, { color: colors.primaryTextColor }]}>
               {t('welcome-to-barhub')} 👋
             </Text>
-            <Text style={[styles.subtitle, { color: secondaryTextColor }]}>
+            <Text style={[styles.subtitle, { color: colors.secondaryTextColor }]}>
               {t('social-auth-welcome-message', {
                 provider: providerName,
                 name: userName,
@@ -92,11 +87,11 @@ export const SocialAuthConsentsModal: React.FC<
 
           {/* Legal Agreements */}
           <View style={styles.agreementsContainer}>
-            <Text style={[styles.sectionTitle, { color: primaryTextColor }]}>
+            <Text style={[styles.sectionTitle, { color: colors.primaryTextColor }]}>
               {t('legal-agreements')}
             </Text>
             <Text
-              style={[styles.sectionSubtitle, { color: secondaryTextColor }]}
+              style={[styles.sectionSubtitle, { color: colors.secondaryTextColor }]}
             >
               {t('please-accept-to-continue')}
             </Text>
@@ -105,8 +100,8 @@ export const SocialAuthConsentsModal: React.FC<
             <View style={styles.checkboxRow}>
               <BouncyCheckbox
                 size={24}
-                fillColor={primaryColor}
-                iconStyle={{ borderColor: primaryColor, borderRadius: 4 }}
+                fillColor={colors.primaryColor}
+                iconStyle={{ borderColor: colors.primaryColor, borderRadius: 4 }}
                 innerIconStyle={{ borderWidth: 2, borderRadius: 4 }}
                 isChecked={acceptsTerms}
                 onPress={() => setAcceptsTerms(!acceptsTerms)}
@@ -115,9 +110,9 @@ export const SocialAuthConsentsModal: React.FC<
                 style={styles.checkbox}
               />
               <View style={styles.checkboxTextContainer}>
-                <Text style={styles.checkboxText}>
+                <Text style={[styles.checkboxText, { color: colors.primaryTextColor }]}>
                   {t('i-accept')}{' '}
-                  <Text style={styles.linkText}>{t('terms-of-service')}</Text>{' '}
+                  <Text style={[styles.linkText, { color: colors.primaryColor }]}>{t('terms-of-service')}</Text>{' '}
                   (v{consentVersions['TERMS_OF_SERVICE']})
                 </Text>
               </View>
@@ -127,8 +122,8 @@ export const SocialAuthConsentsModal: React.FC<
             <View style={styles.checkboxRow}>
               <BouncyCheckbox
                 size={24}
-                fillColor={primaryColor}
-                iconStyle={{ borderColor: primaryColor, borderRadius: 4 }}
+                fillColor={colors.primaryColor}
+                iconStyle={{ borderColor: colors.primaryColor, borderRadius: 4 }}
                 innerIconStyle={{ borderWidth: 2, borderRadius: 4 }}
                 isChecked={acceptsPrivacy}
                 onPress={() => setAcceptsPrivacy(!acceptsPrivacy)}
@@ -137,9 +132,9 @@ export const SocialAuthConsentsModal: React.FC<
                 style={styles.checkbox}
               />
               <View style={styles.checkboxTextContainer}>
-                <Text style={styles.checkboxText}>
+                <Text style={[styles.checkboxText, { color: colors.primaryTextColor }]}>
                   {t('i-accept')}{' '}
-                  <Text style={styles.linkText}>{t('privacy-policy')}</Text> (v
+                  <Text style={[styles.linkText, { color: colors.primaryColor }]}>{t('privacy-policy')}</Text> (v
                   {consentVersions['PRIVACY_POLICY']})
                 </Text>
               </View>
@@ -149,8 +144,8 @@ export const SocialAuthConsentsModal: React.FC<
             <View style={styles.checkboxRow}>
               <BouncyCheckbox
                 size={24}
-                fillColor={primaryColor}
-                iconStyle={{ borderColor: primaryColor, borderRadius: 4 }}
+                fillColor={colors.primaryColor}
+                iconStyle={{ borderColor: colors.primaryColor, borderRadius: 4 }}
                 innerIconStyle={{ borderWidth: 2, borderRadius: 4 }}
                 isChecked={acceptsCommunity}
                 onPress={() => setAcceptsCommunity(!acceptsCommunity)}
@@ -159,9 +154,9 @@ export const SocialAuthConsentsModal: React.FC<
                 style={styles.checkbox}
               />
               <View style={styles.checkboxTextContainer}>
-                <Text style={styles.checkboxText}>
+                <Text style={[styles.checkboxText, { color: colors.primaryTextColor }]}>
                   {t('i-accept')}{' '}
-                  <Text style={styles.linkText}>
+                  <Text style={[styles.linkText, { color: colors.primaryColor }]}>
                     {t('community-guidelines')}
                   </Text>{' '}
                   (v{consentVersions['COMMUNITY_GUIDELINES']})
@@ -176,13 +171,13 @@ export const SocialAuthConsentsModal: React.FC<
               style={[
                 styles.button,
                 styles.acceptButton,
-                { backgroundColor: primaryColor },
+                { backgroundColor: colors.primaryColor },
                 (!isFormValid || isLoading) && styles.buttonDisabled,
               ]}
               onPress={handleAccept}
               disabled={!isFormValid || isLoading}
             >
-              <Text style={styles.acceptButtonText}>
+              <Text style={[styles.acceptButtonText, { color: colors.primaryBgColor }]}>
                 {isLoading ? t('creating-account') : t('accept-and-continue')}
               </Text>
             </TouchableOpacity>
@@ -191,12 +186,12 @@ export const SocialAuthConsentsModal: React.FC<
               style={[
                 styles.button,
                 styles.cancelButton,
-                { borderColor: warningColor },
+                { borderColor: colors.warningColor },
               ]}
               onPress={onCancel}
               disabled={isLoading}
             >
-              <Text style={[styles.cancelButtonText, { color: warningColor }]}>
+              <Text style={[styles.cancelButtonText, { color: colors.warningColor }]}>
                 {t('cancel')}
               </Text>
             </TouchableOpacity>
@@ -264,12 +259,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   checkboxText: {
-    color: primaryTextColor,
+    // color is set inline to use theme colors
     fontSize: 14,
     lineHeight: 20,
   },
   linkText: {
-    color: primaryColor,
+    // color is set inline to use theme colors
     fontWeight: '600',
   },
   buttonsContainer: {
@@ -286,7 +281,7 @@ const styles = StyleSheet.create({
     // backgroundColor set dynamically
   },
   acceptButtonText: {
-    color: 'black',
+    // color is set inline to use theme colors
     fontSize: 16,
     fontWeight: '700',
   },

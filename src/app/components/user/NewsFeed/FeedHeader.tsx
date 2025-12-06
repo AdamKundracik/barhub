@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useQueryClient } from 'react-query';
 import PlaceFilterChip from './PlaceFilterChip';
 import { Icons } from '../../../utils/icons/icons';
-import { primaryColor } from '../../../utils/styles/colors';
+import { useThemeColors } from '../../../utils/styles/themeColors';
 import { usePlaceStore } from '../../../utils/store/placesStore';
 import { useUserStore } from '../../../utils/store/userStore';
 import { favoriteService } from '../../../services/favoriteService';
@@ -21,6 +21,7 @@ const FeedHeader = ({ placeName }: HeaderProps) => {
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const colors = useThemeColors();
 
   const [isFavorite, setIsFavorite] = useState(false);
   const [isCheckingFavorite, setIsCheckingFavorite] = useState(true);
@@ -137,7 +138,7 @@ const FeedHeader = ({ placeName }: HeaderProps) => {
             activeOpacity={0.7}
           >
             {isTogglingFavorite || isCheckingFavorite ? (
-              <ActivityIndicator size="small" color={primaryColor} />
+              <ActivityIndicator size="small" color={colors.primaryColor} />
             ) : (
               <FontAwesomeIcon
                 icon={isFavorite ? Icons.HeartSolid : Icons.Heart}

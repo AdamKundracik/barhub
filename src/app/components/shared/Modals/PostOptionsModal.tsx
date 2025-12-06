@@ -14,10 +14,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
-import {
-  bottomModalBgColor,
-  warningColor,
-} from '@/src/app/utils/styles/colors';
+import { useThemeColors } from '@/src/app/utils/styles/themeColors';
 import {
   saveImageToGallery,
   showSaveResultAlert,
@@ -53,6 +50,7 @@ export const PostOptionsModal = ({
   isHighlighted = false,
 }: PostOptionsModalProps) => {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [loading, setLoading] = useState(false);
 
@@ -138,8 +136,8 @@ export const PostOptionsModal = ({
       snapPoints={getSnapPoints()}
       backdropComponent={renderBackdrop}
       onDismiss={onClose}
-      backgroundStyle={styles.container}
-      handleIndicatorStyle={styles.handleIndicator}
+      backgroundStyle={[styles.container, { backgroundColor: colors.bottomModalBgColor }]}
+      handleIndicatorStyle={[styles.handleIndicator, { backgroundColor: colors.separatorColor }]}
       enablePanDownToClose
     >
       <BottomSheetView style={styles.content}>
@@ -153,9 +151,9 @@ export const PostOptionsModal = ({
             }}
             disabled={loading}
           >
-            <View style={styles.optionRow}>
-              <Text style={styles.optionText}>{t('view-post-detail')}</Text>
-              <FontAwesomeIcon icon={Icons.Info} size={16} color="white" />
+            <View style={[styles.optionRow, { borderBottomColor: colors.separatorColor }]}>
+              <Text style={[styles.optionText, { color: colors.primaryTextColor }]}>{t('view-post-detail')}</Text>
+              <FontAwesomeIcon icon={Icons.Info} size={16} color={colors.primaryTextColor} />
             </View>
           </TouchableOpacity>
         )}
@@ -168,9 +166,9 @@ export const PostOptionsModal = ({
             onPress={handleSaveToGallery}
             disabled={loading}
           >
-            <View style={styles.optionRow}>
-              <Text style={styles.optionText}>{t('save-to-gallery')}</Text>
-              <FontAwesomeIcon icon={Icons.Download} size={16} color="white" />
+            <View style={[styles.optionRow, { borderBottomColor: colors.separatorColor }]}>
+              <Text style={[styles.optionText, { color: colors.primaryTextColor }]}>{t('save-to-gallery')}</Text>
+              <FontAwesomeIcon icon={Icons.Download} size={16} color={colors.primaryTextColor} />
             </View>
           </TouchableOpacity>
         )}
@@ -213,9 +211,9 @@ export const PostOptionsModal = ({
             }}
             disabled={loading}
           >
-            <View style={styles.optionRow}>
-              <Text style={styles.optionText}>{t('share-post')}</Text>
-              <FontAwesomeIcon icon={Icons.Share} size={16} color="white" />
+            <View style={[styles.optionRow, { borderBottomColor: colors.separatorColor }]}>
+              <Text style={[styles.optionText, { color: colors.primaryTextColor }]}>{t('share-post')}</Text>
+              <FontAwesomeIcon icon={Icons.Share} size={16} color={colors.primaryTextColor} />
             </View>
           </TouchableOpacity>
         )}
@@ -228,13 +226,13 @@ export const PostOptionsModal = ({
             disabled={loading}
           >
             <View style={styles.optionRow}>
-              <Text style={[styles.optionText, { color: warningColor }]}>
+              <Text style={[styles.optionText, { color: colors.warningColor }]}>
                 {t('delete-post')}
               </Text>
               <FontAwesomeIcon
                 icon={Icons.TrashCan}
                 size={16}
-                color={warningColor}
+                color={colors.warningColor}
               />
             </View>
           </TouchableOpacity>
@@ -248,13 +246,13 @@ export const PostOptionsModal = ({
             disabled={loading}
           >
             <View style={styles.optionRow}>
-              <Text style={[styles.optionText, { color: warningColor }]}>
+              <Text style={[styles.optionText, { color: colors.warningColor }]}>
                 {t('reportPost.title')}
               </Text>
               <FontAwesomeIcon
                 icon={Icons.Flag}
                 size={16}
-                color={warningColor}
+                color={colors.warningColor}
               />
             </View>
           </TouchableOpacity>
@@ -263,7 +261,7 @@ export const PostOptionsModal = ({
 
       {loading && (
         <View style={styles.loaderOverlay}>
-          <ActivityIndicator size="large" color="#fff" />
+          <ActivityIndicator size="large" color={colors.primaryTextColor} />
         </View>
       )}
     </BottomSheetModal>
@@ -272,7 +270,7 @@ export const PostOptionsModal = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: bottomModalBgColor,
+    // backgroundColor is set inline to use theme colors
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
@@ -282,19 +280,19 @@ const styles = StyleSheet.create({
   option: {
     paddingVertical: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#333',
+    // borderBottomColor is set inline to use theme colors
   },
   optionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   optionText: {
-    color: 'white',
+    // color is set inline to use theme colors
     fontSize: 16,
     fontWeight: '500',
   },
   handleIndicator: {
-    backgroundColor: '#444',
+    // backgroundColor is set inline to use theme colors
     width: 40,
     height: 4,
     borderRadius: 2,

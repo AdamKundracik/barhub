@@ -27,7 +27,7 @@ import { trimPlaceName } from '@/src/app/utils/helper-functions/trimPlaceName';
 import PlaceNameSeparator from './PlaceNameSeparator';
 import { UserLine } from './UserLine';
 import InteractionBar from './InteractionBar';
-import { postBgColor, primaryBgColor } from '@/src/app/utils/styles/colors';
+import { useThemeColors } from '@/src/app/utils/styles/themeColors';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useTranslation } from 'react-i18next';
 
@@ -233,6 +233,15 @@ const UserPost: React.FC<UserPostProps> = ({
 }) => {
   // const { isPremium, canSeeContent, userData } = useUserStore();
   const navigation = useNavigation();
+  const colors = useThemeColors();
+  
+  // Helper to convert hex to rgba for gradients
+  const hexToRgba = (hex: string, alpha: number) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
 
   // Early return if no post
   if (!post) {
@@ -329,7 +338,7 @@ const UserPost: React.FC<UserPostProps> = ({
     >
       {/* Modern Place Name Header */}
       {!isFiltering && (
-        <View style={[styles.placeName, isTablet && tabletStyles.placeName]}>
+        <View style={[styles.placeName, { backgroundColor: colors.primaryBgColor }, isTablet && tabletStyles.placeName]}>
           <PlaceNameSeparator
             placeNameLocal={trimmedPlaceName}
             placeIdLocal={folderId}
@@ -342,12 +351,17 @@ const UserPost: React.FC<UserPostProps> = ({
       <View
         style={[
           styles.contentContainer,
+          {
+            backgroundColor: colors.postBgColor,
+            borderColor: colors.separatorColor + '14', // ~8% opacity
+            shadowColor: '#000', // Static shadow for consistency
+          },
           isTablet && tabletStyles.contentContainer,
           isHighlighted &&
             isFiltering && {
               borderWidth: 2,
-              borderColor: '#FFC107',
-              shadowColor: '#FFC107',
+              borderColor: '#FFC107', // Highlight color (gold/yellow)
+              shadowColor: '#FFC107', // Highlight color (gold/yellow)
               shadowOpacity: 0.3,
               shadowRadius: 16,
               elevation: 12,
@@ -359,7 +373,7 @@ const UserPost: React.FC<UserPostProps> = ({
           colors={
             isHighlighted && isFiltering
               ? ['rgba(255, 193, 7, 0.05)', 'rgba(255, 193, 7, 0.0)']
-              : ['rgba(16, 217, 185, 0.02)', 'rgba(16, 217, 185, 0.0)']
+              : [hexToRgba(colors.primaryColor, 0.02), hexToRgba(colors.primaryColor, 0.0)]
           }
           style={styles.gradientOverlay}
         />
@@ -457,22 +471,19 @@ const UserPost: React.FC<UserPostProps> = ({
 const styles = StyleSheet.create({
   postContainer: {},
   placeName: {
-    backgroundColor: primaryBgColor,
     alignItems: 'center',
     paddingVertical: 12,
   },
   contentContainer: {
-    backgroundColor: postBgColor,
     borderRadius: CARD_BORDER_RADIUS,
     // marginHorizontal: CARD_MARGIN,
     overflow: 'hidden',
     elevation: 8,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    // borderColor is set inline to use theme colors
   },
   gradientOverlay: {
     position: 'absolute',

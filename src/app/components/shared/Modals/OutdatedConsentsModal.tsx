@@ -8,16 +8,8 @@ import {
   View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useNavigation } from '@react-navigation/native';
-import {
-  postBgColor,
-  primaryBgColor,
-  primaryColor,
-  primaryTextColor,
-  secondaryTextColor,
-  warningColor,
-} from '../../../utils/styles/colors';
-import { OutdatedConsentDTO } from '../../../types/dto';
+import { useThemeColors } from '../../../utils/styles/themeColors';
+import { OutdatedConsentDTO } from '@/src/app/types';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import { getLegalDocumentContent } from '../../../utils/constants/legalDocuments';
 
@@ -37,7 +29,7 @@ export const OutdatedConsentsModal: React.FC<OutdatedConsentsModalProps> = ({
   isLoading = false,
 }) => {
   const { t } = useTranslation();
-  const navigation = useNavigation();
+  const colors = useThemeColors();
 
   // State for individual checkboxes
   const [acceptedConsents, setAcceptedConsents] = useState<
@@ -114,13 +106,17 @@ export const OutdatedConsentsModal: React.FC<OutdatedConsentsModalProps> = ({
       <View style={styles.overlay}>
         {!viewingDocument ? (
           // Main Consent View
-          <View style={[styles.container, { backgroundColor: postBgColor }]}>
+          <View
+            style={[styles.container, { backgroundColor: colors.postBgColor }]}
+          >
             {/* Header */}
             <View style={styles.header}>
-              <Text style={[styles.title, { color: primaryTextColor }]}>
+              <Text style={[styles.title, { color: colors.primaryTextColor }]}>
                 {t('consents-updated')}
               </Text>
-              <Text style={[styles.subtitle, { color: secondaryTextColor }]}>
+              <Text
+                style={[styles.subtitle, { color: colors.secondaryTextColor }]}
+              >
                 {t('consents-updated-message')}
               </Text>
             </View>
@@ -129,9 +125,12 @@ export const OutdatedConsentsModal: React.FC<OutdatedConsentsModalProps> = ({
             <View style={styles.acceptAllContainer}>
               <BouncyCheckbox
                 size={24}
-                fillColor={primaryColor}
+                fillColor={colors.primaryColor}
                 unFillColor="transparent"
-                iconStyle={{ borderColor: primaryColor, borderRadius: 4 }}
+                iconStyle={{
+                  borderColor: colors.primaryColor,
+                  borderRadius: 4,
+                }}
                 innerIconStyle={{ borderWidth: 2, borderRadius: 4 }}
                 isChecked={allAccepted}
                 onPress={toggleAll}
@@ -139,7 +138,12 @@ export const OutdatedConsentsModal: React.FC<OutdatedConsentsModalProps> = ({
                 disableText
                 style={styles.checkbox}
               />
-              <Text style={[styles.acceptAllText, { color: primaryTextColor }]}>
+              <Text
+                style={[
+                  styles.acceptAllText,
+                  { color: colors.primaryTextColor },
+                ]}
+              >
                 {t('accept-all')}
               </Text>
             </View>
@@ -151,9 +155,12 @@ export const OutdatedConsentsModal: React.FC<OutdatedConsentsModalProps> = ({
                   <View style={styles.checkboxRow}>
                     <BouncyCheckbox
                       size={20}
-                      fillColor={primaryColor}
+                      fillColor={colors.primaryColor}
                       unFillColor="transparent"
-                      iconStyle={{ borderColor: primaryColor, borderRadius: 4 }}
+                      iconStyle={{
+                        borderColor: colors.primaryColor,
+                        borderRadius: 4,
+                      }}
                       innerIconStyle={{ borderWidth: 2, borderRadius: 4 }}
                       isChecked={!!acceptedConsents[consent.consentType]}
                       onPress={() => toggleConsent(consent.consentType)}
@@ -166,7 +173,10 @@ export const OutdatedConsentsModal: React.FC<OutdatedConsentsModalProps> = ({
                         onPress={() => setViewingDocument(consent.consentType)}
                       >
                         <Text
-                          style={[styles.consentTitle, { color: primaryColor }]}
+                          style={[
+                            styles.consentTitle,
+                            { color: colors.primaryColor },
+                          ]}
                         >
                           {getConsentTitle(consent.consentType)}
                         </Text>
@@ -174,7 +184,7 @@ export const OutdatedConsentsModal: React.FC<OutdatedConsentsModalProps> = ({
                       <Text
                         style={[
                           styles.versionText,
-                          { color: secondaryTextColor },
+                          { color: colors.secondaryTextColor },
                         ]}
                       >
                         {t('version')}:{' '}
@@ -188,7 +198,7 @@ export const OutdatedConsentsModal: React.FC<OutdatedConsentsModalProps> = ({
             </ScrollView>
 
             {/* Notice */}
-            <Text style={[styles.notice, { color: secondaryTextColor }]}>
+            <Text style={[styles.notice, { color: colors.secondaryTextColor }]}>
               {t('consents-required-notice')}
             </Text>
 
@@ -198,13 +208,18 @@ export const OutdatedConsentsModal: React.FC<OutdatedConsentsModalProps> = ({
                 style={[
                   styles.button,
                   styles.acceptButton,
-                  { backgroundColor: primaryColor },
+                  { backgroundColor: colors.primaryColor },
                   !canSubmit && styles.buttonDisabled,
                 ]}
                 onPress={onAccept}
                 disabled={!canSubmit}
               >
-                <Text style={styles.acceptButtonText}>
+                <Text
+                  style={[
+                    styles.acceptButtonText,
+                    { color: colors.primaryBgColor },
+                  ]}
+                >
                   {isLoading ? t('saving') : t('accept-and-continue')}
                 </Text>
               </TouchableOpacity>
@@ -213,13 +228,16 @@ export const OutdatedConsentsModal: React.FC<OutdatedConsentsModalProps> = ({
                 style={[
                   styles.button,
                   styles.logoutButton,
-                  { borderColor: warningColor },
+                  { borderColor: colors.warningColor },
                 ]}
                 onPress={onLogout}
                 disabled={isLoading}
               >
                 <Text
-                  style={[styles.logoutButtonText, { color: warningColor }]}
+                  style={[
+                    styles.logoutButtonText,
+                    { color: colors.warningColor },
+                  ]}
                 >
                   {t('signed-out')}
                 </Text>
@@ -231,19 +249,29 @@ export const OutdatedConsentsModal: React.FC<OutdatedConsentsModalProps> = ({
           <View
             style={[
               styles.documentContainer,
-              { backgroundColor: primaryBgColor },
+              { backgroundColor: colors.primaryBgColor },
             ]}
           >
             {/* Document Header */}
             <View style={styles.documentHeader}>
-              <Text style={[styles.documentTitle, { color: primaryTextColor }]}>
+              <Text
+                style={[
+                  styles.documentTitle,
+                  { color: colors.primaryTextColor },
+                ]}
+              >
                 {getConsentTitle(viewingDocument)}
               </Text>
               <TouchableOpacity
                 style={styles.closeButton}
                 onPress={() => setViewingDocument(null)}
               >
-                <Text style={[styles.closeButtonText, { color: primaryColor }]}>
+                <Text
+                  style={[
+                    styles.closeButtonText,
+                    { color: colors.primaryColor },
+                  ]}
+                >
                   {t('cancel')}
                 </Text>
               </TouchableOpacity>
@@ -252,7 +280,10 @@ export const OutdatedConsentsModal: React.FC<OutdatedConsentsModalProps> = ({
             {/* Document Content */}
             <ScrollView style={styles.documentScroll}>
               <Text
-                style={[styles.documentContent, { color: primaryTextColor }]}
+                style={[
+                  styles.documentContent,
+                  { color: colors.primaryTextColor },
+                ]}
               >
                 {getDocumentContent(viewingDocument)}
               </Text>
@@ -359,7 +390,7 @@ const styles = StyleSheet.create({
     // backgroundColor set dynamically
   },
   acceptButtonText: {
-    color: 'black',
+    // color is set inline to use theme colors
     fontSize: 16,
     fontWeight: '700',
   },

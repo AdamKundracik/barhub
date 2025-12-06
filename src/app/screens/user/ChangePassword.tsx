@@ -8,14 +8,13 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import {
-  postBgColor,
-  primaryBgColor,
   primaryColor,
   primaryTextColor,
   secondaryTextColor,
   separatorColor,
   warningColor,
 } from '../../utils/styles/colors';
+import { useThemeColors } from '../../utils/styles/themeColors';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
@@ -50,6 +49,7 @@ export const PasswordChangeScreen = () => {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { showSuccessToast, showErrorToast } = useCustomToast();
+  const colors = useThemeColors();
   const [focusedInput, setFocusedInput] = useState<InputField | null>(null);
 
   const {
@@ -122,6 +122,10 @@ export const PasswordChangeScreen = () => {
           size="xl"
           style={[
             styles.input,
+            {
+              backgroundColor: colors.primaryTextColor + '0D',
+              borderColor: colors.separatorColor,
+            },
             focusedInput === field && styles.inputFocused,
             isInvalid && styles.inputError,
           ]}
@@ -129,9 +133,10 @@ export const PasswordChangeScreen = () => {
           <InputField
             type={passwordVisibility[field] ? 'text' : 'password'}
             placeholder={t(translationKey)}
+            placeholderTextColor={colors.secondaryTextColor}
             value={formData[field]}
             onChangeText={text => updateField(field, text)}
-            style={styles.inputField}
+            style={[styles.inputField, { color: colors.primaryTextColor }]}
             onFocus={() => setFocusedInput(field)}
             onBlur={() => setFocusedInput(null)}
             autoCapitalize="none"
@@ -214,7 +219,15 @@ export const PasswordChangeScreen = () => {
 
           {/* Form */}
           <VStack space="lg" style={styles.formContainer}>
-            <View style={styles.formWrapper}>
+            <View
+              style={[
+                styles.formWrapper,
+                {
+                  backgroundColor: colors.postBgColor,
+                  borderColor: colors.separatorColor,
+                },
+              ]}
+            >
               <VStack space="md">
                 {renderPasswordInput('oldPassword', 'old-password')}
                 {renderPasswordInput('newPassword', 'new-password')}
@@ -290,11 +303,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   formWrapper: {
-    backgroundColor: postBgColor,
+    // backgroundColor and borderColor are set inline to use theme colors
     borderRadius: 20,
     padding: 24,
     borderWidth: 1,
-    borderColor: '#333',
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -314,8 +326,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   input: {
-    backgroundColor: primaryBgColor,
-    borderColor: '#333',
+    // backgroundColor and borderColor are set inline to use theme colors
     borderWidth: 1,
   },
   inputFocused: {
@@ -327,7 +338,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   inputField: {
-    color: primaryTextColor,
+    // color is set inline to use theme colors
     fontSize: 16,
   },
   inputSlot: {

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '@/src/app/utils/styles/themeColors';
 import {
   OccupancyTypes,
   PlaceType,
@@ -39,6 +40,7 @@ const MultiSelectPlaceChips: React.FC<MultiSelectPlaceChipsProps> = ({
   initialOccupancy = [],
 }) => {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const [selectedPlaces, setSelectedPlaces] =
     useState<PlaceType[]>(initialSelected);
   const [selectedOccupancy, setSelectedOccupancy] =
@@ -118,7 +120,9 @@ const MultiSelectPlaceChips: React.FC<MultiSelectPlaceChipsProps> = ({
   return (
     <View style={styles.container}>
       <View>
-        <Text style={styles.sectionTitle}>{t('places-types')}:</Text>
+        <Text style={[styles.sectionTitle, { color: colors.primaryTextColor }]}>
+          {t('places-types')}:
+        </Text>
         <View style={styles.scrollView}>
           <View style={styles.chipContainer}>
             {orderedPlaces.map(place => {
@@ -127,19 +131,34 @@ const MultiSelectPlaceChips: React.FC<MultiSelectPlaceChipsProps> = ({
                 <TouchableOpacity
                   key={place}
                   onPress={() => togglePlace(place)}
-                  style={[styles.chip, isSelected && styles.selectedChip]}
+                  style={[
+                    styles.chip,
+                    {
+                      backgroundColor: isSelected
+                        ? colors.primaryColor
+                        : colors.primaryTextColor + '1A', // ~10% opacity
+                    },
+                  ]}
                 >
                   <Text
                     style={[
                       styles.chipText,
-                      isSelected && styles.selectedChipText,
+                      {
+                        color: isSelected
+                          ? colors.primaryBgColor
+                          : colors.primaryTextColor,
+                      },
                     ]}
                   >
                     {formatPlaceName(place)}
                   </Text>
                   {isSelected && (
                     <View style={styles.iconContainer}>
-                      <FontAwesomeIcon icon={Icons.X} size={10} color="black" />
+                      <FontAwesomeIcon
+                        icon={Icons.X}
+                        size={10}
+                        color={colors.primaryBgColor}
+                      />
                     </View>
                   )}
                 </TouchableOpacity>
@@ -150,7 +169,9 @@ const MultiSelectPlaceChips: React.FC<MultiSelectPlaceChipsProps> = ({
       </View>
 
       <View>
-        <Text style={styles.sectionTitle}>{t('occupancy')}:</Text>
+        <Text style={[styles.sectionTitle, { color: colors.primaryTextColor }]}>
+          {t('occupancy')}:
+        </Text>
         <View style={[styles.chipContainer, styles.occupancyContainer]}>
           {orderedOccupancy.map(occupancy => {
             const isSelected = selectedOccupancy.includes(occupancy);
@@ -158,19 +179,34 @@ const MultiSelectPlaceChips: React.FC<MultiSelectPlaceChipsProps> = ({
               <TouchableOpacity
                 key={occupancy}
                 onPress={() => toggleOccupancy(occupancy)}
-                style={[styles.chip, isSelected && styles.selectedChip]}
+                style={[
+                  styles.chip,
+                  {
+                    backgroundColor: isSelected
+                      ? colors.primaryColor
+                      : colors.primaryTextColor + '1A', // ~10% opacity
+                  },
+                ]}
               >
                 <Text
                   style={[
                     styles.chipText,
-                    isSelected && styles.selectedChipText,
+                    {
+                      color: isSelected
+                        ? colors.primaryBgColor
+                        : colors.primaryTextColor,
+                    },
                   ]}
                 >
                   {formatOccupancyName(occupancy)}
                 </Text>
                 {isSelected && (
                   <View style={styles.iconContainer}>
-                    <FontAwesomeIcon icon={Icons.X} size={10} color="black" />
+                    <FontAwesomeIcon
+                      icon={Icons.X}
+                      size={10}
+                      color={colors.primaryBgColor}
+                    />
                   </View>
                 )}
               </TouchableOpacity>
@@ -200,25 +236,25 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    // backgroundColor is set inline to use theme colors
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 6,
     marginBottom: 8,
   },
   selectedChip: {
-    backgroundColor: '#10D9B9',
+    // backgroundColor is set inline to use theme colors
   },
   sectionTitle: {
-    color: 'white',
+    // color is set inline to use theme colors
     marginBottom: 10,
   },
   chipText: {
-    color: 'white',
+    // color is set inline to use theme colors
     fontSize: 14,
   },
   selectedChipText: {
-    color: 'black',
+    // color is set inline to use theme colors
   },
   iconContainer: {
     marginLeft: 8,

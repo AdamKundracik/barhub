@@ -1,12 +1,18 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, Dimensions } from 'react-native';
+import {
+  Dimensions,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import Device from 'react-native-device-info';
 import { useTranslation } from 'react-i18next';
 
 import { OccupancyEnum } from '@/src/app/utils/types/Feed/PostTypes';
 import { Icons } from '@/src/app/utils/icons/icons';
-import { postBgColor, primaryColor } from '@/src/app/utils/styles/colors';
+import { useThemeColors } from '@/src/app/utils/styles/themeColors';
 
 // Types
 interface InteractionBarProps {
@@ -69,17 +75,25 @@ const InteractionButton: React.FC<{
   activeColor = 'red',
   isCompact = false,
 }) => {
+  const colors = useThemeColors();
   const buttonColor = isActive ? activeColor : color;
   const textStyle = useMemo(
-    () => [styles.count, isCompact && compactStyles.count],
-    [isCompact]
+    () => [
+      styles.count,
+      { color: colors.secondaryTextColor },
+      isCompact && compactStyles.count,
+    ],
+    [isCompact, colors.secondaryTextColor]
   );
 
   if (onPress) {
     return (
-      <TouchableOpacity onPress={onPress} style={[styles.iconContainer, isCompact && compactStyles.iconContainer]}>
+      <TouchableOpacity
+        onPress={onPress}
+        style={[styles.iconContainer, isCompact && compactStyles.iconContainer]}
+      >
         <FontAwesomeIcon icon={icon} size={ICON_SIZE} color={buttonColor} />
-        <Text 
+        <Text
           style={textStyle}
           numberOfLines={2}
           adjustsFontSizeToFit={true}
@@ -92,9 +106,11 @@ const InteractionButton: React.FC<{
   }
 
   return (
-    <View style={[styles.iconContainer, isCompact && compactStyles.iconContainer]}>
+    <View
+      style={[styles.iconContainer, isCompact && compactStyles.iconContainer]}
+    >
       <FontAwesomeIcon icon={icon} size={ICON_SIZE} color={buttonColor} />
-      <Text 
+      <Text
         style={textStyle}
         numberOfLines={2}
         adjustsFontSizeToFit={true}
@@ -109,9 +125,7 @@ const InteractionButton: React.FC<{
 // Main component
 const InteractionBar: React.FC<InteractionBarProps> = ({
   likes,
-  comments,
   onLikeToggle,
-  onCommentToggle,
   onShare,
   isLiked,
   occupancy,
@@ -119,6 +133,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
   isFiltering = false,
 }) => {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const getOccupancyTranslation = useOccupancyTranslation();
   const occupancyText = useMemo(
     () => getOccupancyTranslation(occupancy ?? ''),
@@ -143,12 +158,12 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
   );
 
   return (
-    <View style={containerStyle}>
+    <View style={[containerStyle, { backgroundColor: colors.postBgColor }]}>
       {/* Occupancy Display */}
       <InteractionButton
         icon={Icons.Group}
         count={occupancyText}
-        color="white"
+        color={colors.primaryTextColor}
         isCompact={isCompact}
       />
 
@@ -156,7 +171,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
       <InteractionButton
         icon={isLiked ? Icons.HeartSolid : Icons.Heart}
         count={likes}
-        color={primaryColor}
+        color={colors.primaryColor}
         onPress={onLikeToggle}
         isActive={isLiked}
         activeColor="red"
@@ -179,7 +194,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
         <InteractionButton
           icon={Icons.Share}
           count={t('share')}
-          color="white"
+          color={colors.primaryTextColor}
           onPress={onShare}
           isCompact={isCompact}
         />
@@ -194,7 +209,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     paddingVertical: 15,
-    backgroundColor: postBgColor,
+    // backgroundColor is set inline to use theme colors
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
   },
@@ -209,7 +224,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 5,
     fontSize: 12,
-    color: '#a0a0a0',
+    // color is set inline to use theme colors
     textAlign: 'center',
     flexWrap: 'wrap',
     lineHeight: 14,

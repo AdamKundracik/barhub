@@ -13,11 +13,7 @@ import {
 } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { OccupancyEnum } from '@/src/app/utils/types/Feed/PostTypes';
-import {
-  bottomModalBgColor,
-  primaryColor,
-  separatorColor,
-} from '@/src/app/utils/styles/colors';
+import { useThemeColors } from '@/src/app/utils/styles/themeColors';
 
 type OccupancyModalProps = {
   visible: boolean;
@@ -33,6 +29,7 @@ export const OccupancyModal = ({
   initialValue,
 }: OccupancyModalProps) => {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [tempOccupancy, setTempOccupancy] = useState<OccupancyEnum | null>(
     initialValue || null
@@ -91,20 +88,35 @@ export const OccupancyModal = ({
       snapPoints={['65%']}
       backdropComponent={renderBackdrop}
       onDismiss={handleClose}
-      backgroundStyle={styles.modalContainer}
-      handleIndicatorStyle={styles.handleIndicator}
+      backgroundStyle={[
+        styles.modalContainer,
+        { backgroundColor: colors.bottomModalBgColor },
+      ]}
+      handleIndicatorStyle={[
+        styles.handleIndicator,
+        { backgroundColor: colors.separatorColor },
+      ]}
       enablePanDownToClose
     >
       <BottomSheetView style={styles.modalContent}>
         {/* Header with corner buttons */}
-        <View style={styles.modalHeader}>
+        <View
+          style={[
+            styles.modalHeader,
+            { borderBottomColor: colors.separatorColor },
+          ]}
+        >
           <TouchableOpacity
             onPress={handleClose}
             style={styles.modalHeaderButton}
           >
-            <Text style={styles.modalCancelText}>{t('cancel')}</Text>
+            <Text style={[styles.modalCancelText, { color: colors.separatorColor }]}>
+              {t('cancel')}
+            </Text>
           </TouchableOpacity>
-          <Text style={styles.modalTitle}>{t('select-occupancy')}</Text>
+          <Text style={[styles.modalTitle, { color: colors.primaryTextColor }]}>
+            {t('select-occupancy')}
+          </Text>
           <TouchableOpacity
             onPress={handleConfirm}
             style={[
@@ -116,6 +128,7 @@ export const OccupancyModal = ({
             <Text
               style={[
                 styles.modalDoneText,
+                { color: tempOccupancy ? colors.primaryColor : colors.secondaryTextColor },
                 !tempOccupancy && styles.modalDoneTextDisabled,
               ]}
             >
@@ -135,8 +148,17 @@ export const OccupancyModal = ({
                 key={option}
                 style={[
                   styles.option,
-                  tempOccupancy === option && styles.optionSelected,
+                  {
+                    backgroundColor: tempOccupancy === option
+                      ? colors.separatorColor + '33' // ~20% opacity
+                      : colors.primaryTextColor + '0D', // ~5% opacity
+                  },
+                  tempOccupancy === option && [
+                    styles.optionSelected,
+                    { borderColor: colors.primaryColor },
+                  ],
                 ]}
+                
                 onPress={() => setTempOccupancy(option)}
                 activeOpacity={0.7}
               >
@@ -150,6 +172,11 @@ export const OccupancyModal = ({
                   <Text
                     style={[
                       styles.optionText,
+                      {
+                        color: tempOccupancy === option
+                          ? colors.primaryColor
+                          : colors.primaryTextColor,
+                      },
                       tempOccupancy === option && styles.optionTextSelected,
                     ]}
                   >
@@ -157,7 +184,9 @@ export const OccupancyModal = ({
                   </Text>
                 </View>
                 {tempOccupancy === option && (
-                  <Text style={styles.checkmark}>✓</Text>
+                  <Text style={[styles.checkmark, { color: colors.primaryColor }]}>
+                    ✓
+                  </Text>
                 )}
               </TouchableOpacity>
             ))}
@@ -171,7 +200,7 @@ export const OccupancyModal = ({
 const styles = StyleSheet.create({
   // Modal - Much wider and better
   modalContainer: {
-    backgroundColor: bottomModalBgColor,
+    // backgroundColor is set inline to use theme colors
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
   },
@@ -181,7 +210,7 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   handleIndicator: {
-    backgroundColor: '#444',
+    // backgroundColor is set inline to use theme colors
     width: 40,
     height: 4,
     borderRadius: 2,
@@ -196,7 +225,7 @@ const styles = StyleSheet.create({
     paddingTop: 5,
     paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    // borderBottomColor is set inline to use theme colors
   },
   modalHeaderButton: {
     paddingVertical: 8,
@@ -205,21 +234,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalTitle: {
-    color: 'white',
+    // color is set inline to use theme colors
     fontSize: 20,
     fontWeight: '700',
   },
   modalCancelText: {
-    color: separatorColor,
+    // color is set inline to use theme colors
     fontSize: 17,
   },
   modalDoneText: {
-    color: primaryColor,
+    // color is set inline to use theme colors
     fontSize: 17,
     fontWeight: '600',
   },
   modalDoneTextDisabled: {
-    color: '#666',
+    // color is set inline to use theme colors
   },
   modalDoneButtonDisabled: {
     opacity: 0.5,
@@ -241,12 +270,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 15,
     marginBottom: 12,
-    backgroundColor: '#252525',
+    // backgroundColor is set inline to use theme colors
   },
   optionSelected: {
-    backgroundColor: '#333',
+    // backgroundColor and borderColor are set inline to use theme colors
     borderWidth: 2,
-    borderColor: primaryColor,
   },
   optionContent: {
     flexDirection: 'row',
@@ -260,16 +288,16 @@ const styles = StyleSheet.create({
     marginRight: 15,
   },
   optionText: {
-    color: 'white',
+    // color is set inline to use theme colors
     fontSize: 17,
     fontWeight: '500',
   },
   optionTextSelected: {
-    color: primaryColor,
+    // color is set inline to use theme colors
     fontWeight: '600',
   },
   checkmark: {
-    color: primaryColor,
+    // color is set inline to use theme colors
     fontSize: 20,
     fontWeight: 'bold',
     marginLeft: 15,

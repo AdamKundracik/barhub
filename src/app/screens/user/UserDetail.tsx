@@ -28,29 +28,23 @@ import { useNavigationStore } from '../../utils/store/navigationStore';
 import { UserReportModal } from '../../components/shared/Modals/UserReportModal';
 import { BlockUserModal } from '../../components/shared/Modals/BlockUserModal';
 import { reportService } from '../../services/reportService';
-import { addCacheBuster, createImageKey } from '../../utils/cache/imageCacheUtils';
-import { ReportReason } from '../../utils/types/Feed/PostTypes';
 import {
-  postBgColor,
-  primaryBgColor,
-  primaryColor,
-  primaryDeepColor,
-  primaryLightGrey,
-  primaryTextColor,
-  secondaryTextColor,
-  warningColor,
-} from '../../utils/styles/colors';
+  addCacheBuster,
+  createImageKey,
+} from '../../utils/cache/imageCacheUtils';
+import { ReportReason } from '../../utils/types/Feed/PostTypes';
+import { useThemeColors } from '../../utils/styles/themeColors';
 import { Text } from '@/components/ui/text';
 import { Center } from '@/components/ui/center';
 import { PremiumHelpers } from '@/src/app/config/premiumConfig';
 import InlineAd from '../../components/user/InlineAd';
-import Animated, { FadeInUp } from 'react-native-reanimated';
 // Removed date-fns import - using native JavaScript date functions
 
 export const UserDetail = () => {
   const route = useRoute();
   const navigation = useNavigation();
   const { t, i18n } = useTranslation();
+  const colors = useThemeColors();
   const { showErrorToast } = useCustomToast();
   const { getUserId, blockUser, unblockUser, isUserBlocked, isPremium } =
     useUserStore();
@@ -326,23 +320,31 @@ export const UserDetail = () => {
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
+      <View
+        style={[styles.container, { backgroundColor: colors.primaryBgColor }]}
+      >
         <View style={styles.header}>
-          <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
+          <TouchableOpacity onPress={handleBackPress} style={[styles.backButton, { backgroundColor: colors.primaryTextColor + '80' }]}>
             <FontAwesomeIcon
               icon={Icons.ChevronLeft}
               size={20}
-              color={primaryTextColor}
+              color={colors.primaryTextColor}
             />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>
+          <Text
+            style={[styles.headerTitle, { color: colors.primaryTextColor }]}
+          >
             {t('user.profile') || 'Profile'}
           </Text>
           <View style={styles.headerSpacer} />
         </View>
         <Center style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={primaryColor} />
-          <Text style={styles.loadingText}>{t('loading') || 'Loading...'}</Text>
+          <ActivityIndicator size="large" color={colors.primaryColor} />
+          <Text
+            style={[styles.loadingText, { color: colors.secondaryTextColor }]}
+          >
+            {t('loading') || 'Loading...'}
+          </Text>
         </Center>
       </View>
     );
@@ -350,30 +352,52 @@ export const UserDetail = () => {
 
   if (isError || !userProfile) {
     return (
-      <View style={styles.container}>
+      <View
+        style={[styles.container, { backgroundColor: colors.primaryBgColor }]}
+      >
         <View style={styles.header}>
-          <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
+          <TouchableOpacity onPress={handleBackPress} style={[styles.backButton, { backgroundColor: colors.primaryTextColor + '80' }]}>
             <FontAwesomeIcon
               icon={Icons.ChevronLeft}
               size={20}
-              color={primaryTextColor}
+              color={colors.primaryTextColor}
             />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>
+          <Text
+            style={[styles.headerTitle, { color: colors.primaryTextColor }]}
+          >
             {t('user.profile') || 'Profile'}
           </Text>
           <View style={styles.headerSpacer} />
         </View>
         <Center style={styles.errorContainer}>
-          <FontAwesomeIcon icon={Icons.Pin} size={48} color={warningColor} />
-          <Text style={styles.errorTitle}>{t('error.title') || 'Error'}</Text>
-          <Text style={styles.errorMessage}>
+          <FontAwesomeIcon
+            icon={Icons.Pin}
+            size={48}
+            color={colors.warningColor}
+          />
+          <Text style={[styles.errorTitle, { color: colors.primaryTextColor }]}>
+            {t('error.title') || 'Error'}
+          </Text>
+          <Text
+            style={[styles.errorMessage, { color: colors.secondaryTextColor }]}
+          >
             {error?.message ||
               t('error.loading-profile') ||
               'Failed to load profile'}
           </Text>
-          <TouchableOpacity style={styles.retryButton} onPress={onRefresh}>
-            <Text style={styles.retryButtonText}>{t('retry') || 'Retry'}</Text>
+          <TouchableOpacity
+            style={[
+              styles.retryButton,
+              { backgroundColor: colors.primaryColor },
+            ]}
+            onPress={onRefresh}
+          >
+            <Text
+              style={[styles.retryButtonText, { color: colors.primaryBgColor }]}
+            >
+              {t('retry') || 'Retry'}
+            </Text>
           </TouchableOpacity>
         </Center>
       </View>
@@ -383,14 +407,16 @@ export const UserDetail = () => {
   const age = getAge(userProfile.dateOfBirth);
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[styles.container, { backgroundColor: colors.primaryBgColor }]}
+    >
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
+        <TouchableOpacity onPress={handleBackPress} style={[styles.backButton, { backgroundColor: colors.primaryTextColor + '80' }]}>
           <FontAwesomeIcon
             icon={Icons.ChevronLeft}
             size={20}
-            color={primaryTextColor}
+            color={colors.primaryTextColor}
           />
         </TouchableOpacity>
         <View style={styles.headerActions}>
@@ -400,23 +426,34 @@ export const UserDetail = () => {
                 onPress={() => setIsBlockModalOpen(true)}
                 style={[
                   styles.actionButton,
-                  userIsBlocked && styles.unblockButton,
+                  {
+                    backgroundColor: userIsBlocked
+                      ? colors.successColor + '33'
+                      : colors.primaryTextColor + '80',
+                  },
                 ]}
               >
                 <FontAwesomeIcon
                   icon={userIsBlocked ? Icons.CheckCircle : Icons.Ban}
                   size={18}
-                  color={userIsBlocked ? primaryLightGrey : warningColor}
+                  color={
+                    userIsBlocked
+                      ? colors.primaryLightGrey
+                      : colors.warningColor
+                  }
                 />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => setIsReportModalOpen(true)}
-                style={styles.actionButton}
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: colors.primaryTextColor + '80' },
+                ]}
               >
                 <FontAwesomeIcon
                   icon={Icons.Warning}
                   size={18}
-                  color={warningColor}
+                  color={colors.warningColor}
                 />
               </TouchableOpacity>
             </>
@@ -430,8 +467,8 @@ export const UserDetail = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={primaryColor}
-            colors={[primaryColor]}
+            tintColor={colors.primaryColor}
+            colors={[colors.primaryColor]}
           />
         }
         showsVerticalScrollIndicator={false}
@@ -439,7 +476,7 @@ export const UserDetail = () => {
         {/* Hero Section */}
         <View style={styles.heroSection}>
           <LinearGradient
-            colors={[primaryColor, '#0EA5E9', primaryDeepColor]}
+            colors={[colors.primaryColor, '#0EA5E9', colors.primaryDeepColor]}
             style={styles.heroGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
@@ -459,11 +496,18 @@ export const UserDetail = () => {
                     ]}
                   >
                     {userProfile.photoUrl ? (
-                      <AvatarImage 
-                        key={createImageKey('userdetail', userProfile.id, userProfile.photoUrl)}
-                        source={{ 
-                          uri: addCacheBuster(userProfile.photoUrl, userProfile.id)
-                        }} 
+                      <AvatarImage
+                        key={createImageKey(
+                          'userdetail',
+                          userProfile.id,
+                          userProfile.photoUrl
+                        )}
+                        source={{
+                          uri: addCacheBuster(
+                            userProfile.photoUrl,
+                            userProfile.id
+                          ),
+                        }}
                       />
                     ) : (
                       <AvatarFallbackText className={'text-white'}>
@@ -514,7 +558,7 @@ export const UserDetail = () => {
                     <FontAwesomeIcon
                       icon={Icons.Calendar}
                       size={12}
-                      color={primaryColor}
+                      color={colors.primaryColor}
                     />
                     <Text style={styles.modernBadgeText}>
                       {age} {t('user.years-old') || 'rokov'}
@@ -559,13 +603,30 @@ export const UserDetail = () => {
         {/* Bio Section */}
         <View style={styles.bioSection}>
           <View style={styles.bioHeader}>
-            <FontAwesomeIcon icon={Icons.Info} size={20} color={primaryColor} />
-            <Text style={styles.bioSectionTitle}>
+            <FontAwesomeIcon
+              icon={Icons.Info}
+              size={20}
+              color={colors.primaryColor}
+            />
+            <Text
+              style={[
+                styles.bioSectionTitle,
+                { color: colors.primaryTextColor },
+              ]}
+            >
               {t('bio.label') || 'Bio'}
             </Text>
           </View>
-          <View style={styles.bioContent}>
-            <Text style={styles.bioText}>
+          <View
+            style={[
+              styles.bioContent,
+              {
+                backgroundColor: colors.postBgColor,
+                borderColor: colors.separatorColor + '4D',
+              },
+            ]}
+          >
+            <Text style={[styles.bioText, { color: colors.primaryTextColor }]}>
               {userProfile.bio || t('bio.no-bio') || 'No bio yet'}
             </Text>
           </View>
@@ -580,14 +641,7 @@ export const UserDetail = () => {
         </View>
 
         {/* Ad Section */}
-        {(PremiumHelpers.shouldAlwaysShowAds() || !isPremium()) && (
-          <Animated.View
-            entering={FadeInUp.delay(300).springify()}
-            style={styles.adContainer}
-          >
-            <InlineAd />
-          </Animated.View>
-        )}
+        {(PremiumHelpers.shouldAlwaysShowAds() || !isPremium()) && <InlineAd />}
 
         {/* Favorite Places */}
         {userProfile.favoritePlaces &&
@@ -599,7 +653,12 @@ export const UserDetail = () => {
                   size={20}
                   color="#FF6B6B"
                 />
-                <Text style={styles.sectionTitle}>
+                <Text
+                  style={[
+                    styles.sectionTitle,
+                    { color: colors.primaryTextColor },
+                  ]}
+                >
                   {t('user.favorite-places') || 'Obľúbené miesta'}
                 </Text>
                 <View style={styles.sectionBadge}>
@@ -618,7 +677,13 @@ export const UserDetail = () => {
                 {userProfile.favoritePlaces.map((place: FavoritePlaceDTO) => (
                   <TouchableOpacity
                     key={place.placeId}
-                    style={styles.favoritePlaceCard}
+                    style={[
+                      styles.favoritePlaceCard,
+                      {
+                        backgroundColor: colors.postBgColor,
+                        borderColor: colors.separatorColor + '4D',
+                      },
+                    ]}
                     onPress={() => {
                       // Set place data
                       setPlaceId(place.placeId);
@@ -645,10 +710,22 @@ export const UserDetail = () => {
                         color="#FF6B6B"
                       />
                     </View>
-                    <Text style={styles.favoritePlaceName} numberOfLines={1}>
+                    <Text
+                      style={[
+                        styles.favoritePlaceName,
+                        { color: colors.primaryTextColor },
+                      ]}
+                      numberOfLines={1}
+                    >
                       {place.placeName}
                     </Text>
-                    <Text style={styles.favoritePlaceAddress} numberOfLines={2}>
+                    <Text
+                      style={[
+                        styles.favoritePlaceAddress,
+                        { color: colors.secondaryTextColor },
+                      ]}
+                      numberOfLines={2}
+                    >
                       {place.placeAddress}
                     </Text>
                   </TouchableOpacity>
@@ -659,12 +736,22 @@ export const UserDetail = () => {
 
         {/* Detailed Stats */}
         <View style={styles.detailedStatsContainer}>
-          <Text style={styles.sectionTitle}>
+          <Text
+            style={[styles.sectionTitle, { color: colors.primaryTextColor }]}
+          >
             {t('user.detailed-stats') || 'Detailed Statistics'}
           </Text>
 
           <View style={styles.modernStatsGrid}>
-            <View style={styles.modernStatCard}>
+            <View
+              style={[
+                styles.modernStatCard,
+                {
+                  backgroundColor: colors.postBgColor,
+                  borderColor: colors.separatorColor + '4D',
+                },
+              ]}
+            >
               <View style={styles.modernStatHeader}>
                 <View
                   style={[
@@ -678,19 +765,42 @@ export const UserDetail = () => {
                     color="#4CAF50"
                   />
                 </View>
-                <Text style={styles.modernStatTitle}>
+                <Text
+                  style={[
+                    styles.modernStatTitle,
+                    { color: colors.secondaryTextColor },
+                  ]}
+                >
                   {t('user.highlights') || 'Zvýraznenia'}
                 </Text>
               </View>
-              <Text style={styles.modernStatNumber}>
+              <Text
+                style={[
+                  styles.modernStatNumber,
+                  { color: colors.primaryTextColor },
+                ]}
+              >
                 {userProfile.totalHighlights}
               </Text>
-              <Text style={styles.modernStatDescription}>
+              <Text
+                style={[
+                  styles.modernStatDescription,
+                  { color: colors.secondaryTextColor },
+                ]}
+              >
                 {t('user.highlights-desc') || 'Zvýraznené príspevky'}
               </Text>
             </View>
 
-            <View style={styles.modernStatCard}>
+            <View
+              style={[
+                styles.modernStatCard,
+                {
+                  backgroundColor: colors.postBgColor,
+                  borderColor: colors.separatorColor + '4D',
+                },
+              ]}
+            >
               <View style={styles.modernStatHeader}>
                 <View
                   style={[
@@ -704,21 +814,44 @@ export const UserDetail = () => {
                     color="#9C27B0"
                   />
                 </View>
-                <Text style={styles.modernStatTitle}>
+                <Text
+                  style={[
+                    styles.modernStatTitle,
+                    { color: colors.secondaryTextColor },
+                  ]}
+                >
                   {t('user.favorite-places') || 'Places'}
                 </Text>
               </View>
-              <Text style={styles.modernStatNumber}>
+              <Text
+                style={[
+                  styles.modernStatNumber,
+                  { color: colors.primaryTextColor },
+                ]}
+              >
                 {userProfile.favoritePlacesCount}
               </Text>
-              <Text style={styles.modernStatDescription}>
+              <Text
+                style={[
+                  styles.modernStatDescription,
+                  { color: colors.secondaryTextColor },
+                ]}
+              >
                 {t('user.favorite-places-desc') || 'Saved locations'}
               </Text>
             </View>
           </View>
 
           <View style={styles.modernStatsGrid}>
-            <View style={styles.modernStatCard}>
+            <View
+              style={[
+                styles.modernStatCard,
+                {
+                  backgroundColor: colors.postBgColor,
+                  borderColor: colors.separatorColor + '4D',
+                },
+              ]}
+            >
               <View style={styles.modernStatHeader}>
                 <View
                   style={[
@@ -732,21 +865,44 @@ export const UserDetail = () => {
                     color="#2196F3"
                   />
                 </View>
-                <Text style={styles.modernStatTitle}>
+                <Text
+                  style={[
+                    styles.modernStatTitle,
+                    { color: colors.secondaryTextColor },
+                  ]}
+                >
                   {t('user.activity') || 'Activity'}
                 </Text>
               </View>
-              <Text style={styles.modernStatNumber}>
+              <Text
+                style={[
+                  styles.modernStatNumber,
+                  { color: colors.primaryTextColor },
+                ]}
+              >
                 {userProfile.lastUploadedPostAt
                   ? formatDate(userProfile.lastUploadedPostAt)
                   : t('user.never') || 'Never'}
               </Text>
-              <Text style={styles.modernStatDescription}>
+              <Text
+                style={[
+                  styles.modernStatDescription,
+                  { color: colors.secondaryTextColor },
+                ]}
+              >
                 {t('user.last-post-desc') || 'Last contribution'}
               </Text>
             </View>
 
-            <View style={styles.modernStatCard}>
+            <View
+              style={[
+                styles.modernStatCard,
+                {
+                  backgroundColor: colors.postBgColor,
+                  borderColor: colors.separatorColor + '4D',
+                },
+              ]}
+            >
               <View style={styles.modernStatHeader}>
                 <View
                   style={[
@@ -757,19 +913,34 @@ export const UserDetail = () => {
                   <FontAwesomeIcon
                     icon={Icons.TrendingUp}
                     size={20}
-                    color={primaryColor}
+                    color={colors.primaryColor}
                   />
                 </View>
-                <Text style={styles.modernStatTitle}>
+                <Text
+                  style={[
+                    styles.modernStatTitle,
+                    { color: colors.secondaryTextColor },
+                  ]}
+                >
                   {t('user.engagement') || 'Engagement'}
                 </Text>
               </View>
-              <Text style={styles.modernStatNumber}>
+              <Text
+                style={[
+                  styles.modernStatNumber,
+                  { color: colors.primaryTextColor },
+                ]}
+              >
                 {userProfile.totalPosts > 0
                   ? Math.round(userProfile.totalLikes / userProfile.totalPosts)
                   : 0}
               </Text>
-              <Text style={styles.modernStatDescription}>
+              <Text
+                style={[
+                  styles.modernStatDescription,
+                  { color: colors.secondaryTextColor },
+                ]}
+              >
                 {(() => {
                   userProfile.totalPosts > 0
                     ? Math.round(
@@ -786,12 +957,22 @@ export const UserDetail = () => {
         {/* Privacy Settings (only for own profile) */}
         {isOwnProfile && (
           <View style={styles.privacySection}>
-            <Text style={styles.sectionTitle}>
+            <Text
+              style={[styles.sectionTitle, { color: colors.primaryTextColor }]}
+            >
               {t('user.privacy-settings') || 'Privacy & Security'}
             </Text>
 
             <View style={styles.modernPrivacyGrid}>
-              <View style={styles.modernPrivacyCard}>
+              <View
+                style={[
+                  styles.modernPrivacyCard,
+                  {
+                    backgroundColor: colors.postBgColor,
+                    borderColor: colors.separatorColor + '4D',
+                  },
+                ]}
+              >
                 <View
                   style={[
                     styles.privacyIconContainer,
@@ -809,18 +990,37 @@ export const UserDetail = () => {
                         : Icons.Warning
                     }
                     size={24}
-                    color={userProfile.emailVerified ? '#4CAF50' : warningColor}
+                    color={
+                      userProfile.emailVerified
+                        ? '#4CAF50'
+                        : colors.warningColor
+                    }
                   />
                 </View>
-                <Text style={styles.privacyCardTitle}>
+                <Text
+                  style={[
+                    styles.privacyCardTitle,
+                    { color: colors.secondaryTextColor },
+                  ]}
+                >
                   {t('user.email-status') || 'Email Status'}
                 </Text>
-                <Text style={styles.privacyCardValue}>
+                <Text
+                  style={[
+                    styles.privacyCardValue,
+                    { color: colors.primaryTextColor },
+                  ]}
+                >
                   {userProfile.emailVerified
                     ? t('user.verified') || 'Verified'
                     : t('user.not-verified') || 'Not Verified'}
                 </Text>
-                <Text style={styles.privacyCardDescription}>
+                <Text
+                  style={[
+                    styles.privacyCardDescription,
+                    { color: colors.secondaryTextColor },
+                  ]}
+                >
                   {userProfile.emailVerified
                     ? t('user.email-verified-desc') || 'Your email is secure'
                     : t('user.email-not-verified-desc') ||
@@ -828,7 +1028,15 @@ export const UserDetail = () => {
                 </Text>
               </View>
 
-              <View style={styles.modernPrivacyCard}>
+              <View
+                style={[
+                  styles.modernPrivacyCard,
+                  {
+                    backgroundColor: colors.postBgColor,
+                    borderColor: colors.separatorColor + '4D',
+                  },
+                ]}
+              >
                 <View
                   style={[
                     styles.privacyIconContainer,
@@ -847,19 +1055,36 @@ export const UserDetail = () => {
                     }
                     size={24}
                     color={
-                      userProfile.usingFakeLocation ? warningColor : '#4CAF50'
+                      userProfile.usingFakeLocation
+                        ? colors.warningColor
+                        : '#4CAF50'
                     }
                   />
                 </View>
-                <Text style={styles.privacyCardTitle}>
+                <Text
+                  style={[
+                    styles.privacyCardTitle,
+                    { color: colors.secondaryTextColor },
+                  ]}
+                >
                   {t('user.location-status') || 'Location'}
                 </Text>
-                <Text style={styles.privacyCardValue}>
+                <Text
+                  style={[
+                    styles.privacyCardValue,
+                    { color: colors.primaryTextColor },
+                  ]}
+                >
                   {userProfile.usingFakeLocation
                     ? t('user.fake') || 'Private'
                     : t('user.real') || 'Real'}
                 </Text>
-                <Text style={styles.privacyCardDescription}>
+                <Text
+                  style={[
+                    styles.privacyCardDescription,
+                    { color: colors.secondaryTextColor },
+                  ]}
+                >
                   {userProfile.usingFakeLocation
                     ? t('user.using-fake-location-desc') ||
                       'Privacy mode active'
@@ -903,7 +1128,7 @@ export const UserDetail = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: primaryBgColor,
+    // backgroundColor is set inline to use theme colors
   },
   header: {
     flexDirection: 'row',
@@ -923,14 +1148,14 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    // backgroundColor is set inline to use theme colors
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: primaryTextColor,
+    // color is set inline to use theme colors
     flex: 1,
     textAlign: 'center',
   },
@@ -945,13 +1170,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    // backgroundColor is set inline to use theme colors
     justifyContent: 'center',
     alignItems: 'center',
   },
-  unblockButton: {
-    backgroundColor: 'rgba(52, 199, 89, 0.2)',
-  },
+  // unblockButton styles are now inline
   scrollView: {
     flex: 1,
   },
@@ -960,7 +1183,7 @@ const styles = StyleSheet.create({
     paddingVertical: 50,
   },
   loadingText: {
-    color: secondaryTextColor,
+    // color is set inline to use theme colors
     marginTop: 16,
   },
   errorContainer: {
@@ -971,24 +1194,24 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: primaryTextColor,
+    // color is set inline to use theme colors
     marginTop: 16,
     marginBottom: 8,
   },
   errorMessage: {
     fontSize: 16,
-    color: secondaryTextColor,
+    // color is set inline to use theme colors
     textAlign: 'center',
     marginBottom: 24,
   },
   retryButton: {
-    backgroundColor: primaryColor,
+    // backgroundColor is set inline to use theme colors
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
   },
   retryButtonText: {
-    color: '#000',
+    // color is set inline to use theme colors
     fontSize: 16,
     fontWeight: '600',
   },
@@ -1021,7 +1244,7 @@ const styles = StyleSheet.create({
   },
   avatarFallback: {
     backgroundColor: 'transparent',
-    color: primaryTextColor,
+    // color is set inline to use theme colors
   },
   premiumBorder: {
     borderColor: '#FFC107',
@@ -1050,15 +1273,14 @@ const styles = StyleSheet.create({
   bioSectionTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: primaryTextColor,
+    // color is set inline to use theme colors
     lineHeight: 22,
   },
   bioContent: {
-    backgroundColor: postBgColor,
+    // backgroundColor and borderColor are set inline to use theme colors
     borderRadius: 16,
     padding: 20,
     borderWidth: 1,
-    borderColor: 'rgba(124, 124, 124, 0.3)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -1067,7 +1289,7 @@ const styles = StyleSheet.create({
   },
   bioText: {
     fontSize: 16,
-    color: primaryTextColor,
+    // color is set inline to use theme colors
     lineHeight: 24,
     textAlign: 'left',
   },
@@ -1144,7 +1366,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: primaryTextColor,
+    // color is set inline to use theme colors
     marginBottom: 20,
     marginTop: 20,
     paddingHorizontal: 4,
@@ -1157,11 +1379,10 @@ const styles = StyleSheet.create({
   },
   modernStatCard: {
     flex: 1,
-    backgroundColor: postBgColor,
+    // backgroundColor and borderColor are set inline to use theme colors
     borderRadius: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(124, 124, 124, 0.3)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
@@ -1186,20 +1407,20 @@ const styles = StyleSheet.create({
   modernStatTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: secondaryTextColor,
+    // color is set inline to use theme colors
     flex: 1,
   },
   modernStatNumber: {
     fontSize: 24,
     fontWeight: '700',
-    color: primaryTextColor,
+    // color is set inline to use theme colors
     marginBottom: 8,
     lineHeight: 30,
     textAlign: 'center',
   },
   modernStatDescription: {
     fontSize: 12,
-    color: secondaryTextColor,
+    // color is set inline to use theme colors
     lineHeight: 16,
     textAlign: 'center',
     paddingHorizontal: 4,
@@ -1241,12 +1462,11 @@ const styles = StyleSheet.create({
   },
   favoritePlaceCard: {
     width: 160,
-    backgroundColor: postBgColor,
+    // backgroundColor and borderColor are set inline to use theme colors
     borderRadius: 16,
     padding: 16,
     marginRight: 12,
     borderWidth: 1,
-    borderColor: 'rgba(124, 124, 124, 0.3)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -1265,12 +1485,12 @@ const styles = StyleSheet.create({
   favoritePlaceName: {
     fontSize: 14,
     fontWeight: '600',
-    color: primaryTextColor,
+    // color is set inline to use theme colors
     marginBottom: 4,
   },
   favoritePlaceAddress: {
     fontSize: 12,
-    color: secondaryTextColor,
+    // color is set inline to use theme colors
     lineHeight: 14,
   },
   // Privacy Styles
@@ -1284,12 +1504,11 @@ const styles = StyleSheet.create({
   },
   modernPrivacyCard: {
     flex: 1,
-    backgroundColor: postBgColor,
+    // backgroundColor and borderColor are set inline to use theme colors
     borderRadius: 20,
     padding: 20,
     marginHorizontal: 6,
     borderWidth: 1,
-    borderColor: 'rgba(124, 124, 124, 0.3)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
@@ -1308,20 +1527,20 @@ const styles = StyleSheet.create({
   privacyCardTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: secondaryTextColor,
+    // color is set inline to use theme colors
     textAlign: 'center',
     marginBottom: 8,
   },
   privacyCardValue: {
     fontSize: 18,
     fontWeight: '700',
-    color: primaryTextColor,
+    // color is set inline to use theme colors
     textAlign: 'center',
     marginBottom: 8,
   },
   privacyCardDescription: {
     fontSize: 12,
-    color: secondaryTextColor,
+    // color is set inline to use theme colors
     textAlign: 'center',
     lineHeight: 16,
   },

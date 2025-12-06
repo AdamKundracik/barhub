@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
-import { primaryBgColor, primaryColor } from '@/src/app/utils/styles/colors';
+import { useThemeColors } from '@/src/app/utils/styles/themeColors';
 
 interface ThankYouScreenProps {
   onClose?: () => void;
@@ -18,6 +18,7 @@ interface ThankYouScreenProps {
 
 export const ThankYouScreen: React.FC<ThankYouScreenProps> = ({ onClose }) => {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
 
   const handleClose = () => {
@@ -29,7 +30,7 @@ export const ThankYouScreen: React.FC<ThankYouScreenProps> = ({ onClose }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.primaryBgColor }]}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -39,21 +40,21 @@ export const ThankYouScreen: React.FC<ThankYouScreenProps> = ({ onClose }) => {
         <View style={styles.content}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>
+            <Text style={[styles.title, { color: colors.primaryTextColor }]}>
               {t('subscription.thank-you-title')}
             </Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.subtitle, { color: colors.secondaryTextColor }]}>
               {t('subscription.thank-you-subtitle')}
             </Text>
           </View>
 
           {/* Premium Badge */}
           <View style={styles.badgeContainer}>
-            <View style={styles.badge}>
-              <Text style={styles.badgeTitle}>
+            <View style={[styles.badge, { backgroundColor: colors.postBgColor, borderColor: colors.separatorColor }]}>
+              <Text style={[styles.badgeTitle, { color: colors.primaryTextColor }]}>
                 {t('subscription.premium-badge')}
               </Text>
-              <Text style={styles.badgeSubtitle}>
+              <Text style={[styles.badgeSubtitle, { color: colors.secondaryTextColor }]}>
                 {t('subscription.yearly-subscription')}
               </Text>
             </View>
@@ -61,42 +62,42 @@ export const ThankYouScreen: React.FC<ThankYouScreenProps> = ({ onClose }) => {
 
           {/* Benefits */}
           <View style={styles.benefits}>
-            <Text style={styles.benefitsTitle}>
+            <Text style={[styles.benefitsTitle, { color: colors.primaryTextColor }]}>
               {t('subscription.premium-benefits')}
             </Text>
 
             <View style={styles.benefitsList}>
               <View style={styles.benefitItem}>
                 <Text style={styles.benefitIcon}>🚫</Text>
-                <Text style={styles.benefitText}>
+                <Text style={[styles.benefitText, { color: colors.secondaryTextColor }]}>
                   {t('subscription.no-ads')}
                 </Text>
               </View>
 
               <View style={styles.benefitItem}>
                 <Text style={styles.benefitIcon}>🔓</Text>
-                <Text style={styles.benefitText}>
+                <Text style={[styles.benefitText, { color: colors.secondaryTextColor }]}>
                   {t('subscription.access-all-benefits')}
                 </Text>
               </View>
 
               <View style={styles.benefitItem}>
                 <Text style={styles.benefitIcon}>✈️</Text>
-                <Text style={styles.benefitText}>
+                <Text style={[styles.benefitText, { color: colors.secondaryTextColor }]}>
                   {t('subscription.travel-mode')}
                 </Text>
               </View>
 
               <View style={styles.benefitItem}>
                 <Text style={styles.benefitIcon}>📊</Text>
-                <Text style={styles.benefitText}>
+                <Text style={[styles.benefitText, { color: colors.secondaryTextColor }]}>
                   {t('subscription.leaderboards')}
                 </Text>
               </View>
 
               <View style={styles.benefitItem}>
                 <Text style={styles.benefitIcon}>⭐</Text>
-                <Text style={styles.benefitText}>
+                <Text style={[styles.benefitText, { color: colors.secondaryTextColor }]}>
                   {t('subscription.more-highlights')}
                 </Text>
               </View>
@@ -104,15 +105,15 @@ export const ThankYouScreen: React.FC<ThankYouScreenProps> = ({ onClose }) => {
           </View>
 
           {/* Thank you message */}
-          <View style={styles.thankYouMessage}>
-            <Text style={styles.messageText}>
+          <View style={[styles.thankYouMessage, { backgroundColor: colors.postBgColor, borderColor: colors.separatorColor }]}>
+            <Text style={[styles.messageText, { color: colors.secondaryTextColor }]}>
               {t('subscription.thank-you-message')}
             </Text>
           </View>
 
           {/* Close button */}
-          <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-            <Text style={styles.buttonText}>{t('subscription.close')}</Text>
+          <TouchableOpacity onPress={handleClose} style={[styles.closeButton, { backgroundColor: colors.primaryColor }]}>
+            <Text style={[styles.buttonText, { color: colors.primaryBgColor }]}>{t('subscription.close')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -123,7 +124,7 @@ export const ThankYouScreen: React.FC<ThankYouScreenProps> = ({ onClose }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: primaryBgColor,
+    // backgroundColor is set inline to use theme colors
   },
   scrollContent: {
     flexGrow: 1,
@@ -141,13 +142,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#fff',
+    // color is set inline to use theme colors
     textAlign: 'center',
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 14,
-    color: '#888',
+    // color is set inline to use theme colors
     textAlign: 'center',
   },
   badgeContainer: {
@@ -155,24 +156,23 @@ const styles = StyleSheet.create({
     marginBottom: 36,
   },
   badge: {
-    backgroundColor: '#1a1a1a',
+    // backgroundColor and borderColor are set inline to use theme colors
     paddingHorizontal: 36,
     paddingVertical: 24,
     borderRadius: 16,
     borderWidth: 2,
-    borderColor: '#444',
     alignItems: 'center',
     minWidth: 240,
   },
   badgeTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    // color is set inline to use theme colors
     letterSpacing: 1,
   },
   badgeSubtitle: {
     fontSize: 14,
-    color: '#888',
+    // color is set inline to use theme colors
   },
   benefits: {
     marginBottom: 32,
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   benefitsTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
+    // color is set inline to use theme colors
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -200,25 +200,24 @@ const styles = StyleSheet.create({
   },
   benefitText: {
     fontSize: 14,
-    color: '#ccc',
+    // color is set inline to use theme colors
     flex: 1,
   },
   thankYouMessage: {
-    backgroundColor: '#1a1a1a',
+    // backgroundColor and borderColor are set inline to use theme colors
     padding: 20,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#333',
     marginBottom: 32,
   },
   messageText: {
     fontSize: 14,
-    color: '#ccc',
+    // color is set inline to use theme colors
     lineHeight: 20,
     textAlign: 'center',
   },
   closeButton: {
-    backgroundColor: primaryColor,
+    // backgroundColor is set inline to use theme colors
     paddingVertical: 16,
     paddingHorizontal: 24,
     borderRadius: 12,
@@ -227,7 +226,7 @@ const styles = StyleSheet.create({
     marginTop: 'auto',
   },
   buttonText: {
-    color: '#000',
+    // color is set inline to use theme colors
     fontSize: 16,
     fontWeight: '600',
   },

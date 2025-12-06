@@ -7,17 +7,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { formStyles } from '../../utils/styles/styles';
+import { getFormStyles } from '../../utils/styles/styles';
 import * as React from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  postBgColor,
-  primaryColor,
-  primaryTextColor,
-  secondaryTextColor,
-  warningColor,
-} from '../../utils/styles/colors';
+import { useThemeColors } from '../../utils/styles/themeColors';
 import {
   FormControl,
   FormControlError,
@@ -46,6 +40,8 @@ type InputFieldType = 'email';
 export const ForgotPassword = ({ navigation }: any) => {
   const { t } = useTranslation();
   const { showSuccessToast, showErrorToast } = useCustomToast();
+  const colors = useThemeColors();
+  const themeFormStyles = getFormStyles(colors);
   const [focusedInput, setFocusedInput] = useState<InputFieldType | null>(null);
 
   const {
@@ -79,7 +75,9 @@ export const ForgotPassword = ({ navigation }: any) => {
 
   if (emailSent) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView
+        style={[styles.safeArea, { backgroundColor: colors.primaryBgColor }]}
+      >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={{ flex: 1 }}
@@ -96,26 +94,48 @@ export const ForgotPassword = ({ navigation }: any) => {
                   <FontAwesomeIcon
                     icon={Icons.faCheckCircle}
                     size={64}
-                    color={primaryColor}
+                    color={colors.primaryColor}
                   />
                 </View>
               </Center>
 
               {/* Success Card */}
-              <View style={styles.card}>
+              <View
+                style={[
+                  styles.card,
+                  {
+                    backgroundColor: colors.postBgColor,
+                    borderColor: colors.separatorColor,
+                  },
+                ]}
+              >
                 <VStack space="lg">
                   <Center>
-                    <Text style={styles.successTitle}>
+                    <Text
+                      style={[
+                        styles.successTitle,
+                        { color: colors.primaryTextColor },
+                      ]}
+                    >
                       {t('reset-email-sent') || 'Email Sent!'}
                     </Text>
                   </Center>
 
                   <View style={styles.emailBox}>
-                    <Text style={styles.emailLabel}>
+                    <Text
+                      style={[
+                        styles.emailLabel,
+                        { color: colors.secondaryTextColor },
+                      ]}
+                    >
                       {t('reset-email-sent-to') ||
                         'We sent password reset instructions to:'}
                     </Text>
-                    <Text style={styles.emailText}>{email}</Text>
+                    <Text
+                      style={[styles.emailText, { color: colors.primaryColor }]}
+                    >
+                      {email}
+                    </Text>
                   </View>
 
                   <Divider style={styles.divider} />
@@ -125,9 +145,14 @@ export const ForgotPassword = ({ navigation }: any) => {
                       <FontAwesomeIcon
                         icon={Icons.faEnvelope}
                         size={20}
-                        color={primaryColor}
+                        color={colors.primaryColor}
                       />
-                      <Text style={styles.instructionText}>
+                      <Text
+                        style={[
+                          styles.instructionText,
+                          { color: colors.primaryTextColor },
+                        ]}
+                      >
                         {t('check-inbox-reset') ||
                           'Check your inbox for the reset link'}
                       </Text>
@@ -137,9 +162,14 @@ export const ForgotPassword = ({ navigation }: any) => {
                       <FontAwesomeIcon
                         icon={Icons.faClock}
                         size={20}
-                        color={secondaryTextColor}
+                        color={colors.secondaryTextColor}
                       />
-                      <Text style={styles.instructionText}>
+                      <Text
+                        style={[
+                          styles.instructionText,
+                          { color: colors.primaryTextColor },
+                        ]}
+                      >
                         {t('reset-link-expires') || 'Link expires in 1 hour'}
                       </Text>
                     </HStack>
@@ -148,9 +178,14 @@ export const ForgotPassword = ({ navigation }: any) => {
                       <FontAwesomeIcon
                         icon={Icons.faCircleExclamation}
                         size={20}
-                        color={warningColor}
+                        color={colors.warningColor}
                       />
-                      <Text style={styles.instructionText}>
+                      <Text
+                        style={[
+                          styles.instructionText,
+                          { color: colors.primaryTextColor },
+                        ]}
+                      >
                         {t('check-spam')}
                       </Text>
                     </HStack>
@@ -169,7 +204,7 @@ export const ForgotPassword = ({ navigation }: any) => {
                         <FontAwesomeIcon
                           icon={Icons.faRotateLeft}
                           size={16}
-                          color={primaryColor}
+                          color={colors.primaryColor}
                         />
                         <ButtonText style={styles.secondaryButtonText}>
                           {t('try-different-email') || 'Try different email'}
@@ -191,7 +226,7 @@ export const ForgotPassword = ({ navigation }: any) => {
                   <FontAwesomeIcon
                     icon={Icons.faArrowLeft}
                     size={16}
-                    color={'#000'}
+                    color={colors.primaryBgColor}
                   />
                   <ButtonText style={styles.backToLoginButtonText}>
                     {t('back-to-login') || 'Back to Login'}
@@ -227,7 +262,7 @@ export const ForgotPassword = ({ navigation }: any) => {
               <FontAwesomeIcon
                 icon={Icons.faChevronLeft}
                 size={24}
-                color={'white'}
+                color={colors.primaryTextColor}
               />
             </TouchableOpacity>
 
@@ -237,15 +272,19 @@ export const ForgotPassword = ({ navigation }: any) => {
                 <FontAwesomeIcon
                   icon={Icons.faKey}
                   size={48}
-                  color={primaryColor}
+                  color={colors.primaryColor}
                 />
               </View>
             </Center>
 
             {/* Title */}
             <Center style={styles.titleContainer}>
-              <Text style={styles.title}>{t('forgot-password')}</Text>
-              <Text style={styles.subtitle}>
+              <Text style={[styles.title, { color: colors.primaryTextColor }]}>
+                {t('forgot-password')}
+              </Text>
+              <Text
+                style={[styles.subtitle, { color: colors.secondaryTextColor }]}
+              >
                 {t('forgot-password-desc') ||
                   "Enter your email and we'll send you a link to reset your password"}
               </Text>
@@ -263,8 +302,18 @@ export const ForgotPassword = ({ navigation }: any) => {
                   isInvalid={email.length > 0 && !isValidEmail(email)}
                 >
                   <FormControlLabel>
-                    <FormControlLabelText style={styles.labelText}>
-                      {t('email')} <Text style={styles.requiredStar}>*</Text>
+                    <FormControlLabelText
+                      style={[styles.labelText, { color: colors.primaryColor }]}
+                    >
+                      {t('email')}{' '}
+                      <Text
+                        style={[
+                          styles.requiredStar,
+                          { color: colors.warningColor },
+                        ]}
+                      >
+                        *
+                      </Text>
                     </FormControlLabelText>
                   </FormControlLabel>
                   <Input
@@ -272,15 +321,23 @@ export const ForgotPassword = ({ navigation }: any) => {
                     variant="rounded"
                     size="xl"
                     style={[
-                      formStyles.inputPrimary,
-                      focusedInput === 'email' && styles.inputFocused,
+                      themeFormStyles.inputPrimary,
+                      focusedInput === 'email' && {
+                        borderColor: colors.primaryColor,
+                        borderWidth: 2,
+                        shadowColor: colors.primaryColor,
+                        shadowOpacity: 0.2,
+                        shadowRadius: 4,
+                        elevation: 2,
+                      },
                     ]}
                   >
                     <InputField
                       type="text"
                       keyboardType="email-address"
                       placeholder={t('email')}
-                      style={{ color: primaryTextColor }}
+                      placeholderTextColor={colors.secondaryTextColor}
+                      style={{ color: colors.primaryTextColor }}
                       value={email}
                       onChangeText={setEmail}
                       onFocus={() => setFocusedInput('email')}
@@ -291,7 +348,12 @@ export const ForgotPassword = ({ navigation }: any) => {
                   </Input>
                   {email.length === 0 && (
                     <FormControlHelper>
-                      <FormControlHelperText style={styles.helperText}>
+                      <FormControlHelperText
+                        style={[
+                          styles.helperText,
+                          { color: colors.secondaryTextColor },
+                        ]}
+                      >
                         {t('enter-valid-email')}
                       </FormControlHelperText>
                     </FormControlHelper>
@@ -321,7 +383,12 @@ export const ForgotPassword = ({ navigation }: any) => {
                     isDisabled={!isFormValid() || loading}
                   >
                     {!loading && (
-                      <ButtonText style={styles.submitButtonText}>
+                      <ButtonText
+                        style={[
+                          styles.submitButtonText,
+                          { color: colors.primaryBgColor },
+                        ]}
+                      >
                         {t('send-reset-link') || t('resetPassword')}
                       </ButtonText>
                     )}
@@ -334,9 +401,21 @@ export const ForgotPassword = ({ navigation }: any) => {
             {/* Back to Login Link */}
             <Center style={styles.linkContainer}>
               <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                <Text style={styles.linkText}>
+                <Text
+                  style={[
+                    styles.linkText,
+                    { color: colors.secondaryTextColor },
+                  ]}
+                >
                   {t('remember-password') || 'Remember your password?'}{' '}
-                  <Text style={styles.linkTextBold}>{t('login')}</Text>
+                  <Text
+                    style={[
+                      styles.linkTextBold,
+                      { color: colors.primaryColor },
+                    ]}
+                  >
+                    {t('login')}
+                  </Text>
                 </Text>
               </TouchableOpacity>
             </Center>
@@ -350,7 +429,7 @@ export const ForgotPassword = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#020213',
+    // backgroundColor is set inline to use theme colors
   },
   scrollContent: {
     flexGrow: 1,
@@ -376,11 +455,11 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: `${primaryColor}15`,
+    backgroundColor: '#10D9B915', // Static color for StyleSheet
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: `${primaryColor}30`,
+    borderColor: '#10D9B930', // Static color for StyleSheet
   },
   successIconCircle: {
     marginBottom: 16,
@@ -391,7 +470,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: primaryTextColor,
+    // color is set inline to use theme colors
     textAlign: 'center',
     marginBottom: 12,
     lineHeight: 36,
@@ -399,7 +478,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: secondaryTextColor,
+    // color is set inline to use theme colors
     textAlign: 'center',
     paddingHorizontal: 20,
     lineHeight: 24,
@@ -407,16 +486,16 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: primaryTextColor,
+    // color is set inline to use theme colors
     textAlign: 'center',
     marginBottom: 8,
   },
   card: {
-    backgroundColor: postBgColor,
+    // backgroundColor is set inline to use theme colors
     borderRadius: 20,
     padding: 24,
     borderWidth: 1,
-    borderColor: '#333',
+    // borderColor is set inline to use theme colors
     shadowColor: '#000',
     shadowOpacity: 0.2,
     shadowRadius: 10,
@@ -427,36 +506,36 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   labelText: {
-    color: primaryColor,
+    // color is set inline to use theme colors
     fontSize: 16,
     fontWeight: '500',
     marginBottom: 4,
   },
   requiredStar: {
-    color: warningColor,
+    // color is set inline to use theme colors
     fontSize: 16,
   },
   inputFocused: {
-    borderColor: primaryColor,
+    borderColor: '#10D9B9', // Static color for StyleSheet
     borderWidth: 2,
   },
   helperText: {
-    color: secondaryTextColor,
+    // color is set inline to use theme colors
     fontSize: 12,
   },
   submitButton: {
-    backgroundColor: primaryColor,
+    backgroundColor: '#10D9B9', // Static color for StyleSheet
     borderRadius: 12,
     paddingHorizontal: 24,
     minWidth: 280,
     height: 54,
-    shadowColor: primaryColor,
+    shadowColor: '#10D9B9', // Static color for StyleSheet
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },
   submitButtonText: {
-    color: '#000',
+    // color is set inline to use theme colors
     fontSize: 16,
     fontWeight: '700',
   },
@@ -464,26 +543,26 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   emailBox: {
-    backgroundColor: `${primaryColor}10`,
+    backgroundColor: '#10D9B910', // Static color for StyleSheet
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: `${primaryColor}30`,
+    borderColor: '#10D9B930', // Static color for StyleSheet
   },
   emailLabel: {
     fontSize: 14,
-    color: secondaryTextColor,
+    // color is set inline to use theme colors
     marginBottom: 8,
     textAlign: 'center',
   },
   emailText: {
     fontSize: 16,
     fontWeight: '600',
-    color: primaryColor,
+    // color is set inline to use theme colors
     textAlign: 'center',
   },
   divider: {
-    backgroundColor: primaryColor,
+    backgroundColor: '#10D9B9', // Static color for StyleSheet
     opacity: 0.2,
     marginVertical: 8,
   },
@@ -493,12 +572,12 @@ const styles = StyleSheet.create({
   },
   instructionText: {
     fontSize: 14,
-    color: primaryTextColor,
+    // color is set inline to use theme colors
     flex: 1,
     lineHeight: 20,
   },
   secondaryButton: {
-    borderColor: primaryColor,
+    borderColor: '#10D9B9', // Static color for StyleSheet
     borderWidth: 2,
     borderRadius: 12,
     paddingHorizontal: 24,
@@ -509,21 +588,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   secondaryButtonText: {
-    color: primaryColor,
+    color: '#10D9B9', // Static color for StyleSheet
     fontSize: 16,
     fontWeight: '600',
   },
   backToLoginButton: {
-    backgroundColor: primaryColor,
+    backgroundColor: '#10D9B9', // Static color for StyleSheet
     borderRadius: 12,
     paddingHorizontal: 24,
-    shadowColor: primaryColor,
+    shadowColor: '#10D9B9', // Static color for StyleSheet
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },
   backToLoginButtonText: {
-    color: '#000',
+    // color is set inline to use theme colors
     fontSize: 16,
     fontWeight: '700',
   },
@@ -531,12 +610,12 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   linkText: {
-    color: secondaryTextColor,
+    // color is set inline to use theme colors
     fontSize: 14,
     textAlign: 'center',
   },
   linkTextBold: {
-    color: primaryColor,
+    // color is set inline to use theme colors
     fontWeight: '600',
   },
 });

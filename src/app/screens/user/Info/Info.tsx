@@ -12,24 +12,28 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { Icons } from '../../../utils/icons/icons';
-import {
-  primaryBgColor,
-  primaryColor,
-  secondaryTextColor,
-} from '../../../utils/styles/colors';
+import { primaryColor, secondaryTextColor } from '../../../utils/styles/colors';
+import { useThemeColors } from '../../../utils/styles/themeColors';
 import { useTranslation } from 'react-i18next';
 
 const InfoScreen = () => {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
+  const colors = useThemeColors();
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: colors.primaryBgColor }]}
+    >
       <View style={styles.container}>
         {/* Header with title, back icon, and info icon */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <FontAwesomeIcon icon={Icons.Remove} size={28} color={'white'} />
+            <FontAwesomeIcon
+              icon={Icons.Remove}
+              size={28}
+              color={colors.primaryTextColor}
+            />
           </TouchableOpacity>
 
           <View style={styles.headerText}>
@@ -50,41 +54,56 @@ const InfoScreen = () => {
         <Text style={styles.sectionHeader}>{t('legal-documents')}</Text>
 
         <TouchableOpacity
-          style={styles.infoLink}
+          style={[
+            styles.infoLink,
+            { borderBottomColor: colors.separatorColor },
+          ]}
           onPress={() => navigation.navigate('TermsOfService')}
         >
-          <Text style={styles.infoText}>{t('terms-of-service')}</Text>
+          <Text style={[styles.infoText, { color: colors.primaryTextColor }]}>
+            {t('terms-of-service')}
+          </Text>
           <FontAwesomeIcon
             style={{ alignSelf: 'center' }}
             icon={Icons.ChevronRight}
             size={16}
-            color={'white'}
+            color={colors.primaryTextColor}
           />
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.infoLink}
+          style={[
+            styles.infoLink,
+            { borderBottomColor: colors.separatorColor },
+          ]}
           onPress={() => navigation.navigate('PrivacyPolicy')}
         >
-          <Text style={styles.infoText}>{t('privacy-policy')}</Text>
+          <Text style={[styles.infoText, { color: colors.primaryTextColor }]}>
+            {t('privacy-policy')}
+          </Text>
           <FontAwesomeIcon
             style={{ alignSelf: 'center' }}
             icon={Icons.ChevronRight}
             size={16}
-            color={'white'}
+            color={colors.primaryTextColor}
           />
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.infoLink}
+          style={[
+            styles.infoLink,
+            { borderBottomColor: colors.separatorColor },
+          ]}
           onPress={() => navigation.navigate('CommunityGuidelines')}
         >
-          <Text style={styles.infoText}>{t('community-guidelines')}</Text>
+          <Text style={[styles.infoText, { color: colors.primaryTextColor }]}>
+            {t('community-guidelines')}
+          </Text>
           <FontAwesomeIcon
             style={{ alignSelf: 'center' }}
             icon={Icons.ChevronRight}
             size={16}
-            color={'white'}
+            color={colors.primaryTextColor}
           />
         </TouchableOpacity>
 
@@ -93,15 +112,20 @@ const InfoScreen = () => {
         <Text style={styles.sectionHeader}>{t('other')}</Text>
 
         <TouchableOpacity
-          style={styles.infoLink}
+          style={[
+            styles.infoLink,
+            { borderBottomColor: colors.separatorColor },
+          ]}
           onPress={() => navigation.navigate('Licenses')}
         >
-          <Text style={styles.infoText}>{t('third-party-libraries')}</Text>
+          <Text style={[styles.infoText, { color: colors.primaryTextColor }]}>
+            {t('third-party-libraries')}
+          </Text>
           <FontAwesomeIcon
             style={{ alignSelf: 'center' }}
             icon={Icons.ChevronRight}
             size={16}
-            color={'white'}
+            color={colors.primaryTextColor}
           />
         </TouchableOpacity>
       </View>
@@ -112,7 +136,7 @@ const InfoScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: primaryBgColor,
+    // backgroundColor is set inline to use theme colors
   },
   container: {
     flex: 1,
@@ -163,7 +187,7 @@ const styles = StyleSheet.create({
   infoLink: {
     paddingHorizontal: 24,
     borderBottomWidth: 1,
-    borderBottomColor: '#1C1C28',
+    // borderBottomColor is set inline to use theme colors
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -171,7 +195,7 @@ const styles = StyleSheet.create({
   infoText: {
     paddingVertical: 16,
     fontSize: 16,
-    color: '#fff',
+    // color is set inline to use theme colors
   },
 });
 

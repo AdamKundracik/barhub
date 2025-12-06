@@ -33,7 +33,7 @@ import { UserStackList } from '../../utils/types/screen-types';
 import { fetchPlaceAutocomplete } from '../../utils/helper-functions/fetchPlacesAPI';
 import { generateUID } from '@/src/app/utils/helper-functions/generateUID';
 import { Icons } from '../../utils/icons/icons';
-import { primaryColor, primaryDeepColor } from '../../utils/styles/colors';
+import { useThemeColors } from '../../utils/styles/themeColors';
 import { useUserFavorites } from '@/src/app/hooks/useUserFavorites';
 import { PremiumHelpers } from '@/src/app/config/premiumConfig';
 
@@ -93,6 +93,7 @@ const EmptyState: React.FC<{
   type?: 'no-results' | 'error' | 'no-history' | 'no-favorites';
 }> = ({ message, type = 'no-results' }) => {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const getEmptyStateContent = () => {
     switch (type) {
       case 'no-results':
@@ -101,7 +102,7 @@ const EmptyState: React.FC<{
             <FontAwesomeIcon
               icon={Icons.Search}
               size={48}
-              color={primaryColor}
+              color={colors.primaryColor}
             />
           ),
           title: t('no-results-found') || 'Žiadne výsledky',
@@ -113,7 +114,7 @@ const EmptyState: React.FC<{
       case 'error':
         return {
           icon: (
-            <FontAwesomeIcon icon={Icons.XCircle} size={48} color="#FF6B6B" />
+            <FontAwesomeIcon icon={Icons.XCircle} size={48} color={colors.warningColor} />
           ),
           title: t('search-error') || 'Chyba pri vyhľadávaní',
           subtitle: t('try-again-later') || 'Skúste to znova neskôr',
@@ -127,7 +128,7 @@ const EmptyState: React.FC<{
             <FontAwesomeIcon
               icon={Icons.Clock}
               size={48}
-              color={primaryColor}
+              color={colors.primaryColor}
             />
           ),
           title: t('no-search-history') || 'Žiadna história vyhľadávania',
@@ -139,7 +140,7 @@ const EmptyState: React.FC<{
       case 'no-favorites':
         return {
           icon: (
-            <FontAwesomeIcon icon={Icons.Heart} size={48} color="#FF6B6B" />
+            <FontAwesomeIcon icon={Icons.Heart} size={48} color={colors.warningColor} />
           ),
           title: t('no-favorites') || 'Žiadne obľúbené miesta',
           subtitle:
@@ -149,7 +150,7 @@ const EmptyState: React.FC<{
         };
       default:
         return {
-          icon: <MapPinIcon size={48} color={primaryColor} />,
+          icon: <MapPinIcon size={48} color={colors.primaryColor} />,
           title: message,
           subtitle: '',
           suggestion: '',
@@ -161,19 +162,41 @@ const EmptyState: React.FC<{
 
   return (
     <View style={styles.emptyStateContainer}>
-      <View style={styles.emptyStateIconContainer}>{content.icon}</View>
-      <Text style={styles.emptyStateTitle}>{content.title}</Text>
+      <View
+        style={[
+          styles.emptyStateIconContainer,
+          {
+            backgroundColor: colors.primaryTextColor + '0D', // ~5% opacity
+            borderColor: colors.primaryTextColor + '1A', // ~10% opacity
+          },
+        ]}
+      >
+        {content.icon}
+      </View>
+      <Text style={[styles.emptyStateTitle, { color: colors.primaryTextColor }]}>
+        {content.title}
+      </Text>
       {content.subtitle && (
-        <Text style={styles.emptyStateSubtitle}>{content.subtitle}</Text>
+        <Text style={[styles.emptyStateSubtitle, { color: colors.secondaryTextColor }]}>
+          {content.subtitle}
+        </Text>
       )}
       {content.suggestion && (
-        <View style={styles.emptyStateSuggestion}>
+        <View
+          style={[
+            styles.emptyStateSuggestion,
+            {
+              backgroundColor: colors.primaryTextColor + '0D', // ~5% opacity
+              borderColor: colors.primaryTextColor + '1A', // ~10% opacity
+            },
+          ]}
+        >
           <FontAwesomeIcon
             icon={Icons.Info}
             size={16}
-            color="rgba(255, 255, 255, 0.6)"
+            color={colors.secondaryTextColor}
           />
-          <Text style={styles.emptyStateSuggestionText}>
+          <Text style={[styles.emptyStateSuggestionText, { color: colors.secondaryTextColor }]}>
             {content.suggestion}
           </Text>
         </View>
@@ -184,10 +207,11 @@ const EmptyState: React.FC<{
 
 const LoadingIndicator: React.FC = () => {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   return (
     <View style={styles.loadingContainer}>
-      <ActivityIndicator size="small" color={primaryColor} />
-      <Text style={styles.loadingText}>
+      <ActivityIndicator size="small" color={colors.primaryColor} />
+      <Text style={[styles.loadingText, { color: colors.secondaryTextColor }]}>
         {t('searching-places') || 'Hľadám miesta...'}
       </Text>
     </View>
@@ -199,27 +223,40 @@ const PlaceItem: React.FC<{
   secondaryText: string;
   onPress: () => void;
   isHistory?: boolean;
-}> = ({ mainText, secondaryText, onPress, isHistory = false }) => (
+}> = ({ mainText, secondaryText, onPress, isHistory = false }) => {
+  const colors = useThemeColors();
+  return (
   <Pressable style={placeItemStyle.placeItem} onPress={onPress}>
     {({ pressed }) => (
       <View
         style={[
           placeItemStyle.placeItemContent,
-          pressed && placeItemStyle.placeItemPressed,
+          {
+            backgroundColor: pressed
+              ? colors.primaryTextColor + '26' // ~15% opacity
+              : colors.primaryTextColor + '0D', // ~5% opacity
+          },
         ]}
       >
-        <View style={placeItemStyle.placeIconContainer}>
+        <View
+          style={[
+            placeItemStyle.placeIconContainer,
+            {
+              backgroundColor: colors.primaryTextColor + '1A', // ~10% opacity
+            },
+          ]}
+        >
           {isHistory ? (
-            <ClockIcon size={20} color={primaryColor} />
+            <ClockIcon size={20} color={colors.primaryColor} />
           ) : (
-            <MapPinIcon size={20} color={primaryColor} />
+            <MapPinIcon size={20} color={colors.primaryColor} />
           )}
         </View>
         <View style={placeItemStyle.placeTextContainer}>
           <Text
             style={[
               placeItemStyle.placeMainText,
-              pressed && placeItemStyle.textPressed,
+              { color: pressed ? colors.primaryColor : colors.primaryTextColor },
             ]}
           >
             {mainText}
@@ -227,7 +264,11 @@ const PlaceItem: React.FC<{
           <Text
             style={[
               placeItemStyle.placeSecondaryText,
-              pressed && placeItemStyle.secondaryTextPressed,
+              {
+                color: pressed
+                  ? colors.primaryColor + 'CC' // ~80% opacity
+                  : colors.secondaryTextColor,
+              },
             ]}
           >
             {secondaryText}
@@ -236,34 +277,47 @@ const PlaceItem: React.FC<{
       </View>
     )}
   </Pressable>
-);
+  );
+};
 
 const SearchInput: React.FC<{
   value: string;
   onChangeText: (text: string) => void;
   onClear: () => void;
   placeholder: string;
-}> = ({ value, onChangeText, onClear, placeholder }) => (
+}> = ({ value, onChangeText, onClear, placeholder }) => {
+  const colors = useThemeColors();
+  return (
   <View style={styles.searchInputContainer}>
-    <Input size="xl" style={styles.searchInput}>
+    <Input
+      size="xl"
+      style={[
+        styles.searchInput,
+        {
+          borderColor: colors.primaryDeepColor,
+          shadowColor: colors.primaryColor,
+        },
+      ]}
+    >
       <InputField
         variant="rounded"
         placeholder={placeholder}
         value={value}
         onChangeText={onChangeText}
-        placeholderTextColor={primaryDeepColor}
-        style={styles.inputField}
+        placeholderTextColor={colors.primaryDeepColor}
+        style={[styles.inputField, { color: colors.primaryDeepColor }]}
         returnKeyType="search"
         clearButtonMode="never"
       />
       {value.length > 0 && (
         <InputSlot style={styles.clearButton} onPress={onClear}>
-          <InputIcon as={XIcon} size="lg" color={primaryDeepColor} />
+          <InputIcon as={XIcon} size="lg" color={colors.primaryDeepColor} />
         </InputSlot>
       )}
     </Input>
   </View>
-);
+  );
+};
 
 // Main component
 export const PlaceSearch: React.FC = () => {
@@ -276,6 +330,7 @@ export const PlaceSearch: React.FC = () => {
   const { t } = useTranslation();
   const tabBarHeight = useBottomTabBarHeight();
   const insets = useSafeAreaInsets();
+  const colors = useThemeColors();
 
   const { setPlaceId, setPlaceName, setPlaceAddress } = usePlaceStore();
   const { addSearchHistoryItemAsync, userData, isPremium, userId } =
@@ -353,12 +408,26 @@ export const PlaceSearch: React.FC = () => {
     return (
       <View style={styles.sectionContainer}>
         <View style={styles.favoritesHeader}>
-          <FontAwesomeIcon icon={Icons.HeartSolid} size={18} color="#FF6B6B" />
-          <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
+          <FontAwesomeIcon icon={Icons.HeartSolid} size={18} color={colors.warningColor} />
+          <Text
+            style={[
+              styles.sectionTitle,
+              { marginBottom: 0, color: colors.primaryTextColor },
+            ]}
+          >
             {t('favorites') || 'Obľúbené miesta'}
           </Text>
           {favorites && favorites.length > 0 && (
-            <Text style={styles.favoritesCount}>
+            <Text
+              style={[
+                styles.favoritesCount,
+                {
+                  color: colors.secondaryTextColor,
+                  backgroundColor: colors.warningColor + '26', // ~15% opacity
+                  borderColor: colors.warningColor + '4D', // ~30% opacity
+                },
+              ]}
+            >
               {favorites.length}/{MAX_FAVORITE_PLACES}
             </Text>
           )}
@@ -392,9 +461,9 @@ export const PlaceSearch: React.FC = () => {
     if (searchHistory.length === 0) {
       return (
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>
-            {t('search-history') || 'Nedávno vyhľadané'}
-          </Text>
+        <Text style={[styles.sectionTitle, { color: colors.primaryTextColor }]}>
+          {t('search-history') || 'Nedávno vyhľadané'}
+        </Text>
           <EmptyState
             message={t('no-search-history') || 'Žiadna história vyhľadávania'}
             type="no-history"
@@ -405,7 +474,7 @@ export const PlaceSearch: React.FC = () => {
 
     return (
       <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}>
+        <Text style={[styles.sectionTitle, { color: colors.primaryTextColor }]}>
           {t('search-history') || 'Nedávno vyhľadané'}
         </Text>
         {searchHistory.slice(0, 5).map((place, index) => (
@@ -438,7 +507,7 @@ export const PlaceSearch: React.FC = () => {
     if (places && places?.suggestions?.length > 0) {
       return (
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>
+          <Text style={[styles.sectionTitle, { color: colors.primaryTextColor }]}>
             {t('search-results') || 'Výsledky vyhľadávania'}
           </Text>
           {places?.suggestions.map((place, index) => (
@@ -519,15 +588,20 @@ export const PlaceSearch: React.FC = () => {
             {/* Header */}
             <View style={styles.header}>
               <View style={styles.headerTitle}>
-                <Text style={styles.titleText}>
+                <Text style={[styles.titleText, { color: colors.primaryTextColor }]}>
                   {t('where-do-you-want-to-go') || 'Kam sa chcete vybrať?'}
                 </Text>
               </View>
               <TouchableOpacity
-                style={styles.mapButton}
+                style={[
+                  styles.mapButton,
+                  {
+                    backgroundColor: colors.primaryTextColor + '1A', // ~10% opacity
+                  },
+                ]}
                 onPress={handleShowMap}
               >
-                <FontAwesomeIcon icon={Icons.Map} size={24} color="white" />
+                <FontAwesomeIcon icon={Icons.Map} size={24} color={colors.primaryTextColor} />
               </TouchableOpacity>
             </View>
 
@@ -581,18 +655,18 @@ const placeItemStyle = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    // backgroundColor is set inline to use theme colors
     borderRadius: 16,
   },
   placeItemPressed: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    // backgroundColor is set inline to use theme colors
     transform: [{ scale: 0.98 }],
   },
   placeIconContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    // backgroundColor is set inline to use theme colors
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -603,19 +677,18 @@ const placeItemStyle = StyleSheet.create({
   placeMainText: {
     fontSize: 16,
     fontWeight: '600',
-    color: 'white',
+    // color is set inline to use theme colors
     marginBottom: 2,
   },
   placeSecondaryText: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
+    // color is set inline to use theme colors
   },
   textPressed: {
-    color: primaryColor,
+    // color is set inline to use theme colors
   },
   secondaryTextPressed: {
-    color: primaryColor,
-    opacity: 0.8,
+    // color is set inline to use theme colors
   },
 });
 
@@ -644,29 +717,28 @@ const styles = StyleSheet.create({
   titleText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'white',
+    // color is set inline to use theme colors
   },
   mapButton: {
     padding: 8,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    // backgroundColor is set inline to use theme colors
   },
   searchInputContainer: {
     marginBottom: 16,
   },
   searchInput: {
     borderRadius: 25,
-    borderColor: primaryDeepColor,
+    // borderColor and shadowColor are set inline to use theme colors
     borderWidth: 3,
     backgroundColor: 'white',
-    shadowColor: primaryColor,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
   inputField: {
-    color: primaryDeepColor,
+    // color is set inline to use theme colors
     fontSize: 16,
   },
   clearButton: {
@@ -693,18 +765,16 @@ const styles = StyleSheet.create({
   },
   favoritesCount: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.6)',
-    backgroundColor: 'rgba(255, 107, 107, 0.15)',
+    // color, backgroundColor, and borderColor are set inline to use theme colors
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255, 107, 107, 0.3)',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: 'white',
+    // color is set inline to use theme colors
     marginBottom: 12,
     paddingHorizontal: 4,
   },
@@ -715,7 +785,7 @@ const styles = StyleSheet.create({
   },
   emptyHistoryText: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.5)',
+    // color is set inline to use theme colors
     textAlign: 'center',
   },
   emptyStateContainer: {
@@ -730,23 +800,22 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    // backgroundColor and borderColor are set inline to use theme colors
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   emptyStateTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: 'white',
+    // color is set inline to use theme colors
     textAlign: 'center',
     marginBottom: 6,
   },
   emptyStateSubtitle: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
+    // color is set inline to use theme colors
     textAlign: 'center',
     marginBottom: 12,
     lineHeight: 20,
@@ -754,23 +823,22 @@ const styles = StyleSheet.create({
   emptyStateSuggestion: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    // backgroundColor and borderColor are set inline to use theme colors
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     gap: 6,
   },
   emptyStateSuggestionText: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.6)',
+    // color is set inline to use theme colors
     textAlign: 'center',
     flex: 1,
   },
   emptyStateText: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.7)',
+    // color is set inline to use theme colors
     textAlign: 'center',
     marginTop: 12,
   },
@@ -782,7 +850,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.7)',
+    // color is set inline to use theme colors
     marginLeft: 12,
   },
   adContainer: {

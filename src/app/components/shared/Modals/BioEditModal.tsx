@@ -11,13 +11,7 @@ import {
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
-import {
-  bottomModalBgColor,
-  primaryColor,
-  primaryTextColor,
-  secondaryTextColor,
-  warningColor,
-} from '../../../utils/styles/colors';
+import { useThemeColors } from '../../../utils/styles/themeColors';
 import { useTranslation } from 'react-i18next';
 import { ButtonSpinner } from '@/components/ui/button';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
@@ -43,6 +37,7 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
   isLoading = false,
 }) => {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const { showErrorToast } = useCustomToast();
   const [bio, setBio] = useState(currentBio);
   const [error, setError] = useState('');
@@ -253,7 +248,7 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
               value={bio}
               onChangeText={handleBioChange}
               placeholder={t('bio.placeholder') || 'Write your bio here...'}
-              placeholderTextColor={secondaryTextColor}
+              placeholderTextColor={colors.secondaryTextColor}
               multiline
               numberOfLines={4}
               maxLength={MAX_BIO_LENGTH}
@@ -271,10 +266,10 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
                   {
                     color:
                       remainingChars < 0
-                        ? warningColor
+                        ? colors.warningColor
                         : remainingChars < 20
                           ? '#F59E0B'
-                          : secondaryTextColor,
+                          : colors.secondaryTextColor,
                   },
                 ]}
               >
@@ -306,7 +301,7 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
                 <FontAwesomeIcon
                   icon={Icons.Warning}
                   size={14}
-                  color={warningColor}
+                  color={colors.warningColor}
                 />
                 <Text style={styles.errorText}>{error}</Text>
               </View>
@@ -348,7 +343,7 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
 
 const styles = StyleSheet.create({
   modalBackground: {
-    backgroundColor: bottomModalBgColor,
+    backgroundColor: 'rgba(20,27,34,0.8)', // Static color for StyleSheet
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
@@ -377,11 +372,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: primaryTextColor,
+    color: '#FFFFFF', // Static color for StyleSheet
   },
   description: {
     fontSize: 14,
-    color: secondaryTextColor,
+    color: '#a0a0a0', // Static color for StyleSheet
     marginBottom: 20,
     lineHeight: 20,
   },
@@ -390,7 +385,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     backgroundColor: '#1a1a1a',
-    color: primaryTextColor,
+    color: '#FFFFFF', // Static color for StyleSheet
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
@@ -401,7 +396,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   textInputError: {
-    borderColor: warningColor,
+    borderColor: '#FE7878', // Static color for StyleSheet
   },
   counterContainer: {
     alignItems: 'flex-end',
@@ -435,7 +430,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   errorText: {
-    color: warningColor,
+    color: '#FE7878', // Static color for StyleSheet
     fontSize: 12,
     flex: 1,
   },
@@ -452,7 +447,7 @@ const styles = StyleSheet.create({
     minHeight: 50,
   },
   saveButton: {
-    backgroundColor: primaryColor,
+    backgroundColor: '#10D9B9', // Static color for StyleSheet
   },
   saveButtonDisabled: {
     backgroundColor: '#333',

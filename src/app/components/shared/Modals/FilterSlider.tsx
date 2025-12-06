@@ -22,16 +22,13 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '@/src/app/utils/types/screen-types';
 import { useFiltersStore } from '@/src/app/utils/store/filtersStorage';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
-import { primaryColor } from '@/src/app/utils/styles/colors';
+import { useThemeColors } from '@/src/app/utils/styles/themeColors';
 import Slider from '@react-native-community/slider';
 import MultiSelectPlaceChips from '@/src/app/components/user/NewsFeed/Filters/MultiSelectPlaceChips';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
 import { useNewsFeedData } from '@/src/app/utils/hooks/NewsFeed/usePostData';
-import { useUserStore } from '@/src/app/utils/store/userStore';
-import { PremiumHelpers } from '@/src/app/config/premiumConfig';
 import { useModalsStore } from '@/src/app/utils/store/modalsStore';
-import { useUserRole } from '@/src/app/hooks/useUserRole';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const PLACE_TYPES: PlaceType[] = [
@@ -54,18 +51,15 @@ const FilterSlider = () => {
   const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const navigation = useNavigation<NavigationProp<UserStackList>>();
+  const colors = useThemeColors();
 
   const {
     setFakeLocation,
-    fakeLocation,
     useFakeLocation,
     setUseFakeLocation,
     fakeLocationName,
     setFakeLocationName,
   } = useLocationStore();
-
-  const { isPremium } = useUserStore();
-  const { hasAdminAccess } = useUserRole();
 
   const { isRefetching } = useNewsFeedData(); // inside FilterSlider
 
@@ -187,7 +181,7 @@ const FilterSlider = () => {
 
   return (
     <BottomSheet
-      backgroundStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
+      backgroundStyle={{ backgroundColor: colors.primaryBgColor + 'E6' }} // ~90% opacity
       onClose={handleClose}
       ref={bottomSheetRef}
       snapPoints={['100%', '90%']}
@@ -195,13 +189,18 @@ const FilterSlider = () => {
       backdropComponent={renderBackdrop}
       handleHeight={50}
       enablePanDownToClose
-      handleIndicatorStyle={styles.handleIndicator}
+      handleIndicatorStyle={[
+        styles.handleIndicator,
+        { backgroundColor: colors.separatorColor },
+      ]}
       handleStyle={styles.handleStyle}
     >
       <View style={styles.container}>
         {/* Save button in top right corner */}
         <TouchableOpacity onPress={handleSaveChanges} style={styles.saveButton}>
-          <Text style={styles.saveButtonText}>{t('save')}</Text>
+          <Text style={[styles.saveButtonText, { color: colors.primaryColor }]}>
+            {t('save')}
+          </Text>
         </TouchableOpacity>
 
         <ScrollView
@@ -210,17 +209,33 @@ const FilterSlider = () => {
           keyboardShouldPersistTaps="handled"
         >
           <View>
-            <Text style={styles.title}>{t('filters')}</Text>
+            <Text style={[styles.title, { color: colors.primaryTextColor }]}>
+              {t('filters')}
+            </Text>
           </View>
 
           <View style={styles.section}>
             <View style={styles.distanceHeader}>
-              <Text style={styles.sectionTitle}>{t('distance')}</Text>
-              <Text style={styles.sectionTitle}>{tempDistance} km</Text>
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  { color: colors.primaryTextColor },
+                ]}
+              >
+                {t('distance')}
+              </Text>
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  { color: colors.primaryTextColor },
+                ]}
+              >
+                {tempDistance} km
+              </Text>
             </View>
             <Slider
               style={styles.slider}
-              minimumTrackTintColor={primaryColor}
+              minimumTrackTintColor={colors.primaryColor}
               value={tempDistance}
               minimumValue={1}
               maximumValue={30}
@@ -238,7 +253,12 @@ const FilterSlider = () => {
 
           <View style={styles.section}>
             <View style={styles.fakeLocationHeader}>
-              <Text style={styles.sectionTitle}>
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  { color: colors.primaryTextColor },
+                ]}
+              >
                 {t('show-highlighted-posts') || 'Show highlighted posts'}
               </Text>
               <Switch
@@ -251,7 +271,14 @@ const FilterSlider = () => {
 
           <View style={styles.fakeLocationSection}>
             <View style={styles.fakeLocationHeader}>
-              <Text style={styles.sectionTitle}>{t('use-travel-mode')}</Text>
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  { color: colors.primaryTextColor },
+                ]}
+              >
+                {t('use-travel-mode')}
+              </Text>
               <Switch
                 value={useFakeLocation}
                 onValueChange={handleFakeLocationToggle}
@@ -265,14 +292,19 @@ const FilterSlider = () => {
               style={[
                 styles.fakeLocationButton,
                 {
-                  backgroundColor: useFakeLocation ? '#222' : '#444',
+                  backgroundColor: useFakeLocation
+                    ? colors.primaryTextColor + '1A' // ~10% opacity
+                    : colors.separatorColor + '1A', // ~10% opacity
                   opacity: useFakeLocation ? 1 : 0.5,
                 },
               ]}
             >
               <View style={styles.fakeLocationButtonContent}>
                 <Text
-                  style={styles.fakeLocationButtonText}
+                  style={[
+                    styles.fakeLocationButtonText,
+                    { color: colors.primaryTextColor },
+                  ]}
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
@@ -282,7 +314,7 @@ const FilterSlider = () => {
                 </Text>
                 <FontAwesomeIcon
                   icon={Icons.ChevronRight}
-                  color={'white'}
+                  color={colors.primaryTextColor}
                   size={14}
                   style={styles.icon}
                 />
@@ -297,7 +329,7 @@ const FilterSlider = () => {
 
 const styles = StyleSheet.create({
   handleIndicator: {
-    backgroundColor: '#444',
+    // backgroundColor is set inline to use theme colors
     width: 40,
     height: 4,
     borderRadius: 2,
@@ -321,7 +353,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   saveButtonText: {
-    color: primaryColor,
+    // color is set inline to use theme colors
     fontSize: 17,
     fontWeight: '600',
   },
@@ -339,13 +371,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sectionTitle: {
-    color: 'white',
+    // color is set inline to use theme colors
   },
   slider: {
     paddingVertical: 10,
   },
   title: {
-    color: 'white',
+    // color is set inline to use theme colors
     fontSize: 24,
     fontWeight: '700',
     marginBottom: 20,
@@ -361,7 +393,7 @@ const styles = StyleSheet.create({
   fakeLocationText: {
     fontSize: 16,
     fontWeight: '600',
-    color: 'white',
+    // color is set inline to use theme colors
   },
   fakeLocationButton: {
     marginTop: 12,
@@ -376,7 +408,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '600',
-    color: 'white',
+    // color is set inline to use theme colors
     marginRight: 8,
   },
   icon: {

@@ -4,11 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCamera, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
-import {
-  primaryColor,
-  primaryTextColor,
-  separatorColor,
-} from '../../../utils/styles/colors';
+import { useThemeColors } from '../../../utils/styles/themeColors';
 import RequestPhotoButton from './RequestPhotoButton';
 import { usePlaceStore } from '../../../utils/store/placesStore';
 import InlineAd from '../InlineAd';
@@ -25,6 +21,7 @@ const EmptyState = (props: EmptyStateProps) => {
   const { t } = useTranslation();
   const { placeId } = usePlaceStore();
   const { isPremium } = useUserData();
+  const colors = useThemeColors();
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const slideAnim = React.useRef(new Animated.Value(30)).current;
 
@@ -57,10 +54,10 @@ const EmptyState = (props: EmptyStateProps) => {
         >
           <View style={styles.iconContainer}>
             <LinearGradient
-              colors={[primaryColor + '20', primaryColor + '10']}
+              colors={[colors.primaryColor + '20', colors.primaryColor + '10']}
               style={styles.iconBackground}
             >
-              <FontAwesomeIcon icon={faCamera} size={48} color={primaryColor} />
+              <FontAwesomeIcon icon={faCamera} size={48} color={colors.primaryColor} />
             </LinearGradient>
           </View>
 
@@ -71,12 +68,12 @@ const EmptyState = (props: EmptyStateProps) => {
 
           <View style={styles.decorativeElements}>
             <View
-              style={[styles.dot, { backgroundColor: primaryColor + '40' }]}
+              style={[styles.dot, { backgroundColor: colors.primaryColor + '40' }]}
             />
             <View
-              style={[styles.dot, { backgroundColor: primaryColor + '60' }]}
+              style={[styles.dot, { backgroundColor: colors.primaryColor + '60' }]}
             />
-            <View style={[styles.dot, { backgroundColor: primaryColor }]} />
+            <View style={[styles.dot, { backgroundColor: colors.primaryColor }]} />
           </View>
 
           {(PremiumHelpers.shouldAlwaysShowAds() || !isPremium) && (
@@ -102,13 +99,13 @@ const EmptyState = (props: EmptyStateProps) => {
       >
         <View style={styles.iconContainer}>
           <LinearGradient
-            colors={[primaryColor + '20', primaryColor + '10']}
+            colors={[colors.primaryColor + '20', colors.primaryColor + '10']}
             style={styles.iconBackground}
           >
             <FontAwesomeIcon
               icon={faMapMarkerAlt}
               size={48}
-              color={primaryColor}
+              color={colors.primaryColor}
             />
           </LinearGradient>
         </View>
@@ -153,7 +150,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: primaryColor + '30',
+    borderColor: '#10D9B930', // Static color for StyleSheet
   },
   textContainer: {
     alignItems: 'center',
@@ -163,14 +160,14 @@ const styles = StyleSheet.create({
   mainTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: primaryTextColor,
+    color: '#FFFFFF', // Static color for StyleSheet
     textAlign: 'center',
     marginBottom: 12,
     letterSpacing: 0.5,
   },
   subtitle: {
     fontSize: 16,
-    color: separatorColor,
+    color: '#a0a0a0', // Static color for StyleSheet
     textAlign: 'center',
     lineHeight: 22,
     marginHorizontal: 20,
@@ -182,7 +179,7 @@ const styles = StyleSheet.create({
   },
   helpText: {
     fontSize: 14,
-    color: separatorColor,
+    color: '#a0a0a0', // Static color for StyleSheet
     textAlign: 'center',
     marginTop: 16,
     lineHeight: 20,

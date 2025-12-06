@@ -1,5 +1,5 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { separatorColor } from '@/src/app/utils/styles/colors';
+import { useThemeColors } from '@/src/app/utils/styles/themeColors';
 import { usePlaceStore } from '@/src/app/utils/store/placesStore';
 
 type Props = {
@@ -10,6 +10,7 @@ type Props = {
 
 export const PlaceNameSeparator = (props: Props) => {
   const { setPlaceId, setPlaceName, setPlaceAddress } = usePlaceStore();
+  const colors = useThemeColors();
 
   const navigateToBar = () => {
     setPlaceName(props.placeNameLocal);
@@ -19,13 +20,13 @@ export const PlaceNameSeparator = (props: Props) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.line} />
+      <View style={[styles.line, { backgroundColor: colors.separatorColor }]} />
       <TouchableOpacity onPress={navigateToBar} style={styles.textWrapper}>
-        <Text style={styles.text} numberOfLines={0}>
+        <Text style={[styles.text, { color: colors.separatorColor }]} numberOfLines={0}>
           {props.placeNameLocal}
         </Text>
       </TouchableOpacity>
-      <View style={styles.line} />
+      <View style={[styles.line, { backgroundColor: colors.separatorColor }]} />
     </View>
   );
 };
@@ -39,7 +40,7 @@ const styles = StyleSheet.create({
   line: {
     flex: 1,
     height: 1,
-    backgroundColor: separatorColor,
+    // backgroundColor is set inline to use theme colors
   },
   textWrapper: {
     marginHorizontal: 15,
@@ -47,7 +48,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 24,
-    color: separatorColor,
+    // color is set inline to use theme colors
     textAlign: 'center',
     flexShrink: 1,
   },

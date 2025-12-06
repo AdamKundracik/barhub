@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { commonAppStyles } from '../../utils/styles/styles';
-import { primaryLightGrey } from '../../utils/styles/colors';
+import { useThemeColors } from '../../utils/styles/themeColors';
 import React from 'react';
 
 type ButtonProps = {
@@ -10,6 +10,8 @@ type ButtonProps = {
 };
 
 export const Button = (props: ButtonProps) => {
+  const colors = useThemeColors();
+  
   return (
     <Pressable
       style={({ pressed }) => [
@@ -26,7 +28,7 @@ export const Button = (props: ButtonProps) => {
             {
               fontSize: 16,
               fontWeight: 'bold',
-              color: pressed ? '#fff' : props.color,
+              color: pressed ? colors.primaryBgColor : props.color,
             },
           ]}
         >
@@ -44,7 +46,7 @@ const styles = StyleSheet.create({
   text: {
     marginBottom: 15,
     textAlign: 'center',
-    color: primaryLightGrey,
+    // color is set inline to use theme colors
   },
   button: {
     width: 180,

@@ -9,15 +9,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import {
-  primaryColor,
-  primaryTextColor,
-  secondaryTextColor,
-  warningColor,
-  postBgColor,
-  primaryBgColor,
-  separatorColor,
-} from '../../utils/styles/colors';
+import { useThemeColors } from '../../utils/styles/themeColors';
 import {
   FormControl,
   FormControlError,
@@ -46,6 +38,7 @@ export const ResetPassword = ({ navigation }: any) => {
   const { t } = useTranslation();
   const route = useRoute();
   const { showSuccessToast, showErrorToast } = useCustomToast();
+  const colors = useThemeColors();
 
   const [token, setToken] = useState<string>('');
   const [password, setPassword] = useState('');
@@ -172,7 +165,7 @@ export const ResetPassword = ({ navigation }: any) => {
           >
             <InputIcon
               as={passwordVisibility[field] ? EyeIcon : EyeOffIcon}
-              color={separatorColor}
+              color={colors.separatorColor}
             />
           </InputSlot>
         </Input>
@@ -188,7 +181,7 @@ export const ResetPassword = ({ navigation }: any) => {
         {showMatchHelper && (
           <FormControlHelper>
             <FormControlHelperText
-              style={[styles.helperText, { color: warningColor }]}
+              style={[styles.helperText, { color: colors.warningColor }]}
             >
               {t('noMatchingPasswords') || 'Passwords do not match'}
             </FormControlHelperText>
@@ -232,7 +225,7 @@ export const ResetPassword = ({ navigation }: any) => {
               <FontAwesomeIcon
                 icon={Icons.faChevronLeft}
                 size={24}
-                color={'white'}
+                color={colors.primaryTextColor}
               />
             </TouchableOpacity>
 
@@ -242,7 +235,7 @@ export const ResetPassword = ({ navigation }: any) => {
                 <FontAwesomeIcon
                   icon={Icons.faLock}
                   size={48}
-                  color={primaryColor}
+                  color={colors.primaryColor}
                 />
               </View>
             </Center>
@@ -330,11 +323,11 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: `${primaryColor}15`,
+    backgroundColor: '#10D9B915', // Static color for StyleSheet
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: `${primaryColor}30`,
+    borderColor: '#10D9B930', // Static color for StyleSheet
   },
   titleContainer: {
     marginBottom: 32,
@@ -342,7 +335,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: primaryTextColor,
+    color: '#FFFFFF', // Static color for StyleSheet
     textAlign: 'center',
     marginBottom: 12,
     lineHeight: 36,
@@ -350,13 +343,13 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: secondaryTextColor,
+    color: '#a0a0a0', // Static color for StyleSheet
     textAlign: 'center',
     paddingHorizontal: 20,
     lineHeight: 24,
   },
   card: {
-    backgroundColor: postBgColor,
+    backgroundColor: '#03031C', // Static color for StyleSheet
     borderRadius: 20,
     padding: 24,
     borderWidth: 1,
@@ -371,30 +364,30 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   labelText: {
-    color: primaryColor,
+    color: '#10D9B9', // Static color for StyleSheet
     fontSize: 16,
     fontWeight: '500',
     marginBottom: 4,
   },
   requiredStar: {
-    color: warningColor,
+    color: '#FE7878', // Static color for StyleSheet
     fontSize: 16,
   },
   input: {
-    backgroundColor: primaryBgColor,
+    backgroundColor: '#020213', // Static color for StyleSheet
     borderColor: '#333',
     borderWidth: 1,
   },
   inputFocused: {
-    borderColor: primaryColor,
+    borderColor: '#10D9B9', // Static color for StyleSheet
     borderWidth: 2,
   },
   inputError: {
-    borderColor: warningColor,
+    borderColor: '#FE7878', // Static color for StyleSheet
     borderWidth: 2,
   },
   inputField: {
-    color: primaryTextColor,
+    color: '#FFFFFF', // Static color for StyleSheet
     fontSize: 16,
   },
   inputSlot: {
@@ -404,20 +397,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   helperText: {
-    color: secondaryTextColor,
+    color: '#a0a0a0', // Static color for StyleSheet
     fontSize: 12,
   },
   errorText: {
-    color: warningColor,
+    color: '#FE7878', // Static color for StyleSheet
     fontSize: 14,
   },
   submitButton: {
-    backgroundColor: primaryColor,
+    backgroundColor: '#10D9B9', // Static color for StyleSheet
     borderRadius: 12,
     paddingHorizontal: 24,
     minWidth: 280,
     height: 54,
-    shadowColor: primaryColor,
+    shadowColor: '#10D9B9', // Static color for StyleSheet
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
@@ -434,12 +427,12 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   linkText: {
-    color: secondaryTextColor,
+    color: '#a0a0a0', // Static color for StyleSheet
     fontSize: 14,
     textAlign: 'center',
   },
   linkTextBold: {
-    color: primaryColor,
+    color: '#10D9B9', // Static color for StyleSheet
     fontWeight: '600',
   },
 });

@@ -6,13 +6,7 @@ import {
   View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import {
-  postBgColor,
-  primaryColor,
-  primaryTextColor,
-  secondaryTextColor,
-  warningColor,
-} from '../../utils/styles/colors';
+import { useThemeColors } from '../../utils/styles/themeColors';
 import { Center } from '@/components/ui/center';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
@@ -28,6 +22,7 @@ export const VerifyEmail = ({ navigation }: any) => {
   const { t } = useTranslation();
   const route = useRoute();
   const { refreshUser, isAuthenticated } = useAuth();
+  const colors = useThemeColors();
 
   const [loading, setLoading] = useState(false);
   const [verified, setVerified] = useState(false);
@@ -94,14 +89,14 @@ export const VerifyEmail = ({ navigation }: any) => {
           <Center style={styles.iconContainer}>
             <View style={styles.iconCircle}>
               {loading ? (
-                <ActivityIndicator size="large" color={primaryColor} />
+                <ActivityIndicator size="large" color={colors.primaryColor} />
               ) : (
                 <FontAwesomeIcon
                   icon={
                     verified ? Icons.faCheckCircle : Icons.faExclamationCircle
                   }
                   size={64}
-                  color={verified ? primaryColor : warningColor}
+                  color={verified ? colors.primaryColor : colors.warningColor}
                 />
               )}
             </View>
@@ -124,7 +119,7 @@ export const VerifyEmail = ({ navigation }: any) => {
               {/* Status Message */}
               <Center>
                 <Text
-                  style={[styles.message, error && { color: warningColor }]}
+                  style={[styles.message, error && { color: colors.warningColor }]}
                 >
                   {loading
                     ? t('please-wait') ||
@@ -140,7 +135,7 @@ export const VerifyEmail = ({ navigation }: any) => {
               {/* Loading Indicator */}
               {loading && (
                 <Center>
-                  <ActivityIndicator size="large" color={primaryColor} />
+                  <ActivityIndicator size="large" color={colors.primaryColor} />
                 </Center>
               )}
 
@@ -157,7 +152,7 @@ export const VerifyEmail = ({ navigation }: any) => {
                       <FontAwesomeIcon
                         icon={Icons.faArrowLeft}
                         size={16}
-                        color={'#000'}
+                        color={colors.primaryBgColor}
                       />
                       <ButtonText style={styles.buttonText}>
                         {t('back-to-login')}
@@ -196,14 +191,14 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: `${primaryColor}15`,
+    backgroundColor: '#10D9B915', // Static color for StyleSheet
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: `${primaryColor}30`,
+    borderColor: '#10D9B930', // Static color for StyleSheet
   },
   card: {
-    backgroundColor: postBgColor,
+    backgroundColor: '#03031C', // Static color for StyleSheet
     borderRadius: 20,
     paddingTop: 32,
     paddingHorizontal: 24,
@@ -219,7 +214,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: primaryTextColor,
+    color: '#FFFFFF', // Static color for StyleSheet
     textAlign: 'center',
     marginTop: 16,
     marginBottom: 8,
@@ -227,17 +222,17 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 16,
-    color: secondaryTextColor,
+    color: '#a0a0a0', // Static color for StyleSheet
     textAlign: 'center',
     lineHeight: 24,
     paddingHorizontal: 20,
   },
   button: {
-    backgroundColor: primaryColor,
+    backgroundColor: '#10D9B9', // Static color for StyleSheet
     borderRadius: 12,
     paddingHorizontal: 24,
     minWidth: 280,
-    shadowColor: primaryColor,
+    shadowColor: '#10D9B9', // Static color for StyleSheet
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
