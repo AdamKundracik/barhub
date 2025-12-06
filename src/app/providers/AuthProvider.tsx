@@ -28,6 +28,7 @@ import {
 import { consentService } from '../services/consentService';
 import { JwtAuthenticationResponseDTO, OutdatedConsentDTO } from '../types/dto';
 import { axiosClient } from '../utils/api/axiosClient';
+import { tokenManager } from '../utils/api/tokenManager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Global reference to unsubscribe function (set by Navigation component)
@@ -158,59 +159,134 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const initializeAuth = async () => {
     // Prevent multiple simultaneous initializations
     if (isInitializingRef.current) {
+      console.log('🔄 [AUTH] Initialization already in progress, skipping');
       return;
     }
     
     try {
       isInitializingRef.current = true;
       setIsLoading(true);
+      
+      console.log('🚀 [AUTH] Starting app initialization');
 
-      // Initialize auth service
-      await authService.initialize();
+      // Enhanced authentication check with better error handling
+      let isAuth = false;
+      let authCheckAttempts = 0;
+      const maxAuthCheckAttempts = 3;
 
-      // Check if user is authenticated based on token (not user state)
-      const isAuth = await authService.isAuthenticated();
+      while (authCheckAttempts < maxAuthCheckAttempts && !isAuth) {
+        try {
+          authCheckAttempts++;
+          console.log(`🔍 [AUTH] Authentication check attempt ${authCheckAttempts}/${maxAuthCheckAttempts}`);
+          
+          // Pass true to allow loading tokens during app initialization
+          isAuth = await authService.isAuthenticated(true);
+          
+          if (isAuth) {
+            console.log('✅ [AUTH] User is authenticated');
+            break;
+          } else if (authCheckAttempts < maxAuthCheckAttempts) {
+            console.log(`⏳ [AUTH] Authentication check failed, retrying in ${authCheckAttempts * 200}ms...`);
+            await new Promise(resolve => setTimeout(resolve, authCheckAttempts * 200));
+          }
+        } catch (authError) {
+          console.warn(`⚠️ [AUTH] Authentication check attempt ${authCheckAttempts} failed:`, authError);
+          if (authCheckAttempts >= maxAuthCheckAttempts) {
+            console.log('❌ [AUTH] All authentication check attempts failed');
+            isAuth = false;
+          }
+        }
+      }
+
       setIsAuthenticatedState(isAuth);
+      console.log(`🎯 [AUTH] Final authentication state: ${isAuth}`);
 
       if (isAuth) {
         // Try to get cached user data first for instant UI
         let userData = await authService.getCachedUser();
         if (userData) {
+          console.log('📱 [AUTH] Using cached user data for instant UI');
           setUser(userData);
           // Set loading to false immediately after we have cached user data
           // This allows the UI to render while we load additional data in background
           setIsLoading(false);
         }
 
-        // Then fetch fresh user data from server and load additional data in background
-        // If this fails, token is still valid, so we don't logout - just retry later
-        userData = await authService.getCurrentUser();
-        if (userData) {
-          setUser(userData);
-          
-          // Run these operations in parallel in the background - don't block UI
-          Promise.allSettled([
-            loadUserData(userData),
-            pushTokenService.initialize(userData.id.toString()),
-            loadConsentStatus(userData.id.toString()),
-          ]).catch(error => {
-            console.error('AuthProvider: Background operations error:', error);
-          });
+        // Then fetch fresh user data from server with enhanced error handling
+        try {
+          console.log('🌐 [AUTH] Fetching fresh user data from server');
+          userData = await authService.getCurrentUser();
+          if (userData) {
+            console.log('✅ [AUTH] Fresh user data loaded successfully');
+            setUser(userData);
+            
+            // Run these operations in parallel in the background - don't block UI
+            Promise.allSettled([
+              loadUserData(userData),
+              pushTokenService.initialize(userData.id.toString()),
+              loadConsentStatus(userData.id.toString()),
+            ]).then(results => {
+              const failures = results.filter(result => result.status === 'rejected');
+              if (failures.length > 0) {
+                console.warn('⚠️ [AUTH] Some background initialization tasks failed:', failures);
+              } else {
+                console.log('✅ [AUTH] All background initialization tasks completed');
+              }
+            }).catch(error => {
+              console.error('⚠️ [AUTH] Background operations error:', error);
+            });
+          } else {
+            console.warn('⚠️ [AUTH] Could not fetch fresh user data, but token is still valid');
+            // If userData is null but token is valid, keep isAuthenticatedState = true
+            // User data will be fetched on next refresh or when needed
+          }
+        } catch (userDataError) {
+          console.warn('⚠️ [AUTH] Failed to fetch user data, but keeping authentication state:', userDataError);
+          // Don't logout if we can't fetch user data - token might still be valid
+          // This prevents unnecessary logouts due to temporary network issues
         }
-        // If userData is null but token is valid, keep isAuthenticatedState = true
-        // User data will be fetched on next refresh or when needed
       } else {
+        console.log('❌ [AUTH] User is not authenticated');
         setUser(null);
         setIsAuthenticatedState(false);
       }
     } catch (error) {
-      console.error('AuthProvider: Initialization error:', error);
-      setUser(null);
-      setIsAuthenticatedState(false);
+      console.error('❌ [AUTH] Critical initialization error:', error);
+      
+      // Be more conservative with error handling during initialization
+      // Don't immediately assume user is not authenticated due to initialization errors
+      const memoryToken = authService.getAccessToken();
+      if (memoryToken) {
+        console.log('🔄 [AUTH] Found token in memory despite initialization error');
+        try {
+          if (!tokenManager.isTokenExpired(memoryToken)) {
+            console.log('✅ [AUTH] Memory token is valid, keeping authentication state');
+            setIsAuthenticatedState(true);
+            
+            // Try to get cached user data as fallback
+            const cachedUser = await authService.getCachedUser();
+            if (cachedUser) {
+              setUser(cachedUser);
+            }
+          } else {
+            console.log('❌ [AUTH] Memory token is expired');
+            setUser(null);
+            setIsAuthenticatedState(false);
+          }
+        } catch (tokenCheckError) {
+          console.error('❌ [AUTH] Error checking memory token:', tokenCheckError);
+          setUser(null);
+          setIsAuthenticatedState(false);
+        }
+      } else {
+        setUser(null);
+        setIsAuthenticatedState(false);
+      }
     } finally {
       // Only set loading to false if we haven't already done so above
       if (isInitializingRef.current) {
         setIsLoading(false);
+        console.log('🏁 [AUTH] Initialization completed');
       }
       isInitializingRef.current = false;
     }

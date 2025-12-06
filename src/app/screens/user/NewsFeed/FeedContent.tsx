@@ -44,9 +44,9 @@ export const FeedContent: React.FC<FeedContentProps> = ({
   const { permissions } = usePermissionsContext();
 
   // Debug log
-  console.log('[FeedContent] Current permissions:', permissions);
-  console.log('[FeedContent] Has geolocation:', permissions.geolocation);
-  console.log('[FeedContent] Posts count:', posts?.length);
+  // console.log('[FeedContent] Current permissions:', permissions);
+  // console.log('[FeedContent] Has geolocation:', permissions.geolocation);
+  // console.log('[FeedContent] Posts count:', posts?.length);
 
   if (isLoading) {
     return <PostLoaderView />;

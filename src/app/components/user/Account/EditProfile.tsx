@@ -32,6 +32,10 @@ import { ClientDTO } from '@/src/app/types/dto';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useUserData } from '@/src/app/hooks/useUserQuery';
 import { useQueryClient } from 'react-query';
+import {
+  addCacheBuster,
+  createImageKey,
+} from '@/src/app/utils/cache/imageCacheUtils';
 import { PremiumHelpers } from '@/src/app/config/premiumConfig';
 import {
   getUnicodeValidationMessage,
@@ -329,16 +333,18 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
               style={[
                 styles.avatarContainer,
                 // Show premium border only if premium UI is enabled and user is premium
-                PremiumHelpers.shouldShowPremiumBorders() && isPremium && styles.premiumBorder,
+                PremiumHelpers.shouldShowPremiumBorders() &&
+                  isPremium &&
+                  styles.premiumBorder,
                 (isUpdatingPhoto || isDeletingPhoto) &&
                   styles.profilePictureLoading,
               ]}
             >
               {photoUrl ? (
                 <AvatarImage
-                  key={`edit-avatar-${photoUrl}-${photoCacheBuster}`}
+                  key={createImageKey('edit-profile', userId, photoUrl)}
                   source={{
-                    uri: `${photoUrl}${photoUrl.includes('?') ? '&' : '?'}t=${photoCacheBuster}`,
+                    uri: addCacheBuster(photoUrl, userId),
                   }}
                   style={styles.avatarImage}
                 />

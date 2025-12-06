@@ -59,10 +59,13 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   }, []);
 
   const notificationConfig = useMemo(() => {
+    // Use "Someone" if sender name is not available
+    const senderName = item.sender?.name || t('someone');
+    
     const configs = {
       [NotificationType.LIKE]: {
         label: t('new-like'),
-        text: `${item.sender?.name} ${t('liked-your-photo')}`,
+        text: `${senderName} ${t('liked-your-photo')}`,
         icon: Icons.HeartSolid,
         color: '#FF6B85',
         bgGradient: ['rgba(255, 107, 133, 0.1)', 'rgba(255, 107, 133, 0.05)'],
@@ -70,7 +73,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
       },
       [NotificationType.COMMENT]: {
         label: t('new-comment'),
-        text: `${item.sender?.name} ${t('commented-your-photo')}`,
+        text: `${senderName} ${t('commented-your-photo')}`,
         icon: Icons.CommentSolid,
         color: '#4A90E2',
         bgGradient: ['rgba(74, 144, 226, 0.1)', 'rgba(74, 144, 226, 0.05)'],
@@ -78,7 +81,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
       },
       [NotificationType.REQUEST]: {
         label: t('request'),
-        text: `${item.sender?.name} ${t('sent-request')}`,
+        text: `${senderName} ${t('sent-request')}`,
         icon: Icons.Bell,
         color: primaryColor,
         bgGradient: [`rgba(16, 217, 185, 0.15)`, `rgba(16, 217, 185, 0.08)`],
@@ -86,7 +89,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
       },
       [NotificationType.RESPONSE]: {
         label: t('response'),
-        text: `${item.sender?.name} ${t('responded-to-request')}`,
+        text: `${senderName} ${t('responded-to-request')}`,
         icon: Icons.Bell,
         color: successColor,
         bgGradient: [`rgba(76, 175, 80, 0.1)`, `rgba(76, 175, 80, 0.05)`],
@@ -95,7 +98,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
     };
 
     return configs[item.notificationType] || configs[NotificationType.REQUEST];
-  }, [item.notificationType, item.senderName, t]);
+  }, [item.notificationType, item.sender?.name, t]);
 
   // Format timestamp - same logic as UserLine
   const formattedTime = useMemo(() => {

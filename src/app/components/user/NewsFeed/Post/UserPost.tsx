@@ -25,7 +25,6 @@ import { postService } from '@/src/app/services/postService';
 import { trimPlaceName } from '@/src/app/utils/helper-functions/trimPlaceName';
 
 import PlaceNameSeparator from './PlaceNameSeparator';
-import BluredPostFrontView from './BluredPostFrontView';
 import { UserLine } from './UserLine';
 import InteractionBar from './InteractionBar';
 import { postBgColor, primaryBgColor } from '@/src/app/utils/styles/colors';
@@ -232,7 +231,7 @@ const UserPost: React.FC<UserPostProps> = ({
   isFiltering,
   onCommentPress,
 }) => {
-  const { isPremium, canSeeContent, userData } = useUserStore();
+  // const { isPremium, canSeeContent, userData } = useUserStore();
   const navigation = useNavigation();
 
   // Early return if no post
@@ -305,16 +304,16 @@ const UserPost: React.FC<UserPostProps> = ({
     onCommentPress(id, user?.expoPushToken ?? '', userId);
   }, [id, user?.expoPushToken, userId, onCommentPress]);
 
-  // Computed values
-  const shouldShowBlur = useMemo(() => {
-    // Don't show blur while user data is loading
-    if (!userData) {
-      return false;
-    }
-
-    const premium = isPremium();
-    return !premium && !canSeeContent;
-  }, [isPremium, canSeeContent, userData, id]);
+  // // Computed values
+  // const shouldShowBlur = useMemo(() => {
+  //   // Don't show blur while user data is loading
+  //   if (!userData) {
+  //     return false;
+  //   }
+  //
+  //   // const premium = isPremium();
+  //   return !canSeeContent;
+  // }, [isPremium, canSeeContent, userData, id]);
 
   const trimmedPlaceName = useMemo(() => trimPlaceName(placeName), [placeName]);
 
@@ -365,7 +364,7 @@ const UserPost: React.FC<UserPostProps> = ({
           style={styles.gradientOverlay}
         />
 
-        {shouldShowBlur && <BluredPostFrontView />}
+        {/*{shouldShowBlur && <BluredPostFrontView />}*/}
 
         <UserLine
           user={user}

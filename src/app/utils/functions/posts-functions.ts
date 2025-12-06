@@ -7,7 +7,9 @@ export const handleFreshContent = async (
   radius: number,
   cursor?: string | null,
   placeId?: string | null,
-  location?: LocationType
+  location?: LocationType,
+  placeTypes?: string[],
+  occupancyTypes?: string[]
 ): Promise<{ posts: Post[]; lastVisible: string | null }> => {
   const geoPoint = locationTypeToGeoPointType(
     location ?? { latitude: 0, longitude: 0 }
@@ -22,14 +24,18 @@ export const handleFreshContent = async (
       response = await getPostsByPlaceId(
         placeId,
         cursor || undefined,
-        parseInt(userId ?? '') || undefined
+        parseInt(userId ?? '') || undefined,
+        placeTypes,
+        occupancyTypes
       );
     } else {
       response = await getFreshContent(
         geoPoint,
         radius,
         cursor || undefined,
-        parseInt(userId ?? '') || undefined
+        parseInt(userId ?? '') || undefined,
+        placeTypes,
+        occupancyTypes
       );
     }
 

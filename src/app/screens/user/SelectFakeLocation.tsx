@@ -34,6 +34,9 @@ import LoadingIndicator from '../../components/user/NewsFeed/LoadingIndicator';
 import { generateUID } from '../../utils/helper-functions/generateUID';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useModalsStore } from '@/src/app/utils/store/modalsStore';
+import InlineAd from '../../components/user/InlineAd';
+import { useUserData } from '../../hooks/useUserQuery';
+import { PremiumHelpers } from '../../config/premiumConfig';
 
 // Interfaces for old Google Places API (for cities/geocoding)
 interface CityPrediction {
@@ -62,6 +65,7 @@ export const SelectFakeLocation = () => {
   const { t } = useTranslation();
   const { showErrorToast, showSuccessToast } = useCustomToast();
   const { toggleFilter } = useModalsStore();
+  const { isPremium } = useUserData();
 
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -234,7 +238,7 @@ export const SelectFakeLocation = () => {
   return (
     <TouchableWithoutFeedback onPress={dismissKeyboard}>
       <ScreenLayout
-        title={t('select-city')}
+        title={t('search-city')}
         showTitle
         showBackButton
         onBackPress={() => navigation.goBack()}
@@ -268,7 +272,7 @@ export const SelectFakeLocation = () => {
                 </InputSlot>
                 <InputField
                   type="text"
-                  placeholder={t('search')}
+                  placeholder={t('search-city-placeholder')}
                   placeholderTextColor={separatorColor}
                   value={query}
                   autoCorrect={false}
@@ -299,9 +303,7 @@ export const SelectFakeLocation = () => {
 
             {/* Search hint */}
             {!hasSearched && !query && (
-              <Text style={styles.searchHint}>
-                {t('search')} {t('select-city').toLowerCase()}
-              </Text>
+              <Text style={styles.searchHint}>{t('search-city-hint')}</Text>
             )}
           </View>
 
@@ -388,7 +390,7 @@ export const SelectFakeLocation = () => {
                 </View>
                 <Text style={styles.emptyTitle}>{t('no-results')}</Text>
                 <Text style={styles.emptySubtitle}>
-                  {t('search')} {t('select-city').toLowerCase()}
+                  {t('search-city-empty-hint')}
                 </Text>
               </View>
             )}
@@ -419,6 +421,11 @@ export const SelectFakeLocation = () => {
                 </Pressable>
               </View>
             )}
+
+            {/* Inline Ad */}
+            {(PremiumHelpers.shouldAlwaysShowAds() || !isPremium) && (
+              <InlineAd />
+            )}
           </ScrollView>
         </Animated.View>
       </ScreenLayout>
@@ -429,10 +436,11 @@ export const SelectFakeLocation = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
   },
   searchContainer: {
-    marginBottom: 20,
+    marginBottom: 24,
+    paddingHorizontal: 4,
   },
   formControl: {
     marginBottom: 8,
@@ -445,17 +453,18 @@ const styles = StyleSheet.create({
     shadowColor: primaryColor,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 3,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 5,
   },
   inputField: {
     backgroundColor: 'white',
     color: primaryDeepColor,
     fontSize: 16,
     paddingLeft: 8,
+    fontWeight: '500',
   },
   clearButton: {
     backgroundColor: 'white',
@@ -464,8 +473,9 @@ const styles = StyleSheet.create({
     color: separatorColor,
     fontSize: 14,
     textAlign: 'center',
-    marginTop: 8,
-    fontStyle: 'italic',
+    marginTop: 12,
+    paddingHorizontal: 16,
+    lineHeight: 20,
   },
   contentArea: {
     flex: 1,
@@ -491,18 +501,27 @@ const styles = StyleSheet.create({
   },
   resultsHeader: {
     color: separatorColor,
-    fontSize: 14,
-    marginBottom: 12,
+    fontSize: 15,
+    marginBottom: 16,
     paddingHorizontal: 4,
-    fontWeight: '500',
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
   placeItem: {
-    marginBottom: 8,
-    borderRadius: 12,
+    marginBottom: 10,
+    borderRadius: 14,
     overflow: 'hidden',
     backgroundColor: postBgColor,
     borderWidth: 1,
-    borderColor: separatorColor + '20',
+    borderColor: separatorColor + '25',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   placeItemGradient: {
     padding: 16,
