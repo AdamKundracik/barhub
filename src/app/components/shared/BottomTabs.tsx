@@ -22,6 +22,7 @@ import { Account } from '@/src/app/screens/user/Account';
 import { BlurView } from 'expo-blur';
 import { useTranslation } from 'react-i18next';
 import { usePostsStore } from '@/src/app/utils/store/postStore';
+import { useLeaderboardStore } from '@/src/app/utils/store/leaderboardStore';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { useNewsFeedData } from '@/src/app/utils/hooks/NewsFeed/usePostData';
 import { useUserRole } from '@/src/app/hooks/useUserRole';
@@ -34,6 +35,7 @@ const Tab = createBottomTabNavigator();
 const BottomTabs = () => {
   const { useFakeLocation } = useLocationStore();
   const { scrollOnTop } = usePostsStore();
+  const { scrollOnTop: scrollLeaderboardToTop } = useLeaderboardStore();
   const { userData } = useUserStore();
   const { refetch } = useNewsFeedData();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
@@ -185,6 +187,16 @@ const BottomTabs = () => {
               />
             ),
           }}
+          listeners={({ navigation }) => ({
+            tabPress: () => {
+              const state = navigation.getState();
+              const focused = state.routes[state.index].name;
+
+              if (focused === 'LeaderboardScreen') {
+                scrollLeaderboardToTop();
+              }
+            },
+          })}
         />
 
         <Tab.Screen

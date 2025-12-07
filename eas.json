@@ -13,14 +13,24 @@
       }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_ANDROID_ADMOB_BANNER_ID": "ca-app-pub-2698936582690038/7536391110",
+        "EXPO_PUBLIC_IOS_ADMOB_BANNER_ID": "ca-app-pub-2698936582690038/3468319444"
+      }
     },
     "production": {
       "android": {
         "buildType": "app-bundle",
         "gradleCommand": ":app:assembleRelease",
         "env": {
-          "EXPO_ANDROID_MIN_SDK_VERSION": "24"
+          "EXPO_ANDROID_MIN_SDK_VERSION": "24",
+          "EXPO_PUBLIC_ANDROID_ADMOB_BANNER_ID": "ca-app-pub-2698936582690038/7536391110"
+        }
+      },
+      "ios": {
+        "env": {
+          "EXPO_PUBLIC_IOS_ADMOB_BANNER_ID": "ca-app-pub-2698936582690038/3468319444"
         }
       },
       "autoIncrement": true
