@@ -40,6 +40,7 @@ export const ENDPOINTS = {
     TUTORIAL_VIEWED: '/users/tutorial-viewed',
     BY_ID: (id: string) => `/users/${id}`,
     PROFILE: (id: string) => `/users/${id}/profile`,
+    POSTS: (id: string) => `/users/${id}/posts`,
     PUSH_TOKENS: (id: string) => `/users/${id}/push-tokens`,
     LOCATION: (id: string) => `/users/${id}/update-location`,
     SEARCH_HISTORY: (id: string) => `/users/${id}/search-history`,
