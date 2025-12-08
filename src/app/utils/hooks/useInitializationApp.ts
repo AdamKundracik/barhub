@@ -77,9 +77,42 @@ export const useAppInitialization = () => {
       if (status === PermissionStatus.UNDETERMINED) {
         await requestTrackingPermissionsAsync();
       }
-      await mobileAds().initialize();
+      
+      // Initialize AdMob - this must be called before using any ad components
+      console.log('[AdMob] Initializing AdMob SDK...');
+      const initializationStatus = await mobileAds().initialize();
+      console.log('[AdMob] AdMob SDK initialized successfully', {
+        adapterCount: initializationStatus.length,
+        adapters: initializationStatus.map(adapter => ({
+          name: adapter.name,
+          state: adapter.state,
+        })),
+      });
+      
+      // Log environment variables status (for debugging)
+      const androidBannerId = process.env.EXPO_PUBLIC_ANDROID_ADMOB_BANNER_ID;
+      const iosBannerId = process.env.EXPO_PUBLIC_IOS_ADMOB_BANNER_ID;
+      
+      console.log('[AdMob] Configuration status:', {
+        isDev: __DEV__,
+        androidBannerId: androidBannerId ? 'SET' : 'MISSING',
+        iosBannerId: iosBannerId ? 'SET' : 'MISSING',
+      });
+      
+      if (!__DEV__) {
+        if (!androidBannerId && !iosBannerId) {
+          console.error(
+            '[AdMob] WARNING: No banner IDs configured! ' +
+            'Ads will not display in production. ' +
+            'Please set EXPO_PUBLIC_ANDROID_ADMOB_BANNER_ID and EXPO_PUBLIC_IOS_ADMOB_BANNER_ID in eas.json'
+          );
+        } else {
+          console.log('[AdMob] Production banner IDs are configured correctly');
+        }
+      }
     } catch (error) {
-      console.error('Error initializing ads or tracking permissions:', error);
+      console.error('[AdMob] Error initializing ads or tracking permissions:', error);
+      // Don't throw - allow app to continue even if ads fail to initialize
     }
   };
 

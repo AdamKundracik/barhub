@@ -17,6 +17,8 @@ class TokenManager {
   private pendingTokens: { accessToken: string; refreshToken: string } | null =
     null;
   private appStateSubscription: any = null;
+  private initPromise: Promise<void> | null = null;
+  private isInitialized: boolean = false;
 
   private constructor() {
     this.setupAppStateListener();
@@ -234,6 +236,64 @@ class TokenManager {
   }
 
   /**
+   * Load tokens from SecureStore during app initialization
+   * This ensures tokens are loaded before authentication check
+   * Uses singleton promise pattern to prevent multiple simultaneous loads
+   */
+  async loadTokensFromStorage(): Promise<void> {
+    // If already initialized, return immediately
+    if (this.isInitialized) {
+      console.log('✅ [TOKEN] Tokens already initialized');
+      return;
+    }
+
+    // If initialization is in progress, wait for it
+    if (this.initPromise) {
+      console.log('⏳ [TOKEN] Waiting for existing initialization...');
+      return this.initPromise;
+    }
+
+    // Start new initialization
+    this.initPromise = (async () => {
+      try {
+        console.log('🚀 [TOKEN] Starting token initialization from SecureStore');
+        
+        // Load both tokens in parallel with initialization flag
+        await Promise.all([
+          this.loadTokenIfNeeded('accessToken', true),
+          this.loadTokenIfNeeded('refreshToken', true),
+        ]);
+
+        this.isInitialized = true;
+        console.log('✅ [TOKEN] Token initialization completed');
+      } catch (error) {
+        console.error('❌ [TOKEN] Error during token initialization:', error);
+        // Don't throw - allow app to continue even if token load fails
+        // Tokens might not exist (first launch) or SecureStore might be unavailable
+      }
+    })();
+
+    return this.initPromise;
+  }
+
+  /**
+   * Wait until tokens are initialized from SecureStore
+   * Use this before checking authentication state during app startup
+   */
+  async waitUntilInitialized(): Promise<void> {
+    if (this.isInitialized) {
+      return;
+    }
+
+    if (this.initPromise) {
+      return this.initPromise;
+    }
+
+    // If no initialization started, start it now
+    return this.loadTokensFromStorage();
+  }
+
+  /**
    * Store tokens in memory and SecureStore with enhanced error handling
    * If SecureStore fails, tokens are kept in memory and retried later
    */
@@ -316,6 +376,10 @@ class TokenManager {
       this.accessToken = null;
       this.refreshToken = null;
       this.pendingTokens = null;
+      
+      // Reset initialization state so tokens can be loaded again on next startup
+      this.isInitialized = false;
+      this.initPromise = null;
 
       // Clear from SecureStore (best effort)
       await Promise.all([

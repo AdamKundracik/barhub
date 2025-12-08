@@ -1,7 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   Alert,
-  Animated,
   Platform,
   RefreshControl,
   StyleSheet,
@@ -22,12 +21,13 @@ import { useTranslation } from 'react-i18next';
 import { addCacheBuster, createImageKey } from '../../utils/cache/imageCacheUtils';
 import { useLeaderboard } from '@/src/app/utils/hooks/useLeaderboard';
 import { BlurView } from 'expo-blur';
-import { FlashList } from '@shopify/flash-list';
+import { FlashList, FlashListRef } from '@shopify/flash-list';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faDownload } from '@fortawesome/free-solid-svg-icons';
-import { useUserRole } from '@/src/app/hooks/useUserRole'; // Define LeaderboardUser interface locally to match backend data
+import { useUserRole } from '@/src/app/hooks/useUserRole';
+import { useLeaderboardStore } from '@/src/app/utils/store/leaderboardStore';
 
 // Define LeaderboardUser interface locally to match backend data
 interface LeaderboardUser {
@@ -49,7 +49,6 @@ interface LeaderboardRowProps {
   rank: number | null;
   highlight?: boolean;
   index: number;
-  animationKey: string; // Pridaný kľúč pre resetovanie animácií
 }
 
 const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
@@ -57,36 +56,9 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
   rank,
   highlight,
   index,
-  animationKey,
 }) => {
   const navigation = useNavigation();
   const isTopThree = rank !== null && rank < 3;
-
-  // Animácia pre každý riadok - použitie useRef pre perzistentnosť
-  const animatedValue = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    animatedValue.setValue(0);
-
-    // Spustenie animácie s oneskorením podľa indexu
-    Animated.timing(animatedValue, {
-      toValue: 1,
-      duration: 600,
-      delay: index * 100, // Každý riadok sa animuje o 100ms neskôr
-      useNativeDriver: true,
-    }).start();
-  }, [animationKey, index]); // Animácia sa resetuje pri zmene animationKey
-
-  // Animované hodnoty
-  const translateY = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [50, 0], // Začína 50px nižšie
-  });
-
-  const opacity = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 1], // Fade in efekt
-  });
 
   const getTopThreeColors = (position: number) => {
     switch (position) {
@@ -113,7 +85,10 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
     }
   };
 
-  const topThreeColors = isTopThree ? getTopThreeColors(rank!) : null;
+  const topThreeColors = useMemo(
+    () => (isTopThree ? getTopThreeColors(rank!) : null),
+    [isTopThree, rank]
+  );
 
   const handleUserPress = () => {
     (navigation as any).navigate('UserDetail', { userId: user.userId });
@@ -121,7 +96,7 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
 
   return (
     <TouchableOpacity onPress={handleUserPress} activeOpacity={0.7}>
-      <Animated.View
+      <View
         style={[
           styles.row,
           highlight && styles.currentUserHighlight,
@@ -129,10 +104,6 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
             backgroundColor: topThreeColors?.background,
             borderWidth: 1,
             borderColor: topThreeColors?.border,
-          },
-          {
-            transform: [{ translateY }],
-            opacity,
           },
         ]}
       >
@@ -201,18 +172,22 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
         >
           {user.points} pts
         </Text>
-      </Animated.View>
+      </View>
     </TouchableOpacity>
   );
 };
+
+// Memoize component to prevent unnecessary re-renders
+const MemoizedLeaderboardRow = React.memo(LeaderboardRow);
 
 const LeaderboardScreen = () => {
   const [selectedTab, setSelectedTab] = useState<'week' | 'monthly' | 'yearly'>(
     'week'
   );
-  const [animationKey, setAnimationKey] = useState('0'); // Kľúč pre resetovanie animácií
   const { data, isLoading, error, refetch } = useLeaderboard(selectedTab);
   const { isAdmin, isModerator } = useUserRole();
+  const flashListRef = useRef<FlashListRef<LeaderboardUser>>(null);
+  const { setListRef } = useLeaderboardStore();
 
   const { t } = useTranslation();
 
@@ -223,14 +198,17 @@ const LeaderboardScreen = () => {
   // Výška bottom tabs (rovnaká logika ako v BottomTabs.tsx)
   const bottomTabsHeight = Platform.OS === 'ios' ? 90 : 80;
 
+  // Set ref in store
+  React.useEffect(() => {
+    setListRef(flashListRef);
+  }, [setListRef]);
+
   const handleTabChange = async (tab: 'week' | 'monthly' | 'yearly') => {
     // Ak je už vybraná tá istá možnosť, nerob nič
     if (selectedTab === tab) {
       return;
     }
     setSelectedTab(tab);
-    // Resetovanie animačného kľúča pre nové animácie
-    setAnimationKey(prev => (parseInt(prev) + 1).toString());
     await refetch();
   };
 
@@ -288,13 +266,6 @@ const LeaderboardScreen = () => {
       Alert.alert('Error', 'Failed to export CSV');
     }
   };
-
-  // Resetovanie animácií pri zmene dát
-  useEffect(() => {
-    if (data) {
-      setAnimationKey(prev => (parseInt(prev) + 1).toString());
-    }
-  }, [data]);
 
   return (
     <ScreenLayout title={`🏆 ${t('leaderboard.topUsers')}`} showTitle>
@@ -384,6 +355,8 @@ const LeaderboardScreen = () => {
       </View>
 
       <FlashList
+        ref={flashListRef}
+        removeClippedSubviews={true}
         contentContainerStyle={{
           paddingBottom:
             !isCurrentInTop && currentUser
@@ -402,16 +375,17 @@ const LeaderboardScreen = () => {
         keyExtractor={item => item.userId}
         ListEmptyComponent={
           <View>
-            {!topUsers && <Text style={styles.emptyText}>{t('no-data')}</Text>}
+            {topUsers.length === 0 && !isLoading && (
+              <Text style={styles.emptyText}>{t('no-data')}</Text>
+            )}
           </View>
         }
         renderItem={({ item, index }) => (
-          <LeaderboardRow
+          <MemoizedLeaderboardRow
             user={item}
             rank={index}
             highlight={currentUser?.userId === item.userId}
             index={index}
-            animationKey={`${animationKey}-${index}`} // Unikátny kľúč pre každý riadok
           />
         )}
       />
@@ -419,12 +393,11 @@ const LeaderboardScreen = () => {
       {/* Current user fixed at bottom */}
       {!isCurrentInTop && currentUser && (
         <View style={[styles.currentUserFixed, { bottom: bottomTabsHeight }]}>
-          <LeaderboardRow
+          <MemoizedLeaderboardRow
             user={currentUser}
             rank={null}
             highlight
             index={topUsers.length}
-            animationKey={`${animationKey}-current`} // Unikátny kľúč pre aktuálneho používateľa
           />
         </View>
       )}
@@ -535,6 +508,7 @@ const styles = StyleSheet.create({
     marginVertical: 3,
     borderRadius: 10,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    minHeight: 60,
   },
   currentUserHighlight: {
     backgroundColor: 'rgba(16, 217, 185, 0.15)',
