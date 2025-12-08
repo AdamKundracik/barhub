@@ -37,7 +37,7 @@ const NotificationsList: React.FC = () => {
   const { isPremium } = useUserStore();
   const { data: storeData, markAllAsSeen } = useNotificationsStore();
 
-  const { isLoading, refetch, isFetching } = useNotificationsQuery();
+  const { isLoading, refetch, isFetching, isError, error } = useNotificationsQuery();
   const [isScrollEnabled, setIsScrollEnabled] = useState(true);
   const [showAllRead, setShowAllRead] = useState(false);
 
@@ -90,7 +90,11 @@ const NotificationsList: React.FC = () => {
   );
 
   // Enhanced loading state with better UX
-  if (isLoading || !storeData) {
+  // Only show loading if we're actually loading AND don't have any cached data
+  // This prevents infinite loading when query fails or returns empty data
+  const shouldShowLoading = isLoading && !storeData && !isError;
+  
+  if (shouldShowLoading) {
     return (
       <ScreenLayout
         title={t('notifications')}
@@ -104,6 +108,10 @@ const NotificationsList: React.FC = () => {
       </ScreenLayout>
     );
   }
+
+  // Ensure we have storeData (should be set even on error with empty array)
+  // If storeData is still null after loading, use empty state
+  const notifications = storeData?.notifications || [];
 
   return (
     <ScreenLayout
@@ -181,7 +189,7 @@ const NotificationsList: React.FC = () => {
         {/* Enhanced List with Better Performance */}
         <View style={styles.listWrapper}>
           <FlashList
-            data={storeData.notifications}
+            data={notifications}
             scrollEnabled={isScrollEnabled}
             keyExtractor={item => item.id}
             renderItem={renderItem}
@@ -210,10 +218,25 @@ const NotificationsList: React.FC = () => {
                     color={separatorColor}
                   />
                 </View>
-                <Text style={styles.emptyTitle}>{t('no-notifications')}</Text>
-                <Text style={styles.emptySubtitle}>
-                  {t('notifications-will-appear-here')}
+                <Text style={styles.emptyTitle}>
+                  {isError ? t('error-loading-notifications') || 'Error loading notifications' : t('no-notifications')}
                 </Text>
+                <Text style={styles.emptySubtitle}>
+                  {isError 
+                    ? (error?.message || t('try-again-later') || 'Please try again later')
+                    : t('notifications-will-appear-here')
+                  }
+                </Text>
+                {isError && (
+                  <Pressable
+                    style={styles.retryButton}
+                    onPress={() => refetch()}
+                  >
+                    <Text style={styles.retryButtonText}>
+                      {t('retry') || 'Retry'}
+                    </Text>
+                  </Pressable>
+                )}
               </Animated.View>
             }
             ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -401,6 +424,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     lineHeight: 22,
+  },
+
+  // Retry Button
+  retryButton: {
+    marginTop: 20,
+    backgroundColor: primaryColor,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 20,
+  },
+
+  retryButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
   },
 
   // Enhanced Ad Container

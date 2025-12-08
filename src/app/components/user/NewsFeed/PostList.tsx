@@ -135,6 +135,7 @@ const PostsList = ({
 
       // Show ad every 2 posts (but not on first post)
       // Check config: if ALWAYS_SHOW_ADS is true, ignore premium status
+      // Rate limiting is handled inside InlineAd component
       const shouldShowAd =
         index > 0 && index % 2 === 0 && PremiumHelpers.shouldAlwaysShowAds();
 
