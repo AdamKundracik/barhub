@@ -340,6 +340,14 @@ class AuthService {
     try {
       console.log(`🔍 [AUTH] Checking authentication (forInitialization: ${forInitialization})`);
       
+      // CRITICAL: During initialization, ensure tokens are loaded before checking
+      // This prevents race condition where tokens aren't loaded yet
+      if (forInitialization) {
+        console.log('⏳ [AUTH] Waiting for token initialization...');
+        await tokenManager.waitUntilInitialized();
+        console.log('✅ [AUTH] Token initialization complete, proceeding with auth check');
+      }
+      
       // Use async token loading with enhanced error handling
       const token = await tokenManager.getAccessTokenAsync(forInitialization);
       if (!token) {

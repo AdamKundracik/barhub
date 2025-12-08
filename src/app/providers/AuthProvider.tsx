@@ -169,6 +169,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       console.log('🚀 [AUTH] Starting app initialization');
 
+      // CRITICAL: Wait for tokens to be loaded from SecureStore before checking authentication
+      // This prevents race condition where isAuthenticated() runs before tokens are loaded
+      console.log('⏳ [AUTH] Waiting for tokens to be loaded from SecureStore...');
+      await tokenManager.waitUntilInitialized();
+      console.log('✅ [AUTH] Tokens loaded, proceeding with authentication check');
+
       // Enhanced authentication check with better error handling
       let isAuth = false;
       let authCheckAttempts = 0;
