@@ -24,7 +24,6 @@ import { Post } from '@/src/app/types/postTypes';
 import { postService } from '@/src/app/services/postService';
 import { trimPlaceName } from '@/src/app/utils/helper-functions/trimPlaceName';
 
-import PlaceNameSeparator from './PlaceNameSeparator';
 import { UserLine } from './UserLine';
 import InteractionBar from './InteractionBar';
 import { postBgColor, primaryBgColor } from '@/src/app/utils/styles/colors';
@@ -327,17 +326,6 @@ const UserPost: React.FC<UserPostProps> = ({
       entering={FadeIn.delay(100).duration(600)}
       style={styles.postContainer}
     >
-      {/* Modern Place Name Header */}
-      {!isFiltering && (
-        <View style={[styles.placeName, isTablet && tabletStyles.placeName]}>
-          <PlaceNameSeparator
-            placeNameLocal={trimmedPlaceName}
-            placeIdLocal={folderId}
-            placeAddressLocal={placeAddress}
-          />
-        </View>
-      )}
-
       {/* Enhanced Post Card */}
       <View
         style={[
@@ -383,6 +371,10 @@ const UserPost: React.FC<UserPostProps> = ({
           onUserPress={handleNavigateToUser}
           onShare={handleShare}
           onViewDetail={handleNavigateToDetail}
+          placeName={!isFiltering ? trimmedPlaceName : undefined}
+          placeId={!isFiltering ? folderId : undefined}
+          placeAddress={!isFiltering ? placeAddress : undefined}
+          showPlace={!isFiltering && !!trimmedPlaceName}
         />
 
         {/* Enhanced Image Container */}
@@ -456,11 +448,6 @@ const UserPost: React.FC<UserPostProps> = ({
 // Enhanced Styles
 const styles = StyleSheet.create({
   postContainer: {},
-  placeName: {
-    backgroundColor: primaryBgColor,
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
   contentContainer: {
     backgroundColor: postBgColor,
     borderRadius: CARD_BORDER_RADIUS,
@@ -504,9 +491,6 @@ const styles = StyleSheet.create({
 });
 
 const tabletStyles = StyleSheet.create({
-  placeName: {
-    paddingVertical: 16,
-  },
   contentContainer: {
     marginHorizontal: CARD_MARGIN * 2,
     borderRadius: CARD_BORDER_RADIUS + 4,

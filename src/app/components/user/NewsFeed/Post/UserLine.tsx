@@ -91,6 +91,10 @@ type Props = {
   onShare?: () => void; // Optional callback for sharing post
   onHighlightChange?: (isHighlighted: boolean) => void; // Callback when highlight state changes
   onViewDetail?: () => void; // Optional callback for viewing post detail
+  placeName?: string; // Place name to display
+  placeId?: string; // Place ID for navigation
+  placeAddress?: string; // Place address
+  showPlace?: boolean; // Whether to show place instead of user
 };
 
 const UserLineComponent = ({
@@ -109,12 +113,17 @@ const UserLineComponent = ({
   onShare,
   onHighlightChange,
   onViewDetail,
+  placeName,
+  placeId: placeIdProp,
+  placeAddress,
+  showPlace = false,
 }: Props) => {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
   const [localIsHighlighted, setLocalIsHighlighted] = useState(isHighlighted);
   const queryClient = useQueryClient();
-  const { placeId } = usePlaceStore();
+  const { placeId: currentPlaceId } = usePlaceStore();
+  const { setPlaceId, setPlaceName, setPlaceAddress } = usePlaceStore();
   const { t, i18n } = useTranslation();
   const { showSuccessToast, showErrorToast } = useCustomToast();
 
@@ -222,6 +231,17 @@ const UserLineComponent = ({
 
   const safeUserName = user?.displayName || 'Unknown User';
   const safeAddress = address || '';
+  const safePlaceName = placeName || '';
+  const safePlaceAddress = placeAddress || safeAddress;
+
+  // Navigate to place
+  const handleNavigateToPlace = useCallback(() => {
+    if (placeName && placeIdProp) {
+      setPlaceName(placeName);
+      setPlaceId(placeIdProp);
+      setPlaceAddress(safePlaceAddress);
+    }
+  }, [placeName, placeIdProp, safePlaceAddress, setPlaceName, setPlaceId, setPlaceAddress]);
 
   // --- CALLBACKS ---
   const handleReport = useCallback(
@@ -348,10 +368,10 @@ const UserLineComponent = ({
     () =>
       confirmDelete(() => {
         if (postId) {
-          deletePost(postId, placeId);
+          deletePost(postId, placeIdProp || currentPlaceId);
         }
       }),
-    [confirmDelete, deletePost, postId, placeId]
+    [confirmDelete, deletePost, postId, placeIdProp, currentPlaceId]
   );
 
   const handleHighlight = useCallback(async () => {
@@ -510,26 +530,33 @@ const UserLineComponent = ({
           </TouchableOpacity>
 
           <View style={styles.textContainer}>
+            {/* Place name nad userName s šípkou */}
+            {showPlace && safePlaceName && (
+              <View style={styles.placeNameRow}>
+                <TouchableOpacity 
+                  onPress={handleNavigateToPlace}
+                  style={styles.placeNameContainer}
+                >
+                  <Text style={styles.placeName} numberOfLines={1}>
+                    {safePlaceName}
+                  </Text>
+                  <FontAwesomeIcon
+                    icon={Icons.ChevronRight}
+                    size={12}
+                    color="#E0E0E0"
+                    style={styles.placeArrowIcon}
+                  />
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* User name row */}
             <View style={styles.nameRow}>
               <TouchableOpacity onPress={onUserPress} disabled={!onUserPress}>
                 <Text style={styles.name} numberOfLines={1}>
                   {safeUserName}
                 </Text>
               </TouchableOpacity>
-              {user?.role === 'ADMIN' && (
-                <View style={styles.roleBadge}>
-                  <View
-                    style={[styles.roleDot, { backgroundColor: '#FF6B6B' }]}
-                  />
-                </View>
-              )}
-              {user?.role === 'MODERATOR' && (
-                <View style={styles.roleBadge}>
-                  <View
-                    style={[styles.roleDot, { backgroundColor: '#007AFF' }]}
-                  />
-                </View>
-              )}
               {localIsHighlighted && (
                 <View style={styles.highlightBadge}>
                   <FontAwesomeIcon
@@ -541,14 +568,6 @@ const UserLineComponent = ({
               )}
             </View>
 
-            {/* Adresa na vlastnom riadku - bez ikony a bez marginLeft */}
-            {safeAddress && (
-              <View style={styles.addressRow}>
-                <Text style={styles.address} numberOfLines={2}>
-                  {safeAddress}
-                </Text>
-              </View>
-            )}
 
             {/* Čas na vlastnom riadku - vylepšené formátovanie */}
             <View style={styles.timeRow}>
@@ -612,11 +631,15 @@ export const UserLine = React.memo(UserLineComponent, (prev, next) => {
     prev.onPress === next.onPress &&
     prev.onUserPress === next.onUserPress &&
     prev.onShare === next.onShare &&
-    prev.onHighlightChange === next.onHighlightChange
+    prev.onHighlightChange === next.onHighlightChange &&
+    prev.placeName === next.placeName &&
+    prev.placeId === next.placeId &&
+    prev.placeAddress === next.placeAddress &&
+    prev.showPlace === next.showPlace
   );
 });
 
-// Enhanced Styles
+// Enhanced Modern Styles
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
@@ -633,9 +656,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
+  contentWrapper: {
+    flex: 1,
+  },
   userSection: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  textContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  
+  placeNameRow: {
+    marginBottom: 1,
+  },
+  placeNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  placeName: {
+    fontSize: 18,
+    color: '#E0E0E0',
+    fontWeight: '700',
+    letterSpacing: 0.2,
+    marginRight: 6,
+  },
+  placeArrowIcon: {
+    opacity: 0.7,
+  },
+  
+  // User Section
+  userInfoSection: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  userAvatarSection: {
+    marginRight: 12,
   },
   avatarContainer: {
     marginRight: 14,
@@ -645,32 +702,28 @@ const styles = StyleSheet.create({
   avatar: {
     borderWidth: 0,
   },
-  avatarFallback: {
-    backgroundColor: 'transparent',
-    color: 'white',
-  },
-  textContainer: {
+  userTextContainer: {
     flex: 1,
-    justifyContent: 'center',
+    paddingTop: 2,
   },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    justifyContent: 'space-between',
+    marginBottom: 4,
   },
   name: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '500',
     color: 'white',
     letterSpacing: 0.3,
   },
-  highlightBadge: {
-    backgroundColor: 'rgba(255, 193, 7, 0.15)',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 193, 7, 0.3)',
+  
+  // Badges
+  badgesContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   roleBadge: {
     marginLeft: 6,
@@ -682,33 +735,40 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
   },
-  addressRow: {
-    marginBottom: 2,
-    paddingRight: 20,
+  highlightBadge: {
+    backgroundColor: 'rgba(255, 193, 7, 0.15)',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 193, 7, 0.3)',
   },
-  address: {
-    fontSize: 13,
-    color: separatorColor,
-    flex: 1,
-    fontWeight: '500',
-    lineHeight: 18,
-  },
+  
+  // Time Section
   timeRow: {
-    // marginTop odstránený, gap je už malý
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  timeIcon: {
+    marginRight: 4,
+    opacity: 0.8,
   },
   timeText: {
     fontSize: 13,
     color: primaryColor,
     fontWeight: '600',
   },
+  
+  // More Button
   moreButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    marginTop: 4,
   },
 });
