@@ -131,7 +131,7 @@ const mainLinking = {
 
 export const Navigation = () => {
   const { isAppInitialized } = useAppInitialization();
-  const { isAuthenticated, isLoading: isAuthLoading, user } = useAuth();
+  const { isAuthenticated, isLoading: isAuthLoading, isRestoring, user } = useAuth();
 
   const { hasAllRequiredPermissions, checkAllPermissions } = usePermissionsContext();
   const { appState } = useAppState();
@@ -152,12 +152,14 @@ export const Navigation = () => {
 
   // Always check permissions when app starts, even if none are required
   useEffect(() => {
-    if (isAppInitialized && !isAuthLoading && !isNetworkLoading) {
+    if (isAppInitialized && !isAuthLoading && !isRestoring && !isNetworkLoading) {
       checkAllPermissions();
     }
-  }, [isAppInitialized, isAuthLoading, isNetworkLoading]); // Removed checkAllPermissions from deps
+  }, [isAppInitialized, isAuthLoading, isRestoring, isNetworkLoading]); // Removed checkAllPermissions from deps
 
-  if (!isAppInitialized || isNetworkLoading || isAuthLoading) {
+  // Senior-level: CRITICAL - Don't render navigation until restoration is complete
+  // This prevents race condition where UI renders before auth state is determined
+  if (!isAppInitialized || isNetworkLoading || isAuthLoading || isRestoring) {
     return <Loading />;
   }
 
