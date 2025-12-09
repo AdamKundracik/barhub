@@ -32,6 +32,7 @@ import { useTutorial } from '@/src/app/utils/hooks/useTutorial';
 import { useNavigationStore } from '@/src/app/utils/store/navigationStore';
 import { userService } from '@/src/app/services/userService';
 import { getRemainingCooldownSeconds } from '@/src/app/utils/helper-functions/canUploadPost';
+import { useCustomToast } from '@/src/app/components/shared/Toaster';
 
 const Tab = createBottomTabNavigator();
 
@@ -47,6 +48,7 @@ const BottomTabs = () => {
   const { showTutorial, markTutorialAsViewed, skipTutorial } = useTutorial();
   const { setPreviousPage } = useNavigationStore();
   const [isCheckingUpload, setIsCheckingUpload] = useState(false);
+  const { showErrorToast } = useCustomToast();
 
   // console.log('[BottomTabs] showTutorial:', showTutorial);
 
@@ -90,8 +92,22 @@ const BottomTabs = () => {
           );
           return;
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error checking upload permission:', error);
+        setIsCheckingUpload(false);
+        
+        // Extract error data from server response
+        const responseData = error?.response?.data;
+        const errorType = responseData?.error || error?.response?.statusText || 'Error';
+        const statusCode = responseData?.status || error?.response?.status;
+        const errorMessage = responseData?.message || error?.message || t('errors.uploadCheckFailed') || 'Failed to check upload permission';
+        
+        // Format: "Internal Server Error: 500"
+        const errorTitle = statusCode ? `${errorType}: ${statusCode}` : errorType;
+        
+        // Show error toast with formatted title and message
+        showErrorToast(errorTitle, errorMessage);
+        
         // Fallback to local check if API fails
         const remainingSeconds = getRemainingCooldownSeconds(userData?.lastUploadedPostAt);
         if (remainingSeconds > 0) {
@@ -99,13 +115,15 @@ const BottomTabs = () => {
           const seconds = remainingSeconds % 60;
           const formatWait = `${minutes}:${seconds.toString().padStart(2, '0')}`;
           
-          setIsCheckingUpload(false);
           Alert.alert(
             t('camera.waitBeforeNextUpload', { time: formatWait })
           );
           return;
         }
+        // If no cooldown, allow upload to proceed
+        return;
       } finally {
+        // Ensure loading state is reset
         setIsCheckingUpload(false);
       }
     }

@@ -362,17 +362,8 @@ class UserService {
 
   // Check if user can upload a new post (5-minute cooldown)
   async canUploadPost(): Promise<UploadCheckResponseDTO> {
-    try {
-      const response = await httpClient.get<UploadCheckResponseDTO>(ENDPOINTS.USERS.CAN_UPLOAD);
-      return response;
-    } catch (error) {
-      console.error('Error checking upload permission:', error);
-      // Return default response on error
-      return {
-        canUpload: false,
-        remainingSeconds: 0,
-      };
-    }
+    const response = await httpClient.get<UploadCheckResponseDTO>(ENDPOINTS.USERS.CAN_UPLOAD);
+    return response;
   }
 }
 
