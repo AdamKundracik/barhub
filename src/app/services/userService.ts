@@ -6,6 +6,7 @@ import {
   PushTokenRequestDTO,
   RoleEnum,
   SearchHistoryItemEmbeddable,
+  UploadCheckResponseDTO,
   UploadLocationRequestDTO,
   UserProfileDTO,
 } from '../types/dto';
@@ -356,6 +357,21 @@ class UserService {
     } catch (error) {
       console.error('Error fetching blocked users:', error);
       return [];
+    }
+  }
+
+  // Check if user can upload a new post (5-minute cooldown)
+  async canUploadPost(): Promise<UploadCheckResponseDTO> {
+    try {
+      const response = await httpClient.get<UploadCheckResponseDTO>(ENDPOINTS.USERS.CAN_UPLOAD);
+      return response;
+    } catch (error) {
+      console.error('Error checking upload permission:', error);
+      // Return default response on error
+      return {
+        canUpload: false,
+        remainingSeconds: 0,
+      };
     }
   }
 }

@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Platform,
   StyleSheet,
@@ -29,6 +30,8 @@ import { useUserRole } from '@/src/app/hooks/useUserRole';
 import { TutorialWizard } from './TutorialWizard';
 import { useTutorial } from '@/src/app/utils/hooks/useTutorial';
 import { useNavigationStore } from '@/src/app/utils/store/navigationStore';
+import { userService } from '@/src/app/services/userService';
+import { getRemainingCooldownSeconds } from '@/src/app/utils/helper-functions/canUploadPost';
 
 const Tab = createBottomTabNavigator();
 
@@ -43,6 +46,7 @@ const BottomTabs = () => {
   const { hasAdminAccess } = useUserRole();
   const { showTutorial, markTutorialAsViewed, skipTutorial } = useTutorial();
   const { setPreviousPage } = useNavigationStore();
+  const [isCheckingUpload, setIsCheckingUpload] = useState(false);
 
   // console.log('[BottomTabs] showTutorial:', showTutorial);
 
@@ -70,27 +74,39 @@ const BottomTabs = () => {
 
     // 2️⃣ Check last uploaded post (5 min cooldown) - only for regular users
     if (!hasAdminAccess) {
-      const lastDate = userData?.lastUploadedPostAt
-        ? new Date(userData.lastUploadedPostAt)
-        : null;
-      if (lastDate) {
-        const now = Date.now();
-        const diffMs = now - lastDate.getTime();
-        const fiveMinutes = 5 * 60 * 1000;
-
-        if (diffMs < fiveMinutes) {
-          const waitMs = fiveMinutes - diffMs;
-          const formatWait = (ms: number) => {
-            const totalSeconds = Math.ceil(ms / 1000);
-            const minutes = Math.floor(totalSeconds / 60);
-            const seconds = totalSeconds % 60;
-            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-          };
+      setIsCheckingUpload(true);
+      try {
+        const uploadCheck = await userService.canUploadPost();
+        if (!uploadCheck.canUpload) {
+          // Use remainingSeconds from API response
+          const remainingSeconds = uploadCheck.remainingSeconds || 0;
+          const minutes = Math.floor(remainingSeconds / 60);
+          const seconds = remainingSeconds % 60;
+          const formatWait = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+          
+          setIsCheckingUpload(false);
           Alert.alert(
-            t('camera.waitBeforeNextUpload', { time: formatWait(waitMs) })
+            t('camera.waitBeforeNextUpload', { time: formatWait })
           );
           return;
         }
+      } catch (error) {
+        console.error('Error checking upload permission:', error);
+        // Fallback to local check if API fails
+        const remainingSeconds = getRemainingCooldownSeconds(userData?.lastUploadedPostAt);
+        if (remainingSeconds > 0) {
+          const minutes = Math.floor(remainingSeconds / 60);
+          const seconds = remainingSeconds % 60;
+          const formatWait = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+          
+          setIsCheckingUpload(false);
+          Alert.alert(
+            t('camera.waitBeforeNextUpload', { time: formatWait })
+          );
+          return;
+        }
+      } finally {
+        setIsCheckingUpload(false);
       }
     }
 
@@ -162,12 +178,17 @@ const BottomTabs = () => {
                 onPress={handleOpenCamera}
                 style={styles.cameraButton}
                 activeOpacity={0.5}
+                disabled={isCheckingUpload}
               >
-                <FontAwesomeIcon
-                  icon={Icons.Camera}
-                  size={26}
-                  color={primaryBgColor}
-                />
+                {isCheckingUpload ? (
+                  <ActivityIndicator size="small" color={primaryBgColor} />
+                ) : (
+                  <FontAwesomeIcon
+                    icon={Icons.Camera}
+                    size={26}
+                    color={primaryBgColor}
+                  />
+                )}
               </TouchableOpacity>
             ),
           }}
