@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 import UserPost from './Post/UserPost';
 import LoadingIndicator from './LoadingIndicator';
@@ -13,6 +13,8 @@ import { Post } from '@/src/app/types/postTypes';
 import { User } from '@/shared';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { PremiumHelpers } from '@/src/app/config/premiumConfig';
+import { getFrequencyConfig } from '@/src/app/config/productionAdConfig';
+import { simpleAdMetrics } from '@/src/app/utils/simpleAdMetrics';
 
 interface PostsListProps {
   posts: Post[];
@@ -133,11 +135,45 @@ const PostsList = ({
         </View>
       );
 
-      // Show ad every 2 posts (but not on first post)
-      // Check config: if ALWAYS_SHOW_ADS is true, ignore premium status
-      // Rate limiting is handled inside InlineAd component
-      const shouldShowAd =
-        index > 0 && index % 2 === 0 && PremiumHelpers.shouldAlwaysShowAds();
+      // Production-optimized ad positioning
+      const shouldShowAd = (() => {
+        // Check if ads are enabled
+        if (!PremiumHelpers.shouldAlwaysShowAds()) {
+          return false;
+        }
+        
+        const config = getFrequencyConfig();
+        const totalPosts = posts.length;
+        
+        // Skip first post for better UX
+        if (index < config.MIN_POSTS_FOR_ADS) {
+          return false;
+        }
+        
+        // Skip last post
+        if (index >= totalPosts - 1) {
+          return false;
+        }
+        
+        // Adaptive frequency based on feed size and performance
+        let frequency = config.BASE_FREQUENCY;
+        
+        if (totalPosts < 5) {
+          // For very small feeds, show one ad in the middle
+          return index === Math.floor(totalPosts / 2);
+        }
+        
+        // Reduce frequency if ads are failing too often
+        if (simpleAdMetrics.shouldReduceFrequency()) {
+          frequency = Math.min(5, frequency + 1); // Less frequent if failing
+        } else if (totalPosts > 20) {
+          // More frequent in long feeds for better revenue (only if ads are working)
+          frequency = Math.max(2, frequency - 1);
+        }
+        
+        // Primary ad positions
+        return index % frequency === 0;
+      })();
 
       if (shouldShowAd) {
         return (
