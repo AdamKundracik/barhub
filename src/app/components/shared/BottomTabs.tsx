@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Platform,
   StyleSheet,
@@ -22,18 +23,23 @@ import { Account } from '@/src/app/screens/user/Account';
 import { BlurView } from 'expo-blur';
 import { useTranslation } from 'react-i18next';
 import { usePostsStore } from '@/src/app/utils/store/postStore';
+import { useLeaderboardStore } from '@/src/app/utils/store/leaderboardStore';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { useNewsFeedData } from '@/src/app/utils/hooks/NewsFeed/usePostData';
 import { useUserRole } from '@/src/app/hooks/useUserRole';
 import { TutorialWizard } from './TutorialWizard';
 import { useTutorial } from '@/src/app/utils/hooks/useTutorial';
 import { useNavigationStore } from '@/src/app/utils/store/navigationStore';
+import { userService } from '@/src/app/services/userService';
+import { getRemainingCooldownSeconds } from '@/src/app/utils/helper-functions/canUploadPost';
+import { useCustomToast } from '@/src/app/components/shared/Toaster';
 
 const Tab = createBottomTabNavigator();
 
 const BottomTabs = () => {
   const { useFakeLocation } = useLocationStore();
   const { scrollOnTop } = usePostsStore();
+  const { scrollOnTop: scrollLeaderboardToTop } = useLeaderboardStore();
   const { userData } = useUserStore();
   const { refetch } = useNewsFeedData();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
@@ -41,6 +47,8 @@ const BottomTabs = () => {
   const { hasAdminAccess } = useUserRole();
   const { showTutorial, markTutorialAsViewed, skipTutorial } = useTutorial();
   const { setPreviousPage } = useNavigationStore();
+  const [isCheckingUpload, setIsCheckingUpload] = useState(false);
+  const { showErrorToast } = useCustomToast();
 
   // console.log('[BottomTabs] showTutorial:', showTutorial);
 
@@ -68,27 +76,55 @@ const BottomTabs = () => {
 
     // 2️⃣ Check last uploaded post (5 min cooldown) - only for regular users
     if (!hasAdminAccess) {
-      const lastDate = userData?.lastUploadedPostAt
-        ? new Date(userData.lastUploadedPostAt)
-        : null;
-      if (lastDate) {
-        const now = Date.now();
-        const diffMs = now - lastDate.getTime();
-        const fiveMinutes = 5 * 60 * 1000;
-
-        if (diffMs < fiveMinutes) {
-          const waitMs = fiveMinutes - diffMs;
-          const formatWait = (ms: number) => {
-            const totalSeconds = Math.ceil(ms / 1000);
-            const minutes = Math.floor(totalSeconds / 60);
-            const seconds = totalSeconds % 60;
-            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-          };
+      setIsCheckingUpload(true);
+      try {
+        const uploadCheck = await userService.canUploadPost();
+        if (!uploadCheck.canUpload) {
+          // Use remainingSeconds from API response
+          const remainingSeconds = uploadCheck.remainingSeconds || 0;
+          const minutes = Math.floor(remainingSeconds / 60);
+          const seconds = remainingSeconds % 60;
+          const formatWait = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+          
+          setIsCheckingUpload(false);
           Alert.alert(
-            t('camera.waitBeforeNextUpload', { time: formatWait(waitMs) })
+            t('camera.waitBeforeNextUpload', { time: formatWait })
           );
           return;
         }
+      } catch (error: any) {
+        console.error('Error checking upload permission:', error);
+        setIsCheckingUpload(false);
+        
+        // Extract error data from server response
+        const responseData = error?.response?.data;
+        const errorType = responseData?.error || error?.response?.statusText || 'Error';
+        const statusCode = responseData?.status || error?.response?.status;
+        const errorMessage = responseData?.message || error?.message || t('errors.uploadCheckFailed') || 'Failed to check upload permission';
+        
+        // Format: "Internal Server Error: 500"
+        const errorTitle = statusCode ? `${errorType}: ${statusCode}` : errorType;
+        
+        // Show error toast with formatted title and message
+        showErrorToast(errorTitle, errorMessage);
+        
+        // Fallback to local check if API fails
+        const remainingSeconds = getRemainingCooldownSeconds(userData?.lastUploadedPostAt);
+        if (remainingSeconds > 0) {
+          const minutes = Math.floor(remainingSeconds / 60);
+          const seconds = remainingSeconds % 60;
+          const formatWait = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+          
+          Alert.alert(
+            t('camera.waitBeforeNextUpload', { time: formatWait })
+          );
+          return;
+        }
+        // If no cooldown, allow upload to proceed
+        return;
+      } finally {
+        // Ensure loading state is reset
+        setIsCheckingUpload(false);
       }
     }
 
@@ -160,12 +196,17 @@ const BottomTabs = () => {
                 onPress={handleOpenCamera}
                 style={styles.cameraButton}
                 activeOpacity={0.5}
+                disabled={isCheckingUpload}
               >
-                <FontAwesomeIcon
-                  icon={Icons.Camera}
-                  size={26}
-                  color={primaryBgColor}
-                />
+                {isCheckingUpload ? (
+                  <ActivityIndicator size="small" color={primaryBgColor} />
+                ) : (
+                  <FontAwesomeIcon
+                    icon={Icons.Camera}
+                    size={26}
+                    color={primaryBgColor}
+                  />
+                )}
               </TouchableOpacity>
             ),
           }}
@@ -185,6 +226,16 @@ const BottomTabs = () => {
               />
             ),
           }}
+          listeners={({ navigation }) => ({
+            tabPress: () => {
+              const state = navigation.getState();
+              const focused = state.routes[state.index].name;
+
+              if (focused === 'LeaderboardScreen') {
+                scrollLeaderboardToTop();
+              }
+            },
+          })}
         />
 
         <Tab.Screen

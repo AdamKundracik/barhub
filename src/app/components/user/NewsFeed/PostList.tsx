@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 import UserPost from './Post/UserPost';
 import LoadingIndicator from './LoadingIndicator';
@@ -6,13 +6,15 @@ import PostOldInfo from './Post/PostOldInfo';
 import { usePlaceStore } from '../../../utils/store/placesStore';
 import { primaryColor } from '../../../utils/styles/colors';
 import { useTranslation } from 'react-i18next';
-import NativeAdComponent from '@/src/app/components/user/NativeAd';
+import InlineAd from '@/src/app/components/user/InlineAd';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { usePostsStore } from '@/src/app/utils/store/postStore';
 import { Post } from '@/src/app/types/postTypes';
 import { User } from '@/shared';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { PremiumHelpers } from '@/src/app/config/premiumConfig';
+import { getFrequencyConfig } from '@/src/app/config/productionAdConfig';
+import { simpleAdMetrics } from '@/src/app/utils/simpleAdMetrics';
 
 interface PostsListProps {
   posts: Post[];
@@ -60,20 +62,7 @@ const PostsList = ({
     if (flatListRef) {
       setListRef(flatListRef);
     }
-  }, [flatListRef]);
-
-  // const handleScroll = (event: any) => {
-  //   const scrollPosition = event.nativeEvent.contentOffset.y;
-  //   const shouldShow = scrollPosition > 300;
-  //
-  //   if (shouldShow !== showScrollTopButton) {
-  //     setShowScrollTopButton(shouldShow);
-  //     Animated.spring(scrollButtonAnimation, {
-  //       toValue: shouldShow ? 1 : 0,
-  //       useNativeDriver: true,
-  //     }).start();
-  //   }
-  // };
+  }, [setListRef]);
 
   const isOlderThanMinutes = (
     date: Date | string | number | any,
@@ -106,10 +95,6 @@ const PostsList = ({
     return now - timestampMs > minutesInMs;
   };
 
-  // const scrollToTop = () => {
-  //   flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
-  // };
-
   const ListFooter = ({
     isFetchingNextPage,
     hasMorePosts,
@@ -127,13 +112,6 @@ const PostsList = ({
     return null;
   };
 
-  // ✅ Memoizovaný NativeAd komponent
-  const MemoizedNativeAd = React.memo(
-    () => <NativeAdComponent />,
-    () => true
-  );
-
-  // ✅ Memoizovaný renderItem
   const renderItem = useCallback(
     ({ item, index }: { item: Post; index: number }) => {
       const postView = (
@@ -157,19 +135,50 @@ const PostsList = ({
         </View>
       );
 
-      // Show ad every 2 posts (but not on first post)
-      // Check config: if ALWAYS_SHOW_ADS is true, ignore premium status
-      // If ALWAYS_SHOW_ADS is false, respect premium status
-      const shouldShowAd =
-        index > 0 && index % 2 === 0 && PremiumHelpers.shouldAlwaysShowAds();
-      // || !isPremium()
+      // Production-optimized ad positioning
+      const shouldShowAd = (() => {
+        // Check if ads are enabled
+        if (!PremiumHelpers.shouldAlwaysShowAds()) {
+          return false;
+        }
+        
+        const config = getFrequencyConfig();
+        const totalPosts = posts.length;
+        
+        // Skip first post for better UX
+        if (index < config.MIN_POSTS_FOR_ADS) {
+          return false;
+        }
+        
+        // Skip last post
+        if (index >= totalPosts - 1) {
+          return false;
+        }
+        
+        // Adaptive frequency based on feed size and performance
+        let frequency = config.BASE_FREQUENCY;
+        
+        if (totalPosts < 5) {
+          // For very small feeds, show one ad in the middle
+          return index === Math.floor(totalPosts / 2);
+        }
+        
+        // Reduce frequency if ads are failing too often
+        if (simpleAdMetrics.shouldReduceFrequency()) {
+          frequency = Math.min(5, frequency + 1); // Less frequent if failing
+        } else if (totalPosts > 20) {
+          // More frequent in long feeds for better revenue (only if ads are working)
+          frequency = Math.max(2, frequency - 1);
+        }
+        
+        // Primary ad positions
+        return index % frequency === 0;
+      })();
 
       if (shouldShowAd) {
         return (
-          <View key={`post-with-ad-${item.id}`}>
-            <View key={`ad-${index}`}>
-              <MemoizedNativeAd />
-            </View>
+          <View>
+            <InlineAd />
             {postView}
           </View>
         );
@@ -223,30 +232,6 @@ const PostsList = ({
           </>
         }
       />
-      {/*SCROLL TO TOP BUTTON*/}
-      {/*<Animated.View*/}
-      {/*  style={[*/}
-      {/*    styles.scrollTopButton,*/}
-      {/*    {*/}
-      {/*      transform: [*/}
-      {/*        {*/}
-      {/*          scale: scrollButtonAnimation.interpolate({*/}
-      {/*            inputRange: [0, 1],*/}
-      {/*            outputRange: [0, 1],*/}
-      {/*          }),*/}
-      {/*        },*/}
-      {/*      ],*/}
-      {/*      opacity: scrollButtonAnimation,*/}
-      {/*    },*/}
-      {/*  ]}*/}
-      {/*>*/}
-      {/*  <TouchableOpacity*/}
-      {/*    onPress={scrollToTop}*/}
-      {/*    style={styles.scrollTopButtonTouchable}*/}
-      {/*  >*/}
-      {/*    <FontAwesomeIcon icon={Icons.Up} size={20} color="black" />*/}
-      {/*  </TouchableOpacity>*/}
-      {/*</Animated.View>*/}
     </View>
   );
 };
@@ -258,27 +243,6 @@ const styles = StyleSheet.create({
   scrollView: {
     flexGrow: 1,
     paddingBottom: 80,
-  },
-  scrollTopButton: {
-    position: 'absolute',
-    bottom: 10,
-    right: 20,
-    backgroundColor: primaryColor,
-    borderRadius: 30,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  scrollTopButtonTouchable: {
-    width: 38,
-    height: 38,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });
 
