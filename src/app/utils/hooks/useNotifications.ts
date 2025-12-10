@@ -29,9 +29,9 @@ export const useNotificationsQuery = (): {
   const query = useQuery<NotificationsData, Error>({
     queryKey: ['notifications', userData?.id], // Include user ID in query key for proper cache invalidation
     queryFn: async () => {
-      console.log('[useNotificationsQuery] queryFn called - fetching notifications');
+      console.log('[useNotificationsQuery] queryFn called - fetching notifications for user:', userData?.id);
       const res = await getUserNotifications();
-      console.log('[useNotificationsQuery] queryFn completed - notifications count:', res.newNotificationsCount);
+      console.log('[useNotificationsQuery] queryFn completed - notifications count:', res.newNotificationsCount, 'total notifications:', res.notifications?.length || 0);
       return {
         notifications: res.notifications,
         hasNewNotifications: res.newNotificationsCount > 0,
@@ -42,7 +42,7 @@ export const useNotificationsQuery = (): {
     retry: 1, // Retry once on error
     retryDelay: 1000, // Wait 1 second before retry
     onSuccess: async data => {
-      console.log('[useNotificationsQuery] onSuccess - setting notifications, count:', data.newNotificationsCount);
+      console.log('[useNotificationsQuery] onSuccess - setting notifications, count:', data.newNotificationsCount, 'total:', data.notifications?.length || 0);
       // Always set notifications to store, even if empty
       setNotifications(data);
     },
@@ -55,12 +55,20 @@ export const useNotificationsQuery = (): {
         newNotificationsCount: 0,
       });
     },
-    staleTime: 60000, // 1 minute cache
-    cacheTime: 300000, // 5 minutes
+    staleTime: 60000, // 1 minute - notifications don't change that frequently
+    cacheTime: 600000, // 10 minutes - keep in memory longer
     refetchOnWindowFocus: false, // Don't auto-refetch - badge should stay until mark all as read
     refetchInterval: false,
     // Use cached data if available while refetching
     keepPreviousData: true,
+    // Refetch on mount only if data is stale (respects staleTime)
+    refetchOnMount: true,
+    // Retry configuration for better reliability
+    retry: (failureCount, error) => {
+      // Don't retry auth errors, but retry network errors up to 2 times
+      if (error?.message?.includes('not authenticated')) return false;
+      return failureCount < 2;
+    },
   });
 
   console.log('[useNotificationsQuery] Query state - isLoading:', query.isLoading, 'isFetching:', query.isFetching, 'isError:', query.isError, 'enabled:', isAuthenticated);

@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { LocationType } from '../types/types';
-import { userService } from '@/src/app/services/userService';
-import { useUserStore as useNewUserStore } from '@/src/app/utils/store/userStore';
+import { userService } from '../../services/userService';
+import { useUserStore as useNewUserStore } from './userStore';
 
 interface LocationStore {
   location: LocationType | null;

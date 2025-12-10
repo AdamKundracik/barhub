@@ -15,6 +15,7 @@ import ConsentManagement from '@/src/app/screens/admin/ConsentManagement';
 import { PrivacyData } from '@/src/app/screens/user/PrivacyData';
 import { ReportsManagement } from '@/src/app/screens/user/ReportsManagement';
 import { BlockedUsers } from '@/src/app/screens/user/BlockedUsers';
+import { MyPosts } from '@/src/app/screens/user/MyPosts';
 import TermsOfService from '../screens/auth/LegalDocuments/TermsOfService';
 import PrivacyPolicy from '../screens/auth/LegalDocuments/PrivacyPolicy';
 import CommunityGuidelines from '../screens/auth/LegalDocuments/CommunityGuidelines';
@@ -66,6 +67,7 @@ export function UserNav() {
 
       <RootStack.Screen name="Licenses" component={Licenses} />
       <RootStack.Screen name="BlockedUsers" component={BlockedUsers} />
+      <RootStack.Screen name="MyPosts" component={MyPosts} />
 
       {/* Legal Documents */}
       <RootStack.Screen name="TermsOfService" component={TermsOfService} />

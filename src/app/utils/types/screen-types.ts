@@ -36,6 +36,8 @@ export type UserStackList = {
 
   BlockedUsers: undefined;
 
+  MyPosts: undefined;
+
   UserDetail: { userId: string };
 };
 

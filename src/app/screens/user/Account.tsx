@@ -518,6 +518,16 @@ export const Account = () => {
                 }
               />
             </View>
+
+            {/* My Posts Button */}
+            <View style={{ marginTop: 16 }}>
+              <ActionButton
+                icon={Icons.Image}
+                title={t('my-posts') || 'My Posts'}
+                description={t('view-all-my-posts') || 'View all your posts'}
+                onPress={() => navigation.navigate('MyPosts' as never)}
+              />
+            </View>
           </View>
         </BlurView>
 
