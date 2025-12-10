@@ -335,63 +335,35 @@ class AuthService {
     return tokenManager.getAccessToken();
   }
 
-  // Check if user is authenticated (has valid token) - enhanced for physical devices
-  async isAuthenticated(forInitialization: boolean = false): Promise<boolean> {
+  // Simple session validation - the core of authentication
+  async validateSession(): Promise<boolean> {
     try {
-      console.log(`🔍 [AUTH] Checking authentication (forInitialization: ${forInitialization})`);
+      // Wait for tokens to be loaded first
+      await tokenManager.waitUntilInitialized();
       
-      // CRITICAL: During initialization, ensure tokens are loaded before checking
-      // This prevents race condition where tokens aren't loaded yet
-      if (forInitialization) {
-        console.log('⏳ [AUTH] Waiting for token initialization...');
-        await tokenManager.waitUntilInitialized();
-        console.log('✅ [AUTH] Token initialization complete, proceeding with auth check');
-      }
-      
-      // Use async token loading with enhanced error handling
-      const token = await tokenManager.getAccessTokenAsync(forInitialization);
-      if (!token) {
-        console.log(`❌ [AUTH] No access token available (forInitialization: ${forInitialization})`);
+      // Get access token
+      const accessToken = await tokenManager.getAccessTokenAsync(true);
+      if (!accessToken) {
         return false;
       }
 
-      // Check token expiration with enhanced logic
-      if (tokenManager.isTokenExpired(token)) {
-        console.log('⏰ [AUTH] Access token is expired, attempting refresh');
-        
-        // During initialization, verify refresh token is available before attempting refresh
-        if (forInitialization) {
-          // Pre-load refresh token to ensure it's cached
-          const refreshToken = await tokenManager.getRefreshToken(true);
-          if (!refreshToken) {
-            console.log('❌ [AUTH] No refresh token available during initialization');
-            return false;
-          }
-          console.log('✅ [AUTH] Refresh token available, proceeding with token refresh');
-        }
-        
-        const newToken = await this.refreshAccessToken();
-        const isAuthenticated = !!newToken;
-        console.log(`${isAuthenticated ? '✅' : '❌'} [AUTH] Token refresh ${isAuthenticated ? 'successful' : 'failed'}`);
-        return isAuthenticated;
+      // If token is not expired, we're good
+      if (!tokenManager.isTokenExpired(accessToken)) {
+        return true;
       }
 
-      console.log('✅ [AUTH] User is authenticated with valid token');
-      return true;
+      // Token is expired, try to refresh
+      const newToken = await this.refreshAccessToken();
+      return !!newToken;
     } catch (error) {
-      console.error('❌ [AUTH] Error checking authentication:', error);
-      
-      // During initialization, don't immediately fail - token might be in memory
-      if (forInitialization) {
-        const memoryToken = tokenManager.getAccessToken();
-        if (memoryToken && !tokenManager.isTokenExpired(memoryToken)) {
-          console.log('✅ [AUTH] Using valid token from memory during initialization');
-          return true;
-        }
-      }
-      
+      console.error('Session validation error:', error);
       return false;
     }
+  }
+
+  // Legacy method for backward compatibility
+  async isAuthenticated(forInitialization: boolean = false): Promise<boolean> {
+    return this.validateSession();
   }
 
   // Logout user

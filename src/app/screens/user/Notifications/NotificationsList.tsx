@@ -41,7 +41,18 @@ const NotificationsList: React.FC = () => {
   const [isScrollEnabled, setIsScrollEnabled] = useState(true);
   const [showAllRead, setShowAllRead] = useState(false);
 
-  // Don't auto-refetch on mount - badge should stay until user clicks "mark all as read"
+  // Debug logging
+  console.log('[NotificationsList] Component state:', {
+    storeDataExists: !!storeData,
+    notificationsCount: storeData?.notifications?.length || 0,
+    isLoading,
+    isFetching,
+    isError,
+    errorMessage: error?.message
+  });
+
+  // React Query automatically handles fetching based on refetchOnMount and staleTime
+  // No manual useEffect needed - cleaner and more performant
 
   // Memoized notifications count for performance
   const notificationStats = useMemo(() => {

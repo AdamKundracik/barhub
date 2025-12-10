@@ -199,20 +199,19 @@ const FilterSlider = () => {
       handleStyle={styles.handleStyle}
     >
       <View style={styles.container}>
-        {/* Save button in top right corner */}
-        <TouchableOpacity onPress={handleSaveChanges} style={styles.saveButton}>
-          <Text style={styles.saveButtonText}>{t('save')}</Text>
-        </TouchableOpacity>
+        {/* Fixed header with save button */}
+        <View style={styles.header}>
+          <Text style={styles.title}>{t('filters')}</Text>
+          <TouchableOpacity onPress={handleSaveChanges} style={styles.saveButton}>
+            <Text style={styles.saveButtonText}>{t('save')}</Text>
+          </TouchableOpacity>
+        </View>
 
         <ScrollView
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <View>
-            <Text style={styles.title}>{t('filters')}</Text>
-          </View>
-
           <View style={styles.section}>
             <View style={styles.distanceHeader}>
               <Text style={styles.sectionTitle}>{t('distance')}</Text>
@@ -309,16 +308,22 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    position: 'relative',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingLeft: 15,
+    paddingRight: 8, // Reduced right padding to bring button closer to edge
+    paddingTop: 10,
+    paddingBottom: 15,
+    backgroundColor: 'rgba(0, 0, 0, 1)', // Full opacity background
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },
   saveButton: {
-    position: 'absolute',
-    top: 10,
-    right: 15,
-    zIndex: 10,
     paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+    paddingHorizontal: 8, // Reduced horizontal padding
   },
   saveButtonText: {
     color: primaryColor,
@@ -328,7 +333,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 15,
     paddingBottom: 150,
-    paddingTop: 50, // Space for save button
+    paddingTop: 10, // Reduced since header is now separate
   },
   section: {
     marginVertical: 10,
@@ -346,9 +351,8 @@ const styles = StyleSheet.create({
   },
   title: {
     color: 'white',
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
-    marginBottom: 20,
   },
   fakeLocationSection: {
     marginTop: 24,

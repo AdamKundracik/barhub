@@ -80,6 +80,26 @@ class AxiosClient {
             originalRequest.url
           );
 
+          // Senior-level: Don't refresh token during app restoration
+          // Check if tokens are initialized before attempting refresh
+          if (!tokenManager.hasInitialized()) {
+            console.warn(
+              '⚠️ [AUTH] Token manager not initialized yet, skipping token refresh during restoration'
+            );
+            // Wait for initialization, but with timeout to prevent hanging
+            try {
+              await Promise.race([
+                tokenManager.waitUntilInitialized(),
+                new Promise((_, reject) => 
+                  setTimeout(() => reject(new Error('Initialization timeout')), 2000)
+                )
+              ]);
+            } catch (initError) {
+              console.warn('⚠️ [AUTH] Token initialization timeout or error, rejecting request');
+              return Promise.reject(error);
+            }
+          }
+
           // Check if app is in foreground - SecureStore requires user interaction
           const appState = AppState.currentState;
           if (appState !== 'active') {

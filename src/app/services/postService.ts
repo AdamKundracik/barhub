@@ -10,6 +10,7 @@ import {
   PostHighlightDTO,
   PostsByPlaceRequestDTO,
 } from '../types/dto';
+import { Post } from '../types/postTypes';
 
 class PostService {
   // Get fresh content posts
@@ -199,6 +200,24 @@ class PostService {
       return highlights;
     } catch (error) {
       console.error('Error fetching user highlights:', error);
+      return [];
+    }
+  }
+
+  // Get all posts by user ID
+  async getUserPosts(userId: string): Promise<Post[]> {
+    try {
+      const backendPosts = await apiUtils.get<PostDTO[]>(
+        ENDPOINTS.USERS.POSTS(userId)
+      );
+      
+      // Map backend posts to frontend format
+      const { mapBackendPostsToFrontend } = await import(
+        '../utils/mappers/postMapper'
+      );
+      return mapBackendPostsToFrontend(backendPosts);
+    } catch (error) {
+      console.error('Error fetching user posts:', error);
       return [];
     }
   }

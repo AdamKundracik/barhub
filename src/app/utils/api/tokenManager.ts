@@ -294,6 +294,14 @@ class TokenManager {
   }
 
   /**
+   * Check if tokens are initialized (synchronous, no waiting)
+   * Use this for quick checks without blocking
+   */
+  hasInitialized(): boolean {
+    return this.isInitialized;
+  }
+
+  /**
    * Store tokens in memory and SecureStore with enhanced error handling
    * If SecureStore fails, tokens are kept in memory and retried later
    */
