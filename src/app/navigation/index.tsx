@@ -7,7 +7,7 @@ import { UserNavWrapper } from './UserNavWrapper';
 import { useAppState } from '../providers/AppStateProvider';
 import { PermissionsScreen } from '../screens/user/Permissions/Permissions';
 import { usePermissionsContext } from '../providers/PermissionsProvider';
-import { useAppInitialization } from '@/src/app/utils/hooks/useInitializationApp';
+import { useAppInitialization } from '../utils/hooks/useInitializationApp';
 import { useAuth } from '../providers/AuthProvider';
 import { useNetwork } from '../providers/NetworkProvider';
 import { NetworkTopBar } from '../components/shared/NetworkTopBar';
@@ -131,7 +131,7 @@ const mainLinking = {
 
 export const Navigation = () => {
   const { isAppInitialized } = useAppInitialization();
-  const { isAuthenticated, isLoading: isAuthLoading, isRestoring, user } = useAuth();
+  const { isAuthenticated, isLoading: isAuthLoading, user } = useAuth();
 
   const { hasAllRequiredPermissions, checkAllPermissions } = usePermissionsContext();
   const { appState } = useAppState();
@@ -139,7 +139,6 @@ export const Navigation = () => {
 
   // Check if email is verified
   const isEmailVerified = user?.emailVerified ?? false;
-
 
   useEffect(() => {
     switch (appState) {
@@ -152,14 +151,26 @@ export const Navigation = () => {
 
   // Always check permissions when app starts, even if none are required
   useEffect(() => {
-    if (isAppInitialized && !isAuthLoading && !isRestoring && !isNetworkLoading) {
+    if (isAppInitialized && !isAuthLoading && !isNetworkLoading) {
       checkAllPermissions();
     }
-  }, [isAppInitialized, isAuthLoading, isRestoring, isNetworkLoading]); // Removed checkAllPermissions from deps
+  }, [isAppInitialized, isAuthLoading, isNetworkLoading]);
 
-  // Senior-level: CRITICAL - Don't render navigation until restoration is complete
-  // This prevents race condition where UI renders before auth state is determined
-  if (!isAppInitialized || isNetworkLoading || isAuthLoading || isRestoring) {
+  // CRITICAL: Wait for all systems AND auth state to be determined
+  // Don't render navigation until we know definitively if user is authenticated
+  if (!isAppInitialized || isNetworkLoading || isAuthLoading) {
+    console.log('[Navigation] Waiting for initialization...', {
+      isAppInitialized,
+      isNetworkLoading,
+      isAuthLoading,
+      isAuthenticated
+    });
+    return <Loading />;
+  }
+
+  // ADDITIONAL SAFETY: If user is supposed to be authenticated but we don't have user data yet, wait
+  if (isAuthenticated && !user) {
+    console.log('[Navigation] User authenticated but no user data yet, waiting...');
     return <Loading />;
   }
 
@@ -189,6 +200,7 @@ export const Navigation = () => {
     );
   }
 
+  console.log('[Navigation] Rendering final navigation, isAuthenticated:', isAuthenticated);
   return (
     <>
       <NetworkTopBar />

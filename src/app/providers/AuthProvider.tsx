@@ -1,10 +1,10 @@
 import React, {
   createContext,
   ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useState,
-  useCallback,
 } from 'react';
 import { useQueryClient } from 'react-query';
 import {
@@ -25,9 +25,8 @@ import {
   signInWithApple as appleSignIn,
 } from '../services/auth/appleSignIn';
 import { consentService } from '../services/consentService';
-import { JwtAuthenticationResponseDTO, OutdatedConsentDTO } from '../types/dto';
+import { OutdatedConsentDTO } from '../types/dto';
 import { axiosClient } from '../utils/api/axiosClient';
-import { tokenManager } from '../utils/api/tokenManager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Global reference to unsubscribe function (set by Navigation component)
@@ -37,12 +36,14 @@ export const setGlobalUnsubscribeNotifications = (fn: (() => void) | null) => {
   globalUnsubscribeNotifications = fn;
 };
 
+// Auth States
+type AuthState = 'loading' | 'authenticated' | 'unauthenticated';
+
 // Types
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  isRestoring: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (credentials: RegisterCredentials) => Promise<void>;
   registerWithPhoto: (
@@ -66,248 +67,244 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Auth Provider Component
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [authState, setAuthState] = useState<AuthState>('loading');
   const [user, setUser] = useState<User | null>(null);
-  const [isAuthenticatedState, setIsAuthenticatedState] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isRestoring, setIsRestoring] = useState(true);
-  const [pendingConsents, setPendingConsents] = useState<OutdatedConsentDTO[] | null>(null);
+  const [pendingConsents, setPendingConsents] = useState<
+    OutdatedConsentDTO[] | null
+  >(null);
 
   const queryClient = useQueryClient();
   const { setUserData, updateCanSeeContent } = useUserStore();
-  const { setUseFakeLocation, setFakeLocationName, setFakeLocation, setInitialized } = useLocationStore();
+  const {
+    setUseFakeLocation,
+    setFakeLocationName,
+    setFakeLocation,
+    setInitialized,
+  } = useLocationStore();
+
+  // Derived states
+  const isAuthenticated = authState === 'authenticated';
+  const isLoading = authState === 'loading';
 
   // ========== Helper Functions ==========
 
-  const saveLocationToBackend = useCallback(async (userId: string): Promise<void> => {
-    try {
-      const location = await getCoords();
-      await userService.updateLocation(userId, location);
-    } catch (error) {
-      console.error('Location save error:', error);
-    }
+  const clearAuthState = useCallback(() => {
+    setAuthState('unauthenticated');
+    setUser(null);
+    setUserData(null);
+    setUseFakeLocation(false);
+    setFakeLocationName('');
+    setInitialized(false);
+    queryClient.clear();
+  }, [
+    setUserData,
+    setUseFakeLocation,
+    setFakeLocationName,
+    setInitialized,
+    queryClient,
+  ]);
+
+  const setAuthenticatedState = useCallback(async (userData: User) => {
+    // Set user data first, then auth state - this ensures Navigation has user data when isAuthenticated becomes true
+    setUser(userData);
+    setAuthState('authenticated');
+
+    // Initialize user-related services in background
+    Promise.allSettled([
+      initializeUserStores(userData),
+      pushTokenService.initialize(userData.id.toString()),
+      loadConsentStatus(userData.id.toString()),
+    ]).catch(error => {
+      console.error('Background initialization error:', error);
+    });
   }, []);
 
-  const loadFakeLocationFromStorage = useCallback(async (): Promise<void> => {
-    try {
-      const savedPlaceJson = await AsyncStorage.getItem('fakeLocationPlace');
-      if (!savedPlaceJson) return;
-      
-      const savedPlace = JSON.parse(savedPlaceJson);
-      setFakeLocation({
-        latitude: savedPlace.latitude,
-        longitude: savedPlace.longitude,
-      });
-
-      const name = savedPlace.fakeLocationName || savedPlace.placeName;
-      if (name) setFakeLocationName(name);
-    } catch (error) {
-      console.error('Error loading fake location:', error);
-    }
-  }, [setFakeLocation, setFakeLocationName]);
-
-  const initializeUserStores = useCallback(async (userData: User): Promise<void> => {
-    try {
-      const [appUserData] = await Promise.allSettled([
-        userService.getCurrentUser(),
-        saveLocationToBackend(userData.id.toString()),
-      ]);
-
-      if (appUserData.status === 'fulfilled' && appUserData.value) {
-        setUserData(appUserData.value);
-        updateCanSeeContent();
-
-        if (appUserData.value.usingFakeLocation) {
-          setUseFakeLocation(true);
-          await loadFakeLocationFromStorage();
-        }
-      }
-
-      setInitialized(true);
-    } catch (error) {
-      console.error('User stores initialization error:', error);
-    }
-  }, [setUserData, updateCanSeeContent, setUseFakeLocation, loadFakeLocationFromStorage, saveLocationToBackend, setInitialized]);
-
-  const loadConsentStatus = useCallback(async (userId: string): Promise<void> => {
-    try {
-      const consentStatus = await consentService.getConsentStatus(userId);
-      const outdated = consentStatus.consents
-        .filter(c => !c.accepted || c.needsUpdate)
-        .map(c => ({
-          consentType: c.consentType,
-          currentVersion: c.currentVersion,
-          userAcceptedVersion: c.acceptedVersion,
-          needsUpdate: c.needsUpdate,
-        }));
-
-      if (outdated.length > 0) setPendingConsents(outdated);
-    } catch (error) {
-      console.error('Consent check error:', error);
-    }
-  }, []);
-
-  // ========== Authentication Flow ==========
-
-  const initializeAuth = useCallback(async () => {
-    if (!isRestoring) return;
-
-    try {
-      setIsLoading(true);
-      
-      await tokenManager.waitUntilInitialized();
-      
-      // Check if we have any token first (don't set auth state yet)
-      const hasToken = await tokenManager.getAccessTokenAsync(true);
-      
-      if (hasToken) {
-        // Try to authenticate (this handles token refresh internally)
-        const isAuth = await authService.isAuthenticated(true);
-        
-        if (isAuth) {
-          setIsAuthenticatedState(true);
-          
-          // Try cached user first for instant UI
-          let userData = await authService.getCachedUser();
-          if (userData) setUser(userData);
-
-          // Then fetch fresh data
-          try {
-            const freshUser = await authService.getCurrentUser();
-            if (freshUser) {
-              setUser(freshUser);
-              userData = freshUser;
-            }
-          } catch (error) {
-            console.error('Failed to fetch fresh user data:', error);
-          }
-
-          // Background initialization
-          if (userData) {
-            Promise.allSettled([
-              initializeUserStores(userData),
-              pushTokenService.initialize(userData.id.toString()),
-              loadConsentStatus(userData.id.toString()),
-            ]);
-          }
-        } else {
-          // Only set false if authentication definitively failed after all retries
-          setIsAuthenticatedState(false);
-          setUser(null);
-        }
-      } else {
-        // No token at all - definitely not authenticated
-        setIsAuthenticatedState(false);
-        setUser(null);
-      }
-    } catch (error) {
-      console.error('Auth initialization error:', error);
-      
-      // Fallback: check memory token before giving up
-      const memoryToken = authService.getAccessToken();
-      if (memoryToken && !tokenManager.isTokenExpired(memoryToken)) {
-        setIsAuthenticatedState(true);
-        const cachedUser = await authService.getCachedUser();
-        if (cachedUser) setUser(cachedUser);
-      } else {
-        setUser(null);
-        setIsAuthenticatedState(false);
-      }
-    } finally {
-      setIsRestoring(false);
-      setIsLoading(false);
-    }
-  }, [isRestoring, initializeUserStores, loadConsentStatus]);
-
-  // Unified post-auth handler
-  const handlePostAuth = useCallback(async (
-    authResponse: JwtAuthenticationResponseDTO,
-    userFromResponse?: User
-  ): Promise<void> => {
-    // Handle consents
-    if (authResponse.consentStatus?.consentsRequired && 
-        authResponse.consentStatus.outdatedConsents.length > 0) {
-      setPendingConsents(authResponse.consentStatus.outdatedConsents);
-    }
-
-    // Verify authentication (this should succeed since we just got tokens)
-    try {
-      const isAuth = await authService.isAuthenticated();
-      
-      if (!isAuth) {
-        // If verification fails after successful auth, something is wrong
-        setIsAuthenticatedState(false);
-        throw new Error('Authentication verification failed after successful login');
-      }
-      
-      // Only set true after successful verification
-      setIsAuthenticatedState(true);
-
-      // Get user data
-      const userData = userFromResponse || await authService.getCurrentUser();
-      if (userData) {
-        setUser(userData);
-        await Promise.allSettled([
-          initializeUserStores(userData),
-          pushTokenService.initialize(userData.id.toString()),
+  const initializeUserStores = useCallback(
+    async (userData: User): Promise<void> => {
+      try {
+        // Load user data and location in parallel
+        const [userDataResult, locationResult] = await Promise.allSettled([
+          userService.getCurrentUser(),
+          getCoords().then(location =>
+            userService.updateLocation(userData.id.toString(), location)
+          ),
         ]);
+
+        // Handle user data
+        if (userDataResult.status === 'fulfilled' && userDataResult.value) {
+          const appUserData = userDataResult.value;
+          setUserData(appUserData);
+          updateCanSeeContent();
+
+          // Handle fake location
+          if (appUserData.usingFakeLocation) {
+            setUseFakeLocation(true);
+            try {
+              const savedPlaceJson =
+                await AsyncStorage.getItem('fakeLocationPlace');
+              if (savedPlaceJson) {
+                const savedPlace = JSON.parse(savedPlaceJson);
+                setFakeLocation({
+                  latitude: savedPlace.latitude,
+                  longitude: savedPlace.longitude,
+                });
+                const name =
+                  savedPlace.fakeLocationName || savedPlace.placeName;
+                if (name) setFakeLocationName(name);
+              }
+            } catch (error) {
+              console.error('Error loading fake location:', error);
+            }
+          }
+        }
+
+        setInitialized(true);
+      } catch (error) {
+        console.error('User stores initialization error:', error);
+      }
+    },
+    [
+      setUserData,
+      updateCanSeeContent,
+      setUseFakeLocation,
+      setFakeLocation,
+      setFakeLocationName,
+      setInitialized,
+    ]
+  );
+
+  const loadConsentStatus = useCallback(
+    async (userId: string): Promise<void> => {
+      try {
+        const consentStatus = await consentService.getConsentStatus(userId);
+        const outdated = consentStatus.consents
+          .filter(c => !c.accepted || c.needsUpdate)
+          .map(c => ({
+            consentType: c.consentType,
+            currentVersion: c.currentVersion,
+            userAcceptedVersion: c.acceptedVersion,
+            needsUpdate: c.needsUpdate,
+          }));
+
+        if (outdated.length > 0) setPendingConsents(outdated);
+      } catch (error) {
+        console.error('Consent check error:', error);
+      }
+    },
+    []
+  );
+
+  // ========== Authentication Methods ==========
+
+  const checkAuthStatus = useCallback(async (): Promise<void> => {
+    try {
+      // Simple check: do we have a valid session?
+      const isValid = await authService.validateSession();
+
+      if (isValid) {
+        // Get user data
+        const userData = await authService.getCurrentUser();
+        if (userData) {
+          await setAuthenticatedState(userData);
+        } else {
+          clearAuthState();
+        }
+      } else {
+        clearAuthState();
       }
     } catch (error) {
-      setIsAuthenticatedState(false);
-      throw error;
+      console.error('Auth status check error:', error);
+      clearAuthState();
     }
-  }, [initializeUserStores]);
+  }, [setAuthenticatedState, clearAuthState]);
 
-  // ========== Auth Methods ==========
+  const login = useCallback(
+    async (credentials: LoginCredentials) => {
+      try {
+        setAuthState('loading');
 
-  const login = useCallback(async (credentials: LoginCredentials) => {
-    try {
-      setIsLoading(true);
-      const authResponse = await authService.login(credentials);
-      await handlePostAuth(authResponse, authResponse.user);
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [handlePostAuth]);
+        const authResponse = await authService.login(credentials);
 
-  const register = useCallback(async (credentials: RegisterCredentials) => {
-    try {
-      setIsLoading(true);
-      const authResponse = await authService.register(credentials);
-      await handlePostAuth(authResponse, authResponse.user);
-    } catch (error) {
-      console.error('Registration error:', error);
-      setIsAuthenticatedState(false);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [handlePostAuth]);
+        // Handle consents
+        if (
+          authResponse.consentStatus?.consentsRequired &&
+          authResponse.consentStatus.outdatedConsents.length > 0
+        ) {
+          setPendingConsents(authResponse.consentStatus.outdatedConsents);
+        }
 
-  const registerWithPhoto = useCallback(async (
-    credentials: RegisterCredentials,
-    photoUri: string
-  ) => {
-    try {
-      setIsLoading(true);
-      const authResponse = await authService.registerWithPhoto(credentials, photoUri);
-      await handlePostAuth(authResponse, authResponse.user);
-    } catch (error) {
-      console.error('Registration with photo error:', error);
-      setIsAuthenticatedState(false);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [handlePostAuth]);
+        // Get user data and set authenticated state
+        const userData =
+          authResponse.user || (await authService.getCurrentUser());
+        if (userData) {
+          await setAuthenticatedState(userData);
+        } else {
+          throw new Error('Failed to get user data after login');
+        }
+      } catch (error) {
+        clearAuthState();
+        throw error;
+      }
+    },
+    [setAuthenticatedState, clearAuthState]
+  );
+
+  const register = useCallback(
+    async (credentials: RegisterCredentials) => {
+      try {
+        setAuthState('loading');
+
+        const authResponse = await authService.register(credentials);
+        const userData =
+          authResponse.user || (await authService.getCurrentUser());
+
+        if (userData) {
+          await setAuthenticatedState(userData);
+        } else {
+          throw new Error('Failed to get user data after registration');
+        }
+      } catch (error) {
+        clearAuthState();
+        throw error;
+      }
+    },
+    [setAuthenticatedState, clearAuthState]
+  );
+
+  const registerWithPhoto = useCallback(
+    async (credentials: RegisterCredentials, photoUri: string) => {
+      try {
+        setAuthState('loading');
+
+        const authResponse = await authService.registerWithPhoto(
+          credentials,
+          photoUri
+        );
+        const userData =
+          authResponse.user || (await authService.getCurrentUser());
+
+        if (userData) {
+          await setAuthenticatedState(userData);
+        } else {
+          throw new Error('Failed to get user data after registration');
+        }
+      } catch (error) {
+        clearAuthState();
+        throw error;
+      }
+    },
+    [setAuthenticatedState, clearAuthState]
+  );
 
   const signInWithGoogle = useCallback(async () => {
     try {
-      setIsLoading(true);
+      setAuthState('loading');
+
       const googleUser = await signInWithGoogleRN();
-      if (!googleUser) return;
+      if (!googleUser) {
+        clearAuthState();
+        return;
+      }
 
       const authResponse = await socialAuthService.signInWithGoogle(
         googleUser.idToken,
@@ -316,24 +313,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         googleUser.photoUrl
       );
 
+      // Handle consents
+      if (
+        authResponse.consentStatus?.consentsRequired &&
+        authResponse.consentStatus.outdatedConsents.length > 0
+      ) {
+        setPendingConsents(authResponse.consentStatus.outdatedConsents);
+      }
+
       await authService.handleSocialAuthResponse(authResponse);
-      await handlePostAuth(authResponse, authResponse.user);
-    } catch (error: any) {
-      setIsAuthenticatedState(false);
+      const userData =
+        authResponse.user || (await authService.getCurrentUser());
+
+      if (userData) {
+        await setAuthenticatedState(userData);
+      } else {
+        throw new Error('Failed to get user data after Google sign-in');
+      }
+    } catch (error) {
+      clearAuthState();
       throw error;
-    } finally {
-      setIsLoading(false);
     }
-  }, [handlePostAuth]);
+  }, [setAuthenticatedState, clearAuthState]);
 
   const signInWithApple = useCallback(async () => {
     try {
-      setIsLoading(true);
+      setAuthState('loading');
+
       const isAvailable = await isAppleSignInAvailable();
-      if (!isAvailable) throw new Error('Apple Sign-In is not available on this device');
+      if (!isAvailable) {
+        throw new Error('Apple Sign-In is not available on this device');
+      }
 
       const appleUser = await appleSignIn();
-      if (!appleUser) return;
+      if (!appleUser) {
+        clearAuthState();
+        return;
+      }
 
       const authResponse = await socialAuthService.signInWithApple(
         appleUser.idToken,
@@ -342,22 +358,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         appleUser.appleUserId
       );
 
+      // Handle consents
+      if (
+        authResponse.consentStatus?.consentsRequired &&
+        authResponse.consentStatus.outdatedConsents.length > 0
+      ) {
+        setPendingConsents(authResponse.consentStatus.outdatedConsents);
+      }
+
       await authService.handleSocialAuthResponse(authResponse);
-      await handlePostAuth(authResponse, authResponse.user);
-    } catch (error: any) {
-      setIsAuthenticatedState(false);
+      const userData =
+        authResponse.user || (await authService.getCurrentUser());
+
+      if (userData) {
+        await setAuthenticatedState(userData);
+      } else {
+        throw new Error('Failed to get user data after Apple sign-in');
+      }
+    } catch (error) {
+      clearAuthState();
       throw error;
-    } finally {
-      setIsLoading(false);
     }
-  }, [handlePostAuth]);
+  }, [setAuthenticatedState, clearAuthState]);
 
   const logout = useCallback(async () => {
     try {
-      setIsLoading(true);
+      setAuthState('loading');
 
-      if (globalUnsubscribeNotifications) globalUnsubscribeNotifications();
+      // Unsubscribe from notifications
+      if (globalUnsubscribeNotifications) {
+        globalUnsubscribeNotifications();
+      }
 
+      // Cleanup push tokens
       if (user) {
         try {
           await pushTokenService.removePushTokenFromBackend(user.id.toString());
@@ -366,62 +399,57 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
 
+      // Backend logout
       await authService.logout();
-      setUser(null);
-      setIsAuthenticatedState(false);
-      setUserData(null);
-      setUseFakeLocation(false);
-      setFakeLocationName('');
-      setInitialized(false);
-      pushTokenService.clearToken();
-      queryClient.clear();
+
+      // Clear all state
+      clearAuthState();
     } catch (error) {
       console.error('Logout error:', error);
-    } finally {
-      setIsLoading(false);
+      // Force clear state even if logout fails
+      clearAuthState();
     }
-  }, [user, setUserData, setUseFakeLocation, setFakeLocationName, setInitialized, queryClient]);
+  }, [user, clearAuthState]);
 
   const refreshUser = useCallback(async () => {
-    try {
-      const isAuth = await authService.isAuthenticated();
-      setIsAuthenticatedState(isAuth);
-      
-      if (!isAuth) {
-        setUser(null);
-        return;
-      }
+    if (!isAuthenticated) return;
 
+    try {
       const userData = await authService.getCurrentUser();
       if (userData) {
         setUser(userData);
         await initializeUserStores(userData);
+      } else {
+        clearAuthState();
       }
     } catch (error) {
       console.error('Refresh user error:', error);
-      const isAuth = await authService.isAuthenticated();
-      setIsAuthenticatedState(isAuth);
-      if (!isAuth) setUser(null);
+      // Check if we're still authenticated
+      await checkAuthStatus();
     }
-  }, [initializeUserStores]);
+  }, [isAuthenticated, initializeUserStores, clearAuthState, checkAuthStatus]);
 
   // ========== Effects ==========
 
+  // Initialize auth on mount
   useEffect(() => {
-    initializeAuth();
-  }, [initializeAuth]);
+    checkAuthStatus();
+  }, [checkAuthStatus]);
 
+  // Set up logout callback for token refresh failures
   useEffect(() => {
-    axiosClient.setOnTokenRefreshFailure(logout);
-  }, [logout]);
+    axiosClient.setOnTokenRefreshFailure(() => {
+      console.log('Token refresh failed, logging out');
+      clearAuthState();
+    });
+  }, [clearAuthState]);
 
   // ========== Context Value ==========
 
   const contextValue: AuthContextType = {
     user,
-    isAuthenticated: isAuthenticatedState,
+    isAuthenticated,
     isLoading,
-    isRestoring,
     login,
     register,
     registerWithPhoto,
