@@ -450,7 +450,8 @@
   },
   "sendRequest": {
     "successTitle": "Žiadosť odoslaná",
-    "successDescription": "Vaša žiadosť bola úspešne odoslaná používateľom v okolí."
+    "successDescription": "Vaša žiadosť bola úspešne odoslaná používateľom v okolí.",
+    "noUsersFound": "V okolí sa nenašli žiadni používatelia"
   },
   "toastPhotoDeletedTitle": "Úspešne zmazané.",
   "toastPhotoDeletedDesc": "Vaša fotografia bola zmazaná.",

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClientProvider } from 'react-query';
 import { I18nextProvider } from 'react-i18next';
@@ -29,9 +29,13 @@ configureReanimatedLogger({
 
 const queryClient = createQueryClientWithPersistence();
 
-export default function App() {
+// Wrapper to ensure app initialization happens INSIDE providers
+const AppInitializationWrapper: React.FC<{ children: ReactNode }> = ({ children }) => {
   useAppInitialization();
+  return <>{children}</>;
+};
 
+export default function App() {
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -43,7 +47,9 @@ export default function App() {
                   <AppStateProvider>
                     <PermissionsProvider>
                       <BottomSheetModalProvider>
-                        <Navigation />
+                        <AppInitializationWrapper>
+                          <Navigation />
+                        </AppInitializationWrapper>
                       </BottomSheetModalProvider>
                     </PermissionsProvider>
                   </AppStateProvider>

@@ -389,7 +389,8 @@
   },
   "sendRequest": {
     "successTitle": "Solicitud enviada",
-    "successDescription": "Su solicitud ha sido enviada con éxito a los usuarios cercanos."
+    "successDescription": "Su solicitud ha sido enviada con éxito a los usuarios cercanos.",
+    "noUsersFound": "No se encontraron usuarios en el área"
   },
   "or": "o",
   "delete-post": "Eliminar publicación",

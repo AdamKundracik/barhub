@@ -11,7 +11,7 @@ export const usePhotoRequest = () => {
   const [isRequestingPhoto, setIsRequestingPhoto] = useState(false);
   const { placeId, placeName, setPlaceDetail } = usePlaceStore();
   const { currentPushToken } = useUserStore();
-  const { showSuccessToast } = useCustomToast();
+  const { showSuccessToast, showErrorToast } = useCustomToast();
   const { t } = useTranslation();
 
   const requestPhoto = async () => {
@@ -28,22 +28,36 @@ export const usePhotoRequest = () => {
           longitude: detail.geometry.location?.lng,
         };
 
-        const success = await sendRequestNotificationToRecipients(
+        await sendRequestNotificationToRecipients(
           placeId,
           placeName,
           location,
           currentPushToken ?? ''
         );
 
-        if (success) {
-          showSuccessToast(
-            t('sendRequest.successTitle'),
-            t('sendRequest.successDescription')
-          );
-        }
+        showSuccessToast(
+          t('sendRequest.successTitle'),
+          t('sendRequest.successDescription')
+        );
       }
-    } catch (error) {
-      console.error('Error requesting photo:', error);
+    } catch (error: any) {
+      const isNoUsersError = 
+        error?.status === 404 || 
+        error?.errorCode === 'NO_USERS_FOUND_IN_RADIUS' ||
+        error?.message?.toLowerCase().includes('no users found') ||
+        error?.message?.toLowerCase().includes('users found in radius');
+      
+      if (isNoUsersError) {
+        showErrorToast(
+          t('error') || 'Error',
+          t('sendRequest.noUsersFound') || 'No users found in the area'
+        );
+      } else {
+        showErrorToast(
+          t('error') || 'Error',
+          error?.message || t('try-again-later') || 'Try again later'
+        );
+      }
     } finally {
       setIsRequestingPhoto(false);
     }

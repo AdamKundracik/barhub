@@ -1,13 +1,13 @@
 import React from 'react';
 import {
   ActivityIndicator,
+  Dimensions,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Dimensions,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -23,13 +23,13 @@ import { ScreenLayout } from '../../components/shared/Layouts/ScreenLayout';
 import { useUserStore } from '../../utils/store/userStore';
 import { useUserPosts } from '../../hooks/useUserPosts';
 import FastImage from 'react-native-fast-image';
-import { Post } from '../../types/postTypes';
 
 const { width } = Dimensions.get('window');
 const SCREEN_PADDING = 32; // ScreenLayout má paddingHorizontal: 16 (2x16)
 const GRID_GAP = 4;
 const COLUMNS = 3;
-const ITEM_WIDTH = (width - SCREEN_PADDING - GRID_GAP * (COLUMNS - 1) - 6) / COLUMNS;
+const ITEM_WIDTH =
+  (width - SCREEN_PADDING - GRID_GAP * (COLUMNS - 1) - 6) / COLUMNS;
 const ITEM_HEIGHT = ITEM_WIDTH * (4 / 3); // 3:4 aspect ratio
 
 export const MyPosts: React.FC = () => {
@@ -136,7 +136,7 @@ export const MyPosts: React.FC = () => {
               </Text>
             </View>
             <View style={styles.grid}>
-              {posts.map((post) => (
+              {posts.map(post => (
                 <TouchableOpacity
                   key={post.id}
                   style={styles.gridItem}

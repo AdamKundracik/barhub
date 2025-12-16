@@ -161,6 +161,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setInitialized(true);
       } catch (error) {
         console.error('User stores initialization error:', error);
+        // Aj pri chybe nastavíme initialized na true, aby sa app nezasekol
+        setInitialized(true);
       }
     },
     [
@@ -198,22 +200,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const checkAuthStatus = useCallback(async (): Promise<void> => {
     try {
+      console.log('[AUTH] Starting auth status check...');
+      
       // Simple check: do we have a valid session?
       const isValid = await authService.validateSession();
+      console.log('[AUTH] Session validation result:', isValid);
 
       if (isValid) {
         // Get user data
+        console.log('[AUTH] Getting user data...');
         const userData = await authService.getCurrentUser();
         if (userData) {
+          console.log('[AUTH] User data loaded, setting authenticated state');
           await setAuthenticatedState(userData);
         } else {
+          console.log('[AUTH] No user data available, clearing auth state');
           clearAuthState();
         }
       } else {
+        console.log('[AUTH] Session invalid, clearing auth state');
         clearAuthState();
       }
     } catch (error) {
-      console.error('Auth status check error:', error);
+      console.error('[AUTH] Auth status check error:', error);
+      // Don't immediately clear auth state on error - could be network issue
+      // Instead, try to use cached data
+      try {
+        const cachedUser = await authService.getCachedUser();
+        if (cachedUser) {
+          console.log('[AUTH] Using cached user data due to error');
+          await setAuthenticatedState(cachedUser);
+          return;
+        }
+      } catch (cacheError) {
+        console.error('[AUTH] Failed to get cached user:', cacheError);
+      }
+      
+      console.log('[AUTH] No fallback available, clearing auth state');
       clearAuthState();
     }
   }, [setAuthenticatedState, clearAuthState]);
@@ -431,9 +454,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // ========== Effects ==========
 
-  // Initialize auth on mount
+  // Initialize auth on mount with small delay to ensure providers are ready
   useEffect(() => {
-    checkAuthStatus();
+    const initializeAuth = async () => {
+      console.log('[AUTH] AuthProvider mounted, starting initialization...');
+      
+      // Small delay to ensure all providers are mounted
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      console.log('[AUTH] Starting auth check after provider initialization...');
+      await checkAuthStatus();
+    };
+    
+    initializeAuth();
   }, [checkAuthStatus]);
 
   // Set up logout callback for token refresh failures

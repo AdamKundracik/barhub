@@ -45,6 +45,10 @@ import { VStack } from '@/components/ui/vstack';
 import { Center } from '@/components/ui/center';
 import InlineAd from '@/src/app/components/user/InlineAd';
 import { PremiumHelpers } from '@/src/app/config/premiumConfig';
+import {
+  addCacheBuster,
+  createImageKey,
+} from '@/src/app/utils/cache/imageCacheUtils';
 
 export const PostDetail = () => {
   const route = useRoute();
@@ -495,7 +499,10 @@ export const PostDetail = () => {
                 <Avatar size="md" style={styles.avatarContainer}>
                   {post.user?.photoUrl ? (
                     <AvatarImage
-                      source={{ uri: post.user.photoUrl }}
+                      key={createImageKey('postdetail', post.user.id, post.user.photoUrl)}
+                      source={{
+                        uri: addCacheBuster(post.user.photoUrl, post.user.id),
+                      }}
                       style={styles.avatar}
                     />
                   ) : (

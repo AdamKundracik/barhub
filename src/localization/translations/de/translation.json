@@ -309,7 +309,8 @@
   },
   "sendRequest": {
     "successTitle": "Anfrage gesendet",
-    "successDescription": "Ihre Anfrage wurde erfolgreich an nahegelegene Benutzer gesendet."
+    "successDescription": "Ihre Anfrage wurde erfolgreich an nahegelegene Benutzer gesendet.",
+    "noUsersFound": "Keine Benutzer in der Umgebung gefunden"
   },
   "gdpr": "Datenschutzrichtlinie",
   "third-party-libraries": "Drittanbieter-Bibliotheken",

@@ -23,3 +23,4 @@ export const useUserPosts = (userId: string | undefined) => {
     refetch: queryResult.refetch,
   };
 };
+

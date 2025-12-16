@@ -140,6 +140,16 @@ export const Navigation = () => {
   // Check if email is verified
   const isEmailVerified = user?.emailVerified ?? false;
 
+  // Debug logging for race condition investigation
+  console.log('[Navigation] Render state:', {
+    isAppInitialized,
+    isAuthLoading,
+    isNetworkLoading,
+    isAuthenticated,
+    hasUser: !!user,
+    userEmail: user?.email
+  });
+
   useEffect(() => {
     switch (appState) {
       case 'active':

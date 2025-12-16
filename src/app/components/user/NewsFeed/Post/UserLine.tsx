@@ -3,7 +3,6 @@ import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import Animated, {
   FadeIn,
-  useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
@@ -43,10 +42,6 @@ import {
 const MoreOptionsButton: React.FC<{ onPress: () => void }> = ({ onPress }) => {
   const scale = useSharedValue(1);
   const rotation = useSharedValue(0);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }, { rotate: `${rotation.value}deg` }],
-  }));
 
   const handlePress = () => {
     scale.value = withSpring(0.9, { duration: 100 }, () => {
@@ -241,7 +236,14 @@ const UserLineComponent = ({
       setPlaceId(placeIdProp);
       setPlaceAddress(safePlaceAddress);
     }
-  }, [placeName, placeIdProp, safePlaceAddress, setPlaceName, setPlaceId, setPlaceAddress]);
+  }, [
+    placeName,
+    placeIdProp,
+    safePlaceAddress,
+    setPlaceName,
+    setPlaceId,
+    setPlaceAddress,
+  ]);
 
   // --- CALLBACKS ---
   const handleReport = useCallback(
@@ -533,7 +535,7 @@ const UserLineComponent = ({
             {/* Place name nad userName s šípkou */}
             {showPlace && safePlaceName && (
               <View style={styles.placeNameRow}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   onPress={handleNavigateToPlace}
                   style={styles.placeNameContainer}
                 >
@@ -552,22 +554,23 @@ const UserLineComponent = ({
 
             {/* User name row */}
             <View style={styles.nameRow}>
-              <TouchableOpacity onPress={onUserPress} disabled={!onUserPress}>
-                <Text style={styles.name} numberOfLines={1}>
-                  {safeUserName}
-                </Text>
-              </TouchableOpacity>
-              {localIsHighlighted && (
-                <View style={styles.highlightBadge}>
-                  <FontAwesomeIcon
-                    icon={Icons.Bolt}
-                    size={14}
-                    color="#FFC107"
-                  />
-                </View>
-              )}
+              <View style={styles.nameWithBadge}>
+                <TouchableOpacity onPress={onUserPress} disabled={!onUserPress}>
+                  <Text style={styles.name} numberOfLines={1}>
+                    {safeUserName}
+                  </Text>
+                </TouchableOpacity>
+                {localIsHighlighted && (
+                  <View style={styles.highlightBadge}>
+                    <FontAwesomeIcon
+                      icon={Icons.Bolt}
+                      size={14}
+                      color="#FFC107"
+                    />
+                  </View>
+                )}
+              </View>
             </View>
-
 
             {/* Čas na vlastnom riadku - vylepšené formátovanie */}
             <View style={styles.timeRow}>
@@ -667,7 +670,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
-  
+
   placeNameRow: {
     marginBottom: 1,
   },
@@ -685,7 +688,7 @@ const styles = StyleSheet.create({
   placeArrowIcon: {
     opacity: 0.7,
   },
-  
+
   // User Section
   userInfoSection: {
     flexDirection: 'row',
@@ -709,8 +712,12 @@ const styles = StyleSheet.create({
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     marginBottom: 4,
+  },
+  nameWithBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   name: {
     fontSize: 16,
@@ -718,7 +725,7 @@ const styles = StyleSheet.create({
     color: 'white',
     letterSpacing: 0.3,
   },
-  
+
   // Badges
   badgesContainer: {
     flexDirection: 'row',
@@ -742,8 +749,9 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderWidth: 1,
     borderColor: 'rgba(255, 193, 7, 0.3)',
+    marginLeft: 8,
   },
-  
+
   // Time Section
   timeRow: {
     flexDirection: 'row',
@@ -758,7 +766,7 @@ const styles = StyleSheet.create({
     color: primaryColor,
     fontWeight: '600',
   },
-  
+
   // More Button
   moreButton: {
     width: 36,

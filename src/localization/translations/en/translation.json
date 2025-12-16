@@ -457,7 +457,8 @@
   },
   "sendRequest": {
     "successTitle": "Request sent",
-    "successDescription": "Your request has been successfully sent to nearby users."
+    "successDescription": "Your request has been successfully sent to nearby users.",
+    "noUsersFound": "No users found in the area"
   },
   "or": "or",
   "delete-post": "Delete post",

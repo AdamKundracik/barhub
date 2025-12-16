@@ -338,25 +338,41 @@ class AuthService {
   // Simple session validation - the core of authentication
   async validateSession(): Promise<boolean> {
     try {
+      console.log('[AUTH_SERVICE] Starting session validation...');
+      
       // Wait for tokens to be loaded first
+      console.log('[AUTH_SERVICE] Waiting for token initialization...');
       await tokenManager.waitUntilInitialized();
+      console.log('[AUTH_SERVICE] Token initialization complete');
       
       // Get access token
+      console.log('[AUTH_SERVICE] Getting access token...');
       const accessToken = await tokenManager.getAccessTokenAsync(true);
+      console.log('[AUTH_SERVICE] Access token exists:', !!accessToken);
+      
       if (!accessToken) {
+        console.log('[AUTH_SERVICE] No access token found');
         return false;
       }
 
       // If token is not expired, we're good
-      if (!tokenManager.isTokenExpired(accessToken)) {
+      const isExpired = tokenManager.isTokenExpired(accessToken);
+      console.log('[AUTH_SERVICE] Token expired:', isExpired);
+      
+      if (!isExpired) {
+        console.log('[AUTH_SERVICE] Token valid, session authenticated');
         return true;
       }
 
       // Token is expired, try to refresh
+      console.log('[AUTH_SERVICE] Token expired, attempting refresh...');
       const newToken = await this.refreshAccessToken();
-      return !!newToken;
+      const refreshSuccess = !!newToken;
+      console.log('[AUTH_SERVICE] Token refresh success:', refreshSuccess);
+      
+      return refreshSuccess;
     } catch (error) {
-      console.error('Session validation error:', error);
+      console.error('[AUTH_SERVICE] Session validation error:', error);
       return false;
     }
   }

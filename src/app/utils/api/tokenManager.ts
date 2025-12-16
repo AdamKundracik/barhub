@@ -281,15 +281,20 @@ class TokenManager {
    * Use this before checking authentication state during app startup
    */
   async waitUntilInitialized(): Promise<void> {
+    console.log('[TOKEN] waitUntilInitialized called, isInitialized:', this.isInitialized);
+    
     if (this.isInitialized) {
+      console.log('[TOKEN] Already initialized, returning immediately');
       return;
     }
 
     if (this.initPromise) {
+      console.log('[TOKEN] Initialization in progress, waiting...');
       return this.initPromise;
     }
 
     // If no initialization started, start it now
+    console.log('[TOKEN] Starting new initialization...');
     return this.loadTokensFromStorage();
   }
 

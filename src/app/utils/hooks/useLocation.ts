@@ -15,6 +15,9 @@ export const useLocation = () => {
   const locationRef = useRef<LocationType | null>(location);
   locationRef.current = location;
 
+  // Ref na sledovanie predchádzajúceho AppState
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+
   const getCurrentLocation = useCallback(async () => {
     try {
       if (useFakeLocation && fakeLocation) {
@@ -143,15 +146,17 @@ export const useLocation = () => {
     setLocation,
   ]);
 
-  // Disabled: Don't update location on app state change
-  // This was causing posts to refetch every time user returns from background
-  // Background geolocation will still update location when user moves
-  /*
+  // Update location when app becomes active (from background/inactive)
   useEffect(() => {
-    const handleAppStateChange = (state: AppStateStatus) => {
-      if (state === 'active') {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      // Only update location when transitioning from background/inactive to active
+      if (
+        appStateRef.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
         getCurrentLocation();
       }
+      appStateRef.current = nextAppState;
     };
 
     const subscription = AppState.addEventListener(
@@ -160,7 +165,6 @@ export const useLocation = () => {
     );
     return () => subscription.remove();
   }, [getCurrentLocation]);
-  */
 
   // Initial fetch on mount
   useEffect(() => {
