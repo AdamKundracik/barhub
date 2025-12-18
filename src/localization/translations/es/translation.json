@@ -307,6 +307,8 @@
   },
   "gdpr": "Política de privacidad",
   "third-party-libraries": "Bibliotecas de terceros",
+  "app-version": "Versión de la aplicación",
+  "app-version-label": "Versión",
   "use-different-location": "Usar una ubicación diferente",
   "select-city": "Seleccionar ciudad",
   "search-city": "Buscar ciudad",

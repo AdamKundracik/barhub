@@ -356,6 +356,8 @@
   "third-party-libraries": "Knižnice tretích strán",
   "legal-documents": "Právne dokumenty",
   "other": "Ostatné",
+  "app-version": "Verzia aplikácie",
+  "app-version-label": "Verzia",
   "use-different-location": "Použiť iné miesto",
   "select-city": "Vybrať mesto",
   "search-city": "Hľadaj mesto",

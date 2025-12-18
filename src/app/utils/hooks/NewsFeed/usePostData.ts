@@ -77,6 +77,14 @@ export const useNewsFeedData = () => {
     }
   );
 
+  // Vytvoríme stabilný string z IDs pre memoizáciu
+  const postsIdsString = useMemo(() => {
+    if (!postsData?.pages) return '';
+    return postsData.pages
+      .map(page => page.posts?.map(p => p.id).join(',') || '')
+      .join('|');
+  }, [postsData?.pages]);
+
   const posts = useMemo(() => {
     if (!postsData?.pages) return [];
 
@@ -91,7 +99,9 @@ export const useNewsFeedData = () => {
     }
 
     return uniquePosts;
-  }, [postsData?.pages, showHighlightedPosts]);
+    // FlashList potrebuje stabilnú referenciu na data array
+    // Používame postsIdsString namiesto priameho mapovania v dependencies
+  }, [postsIdsString, showHighlightedPosts]);
 
   const fetchMorePosts = async () => {
     if (hasNextPage) {

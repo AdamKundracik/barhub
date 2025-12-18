@@ -2,23 +2,20 @@ import * as SecureStore from 'expo-secure-store';
 import { AppState, AppStateStatus } from 'react-native';
 
 /**
- * TokenManager - Production-ready JWT token storage and management
- *
- * Design principles:
- * - In-memory cache for performance (fast API requests)
- * - Lazy loading from SecureStore (avoid startup errors)
- * - AppState aware (prevent "User interaction is not allowed" errors)
- * - Automatic retry for failed SecureStore operations
+ * TokenManager - Simplified JWT token storage and management
+ * 
+ * Senior-level design principles:
+ * - Simple and predictable API
+ * - Synchronous memory access for performance
+ * - Asynchronous SecureStore operations only when needed
+ * - No complex initialization - tokens load on demand
+ * - Robust error handling without blocking the app
  */
 class TokenManager {
   private static instance: TokenManager;
   private accessToken: string | null = null;
   private refreshToken: string | null = null;
-  private pendingTokens: { accessToken: string; refreshToken: string } | null =
-    null;
   private appStateSubscription: any = null;
-  private initPromise: Promise<void> | null = null;
-  private isInitialized: boolean = false;
 
   private constructor() {
     this.setupAppStateListener();
@@ -32,348 +29,100 @@ class TokenManager {
   }
 
   /**
-   * App state listener - retry persisting tokens when app becomes active
+   * App state listener for retry logic
    */
   private setupAppStateListener(): void {
     this.appStateSubscription = AppState.addEventListener(
       'change',
       (nextAppState: AppStateStatus) => {
-        if (nextAppState === 'active' && this.pendingTokens) {
-          this.retryPersistTokens();
-        }
+        // Future: Could add retry logic here if needed
       }
     );
   }
 
   /**
-   * Retry persisting tokens that failed due to SecureStore errors
-   * Enhanced with progressive retry logic
+   * Get access token - loads from SecureStore if not in memory
+   * This is the main method for getting tokens
    */
-  private async retryPersistTokens(): Promise<void> {
-    if (!this.pendingTokens) return;
-
-    const maxRetries = 3;
-    let retryCount = 0;
-
-    while (retryCount < maxRetries && this.pendingTokens) {
-      try {
-        console.log(`🔄 [TOKEN] Retrying to persist tokens to SecureStore (attempt ${retryCount + 1}/${maxRetries})`);
-        
-        await Promise.all([
-          SecureStore.setItemAsync('accessToken', this.pendingTokens.accessToken),
-          SecureStore.setItemAsync('refreshToken', this.pendingTokens.refreshToken),
-        ]);
-        
-        console.log('✅ [TOKEN] Tokens successfully persisted to SecureStore on retry');
-        this.pendingTokens = null;
-        return; // Success - exit
-        
-      } catch (error: any) {
-        retryCount++;
-        const errorMessage = error?.message || String(error);
-        
-        if (retryCount < maxRetries) {
-          const delay = 500 * retryCount; // Progressive delay: 500ms, 1000ms, 1500ms
-          console.warn(
-            `⚠️ [TOKEN] Retry ${retryCount} failed, waiting ${delay}ms before next attempt:`,
-            errorMessage
-          );
-          await new Promise(resolve => setTimeout(resolve, delay));
-        } else {
-          console.warn(
-            '⚠️ [TOKEN] All retry attempts failed, will try again on next app activation:',
-            errorMessage
-          );
-        }
-      }
+  async getAccessToken(): Promise<string | null> {
+    // Return cached token if available and not empty (fast path)
+    if (this.accessToken && this.accessToken !== '') {
+      return this.accessToken;
     }
-  }
-
-  /**
-   * Generic method to load token with lazy loading and intelligent AppState handling
-   * DRY principle - used by both access and refresh token getters
-   */
-  private async loadTokenIfNeeded(
-    tokenType: 'accessToken' | 'refreshToken',
-    forInitialization: boolean = false
-  ): Promise<string | null> {
-    // Return cached token if available (fast path)
-    const cachedToken =
-      tokenType === 'accessToken' ? this.accessToken : this.refreshToken;
-    if (cachedToken) {
-      return cachedToken;
-    }
-
-    // Smart AppState handling for physical devices
-    const currentState = AppState.currentState;
     
-    // During initialization, always try to load from SecureStore regardless of AppState
-    // This prevents issues where app starts in 'background' or 'unknown' state
-    const shouldSkipSecureStore = !forInitialization && 
-      currentState !== 'active' && 
-      currentState !== 'inactive';
-
-    if (shouldSkipSecureStore) {
-      console.log(
-        `🔒 [TOKEN] App in background (${currentState}), skipping ${tokenType} load`
-      );
+    // If already tried and failed (empty string), don't retry
+    if (this.accessToken === '') {
       return null;
     }
 
-    // Load from SecureStore (lazy loading)
+    // Load from SecureStore only once per session
     try {
-      console.log(
-        `📱 [TOKEN] Loading ${tokenType} from SecureStore (AppState: ${currentState}, forInit: ${forInitialization})`
-      );
-      
-      const token = await SecureStore.getItemAsync(tokenType);
-
-      // Update cache
-      if (tokenType === 'accessToken') {
-        this.accessToken = token;
-      } else {
-        this.refreshToken = token;
-      }
-
-      if (token) {
-        console.log(`✅ [TOKEN] ${tokenType} loaded from SecureStore`);
-      } else {
-        console.log(`❌ [TOKEN] No ${tokenType} found in SecureStore`);
-      }
-
+      console.log('[TOKEN] Loading access token from SecureStore...');
+      const token = await SecureStore.getItemAsync('accessToken');
+      this.accessToken = token || '';
+      console.log('[TOKEN] Access token loaded:', !!token);
       return token;
-    } catch (error: any) {
-      const errorMessage = error?.message || String(error);
-
-      // Handle specific error types with better recovery
-      if (errorMessage.includes('User interaction is not allowed')) {
-        console.warn(
-          `⚠️ [TOKEN] SecureStore requires user interaction for ${tokenType} (AppState: ${currentState})`
-        );
-        
-        // During initialization, try multiple retries with progressive delays
-        if (forInitialization) {
-          const maxRetries = 3;
-          for (let attempt = 1; attempt <= maxRetries; attempt++) {
-            const delay = 100 * attempt; // Progressive delay: 100ms, 200ms, 300ms
-            console.log(`🔄 [TOKEN] Retry ${attempt}/${maxRetries} for ${tokenType} after ${delay}ms delay...`);
-            await new Promise(resolve => setTimeout(resolve, delay));
-            
-            try {
-              const retryToken = await SecureStore.getItemAsync(tokenType);
-              if (retryToken) {
-                if (tokenType === 'accessToken') {
-                  this.accessToken = retryToken;
-                } else {
-                  this.refreshToken = retryToken;
-                }
-                console.log(`✅ [TOKEN] ${tokenType} loaded on retry ${attempt}`);
-                return retryToken;
-              }
-            } catch (retryError: any) {
-              const retryErrorMessage = retryError?.message || String(retryError);
-              if (attempt === maxRetries) {
-                console.warn(`⚠️ [TOKEN] All ${maxRetries} retries failed for ${tokenType}:`, retryErrorMessage);
-              }
-            }
-          }
-        }
-      } else {
-        console.error(`❌ [TOKEN] Error loading ${tokenType}:`, errorMessage);
-        
-        // During initialization, attempt retry even for non-"User interaction" errors
-        if (forInitialization) {
-          console.log(`🔄 [TOKEN] Retrying ${tokenType} load after error during initialization...`);
-          await new Promise(resolve => setTimeout(resolve, 200));
-          try {
-            const retryToken = await SecureStore.getItemAsync(tokenType);
-            if (retryToken) {
-              if (tokenType === 'accessToken') {
-                this.accessToken = retryToken;
-              } else {
-                this.refreshToken = retryToken;
-              }
-              console.log(`✅ [TOKEN] ${tokenType} loaded on retry after error`);
-              return retryToken;
-            }
-          } catch (retryError) {
-            console.warn(`⚠️ [TOKEN] Retry failed for ${tokenType}:`, retryError);
-          }
-        }
-      }
-
+    } catch (error) {
+      console.error('[TOKEN] Error loading access token:', error);
+      // Set to empty string to prevent repeated attempts
+      this.accessToken = '';
       return null;
     }
   }
 
   /**
-   * Get access token from memory cache (synchronous)
-   * Used by axios interceptor where token should already be cached
+   * Get refresh token - loads from SecureStore if not in memory
    */
-  getAccessToken(): string | null {
+  async getRefreshToken(): Promise<string | null> {
+    // Return cached token if available and not empty (fast path)
+    if (this.refreshToken && this.refreshToken !== '') {
+      return this.refreshToken;
+    }
+    
+    // If already tried and failed (empty string), don't retry
+    if (this.refreshToken === '') {
+      return null;
+    }
+
+    // Load from SecureStore only once per session
+    try {
+      console.log('[TOKEN] Loading refresh token from SecureStore...');
+      const token = await SecureStore.getItemAsync('refreshToken');
+      this.refreshToken = token || '';
+      console.log('[TOKEN] Refresh token loaded:', !!token);
+      return token;
+    } catch (error) {
+      console.error('[TOKEN] Error loading refresh token:', error);
+      // Set to empty string to prevent repeated attempts
+      this.refreshToken = '';
+      return null;
+    }
+  }
+
+  /**
+   * Get access token synchronously from memory cache
+   * Used by axios interceptor - token should already be loaded
+   */
+  getAccessTokenSync(): string | null {
     return this.accessToken;
   }
 
   /**
-   * Get access token with lazy loading from SecureStore (async)
-   * Use this for authentication checks and critical operations
-   * @param forInitialization - Set to true during app initialization for better compatibility
-   */
-  async getAccessTokenAsync(
-    forInitialization: boolean = false
-  ): Promise<string | null> {
-    return this.loadTokenIfNeeded('accessToken', forInitialization);
-  }
-
-  /**
-   * Get refresh token with lazy loading from SecureStore (async)
-   * @param forInitialization - Set to true during app initialization for better compatibility
-   */
-  async getRefreshToken(
-    forInitialization: boolean = false
-  ): Promise<string | null> {
-    return this.loadTokenIfNeeded('refreshToken', forInitialization);
-  }
-
-  /**
-   * Load tokens from SecureStore during app initialization
-   * This ensures tokens are loaded before authentication check
-   * Uses singleton promise pattern to prevent multiple simultaneous loads
-   */
-  async loadTokensFromStorage(): Promise<void> {
-    // If already initialized, return immediately
-    if (this.isInitialized) {
-      console.log('✅ [TOKEN] Tokens already initialized');
-      return;
-    }
-
-    // If initialization is in progress, wait for it
-    if (this.initPromise) {
-      console.log('⏳ [TOKEN] Waiting for existing initialization...');
-      return this.initPromise;
-    }
-
-    // Start new initialization
-    this.initPromise = (async () => {
-      try {
-        console.log('🚀 [TOKEN] Starting token initialization from SecureStore');
-        
-        // Load both tokens in parallel with initialization flag
-        await Promise.all([
-          this.loadTokenIfNeeded('accessToken', true),
-          this.loadTokenIfNeeded('refreshToken', true),
-        ]);
-
-        this.isInitialized = true;
-        console.log('✅ [TOKEN] Token initialization completed');
-      } catch (error) {
-        console.error('❌ [TOKEN] Error during token initialization:', error);
-        // Don't throw - allow app to continue even if token load fails
-        // Tokens might not exist (first launch) or SecureStore might be unavailable
-      }
-    })();
-
-    return this.initPromise;
-  }
-
-  /**
-   * Wait until tokens are initialized from SecureStore
-   * Use this before checking authentication state during app startup
-   */
-  async waitUntilInitialized(): Promise<void> {
-    console.log('[TOKEN] waitUntilInitialized called, isInitialized:', this.isInitialized);
-    
-    if (this.isInitialized) {
-      console.log('[TOKEN] Already initialized, returning immediately');
-      return;
-    }
-
-    if (this.initPromise) {
-      console.log('[TOKEN] Initialization in progress, waiting...');
-      return this.initPromise;
-    }
-
-    // If no initialization started, start it now
-    console.log('[TOKEN] Starting new initialization...');
-    return this.loadTokensFromStorage();
-  }
-
-  /**
-   * Check if tokens are initialized (synchronous, no waiting)
-   * Use this for quick checks without blocking
-   */
-  hasInitialized(): boolean {
-    return this.isInitialized;
-  }
-
-  /**
-   * Store tokens in memory and SecureStore with enhanced error handling
-   * If SecureStore fails, tokens are kept in memory and retried later
+   * Store tokens in memory and SecureStore
    */
   async setTokens(accessToken: string, refreshToken: string): Promise<void> {
+    // Always update in-memory cache first (critical for immediate use)
+    this.accessToken = accessToken;
+    this.refreshToken = refreshToken;
+
+    // Persist to SecureStore (best effort - don't block if it fails)
     try {
-      console.log('💾 [TOKEN] Storing new tokens');
-
-      // Always update in-memory cache first (critical for immediate use)
-      this.accessToken = accessToken;
-      this.refreshToken = refreshToken;
-
-      // Try to persist to SecureStore with enhanced retry logic
-      const maxRetries = 2;
-      let retryCount = 0;
-      let lastError: any = null;
-
-      while (retryCount <= maxRetries) {
-        try {
-          await Promise.all([
-            SecureStore.setItemAsync('accessToken', accessToken),
-            SecureStore.setItemAsync('refreshToken', refreshToken),
-          ]);
-          console.log('✅ [TOKEN] Tokens stored in SecureStore');
-          this.pendingTokens = null; // Clear any pending tokens
-          break; // Success - exit retry loop
-        } catch (secureStoreError: any) {
-          lastError = secureStoreError;
-          const errorMessage = secureStoreError?.message || String(secureStoreError);
-          
-          if (retryCount < maxRetries && 
-              (errorMessage.includes('User interaction is not allowed') || 
-               errorMessage.includes('setValueWithKeyAsync'))) {
-            retryCount++;
-            console.log(`🔄 [TOKEN] SecureStore retry ${retryCount}/${maxRetries} after brief delay`);
-            await new Promise(resolve => setTimeout(resolve, 200 * retryCount)); // Progressive delay
-            continue;
-          }
-          
-          // Max retries reached or non-recoverable error
-          console.warn(
-            '⚠️ [TOKEN] SecureStore failed after retries, tokens in memory only:',
-            errorMessage
-          );
-          
-          // Mark tokens as pending for retry when app becomes active
-          this.pendingTokens = { accessToken, refreshToken };
-          break;
-        }
-      }
-
-      // Log token expiration times for debugging (enhanced)
-      try {
-        const accessPayload = JSON.parse(atob(accessToken.split('.')[1]));
-        const refreshPayload = JSON.parse(atob(refreshToken.split('.')[1]));
-        const now = new Date();
-        const accessExpiry = new Date(accessPayload.exp * 1000);
-        const refreshExpiry = new Date(refreshPayload.exp * 1000);
-        
-        console.log('📅 [TOKEN] Access token expires:', accessExpiry.toISOString(), 
-                   `(in ${Math.round((accessExpiry.getTime() - now.getTime()) / 60000)} minutes)`);
-        console.log('📅 [TOKEN] Refresh token expires:', refreshExpiry.toISOString(),
-                   `(in ${Math.round((refreshExpiry.getTime() - now.getTime()) / (24 * 60 * 60 * 1000))} days)`);
-      } catch (parseError) {
-        console.warn('⚠️ [TOKEN] Could not parse token expiration times:', parseError);
-      }
+      await Promise.all([
+        SecureStore.setItemAsync('accessToken', accessToken),
+        SecureStore.setItemAsync('refreshToken', refreshToken),
+      ]);
     } catch (error) {
-      console.error('❌ [TOKEN] Critical error storing tokens:', error);
+      console.error('[TOKEN] Error persisting tokens to SecureStore:', error);
       // Don't throw - tokens are in memory and will work for current session
     }
   }
@@ -382,27 +131,18 @@ class TokenManager {
    * Clear all tokens from memory and SecureStore
    */
   async clearTokens(): Promise<void> {
+    // Clear in-memory cache
+    this.accessToken = null;
+    this.refreshToken = null;
+
+    // Clear from SecureStore (best effort)
     try {
-      console.log('🗑️ [TOKEN] Clearing all tokens');
-
-      // Clear in-memory cache
-      this.accessToken = null;
-      this.refreshToken = null;
-      this.pendingTokens = null;
-      
-      // Reset initialization state so tokens can be loaded again on next startup
-      this.isInitialized = false;
-      this.initPromise = null;
-
-      // Clear from SecureStore (best effort)
       await Promise.all([
         SecureStore.deleteItemAsync('accessToken').catch(() => {}),
         SecureStore.deleteItemAsync('refreshToken').catch(() => {}),
       ]);
-
-      console.log('✅ [TOKEN] Tokens cleared successfully');
     } catch (error) {
-      console.error('❌ [TOKEN] Error clearing tokens:', error);
+      console.error('[TOKEN] Error clearing tokens from SecureStore:', error);
     }
   }
 
@@ -418,9 +158,44 @@ class TokenManager {
 
       return currentTime >= expirationTime - bufferTime;
     } catch (error) {
-      console.error('Error parsing token:', error);
+      console.error('[TOKEN] Error parsing token:', error);
       return true; // If we can't parse, consider it expired
     }
+  }
+
+  /**
+   * Preload tokens into memory for faster access
+   * Call this during app initialization to avoid delays later
+   */
+  async preloadTokens(): Promise<boolean> {
+    try {
+      console.log('[TOKEN] Preloading tokens from SecureStore...');
+      const [accessToken, refreshToken] = await Promise.all([
+        SecureStore.getItemAsync('accessToken'),
+        SecureStore.getItemAsync('refreshToken'),
+      ]);
+      
+      this.accessToken = accessToken || '';
+      this.refreshToken = refreshToken || '';
+      
+      const hasValidTokens = !!(accessToken && refreshToken);
+      console.log('[TOKEN] Preload complete. Has valid tokens:', hasValidTokens);
+      return hasValidTokens;
+    } catch (error) {
+      console.error('[TOKEN] Error preloading tokens:', error);
+      // Set empty strings to prevent repeated attempts
+      this.accessToken = '';
+      this.refreshToken = '';
+      return false;
+    }
+  }
+
+  /**
+   * Check if we have tokens in memory (fast check)
+   */
+  hasTokensInMemory(): boolean {
+    return !!(this.accessToken && this.refreshToken && 
+              this.accessToken !== '' && this.refreshToken !== '');
   }
 
   /**

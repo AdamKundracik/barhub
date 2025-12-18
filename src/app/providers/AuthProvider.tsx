@@ -28,6 +28,7 @@ import { consentService } from '../services/consentService';
 import { OutdatedConsentDTO } from '../types/dto';
 import { axiosClient } from '../utils/api/axiosClient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { tokenManager } from '@/src/app/utils/api/tokenManager';
 
 // Global reference to unsubscribe function (set by Navigation component)
 let globalUnsubscribeNotifications: (() => void) | null = null;
@@ -200,43 +201,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const checkAuthStatus = useCallback(async (): Promise<void> => {
     try {
-      console.log('[AUTH] Starting auth status check...');
-      
-      // Simple check: do we have a valid session?
-      const isValid = await authService.validateSession();
-      console.log('[AUTH] Session validation result:', isValid);
+      // Check if user has a valid session
+      const isValid = await authService.isAuthenticated();
 
       if (isValid) {
         // Get user data
-        console.log('[AUTH] Getting user data...');
         const userData = await authService.getCurrentUser();
         if (userData) {
-          console.log('[AUTH] User data loaded, setting authenticated state');
           await setAuthenticatedState(userData);
         } else {
-          console.log('[AUTH] No user data available, clearing auth state');
           clearAuthState();
         }
       } else {
-        console.log('[AUTH] Session invalid, clearing auth state');
         clearAuthState();
       }
     } catch (error) {
       console.error('[AUTH] Auth status check error:', error);
-      // Don't immediately clear auth state on error - could be network issue
-      // Instead, try to use cached data
+      // Try to use cached data as fallback
       try {
         const cachedUser = await authService.getCachedUser();
         if (cachedUser) {
-          console.log('[AUTH] Using cached user data due to error');
           await setAuthenticatedState(cachedUser);
           return;
         }
       } catch (cacheError) {
-        console.error('[AUTH] Failed to get cached user:', cacheError);
+        // Ignore cache error
       }
-      
-      console.log('[AUTH] No fallback available, clearing auth state');
+
       clearAuthState();
     }
   }, [setAuthenticatedState, clearAuthState]);
@@ -454,18 +445,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // ========== Effects ==========
 
-  // Initialize auth on mount with small delay to ensure providers are ready
+  // Initialize auth on mount - GUARANTEED to load tokens before UI renders
   useEffect(() => {
     const initializeAuth = async () => {
-      console.log('[AUTH] AuthProvider mounted, starting initialization...');
-      
-      // Small delay to ensure all providers are mounted
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      console.log('[AUTH] Starting auth check after provider initialization...');
-      await checkAuthStatus();
+      try {
+        console.log('[AUTH] Starting authentication initialization...');
+
+        // CRITICAL: Preload tokens into memory first
+        const hasTokens = await tokenManager.preloadTokens();
+        console.log('[AUTH] Token preload result:', hasTokens);
+
+        // Now check authentication status
+        await checkAuthStatus();
+
+        console.log('[AUTH] Authentication initialization complete');
+      } catch (error) {
+        console.error('[AUTH] Initialization error:', error);
+        // Even if preload fails, try auth check (might work with cached data)
+        await checkAuthStatus();
+      }
     };
-    
+
     initializeAuth();
   }, [checkAuthStatus]);
 

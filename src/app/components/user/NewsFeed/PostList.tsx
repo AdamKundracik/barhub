@@ -112,6 +112,9 @@ const PostsList = ({
     return null;
   };
 
+  // Memoize posts length to prevent renderItem recreation
+  const postsLength = posts.length;
+  
   const renderItem = useCallback(
     ({ item, index }: { item: Post; index: number }) => {
       const postView = (
@@ -143,7 +146,7 @@ const PostsList = ({
         }
         
         const config = getFrequencyConfig();
-        const totalPosts = posts.length;
+        const totalPosts = postsLength;
         
         // Skip first post for better UX
         if (index < config.MIN_POSTS_FOR_ADS) {
@@ -193,6 +196,7 @@ const PostsList = ({
       onCommentPress,
       isFiltering,
       setZoomedPost,
+      postsLength, // Pridané postsLength namiesto celého posts array
     ]
   );
 
@@ -206,6 +210,7 @@ const PostsList = ({
         contentContainerStyle={styles.scrollView}
         drawDistance={500} // Reduce overdraw for better performance
         showsVerticalScrollIndicator={false}
+        estimatedItemSize={400} // Help FlashList optimize rendering
         ListFooterComponent={
           <ListFooter
             isFetchingNextPage={isFetchingNextPage}

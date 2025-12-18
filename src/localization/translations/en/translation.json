@@ -354,6 +354,8 @@
   "third-party-libraries": "Third-party libraries",
   "legal-documents": "Legal Documents",
   "other": "Other",
+  "app-version": "App Version",
+  "app-version-label": "Version",
   "use-different-location": "Use different location",
   "select-city": "Select city",
   "search-city": "Search city",

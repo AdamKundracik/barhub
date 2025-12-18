@@ -38,8 +38,15 @@ class AxiosClient {
           return config;
         }
 
-        const token = await tokenManager.getAccessTokenAsync();
-        if (token) {
+        // Try sync access first (if tokens are preloaded)
+        let token = tokenManager.getAccessTokenSync();
+        
+        // If no token in memory, try async load (fallback)
+        if (!token) {
+          token = await tokenManager.getAccessToken();
+        }
+        
+        if (token && token !== '') {
           config.headers.Authorization = `Bearer ${token}`;
         }
 
@@ -80,24 +87,10 @@ class AxiosClient {
             originalRequest.url
           );
 
-          // Senior-level: Don't refresh token during app restoration
-          // Check if tokens are initialized before attempting refresh
-          if (!tokenManager.hasInitialized()) {
-            console.warn(
-              '⚠️ [AUTH] Token manager not initialized yet, skipping token refresh during restoration'
-            );
-            // Wait for initialization, but with timeout to prevent hanging
-            try {
-              await Promise.race([
-                tokenManager.waitUntilInitialized(),
-                new Promise((_, reject) => 
-                  setTimeout(() => reject(new Error('Initialization timeout')), 2000)
-                )
-              ]);
-            } catch (initError) {
-              console.warn('⚠️ [AUTH] Token initialization timeout or error, rejecting request');
-              return Promise.reject(error);
-            }
+          // Don't attempt refresh if we don't have tokens in memory yet
+          if (!tokenManager.hasTokensInMemory()) {
+            console.log('⏳ [AUTH] No tokens in memory yet, skipping refresh');
+            return Promise.reject(error);
           }
 
           // Check if app is in foreground - SecureStore requires user interaction

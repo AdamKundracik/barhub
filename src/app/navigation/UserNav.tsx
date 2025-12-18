@@ -8,6 +8,7 @@ import UserDetail from '../screens/user/UserDetail';
 import NotificationsList from '../screens/user/Notifications/NotificationsList';
 import SelectFakeLocation from '../screens/user/SelectFakeLocation';
 import Licenses from '@/src/app/screens/user/Info/Screens/LIcenses';
+import AppVersion from '@/src/app/screens/user/Info/Screens/AppVersion';
 import BottomTabs from '@/src/app/components/shared/BottomTabs';
 import { PasswordChangeScreen } from '@/src/app/screens/user/ChangePassword';
 import { AdminPanel } from '@/src/app/screens/user/AdminPanel';
@@ -66,6 +67,7 @@ export function UserNav() {
       />
 
       <RootStack.Screen name="Licenses" component={Licenses} />
+      <RootStack.Screen name="AppVersion" component={AppVersion} />
       <RootStack.Screen name="BlockedUsers" component={BlockedUsers} />
       <RootStack.Screen name="MyPosts" component={MyPosts} />
 

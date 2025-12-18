@@ -14,7 +14,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
 import {
   primaryBgColor,
@@ -27,7 +27,7 @@ import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { useUserData } from '@/src/app/hooks/useUserQuery';
 import { AuthTypeEnum } from '@/src/app/types/dto';
-import { useQueryClient } from 'react-query';
+import { useQuery, useQueryClient } from 'react-query';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import {
   Avatar,
@@ -45,6 +45,7 @@ import BioEditModal from '@/src/app/components/shared/Modals/BioEditModal';
 import { DeleteAccountConfirmModal } from '@/src/app/components/shared/Modals/DeleteAccountConfirmModal';
 import { PremiumHelpers } from '@/src/app/config/premiumConfig';
 import { addCacheBuster, createImageKey } from '../../utils/cache/imageCacheUtils';
+import { reportService } from '@/src/app/services/reportService';
 
 interface ActionButtonProps {
   icon: any;
@@ -54,6 +55,7 @@ interface ActionButtonProps {
   variant?: 'default' | 'warning' | 'premium';
   showChevron?: boolean;
   loading?: boolean;
+  badge?: number;
 }
 
 interface InfoItemProps {
@@ -71,6 +73,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   variant = 'default',
   showChevron = true,
   loading = false,
+  badge,
 }) => {
   const getVariantColors = () => {
     switch (variant) {
@@ -139,15 +142,24 @@ const ActionButton: React.FC<ActionButtonProps> = ({
           <View style={styles.actionButtonRight}>
             <ActivityIndicator size="small" color={colors.iconColor} />
           </View>
-        ) : showChevron ? (
+        ) : (
           <View style={styles.actionButtonRight}>
-            <FontAwesomeIcon
-              icon={Icons.ChevronRight}
-              size={16}
-              color={separatorColor}
-            />
+            {badge !== undefined && badge > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>
+                  {badge > 99 ? '99+' : badge.toString()}
+                </Text>
+              </View>
+            )}
+            {showChevron && (
+              <FontAwesomeIcon
+                icon={Icons.ChevronRight}
+                size={16}
+                color={separatorColor}
+              />
+            )}
           </View>
-        ) : null}
+        )}
       </View>
     </Pressable>
   );
@@ -195,6 +207,44 @@ export const Account = () => {
     userId || undefined
   );
 
+  // Get reports count for badge (Admin/Moderator only)
+  // No cache - always fetch fresh data for accurate badge count
+  const { data: reports, isLoading: isLoadingReports, refetch: refetchReports } = useQuery(
+    ['reports', 'count'],
+    async () => {
+      if (!isAdmin && !isModerator) return [];
+      const allReports = await reportService.getAllReports();
+      console.log('[Account] Reports loaded:', allReports?.length || 0);
+      return allReports || [];
+    },
+    {
+      enabled: isAdmin || isModerator,
+      staleTime: 0, // Always consider data stale - fetch fresh on every mount/refocus
+      cacheTime: 0, // Don't cache - always fetch fresh data
+      refetchOnMount: true, // Refetch when component mounts
+      refetchOnWindowFocus: true, // Refetch when screen comes into focus
+    }
+  );
+
+  const reportsCount = reports?.length || 0;
+  
+  // Refetch reports when screen comes into focus (e.g., returning from ReportsManagement)
+  useFocusEffect(
+    React.useCallback(() => {
+      if ((isAdmin || isModerator) && refetchReports) {
+        console.log('[Account] Screen focused, refetching reports...');
+        refetchReports();
+      }
+    }, [isAdmin, isModerator, refetchReports])
+  );
+
+  // Debug log
+  React.useEffect(() => {
+    if (isAdmin || isModerator) {
+      console.log('[Account] Reports count for badge:', reportsCount, 'isLoading:', isLoadingReports);
+    }
+  }, [reportsCount, isLoadingReports, isAdmin, isModerator]);
+
   const [isEditing, setIsEditing] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [isBioModalOpen, setIsBioModalOpen] = useState(false);
@@ -206,6 +256,11 @@ export const Account = () => {
     setRefreshing(true);
     try {
       await queryClient.invalidateQueries(['user', 'data']);
+      // Invalidate and refetch reports query to refresh badge count
+      if (isAdmin || isModerator) {
+        await queryClient.invalidateQueries(['reports', 'count']);
+        await refetchReports();
+      }
       // Posts invalidation removed - only needed after profile photo change (handled in EditProfile)
       await refetch();
     } catch (error) {
@@ -567,6 +622,7 @@ export const Account = () => {
                     navigation.navigate('ReportsManagement' as never)
                   }
                   variant="warning"
+                  badge={reportsCount}
                 />
 
                 {isAdmin && (
@@ -878,10 +934,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   actionButtonRight: {
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    width: 24,
+    gap: 8,
+    minWidth: 24,
     height: 24,
+  },
+  badge: {
+    backgroundColor: warningColor,
+    borderRadius: 12,
+    minWidth: 24,
+    height: 24,
+    paddingHorizontal: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  badgeText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '700',
   },
   actionButtonIconContainer: {
     width: 42,

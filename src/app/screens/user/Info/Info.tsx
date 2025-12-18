@@ -94,6 +94,19 @@ const InfoScreen = () => {
 
         <TouchableOpacity
           style={styles.infoLink}
+          onPress={() => navigation.navigate('AppVersion')}
+        >
+          <Text style={styles.infoText}>{t('app-version')}</Text>
+          <FontAwesomeIcon
+            style={{ alignSelf: 'center' }}
+            icon={Icons.ChevronRight}
+            size={16}
+            color={'white'}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.infoLink}
           onPress={() => navigation.navigate('Licenses')}
         >
           <Text style={styles.infoText}>{t('third-party-libraries')}</Text>
