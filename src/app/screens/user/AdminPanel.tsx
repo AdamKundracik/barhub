@@ -26,8 +26,10 @@ import { useCustomToast } from '../../components/shared/Toaster';
 import FastImage from 'react-native-fast-image';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { useNavigation } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 import { useTranslation } from 'react-i18next';
+import { UserStackList } from '../../utils/types/screen-types';
 
 interface UserItemProps {
   user: ClientDTO;
@@ -150,7 +152,7 @@ export const AdminPanel: React.FC = () => {
   const { isAdmin, isModerator, role } = useUserRole();
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const queryClient = useQueryClient();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -371,16 +373,28 @@ export const AdminPanel: React.FC = () => {
 
             <Text style={styles.headerTitle}>{t('admin.panel')}</Text>
 
-            <TouchableOpacity
-              onPress={() => refetch()}
-              style={styles.refreshButton}
-            >
-              <FontAwesomeIcon
-                icon={Icons.Rotate}
-                size={20}
-                color={primaryColor}
-              />
-            </TouchableOpacity>
+            <View style={styles.headerRight}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('DebugLogs')}
+                style={styles.debugButton}
+              >
+                <FontAwesomeIcon
+                  icon={Icons.Info}
+                  size={18}
+                  color={primaryColor}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => refetch()}
+                style={styles.refreshButton}
+              >
+                <FontAwesomeIcon
+                  icon={Icons.Rotate}
+                  size={20}
+                  color={primaryColor}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Stats */}
@@ -595,6 +609,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  debugButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(16, 217, 185, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 28,

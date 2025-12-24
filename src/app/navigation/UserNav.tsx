@@ -22,6 +22,7 @@ import PrivacyPolicy from '../screens/auth/LegalDocuments/PrivacyPolicy';
 import CommunityGuidelines from '../screens/auth/LegalDocuments/CommunityGuidelines';
 import { useNotificationsHandler } from '../components/user/NewsFeed/NotificationHandler';
 import { setGlobalUnsubscribeNotifications } from '../providers/AuthProvider';
+import DebugLogsScreen from '../screens/dev/DebugLogs';
 
 const RootStack = createNativeStackNavigator();
 
@@ -81,6 +82,9 @@ export function UserNav() {
       <RootStack.Screen name="ConsentManagement" component={ConsentManagement} />
       <RootStack.Screen name="PrivacyData" component={PrivacyData} />
       <RootStack.Screen name="ReportsManagement" component={ReportsManagement} />
+
+      {/* Debug */}
+      <RootStack.Screen name="DebugLogs" component={DebugLogsScreen} />
     </RootStack.Navigator>
   );
 }

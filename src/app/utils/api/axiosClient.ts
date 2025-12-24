@@ -7,6 +7,7 @@ import axios, {
 import { AppState, AppStateStatus } from 'react-native';
 import { API_CONFIG } from '../../config/api';
 import { tokenManager } from './tokenManager';
+import { logError, logInfo, logWarn } from '../store/logsStore';
 
 class AxiosClient {
   private axiosInstance: AxiosInstance;
@@ -66,10 +67,35 @@ class AxiosClient {
           error.response?.status === 401 &&
           originalRequest.url?.includes('/auth/refresh')
         ) {
-          console.log('❌ [AUTH] Refresh token je neplatný → okamžitý logout');
+          const errorDetails = {
+            url: originalRequest.url,
+            method: originalRequest.method,
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            responseData: error.response?.data,
+            appState: AppState.currentState,
+            hasTokensInMemory: tokenManager.hasTokensInMemory(),
+            stackTrace: new Error().stack,
+          };
+
+          logError(
+            'AxiosClient',
+            'Refresh token endpoint returned 401 - token is invalid, calling onTokenRefreshFailure',
+            errorDetails,
+            error instanceof Error ? error : new Error('Refresh token 401')
+          );
+          console.log('❌ [AUTH] Refresh token je neplatný → okamžitý logout', errorDetails);
 
           await tokenManager.clearTokens();
           if (this.onTokenRefreshFailure) {
+            logInfo(
+              'AxiosClient',
+              'Calling onTokenRefreshFailure callback',
+              {
+                callbackExists: !!this.onTokenRefreshFailure,
+                stackTrace: new Error().stack,
+              }
+            );
             this.onTokenRefreshFailure();
           }
 
@@ -82,13 +108,36 @@ class AxiosClient {
           !originalRequest._retry &&
           !originalRequest.url?.startsWith('/auth/')
         ) {
+          const requestDetails = {
+            url: originalRequest.url,
+            method: originalRequest.method,
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            responseData: error.response?.data,
+            appState: AppState.currentState,
+            hasTokensInMemory: tokenManager.hasTokensInMemory(),
+            isRefreshing: this.isRefreshing,
+            stackTrace: new Error().stack,
+          };
+
+          logWarn(
+            'AxiosClient',
+            '401 Unauthorized detected - attempting token refresh',
+            requestDetails
+          );
           console.log(
             '🔴 [AUTH] 401 Unauthorized detected',
-            originalRequest.url
+            originalRequest.url,
+            requestDetails
           );
 
           // Don't attempt refresh if we don't have tokens in memory yet
           if (!tokenManager.hasTokensInMemory()) {
+            logWarn(
+              'AxiosClient',
+              'No tokens in memory yet, skipping refresh',
+              requestDetails
+            );
             console.log('⏳ [AUTH] No tokens in memory yet, skipping refresh');
             return Promise.reject(error);
           }
@@ -96,6 +145,11 @@ class AxiosClient {
           // Check if app is in foreground - SecureStore requires user interaction
           const appState = AppState.currentState;
           if (appState !== 'active') {
+            logWarn(
+              'AxiosClient',
+              'App not in foreground, skipping token refresh',
+              { ...requestDetails, appState }
+            );
             console.warn(
               '⚠️ [AUTH] App not in foreground, skipping token refresh',
               appState
@@ -108,6 +162,11 @@ class AxiosClient {
 
           // If refresh already running → queue this request
           if (this.isRefreshing) {
+            logInfo(
+              'AxiosClient',
+              'Token refresh already in progress, queuing request',
+              requestDetails
+            );
             return new Promise((resolve, reject) => {
               this.failedQueue.push({ resolve, reject });
             })
@@ -118,22 +177,61 @@ class AxiosClient {
           originalRequest._retry = true;
           this.isRefreshing = true;
 
+          logInfo(
+            'AxiosClient',
+            'Starting token refresh',
+            {
+              ...requestDetails,
+              failedQueueLength: this.failedQueue.length,
+            }
+          );
+
           try {
             // dynamic import (prevents circular deps)
             const { authService } = await import('../../services/authService');
             const newToken = await authService.refreshAccessToken();
 
             if (!newToken) {
-              console.log('❌ [AUTH] Refresh vrátil null token → logout');
+              const failureDetails = {
+                ...requestDetails,
+                refreshResult: 'null',
+              };
+
+              logError(
+                'AxiosClient',
+                'Token refresh returned null token - calling onTokenRefreshFailure',
+                failureDetails,
+                new Error('Refresh returned null token')
+              );
+              console.log('❌ [AUTH] Refresh vrátil null token → logout', failureDetails);
 
               this.processQueue(new Error('Refresh failed'));
               await tokenManager.clearTokens();
-              if (this.onTokenRefreshFailure) this.onTokenRefreshFailure();
+              if (this.onTokenRefreshFailure) {
+                logInfo(
+                  'AxiosClient',
+                  'Calling onTokenRefreshFailure callback (null token)',
+                  {
+                    callbackExists: !!this.onTokenRefreshFailure,
+                    stackTrace: new Error().stack,
+                  }
+                );
+                this.onTokenRefreshFailure();
+              }
 
               return Promise.reject(error);
             }
 
             // success
+            logInfo(
+              'AxiosClient',
+              'Token refresh successful - retrying original request',
+              {
+                ...requestDetails,
+                hasNewToken: !!newToken,
+                failedQueueLength: this.failedQueue.length,
+              }
+            );
             console.log('✅ [AUTH] Refresh OK → retry requests');
 
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
@@ -141,12 +239,6 @@ class AxiosClient {
 
             return this.axiosInstance(originalRequest);
           } catch (refreshError) {
-            console.log(
-              '❌ [AUTH] Refresh request error → logout',
-              refreshError
-            );
-
-            // Check if error is related to SecureStore
             const errorMessage = refreshError instanceof Error 
               ? refreshError.message 
               : String(refreshError);
@@ -156,6 +248,15 @@ class AxiosClient {
 
             if (isSecureStoreError) {
               // Don't logout if it's just a SecureStore error - tokens are in memory
+              logWarn(
+                'AxiosClient',
+                'SecureStore error during refresh, but tokens are in memory - not logging out',
+                {
+                  ...requestDetails,
+                  errorMessage,
+                  isSecureStoreError: true,
+                }
+              );
               console.warn(
                 '⚠️ [AUTH] SecureStore error during refresh, but tokens are in memory',
                 errorMessage
@@ -169,9 +270,39 @@ class AxiosClient {
             }
 
             // Real auth error - logout
+            const failureDetails = {
+              ...requestDetails,
+              refreshError: errorMessage,
+              refreshErrorStack: refreshError instanceof Error ? refreshError.stack : undefined,
+              isSecureStoreError: false,
+            };
+
+            logError(
+              'AxiosClient',
+              'Token refresh request failed - calling onTokenRefreshFailure',
+              failureDetails,
+              refreshError instanceof Error ? refreshError : new Error(String(refreshError))
+            );
+            console.log(
+              '❌ [AUTH] Refresh request error → logout',
+              refreshError,
+              failureDetails
+            );
+
             this.processQueue(refreshError);
             await tokenManager.clearTokens();
-            if (this.onTokenRefreshFailure) this.onTokenRefreshFailure();
+            if (this.onTokenRefreshFailure) {
+              logInfo(
+                'AxiosClient',
+                'Calling onTokenRefreshFailure callback (refresh error)',
+                {
+                  callbackExists: !!this.onTokenRefreshFailure,
+                  errorMessage,
+                  stackTrace: new Error().stack,
+                }
+              );
+              this.onTokenRefreshFailure();
+            }
 
             return Promise.reject(error);
           } finally {

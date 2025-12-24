@@ -115,10 +115,11 @@ export function useNotificationsHandler() {
             break;
 
           case NotificationType.REQUEST:
-            if (
-              new Date().getTime() >
-              new Date(sentAt).getTime() + notificationTTL
-            ) {
+            // Check if elapsed time is less than 3 minutes (180 seconds)
+            const elapsedTime = new Date().getTime() - new Date(sentAt).getTime();
+            const threeMinutesInMs = 3 * 60 * 1000; // 3 minutes in milliseconds
+            
+            if (elapsedTime >= threeMinutesInMs) {
               Alert.alert(t('request-expired'), t('missed-request-info'));
             } else {
               await openCamera(placeId, senderToken, navigation, id);

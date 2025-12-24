@@ -41,6 +41,8 @@ export type UserStackList = {
   UserDetail: { userId: string };
 
   AppVersion: undefined;
+
+  DebugLogs: undefined;
 };
 
 export type FeedsScreenProps = NativeStackScreenProps<

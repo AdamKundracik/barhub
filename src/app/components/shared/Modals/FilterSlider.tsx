@@ -27,7 +27,6 @@ import Slider from '@react-native-community/slider';
 import MultiSelectPlaceChips from '@/src/app/components/user/NewsFeed/Filters/MultiSelectPlaceChips';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
-import { useNewsFeedData } from '@/src/app/utils/hooks/NewsFeed/usePostData';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { PremiumHelpers } from '@/src/app/config/premiumConfig';
 import { useModalsStore } from '@/src/app/utils/store/modalsStore';
@@ -66,8 +65,6 @@ const FilterSlider = () => {
 
   const { isPremium } = useUserStore();
   const { hasAdminAccess } = useUserRole();
-
-  const { isRefetching } = useNewsFeedData(); // inside FilterSlider
 
   const {
     distance: storeDistance,
@@ -243,7 +240,6 @@ const FilterSlider = () => {
               <Switch
                 value={storeShowHighlightedPosts}
                 onValueChange={setShowHighlightedPosts}
-                disabled={isRefetching}
               />
             </View>
           </View>
@@ -254,7 +250,6 @@ const FilterSlider = () => {
               <Switch
                 value={useFakeLocation}
                 onValueChange={handleFakeLocationToggle}
-                disabled={isRefetching}
               />
             </View>
 

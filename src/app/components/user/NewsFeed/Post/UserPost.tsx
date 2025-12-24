@@ -230,35 +230,9 @@ const UserPost: React.FC<UserPostProps> = ({
   isFiltering,
   onCommentPress,
 }) => {
-  // const { isPremium, canSeeContent, userData } = useUserStore();
   const navigation = useNavigation();
 
-  // Early return if no post
-  if (!post) {
-    return null;
-  }
-
-  // Navigate to PostDetail screen
-  const handleNavigateToDetail = useCallback(() => {
-    (navigation as any).navigate('PostDetail', { postId: post.id });
-  }, [navigation, post.id]);
-
-  // Navigate to UserDetail screen
-  const handleNavigateToUser = useCallback(() => {
-    (navigation as any).navigate('UserDetail', { userId: post.userId });
-  }, [navigation, post.userId]);
-
-  // Share post
-  const handleShare = useCallback(async () => {
-    try {
-      const { shareService } = await import('@/src/app/services/shareService');
-      await shareService.sharePost(post);
-    } catch (error) {
-      console.error('Error sharing post:', error);
-    }
-  }, [post]);
-
-  // Safe destructuring with defaults
+  // Safe destructuring with defaults - MUST be before any hooks
   const {
     id = '',
     isLiked = false,
@@ -273,7 +247,30 @@ const UserPost: React.FC<UserPostProps> = ({
     commentsCount = 0,
     occupancy = '',
     isHighlighted = false,
-  } = post;
+  } = post ?? {};
+
+  // Navigate to PostDetail screen
+  const handleNavigateToDetail = useCallback(() => {
+    if (!id) return;
+    (navigation as any).navigate('PostDetail', { postId: id });
+  }, [navigation, id]);
+
+  // Navigate to UserDetail screen
+  const handleNavigateToUser = useCallback(() => {
+    if (!userId) return;
+    (navigation as any).navigate('UserDetail', { userId });
+  }, [navigation, userId]);
+
+  // Share post - memoize with stable dependencies
+  const handleShare = useCallback(async () => {
+    if (!post) return;
+    try {
+      const { shareService } = await import('@/src/app/services/shareService');
+      await shareService.sharePost(post);
+    } catch (error) {
+      console.error('Error sharing post:', error);
+    }
+  }, [post?.id]); // Only depend on post.id for stability
 
   // Custom hooks with safe values
   const { liked, likeCount, handleLikeToggle } = usePostLike(
@@ -316,8 +313,8 @@ const UserPost: React.FC<UserPostProps> = ({
 
   const trimmedPlaceName = useMemo(() => trimPlaceName(placeName), [placeName]);
 
-  // Don't render if essential data is missing
-  if (!id || !photoUrl) {
+  // Don't render if essential data is missing - after all hooks
+  if (!post || !id || !photoUrl) {
     return null;
   }
 

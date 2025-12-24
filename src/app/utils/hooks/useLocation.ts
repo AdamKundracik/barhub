@@ -4,12 +4,11 @@ import BackgroundGeolocation from 'react-native-background-geolocation';
 import { useLocationStore } from '../store/locationStore';
 import { LocationType } from '../types/types';
 import { getCoords } from '../helper-functions/get-coords';
-import { useNewsFeedData } from './NewsFeed/usePostData';
+import { logInfo, logWarn } from '../store/logsStore';
 
 export const useLocation = () => {
   const { useFakeLocation, location, setLocation, initialized, fakeLocation } =
     useLocationStore();
-  const { refetch } = useNewsFeedData();
 
   // Ref na udržanie aktuálnej location, aby sme nemali location v deps
   const locationRef = useRef<LocationType | null>(location);
@@ -128,8 +127,8 @@ export const useLocation = () => {
         try {
           await BackgroundGeolocation.stop();
           if (fakeLocation) setLocation(fakeLocation);
-          // Refetch only when switching to fake location (manual action)
-          refetch();
+          // Note: Don't call refetch() here - queryKey in useNewsFeedData changes automatically
+          // when useFakeLocation changes, which triggers automatic refetch
         } catch (err) {
           console.error('Failed to stop BackgroundGeolocation:', err);
         }
@@ -141,7 +140,6 @@ export const useLocation = () => {
     useFakeLocation,
     initialized,
     fakeLocation,
-    refetch,
     getCurrentLocation,
     setLocation,
   ]);
@@ -149,11 +147,32 @@ export const useLocation = () => {
   // Update location when app becomes active (from background/inactive)
   useEffect(() => {
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      const previousAppState = appStateRef.current;
+      
+      logInfo(
+        'useLocation',
+        'AppState changed',
+        {
+          previousAppState,
+          nextAppState,
+          willUpdateLocation: previousAppState.match(/inactive|background/) && nextAppState === 'active',
+        }
+      );
+
       // Only update location when transitioning from background/inactive to active
       if (
-        appStateRef.current.match(/inactive|background/) &&
+        previousAppState.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
+        logInfo(
+          'useLocation',
+          'App became active - calling getCurrentLocation',
+          {
+            previousAppState,
+            nextAppState,
+            stackTrace: new Error().stack,
+          }
+        );
         getCurrentLocation();
       }
       appStateRef.current = nextAppState;

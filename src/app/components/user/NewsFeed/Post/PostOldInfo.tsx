@@ -210,4 +210,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PostOldInfo;
+export default React.memo(PostOldInfo);

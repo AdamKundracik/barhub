@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import {
   BannerAd,
   BannerAdSize,
@@ -222,12 +222,6 @@ const InlineAd: React.FC = () => {
 
   return (
     <View style={styles.adContainer}>
-      {!adState.isLoaded && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color="#666" />
-        </View>
-      )}
-      
       <BannerAd
         key={adKeyRef.current}
         unitId={unitId}
@@ -247,16 +241,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginVertical: 8,
     minHeight: 50,
-  },
-  loadingContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1,
   },
 });
 

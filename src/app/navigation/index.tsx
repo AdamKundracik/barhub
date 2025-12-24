@@ -13,6 +13,7 @@ import { useNetwork } from '../providers/NetworkProvider';
 import { NetworkTopBar } from '../components/shared/NetworkTopBar';
 import { OfflineScreen } from '../screens/shared/OfflineScreen';
 import { tokenManager } from '../utils/api/tokenManager';
+import { logDebug, logInfo, logWarn } from '../utils/store/logsStore';
 
 // Deep linking configuration for NotVerified navigator
 const notVerifiedLinking = {
@@ -140,6 +141,35 @@ export const Navigation = () => {
 
   // Check if email is verified
   const isEmailVerified = user?.emailVerified ?? false;
+
+  // Log isAuthenticated changes in Navigation (only log actual changes)
+  const prevIsAuthenticatedRef = React.useRef<boolean | null>(null);
+  const prevRoutingRef = React.useRef<string | null>(null);
+  
+  React.useEffect(() => {
+    const currentRouting = isAuthenticated ? 'UserNavWrapper' : 'AuthNav';
+    
+    // Only log if value actually changed
+    if (prevIsAuthenticatedRef.current !== isAuthenticated || prevRoutingRef.current !== currentRouting) {
+      logDebug(
+        'Navigation',
+        `isAuthenticated changed in Navigation: ${prevIsAuthenticatedRef.current} -> ${isAuthenticated}`,
+        {
+          isAuthenticated,
+          isAuthLoading,
+          isAppInitialized,
+          isNetworkLoading,
+          isConnected,
+          hasAllRequiredPermissions: hasAllRequiredPermissions(),
+          isEmailVerified,
+          userId: user?.id,
+          routingTo: currentRouting,
+        }
+      );
+      prevIsAuthenticatedRef.current = isAuthenticated;
+      prevRoutingRef.current = currentRouting;
+    }
+  }, [isAuthenticated, isAuthLoading, isAppInitialized, isNetworkLoading, isConnected, user]);
 
   // BULLETPROOF PROTECTION: Simplified state management
   const [protectionState, setProtectionState] = React.useState<{
@@ -293,7 +323,6 @@ export const Navigation = () => {
     );
   }
 
-  console.log('[Navigation] Rendering final navigation, isAuthenticated:', isAuthenticated);
   return (
     <>
       <NetworkTopBar />

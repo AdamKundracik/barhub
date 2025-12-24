@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 import { useInfiniteQuery, useQueryClient } from 'react-query';
 import { handleFreshContent } from '../../functions/posts-functions';
 import { useFiltersStore } from '../../store/filtersStorage';
@@ -6,6 +6,7 @@ import { useLocationStore } from '../../store/locationStore';
 import { usePlaceStore } from '../../store/placesStore';
 import { useAuth } from '@/src/app/providers/AuthProvider';
 import { useUserStore } from '../../store/userStore';
+import { logInfo, logWarn } from '../../store/logsStore';
 
 export const useNewsFeedData = () => {
   const { distance, selectedPlaces, selectedOccupancy, showHighlightedPosts } =
@@ -56,15 +57,28 @@ export const useNewsFeedData = () => {
     isRefetching,
   } = useInfiniteQuery(
     queryKey,
-    ({ pageParam = null }) =>
-      handleFreshContent(
+    ({ pageParam = null }) => {
+      logInfo(
+        'useNewsFeedData',
+        'Fetching posts data',
+        {
+          queryKey: JSON.stringify(queryKey),
+          pageParam,
+          placeId,
+          distance,
+          location: currentLocation,
+          stackTrace: new Error().stack,
+        }
+      );
+      return handleFreshContent(
         distance,
         pageParam,
         placeId,
         currentLocation!,
         selectedPlaces.length > 0 ? selectedPlaces : undefined,
         selectedOccupancy.length > 0 ? selectedOccupancy : undefined
-      ),
+      );
+    },
     {
       getNextPageParam: lastPage => lastPage?.lastVisible || null, // lastVisible is mapped from nextCursor
       enabled: !!currentLocation && isAuthenticated && !!userId, // Wait for location, authentication, and userId to be available
@@ -76,6 +90,47 @@ export const useNewsFeedData = () => {
       refetchOnReconnect: true, // Refetch when network reconnects
     }
   );
+
+  // Log when refetch is triggered
+  const prevIsRefetchingRef = useRef(false);
+  useEffect(() => {
+    if (isRefetching && !prevIsRefetchingRef.current) {
+      logInfo(
+        'useNewsFeedData',
+        'Refetch started (triggered by React Query)',
+        {
+          queryKey: JSON.stringify(queryKey),
+          placeId,
+          distance,
+          location: currentLocation,
+          isAuthenticated,
+          userId,
+          stackTrace: new Error().stack,
+        }
+      );
+    }
+    prevIsRefetchingRef.current = isRefetching;
+  }, [isRefetching, queryKey, placeId, distance, currentLocation, isAuthenticated, userId]);
+
+  // Wrap refetch to log manual calls
+  const wrappedRefetch = useMemo(() => {
+    return async () => {
+      logInfo(
+        'useNewsFeedData',
+        'Manual refetch called',
+        {
+          queryKey: JSON.stringify(queryKey),
+          placeId,
+          distance,
+          location: currentLocation,
+          isAuthenticated,
+          userId,
+          stackTrace: new Error().stack,
+        }
+      );
+      return refetch();
+    };
+  }, [refetch, queryKey, placeId, distance, currentLocation, isAuthenticated, userId]);
 
   // Vytvoríme stabilný string z IDs pre memoizáciu
   const postsIdsString = useMemo(() => {
@@ -124,7 +179,7 @@ export const useNewsFeedData = () => {
     isRefetching,
     isFetchingNextPage,
     hasNextPage,
-    refetch,
+    refetch: wrappedRefetch,
     forceRefetch,
     fetchMorePosts,
   };
