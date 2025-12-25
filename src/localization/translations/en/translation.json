@@ -810,5 +810,7 @@
     "more-highlights": "More highlighted posts",
     "thank-you-message": "Your support helps us constantly improve Barhub and bring you the best experiences. Thank you for being part of our community!",
     "close": "Close"
-  }
+  },
+  "liked-by": "Liked by",
+  "no-likes-yet": "No likes yet"
 }

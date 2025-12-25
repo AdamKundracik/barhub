@@ -29,6 +29,7 @@ import InteractionBar from './InteractionBar';
 import { postBgColor, primaryBgColor } from '@/src/app/utils/styles/colors';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useTranslation } from 'react-i18next';
+import { LikedUsersModal, LikedUser } from '@/src/app/components/shared/Modals/LikedUsersModal';
 
 // Constants
 const isTablet = Device.isTablet();
@@ -231,6 +232,11 @@ const UserPost: React.FC<UserPostProps> = ({
   onCommentPress,
 }) => {
   const navigation = useNavigation();
+  
+  // State for liked users modal
+  const [showLikedUsersModal, setShowLikedUsersModal] = useState(false);
+  const [likedUsers, setLikedUsers] = useState<LikedUser[]>([]);
+  const [loadingLikedUsers, setLoadingLikedUsers] = useState(false);
 
   // Safe destructuring with defaults - MUST be before any hooks
   const {
@@ -299,6 +305,28 @@ const UserPost: React.FC<UserPostProps> = ({
   const handleCommentPress = useCallback(() => {
     onCommentPress(id, user?.expoPushToken ?? '', userId);
   }, [id, user?.expoPushToken, userId, onCommentPress]);
+
+  // Handle like long press to show liked users
+  const handleLikeLongPress = useCallback(async () => {
+    if (id) {
+      setLoadingLikedUsers(true);
+      try {
+        const users = await postService.getLikedUsers(id);
+        setLikedUsers(users);
+        setShowLikedUsersModal(true);
+      } catch (error) {
+        console.error('Error fetching liked users:', error);
+        // Show error toast if needed
+      } finally {
+        setLoadingLikedUsers(false);
+      }
+    }
+  }, [id]);
+
+  // Handle user press in liked users modal
+  const handleLikedUserPress = useCallback((userId: number) => {
+    (navigation as any).navigate('UserDetail', { userId: userId.toString() });
+  }, [navigation]);
 
   // // Computed values
   // const shouldShowBlur = useMemo(() => {
@@ -436,8 +464,18 @@ const UserPost: React.FC<UserPostProps> = ({
           occupancy={occupancy}
           isHighlighted={isHighlighted}
           isFiltering={isFiltering}
+          onLikeLongPress={handleLikeLongPress}
         />
       </View>
+
+      {/* Liked Users Modal */}
+      <LikedUsersModal
+        visible={showLikedUsersModal}
+        onClose={() => setShowLikedUsersModal(false)}
+        users={likedUsers}
+        onUserPress={handleLikedUserPress}
+        loading={loadingLikedUsers}
+      />
     </Animated.View>
   );
 };

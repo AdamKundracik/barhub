@@ -57,6 +57,7 @@ export const ENDPOINTS = {
     BY_ID: (id: string) => `/posts/${id}`,
     LIKE: (id: string) => `/posts/${id}/like`,
     LIKES_COUNT: (id: string) => `/posts/${id}/likes/count`,
+    LIKED_USERS: (id: string) => `/posts/${id}/liked-users`,
     FRESH_CONTENT: '/posts/fresh-content',
     BY_PLACE: '/posts/placeId',
     USER_HIGHLIGHTS_ACTIVE: (userId: string) =>

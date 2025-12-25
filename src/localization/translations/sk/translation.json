@@ -833,6 +833,8 @@
     "waitBeforeNextUpload": "Počkajte ešte {{time}}s pred ďalším uploadom",
     "permissionDeniedTitle": "Prístup ku kamere je potrebný",
     "permissionDeniedMessage": "Na fotografovanie a zdieľanie vašich zážitkov potrebujeme prístup k vašej kamere. Prosím, povoľte prístup ku kamere v nastaveniach zariadenia, aby ste mohli použiť túto funkciu."
-  }
+  },
+  "liked-by": "Páči sa",
+  "no-likes-yet": "Zatiaľ sa nikomu nepáči"
 }
 

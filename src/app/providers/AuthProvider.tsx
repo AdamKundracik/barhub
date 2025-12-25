@@ -201,6 +201,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         userId: userData.id,
       }
     );
+    
+    // Vypíš currentUser data pri autentifikácii
+    console.log('[AUTH] Current user data on authentication:', JSON.stringify(userData, null, 2));
 
     // Initialize user-related services in background
     Promise.allSettled([
@@ -1090,6 +1093,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         );
         console.log('[AUTH] Authentication initialization complete');
+        
+        // Vypíš currentUser data pri spustení appky
+        if (user) {
+          console.log('[AUTH] Current user data on app start:', JSON.stringify(user, null, 2));
+        } else {
+          console.log('[AUTH] No current user - user is not authenticated');
+        }
       } catch (error) {
         logError(
           'AuthProvider',

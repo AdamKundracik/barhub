@@ -19,6 +19,7 @@ interface InteractionBarProps {
   occupancy: string;
   isHighlighted?: boolean;
   isFiltering?: boolean;
+  onLikeLongPress?: () => void;
 }
 
 // Constants
@@ -57,6 +58,7 @@ const InteractionButton: React.FC<{
   count?: number | string;
   color?: string;
   onPress?: () => void;
+  onLongPress?: () => void;
   isActive?: boolean;
   activeColor?: string;
   isCompact?: boolean;
@@ -66,6 +68,7 @@ const InteractionButton: React.FC<{
   count,
   color = 'white',
   onPress,
+  onLongPress,
   isActive,
   activeColor = 'red',
   isCompact = false,
@@ -86,7 +89,11 @@ const InteractionButton: React.FC<{
 
   if (onPress) {
     return (
-      <TouchableOpacity onPress={onPress} style={[styles.iconContainer, isCompact && compactStyles.iconContainer]}>
+      <TouchableOpacity 
+        onPress={onPress} 
+        onLongPress={onLongPress}
+        style={[styles.iconContainer, isCompact && compactStyles.iconContainer]}
+      >
         <FontAwesomeIcon icon={icon} size={ICON_SIZE} color={buttonColor} />
         <View key={textKey}>
           <Text 
@@ -130,6 +137,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
   occupancy,
   isHighlighted = false,
   isFiltering = false,
+  onLikeLongPress,
 }) => {
   const { t } = useTranslation();
   const getOccupancyTranslation = useOccupancyTranslation();
@@ -169,6 +177,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
         count={likes}
         color={primaryColor}
         onPress={onLikeToggle}
+        onLongPress={onLikeLongPress}
         isActive={isLiked}
         activeColor="red"
         isCompact={isCompact}
@@ -265,6 +274,7 @@ export default React.memo(InteractionBar, (prevProps, nextProps) => {
     prevProps.onShare === nextProps.onShare &&
     prevProps.onLikeToggle === nextProps.onLikeToggle &&
     prevProps.onCommentToggle === nextProps.onCommentToggle &&
+    prevProps.onLikeLongPress === nextProps.onLikeLongPress &&
     prevProps.isHighlighted === nextProps.isHighlighted &&
     prevProps.isFiltering === nextProps.isFiltering
   );

@@ -49,13 +49,20 @@ export function useNotificationsHandler() {
   };
 
   useEffect(() => {
-    // Získanie expo push tokenu
-    registerForPushNotificationsAsync()
-      .then(token => {
-        setExpoPushToken(token ?? '');
-        addPushToken(token ?? '');
-      })
-      .catch(error => setExpoPushToken(`${error}`));
+    // Získanie expo push tokenu - iba ak používateľ ešte nemá push token
+    const { currentPushToken } = useUserStore.getState();
+    if (currentPushToken) {
+      // Používateľ už má push token, použijeme existujúci
+      setExpoPushToken(currentPushToken);
+    } else {
+      // Používateľ nemá push token, získame nový
+      registerForPushNotificationsAsync()
+        .then(token => {
+          setExpoPushToken(token ?? '');
+          addPushToken(token ?? '');
+        })
+        .catch(error => setExpoPushToken(`${error}`));
+    }
 
     // Listener pre prijaté notifikácie
     notificationListener.current =

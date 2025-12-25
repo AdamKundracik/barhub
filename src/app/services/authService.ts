@@ -8,7 +8,6 @@ import {
 } from '../types/dto';
 import { axiosClient } from '../utils/api/axiosClient';
 import { tokenManager } from '../utils/api/tokenManager';
-import { logDebug, logInfo, logWarn, logError } from '../utils/store/logsStore';
 
 // Type aliases for better naming
 export type LoginCredentials = SignInRequestDTO;
@@ -422,70 +421,33 @@ class AuthService {
    */
   async isAuthenticated(): Promise<boolean> {
     try {
-      logInfo('authService', 'isAuthenticated called - checking session validity', {
-        stackTrace: new Error().stack,
-      });
-
       // Get access token from TokenManager
       const accessToken = await tokenManager.getAccessToken();
 
       if (!accessToken) {
-        logWarn('authService', 'isAuthenticated - No access token available', {
-          hasAccessToken: false,
-        });
         console.log('[AUTH] No access token available');
         return false;
       }
 
-      logInfo('authService', 'isAuthenticated - Access token found, checking expiration', {
-        hasAccessToken: true,
-        tokenLength: accessToken.length,
-      });
-
       // If token is not expired, we're authenticated
       if (!tokenManager.isTokenExpired(accessToken)) {
-        logInfo('authService', 'isAuthenticated - Access token is valid (not expired)', {
-          isExpired: false,
-          result: true,
-        });
         console.log('[AUTH] Access token is valid');
         return true;
       }
 
-      logWarn('authService', 'isAuthenticated - Access token expired, attempting refresh', {
-        isExpired: true,
-      });
       console.log('[AUTH] Access token expired, attempting refresh...');
 
       // Token is expired, try to refresh it
       const newToken = await this.refreshAccessToken();
 
       if (newToken) {
-        logInfo('authService', 'isAuthenticated - Token refresh successful', {
-          hasNewToken: true,
-          newTokenLength: newToken.length,
-          result: true,
-        });
         console.log('[AUTH] Token refresh successful, user authenticated');
         return true;
       } else {
-        logWarn('authService', 'isAuthenticated - Token refresh failed', {
-          hasNewToken: false,
-          result: false,
-        });
         console.log('[AUTH] Token refresh failed, user not authenticated');
         return false;
       }
     } catch (error) {
-      logError(
-        'authService',
-        'isAuthenticated - Authentication check error',
-        {
-          errorMessage: error instanceof Error ? error.message : String(error),
-          stackTrace: error instanceof Error ? error.stack : undefined,
-        },
-        error instanceof Error ? error : new Error(String(error))
-      );
       console.error('[AUTH] Authentication check error:', error);
 
       // If there's an error but we have a refresh token, this might be a temporary network issue
@@ -493,39 +455,12 @@ class AuthService {
       try {
         const refreshToken = await tokenManager.getRefreshToken();
         if (refreshToken && !tokenManager.isTokenExpired(refreshToken)) {
-          logInfo(
-            'authService',
-            'isAuthenticated - Network error but valid refresh token exists, keeping user authenticated',
-            {
-              hasRefreshToken: true,
-              refreshTokenExpired: false,
-              result: true,
-            }
-          );
           console.log(
             '[AUTH] Network error but valid refresh token exists - keeping user authenticated'
           );
           return true; // Keep user authenticated, will retry refresh on next API call
-        } else {
-          logWarn(
-            'authService',
-            'isAuthenticated - No valid refresh token available after error',
-            {
-              hasRefreshToken: !!refreshToken,
-              refreshTokenExpired: refreshToken ? tokenManager.isTokenExpired(refreshToken) : null,
-              result: false,
-            }
-          );
         }
       } catch (refreshError) {
-        logError(
-          'authService',
-          'isAuthenticated - Error checking refresh token',
-          {
-            errorMessage: refreshError instanceof Error ? refreshError.message : String(refreshError),
-          },
-          refreshError instanceof Error ? refreshError : new Error(String(refreshError))
-        );
         console.error('[AUTH] Error checking refresh token:', refreshError);
       }
 

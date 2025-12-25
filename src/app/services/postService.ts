@@ -118,6 +118,18 @@ class PostService {
     }
   }
 
+  // Get users who liked post
+  async getLikedUsers(postId: string): Promise<any[]> {
+    try {
+      return await apiUtils.get<any[]>(
+        ENDPOINTS.POSTS.LIKED_USERS(postId)
+      );
+    } catch (error) {
+      console.error('Error fetching liked users:', error);
+      return [];
+    }
+  }
+
   // Check if user liked post
   async isPostLiked(postId: string, userId: string): Promise<boolean> {
     try {

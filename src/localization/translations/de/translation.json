@@ -790,5 +790,7 @@
     "more-highlights": "Mehr hervorgehobene Beiträge",
     "thank-you-message": "Ihre Unterstützung hilft uns, Barhub kontinuierlich zu verbessern und Ihnen die besten Erfahrungen zu bieten. Vielen Dank, dass Sie Teil unserer Community sind!",
     "close": "Schließen"
-  }
+  },
+  "liked-by": "Gefällt",
+  "no-likes-yet": "Noch keine Likes"
 }

@@ -4,7 +4,6 @@ import BackgroundGeolocation from 'react-native-background-geolocation';
 import { useLocationStore } from '../store/locationStore';
 import { LocationType } from '../types/types';
 import { getCoords } from '../helper-functions/get-coords';
-import { logInfo, logWarn } from '../store/logsStore';
 
 export const useLocation = () => {
   const { useFakeLocation, location, setLocation, initialized, fakeLocation } =
@@ -148,31 +147,12 @@ export const useLocation = () => {
   useEffect(() => {
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
       const previousAppState = appStateRef.current;
-      
-      logInfo(
-        'useLocation',
-        'AppState changed',
-        {
-          previousAppState,
-          nextAppState,
-          willUpdateLocation: previousAppState.match(/inactive|background/) && nextAppState === 'active',
-        }
-      );
 
       // Only update location when transitioning from background/inactive to active
       if (
         previousAppState.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
-        logInfo(
-          'useLocation',
-          'App became active - calling getCurrentLocation',
-          {
-            previousAppState,
-            nextAppState,
-            stackTrace: new Error().stack,
-          }
-        );
         getCurrentLocation();
       }
       appStateRef.current = nextAppState;

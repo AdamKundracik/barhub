@@ -6,7 +6,6 @@ import { useLocationStore } from '../../store/locationStore';
 import { usePlaceStore } from '../../store/placesStore';
 import { useAuth } from '@/src/app/providers/AuthProvider';
 import { useUserStore } from '../../store/userStore';
-import { logInfo, logWarn } from '../../store/logsStore';
 
 export const useNewsFeedData = () => {
   const { distance, selectedPlaces, selectedOccupancy, showHighlightedPosts } =
@@ -58,18 +57,6 @@ export const useNewsFeedData = () => {
   } = useInfiniteQuery(
     queryKey,
     ({ pageParam = null }) => {
-      logInfo(
-        'useNewsFeedData',
-        'Fetching posts data',
-        {
-          queryKey: JSON.stringify(queryKey),
-          pageParam,
-          placeId,
-          distance,
-          location: currentLocation,
-          stackTrace: new Error().stack,
-        }
-      );
       return handleFreshContent(
         distance,
         pageParam,
@@ -91,46 +78,14 @@ export const useNewsFeedData = () => {
     }
   );
 
-  // Log when refetch is triggered
   const prevIsRefetchingRef = useRef(false);
   useEffect(() => {
-    if (isRefetching && !prevIsRefetchingRef.current) {
-      logInfo(
-        'useNewsFeedData',
-        'Refetch started (triggered by React Query)',
-        {
-          queryKey: JSON.stringify(queryKey),
-          placeId,
-          distance,
-          location: currentLocation,
-          isAuthenticated,
-          userId,
-          stackTrace: new Error().stack,
-        }
-      );
-    }
     prevIsRefetchingRef.current = isRefetching;
-  }, [isRefetching, queryKey, placeId, distance, currentLocation, isAuthenticated, userId]);
+  }, [isRefetching]);
 
-  // Wrap refetch to log manual calls
   const wrappedRefetch = useMemo(() => {
-    return async () => {
-      logInfo(
-        'useNewsFeedData',
-        'Manual refetch called',
-        {
-          queryKey: JSON.stringify(queryKey),
-          placeId,
-          distance,
-          location: currentLocation,
-          isAuthenticated,
-          userId,
-          stackTrace: new Error().stack,
-        }
-      );
-      return refetch();
-    };
-  }, [refetch, queryKey, placeId, distance, currentLocation, isAuthenticated, userId]);
+    return () => refetch();
+  }, [refetch]);
 
   // Vytvoríme stabilný string z IDs pre memoizáciu
   const postsIdsString = useMemo(() => {
