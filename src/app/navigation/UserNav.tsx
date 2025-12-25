@@ -8,6 +8,7 @@ import UserDetail from '../screens/user/UserDetail';
 import NotificationsList from '../screens/user/Notifications/NotificationsList';
 import SelectFakeLocation from '../screens/user/SelectFakeLocation';
 import Licenses from '@/src/app/screens/user/Info/Screens/LIcenses';
+import AppVersion from '@/src/app/screens/user/Info/Screens/AppVersion';
 import BottomTabs from '@/src/app/components/shared/BottomTabs';
 import { PasswordChangeScreen } from '@/src/app/screens/user/ChangePassword';
 import { AdminPanel } from '@/src/app/screens/user/AdminPanel';
@@ -21,6 +22,7 @@ import PrivacyPolicy from '../screens/auth/LegalDocuments/PrivacyPolicy';
 import CommunityGuidelines from '../screens/auth/LegalDocuments/CommunityGuidelines';
 import { useNotificationsHandler } from '../components/user/NewsFeed/NotificationHandler';
 import { setGlobalUnsubscribeNotifications } from '../providers/AuthProvider';
+import DebugLogsScreen from '../screens/dev/DebugLogs';
 
 const RootStack = createNativeStackNavigator();
 
@@ -66,6 +68,7 @@ export function UserNav() {
       />
 
       <RootStack.Screen name="Licenses" component={Licenses} />
+      <RootStack.Screen name="AppVersion" component={AppVersion} />
       <RootStack.Screen name="BlockedUsers" component={BlockedUsers} />
       <RootStack.Screen name="MyPosts" component={MyPosts} />
 
@@ -79,6 +82,9 @@ export function UserNav() {
       <RootStack.Screen name="ConsentManagement" component={ConsentManagement} />
       <RootStack.Screen name="PrivacyData" component={PrivacyData} />
       <RootStack.Screen name="ReportsManagement" component={ReportsManagement} />
+
+      {/* Debug */}
+      <RootStack.Screen name="DebugLogs" component={DebugLogsScreen} />
     </RootStack.Navigator>
   );
 }

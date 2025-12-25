@@ -14,6 +14,7 @@ type ScreenLayoutProps = {
   showTitle?: boolean;
   showBackButton?: boolean;
   onBackPress?: () => void;
+  rightButton?: ReactNode;
 };
 
 export const ScreenLayout = ({
@@ -22,6 +23,7 @@ export const ScreenLayout = ({
   showTitle = false,
   showBackButton = false,
   onBackPress,
+  rightButton,
 }: ScreenLayoutProps) => {
   return (
     <SafeAreaView
@@ -57,8 +59,12 @@ export const ScreenLayout = ({
               </Center>
             )}
 
-            {/* Right placeholder (for symmetry) */}
-            {showBackButton && <Box style={styles.rightPlaceholder} />}
+            {/* Right button or placeholder */}
+            {rightButton ? (
+              <Box style={styles.rightButton}>{rightButton}</Box>
+            ) : (
+              showBackButton && <Box style={styles.rightPlaceholder} />
+            )}
           </Box>
         )}
 
@@ -80,6 +86,12 @@ const styles = StyleSheet.create({
   },
   backButton: { padding: 8 },
   backButtonPlaceholder: { width: 40 }, // placeholder to keep title centered
+  rightButton: { 
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 40,
+    marginLeft: 'auto',
+  },
   titleContainer: { flex: 1, alignItems: 'center' },
   titleContainerFullWidth: {
     position: 'absolute',

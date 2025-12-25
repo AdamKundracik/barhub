@@ -4,16 +4,17 @@ import BackgroundGeolocation from 'react-native-background-geolocation';
 import { useLocationStore } from '../store/locationStore';
 import { LocationType } from '../types/types';
 import { getCoords } from '../helper-functions/get-coords';
-import { useNewsFeedData } from './NewsFeed/usePostData';
 
 export const useLocation = () => {
   const { useFakeLocation, location, setLocation, initialized, fakeLocation } =
     useLocationStore();
-  const { refetch } = useNewsFeedData();
 
   // Ref na udržanie aktuálnej location, aby sme nemali location v deps
   const locationRef = useRef<LocationType | null>(location);
   locationRef.current = location;
+
+  // Ref na sledovanie predchádzajúceho AppState
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
 
   const getCurrentLocation = useCallback(async () => {
     try {
@@ -125,8 +126,8 @@ export const useLocation = () => {
         try {
           await BackgroundGeolocation.stop();
           if (fakeLocation) setLocation(fakeLocation);
-          // Refetch only when switching to fake location (manual action)
-          refetch();
+          // Note: Don't call refetch() here - queryKey in useNewsFeedData changes automatically
+          // when useFakeLocation changes, which triggers automatic refetch
         } catch (err) {
           console.error('Failed to stop BackgroundGeolocation:', err);
         }
@@ -138,20 +139,23 @@ export const useLocation = () => {
     useFakeLocation,
     initialized,
     fakeLocation,
-    refetch,
     getCurrentLocation,
     setLocation,
   ]);
 
-  // Disabled: Don't update location on app state change
-  // This was causing posts to refetch every time user returns from background
-  // Background geolocation will still update location when user moves
-  /*
+  // Update location when app becomes active (from background/inactive)
   useEffect(() => {
-    const handleAppStateChange = (state: AppStateStatus) => {
-      if (state === 'active') {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      const previousAppState = appStateRef.current;
+
+      // Only update location when transitioning from background/inactive to active
+      if (
+        previousAppState.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
         getCurrentLocation();
       }
+      appStateRef.current = nextAppState;
     };
 
     const subscription = AppState.addEventListener(
@@ -160,7 +164,6 @@ export const useLocation = () => {
     );
     return () => subscription.remove();
   }, [getCurrentLocation]);
-  */
 
   // Initial fetch on mount
   useEffect(() => {

@@ -158,7 +158,7 @@
   "month": "Monat",
   "day": "Tag",
   "year": "Jahr",
-  "search-place": "Geben Sie den Namen des Unternehmens / der Bar ein",
+  "search-place": "Bar oder Unternehmen suchen",
   "search-surrounding": "Umgebung durchsuchen",
   "searching-places": "Suche Orte...",
   "search-placeholder": "Geben Sie den Namen des Unternehmens / der Bar ein",
@@ -309,10 +309,13 @@
   },
   "sendRequest": {
     "successTitle": "Anfrage gesendet",
-    "successDescription": "Ihre Anfrage wurde erfolgreich an nahegelegene Benutzer gesendet."
+    "successDescription": "Ihre Anfrage wurde erfolgreich an nahegelegene Benutzer gesendet.",
+    "noUsersFound": "Keine Benutzer in der Umgebung gefunden"
   },
   "gdpr": "Datenschutzrichtlinie",
   "third-party-libraries": "Drittanbieter-Bibliotheken",
+  "app-version": "App-Version",
+  "app-version-label": "Version",
   "use-different-location": "Anderen Standort verwenden",
   "select-city": "Stadt auswählen",
   "search-city": "Stadt suchen",
@@ -484,6 +487,11 @@
   "unread": "Ungelesen",
   "notifications-will-appear-here": "Benachrichtigungen werden hier angezeigt",
   "use-travel-mode": "Reisemodus verwenden",
+  "travel-mode": "Reisemodus",
+  "travel-mode-active": "Reisemodus ist aktiv",
+  "travel-mode-description": "Im Reisemodus verwendet die App den von Ihnen gewählten Standort anstelle Ihres aktuellen Standorts.",
+  "active": "aktiv",
+  "disable-travel-mode": "Reisemodus deaktivieren",
   "no_internet_connection": "Keine Internetverbindung",
   "no_internet_title": "Keine Internetverbindung",
   "no_internet_description": "Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut. Barhub benötigt eine Internetverbindung, um ordnungsgemäß zu funktionieren.",
@@ -782,5 +790,7 @@
     "more-highlights": "Mehr hervorgehobene Beiträge",
     "thank-you-message": "Ihre Unterstützung hilft uns, Barhub kontinuierlich zu verbessern und Ihnen die besten Erfahrungen zu bieten. Vielen Dank, dass Sie Teil unserer Community sind!",
     "close": "Schließen"
-  }
+  },
+  "liked-by": "Gefällt",
+  "no-likes-yet": "Noch keine Likes"
 }

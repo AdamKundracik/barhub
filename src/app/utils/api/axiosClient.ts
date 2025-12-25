@@ -38,8 +38,15 @@ class AxiosClient {
           return config;
         }
 
-        const token = await tokenManager.getAccessTokenAsync();
-        if (token) {
+        // Try sync access first (if tokens are preloaded)
+        let token = tokenManager.getAccessTokenSync();
+        
+        // If no token in memory, try async load (fallback)
+        if (!token) {
+          token = await tokenManager.getAccessToken();
+        }
+        
+        if (token && token !== '') {
           config.headers.Authorization = `Bearer ${token}`;
         }
 
@@ -75,38 +82,18 @@ class AxiosClient {
           !originalRequest._retry &&
           !originalRequest.url?.startsWith('/auth/')
         ) {
-          console.log(
-            '🔴 [AUTH] 401 Unauthorized detected',
-            originalRequest.url
-          );
+          console.log('🔴 [AUTH] 401 Unauthorized detected', originalRequest.url);
 
-          // Senior-level: Don't refresh token during app restoration
-          // Check if tokens are initialized before attempting refresh
-          if (!tokenManager.hasInitialized()) {
-            console.warn(
-              '⚠️ [AUTH] Token manager not initialized yet, skipping token refresh during restoration'
-            );
-            // Wait for initialization, but with timeout to prevent hanging
-            try {
-              await Promise.race([
-                tokenManager.waitUntilInitialized(),
-                new Promise((_, reject) => 
-                  setTimeout(() => reject(new Error('Initialization timeout')), 2000)
-                )
-              ]);
-            } catch (initError) {
-              console.warn('⚠️ [AUTH] Token initialization timeout or error, rejecting request');
-              return Promise.reject(error);
-            }
+          // Don't attempt refresh if we don't have tokens in memory yet
+          if (!tokenManager.hasTokensInMemory()) {
+            console.log('⏳ [AUTH] No tokens in memory yet, skipping refresh');
+            return Promise.reject(error);
           }
 
           // Check if app is in foreground - SecureStore requires user interaction
           const appState = AppState.currentState;
           if (appState !== 'active') {
-            console.warn(
-              '⚠️ [AUTH] App not in foreground, skipping token refresh',
-              appState
-            );
+            console.warn('⚠️ [AUTH] App not in foreground, skipping token refresh', appState);
 
             // Return original error - don't logout, just fail the request
             // User can retry when app comes to foreground
@@ -135,7 +122,9 @@ class AxiosClient {
 
               this.processQueue(new Error('Refresh failed'));
               await tokenManager.clearTokens();
-              if (this.onTokenRefreshFailure) this.onTokenRefreshFailure();
+              if (this.onTokenRefreshFailure) {
+                this.onTokenRefreshFailure();
+              }
 
               return Promise.reject(error);
             }
@@ -148,12 +137,6 @@ class AxiosClient {
 
             return this.axiosInstance(originalRequest);
           } catch (refreshError) {
-            console.log(
-              '❌ [AUTH] Refresh request error → logout',
-              refreshError
-            );
-
-            // Check if error is related to SecureStore
             const errorMessage = refreshError instanceof Error 
               ? refreshError.message 
               : String(refreshError);
@@ -176,9 +159,13 @@ class AxiosClient {
             }
 
             // Real auth error - logout
+            console.log('❌ [AUTH] Refresh request error → logout', refreshError);
+
             this.processQueue(refreshError);
             await tokenManager.clearTokens();
-            if (this.onTokenRefreshFailure) this.onTokenRefreshFailure();
+            if (this.onTokenRefreshFailure) {
+              this.onTokenRefreshFailure();
+            }
 
             return Promise.reject(error);
           } finally {

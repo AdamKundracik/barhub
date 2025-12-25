@@ -168,4 +168,6 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FeedHeader;
+export default React.memo(FeedHeader, (prevProps, nextProps) => {
+  return prevProps.placeName === nextProps.placeName;
+});

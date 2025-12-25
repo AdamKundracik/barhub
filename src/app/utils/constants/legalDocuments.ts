@@ -259,7 +259,7 @@ If you have any questions about this Privacy Policy, You can contact us:
     case 'COMMUNITY_GUIDELINES':
       return `COMMUNITY GUIDELINES${version ? ` - Version ${version}` : ''}
 
-Last Updated: ${date}
+Last Updated: December 02, 2025
 
 Barhub is a community for discovering nightlife and social venues. To keep this community safe, authentic, and fun, we ask you to follow these guidelines.
 
@@ -300,4 +300,3 @@ Let's make nightlife better together!`;
       return 'Document not available';
   }
 };
-

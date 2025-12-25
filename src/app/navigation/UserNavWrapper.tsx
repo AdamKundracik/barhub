@@ -5,6 +5,7 @@ import { UserNav } from './UserNav';
 import { DateOfBirthModal } from '../components/shared/Modals/DateOfBirthModal';
 import { OutdatedConsentsModal } from '../components/shared/Modals/OutdatedConsentsModal';
 import { OccupancyModal } from '../components/shared/Modals/OccupancyModal';
+import { TravelModeModal } from '../components/shared/Modals/TravelModeModal';
 import { userService } from '../services/userService';
 import { consentService } from '../services/consentService';
 import { useCustomToast } from '../components/shared/Toaster';
@@ -148,6 +149,9 @@ export const UserNavWrapper: React.FC = () => {
         onSelect={handleOccupancySelect}
         initialValue={occupancyValue}
       />
+
+      {/* Travel Mode Modal - Global */}
+      <TravelModeModal />
 
       {/* Show normal user navigation */}
       <UserNav />

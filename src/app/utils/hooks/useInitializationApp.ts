@@ -8,10 +8,12 @@ import {
 import mobileAds from 'react-native-google-mobile-ads';
 import i18n from '../../../localization/i18n';
 import { useRequestStore } from '../store/requestStore';
+import { useLogsStore } from '../store/logsStore';
 
 export const useAppInitialization = () => {
   const [isAppInitialized, setIsAppInitialized] = useState(false);
   const { loadRequests } = useRequestStore();
+  const { loadLogs } = useLogsStore();
 
   // Memoize the initialization function to prevent re-creation
   const initializeBackgroundOperations = useCallback(async () => {
@@ -20,11 +22,12 @@ export const useAppInitialization = () => {
       await Promise.allSettled([
         initializeTrackingAndAds(),
         loadRequests(),
+        loadLogs(),
       ]);
     } catch (error) {
       console.error('Error initializing background operations:', error);
     }
-  }, [loadRequests]);
+  }, [loadRequests, loadLogs]);
 
   useEffect(() => {
     let isCancelled = false;

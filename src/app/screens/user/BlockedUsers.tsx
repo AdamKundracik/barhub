@@ -30,6 +30,10 @@ import { useCustomToast } from '../../components/shared/Toaster';
 import { BlockUserModal } from '../../components/shared/Modals/BlockUserModal';
 import { useUserStore } from '../../utils/store/userStore';
 import { ScreenLayout } from '../../components/shared/Layouts/ScreenLayout';
+import {
+  addCacheBuster,
+  createImageKey,
+} from '../../utils/cache/imageCacheUtils';
 
 interface BlockedUserItemProps {
   user: BlockedUserDTO;
@@ -66,7 +70,12 @@ const BlockedUserItem: React.FC<BlockedUserItemProps> = ({
       >
         <Avatar size="sm" style={styles.avatar}>
           {user.photoUrl ? (
-            <AvatarImage source={{ uri: user.photoUrl }} />
+            <AvatarImage
+              key={createImageKey('blockedusers', user.id?.toString(), user.photoUrl)}
+              source={{
+                uri: addCacheBuster(user.photoUrl, user.id?.toString()),
+              }}
+            />
           ) : (
             <AvatarFallbackText>
               {user.name?.charAt(0).toUpperCase() || 'U'}

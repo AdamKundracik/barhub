@@ -29,6 +29,7 @@ import InteractionBar from './InteractionBar';
 import { postBgColor, primaryBgColor } from '@/src/app/utils/styles/colors';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useTranslation } from 'react-i18next';
+import { LikedUsersModal, LikedUser } from '@/src/app/components/shared/Modals/LikedUsersModal';
 
 // Constants
 const isTablet = Device.isTablet();
@@ -230,35 +231,14 @@ const UserPost: React.FC<UserPostProps> = ({
   isFiltering,
   onCommentPress,
 }) => {
-  // const { isPremium, canSeeContent, userData } = useUserStore();
   const navigation = useNavigation();
+  
+  // State for liked users modal
+  const [showLikedUsersModal, setShowLikedUsersModal] = useState(false);
+  const [likedUsers, setLikedUsers] = useState<LikedUser[]>([]);
+  const [loadingLikedUsers, setLoadingLikedUsers] = useState(false);
 
-  // Early return if no post
-  if (!post) {
-    return null;
-  }
-
-  // Navigate to PostDetail screen
-  const handleNavigateToDetail = useCallback(() => {
-    (navigation as any).navigate('PostDetail', { postId: post.id });
-  }, [navigation, post.id]);
-
-  // Navigate to UserDetail screen
-  const handleNavigateToUser = useCallback(() => {
-    (navigation as any).navigate('UserDetail', { userId: post.userId });
-  }, [navigation, post.userId]);
-
-  // Share post
-  const handleShare = useCallback(async () => {
-    try {
-      const { shareService } = await import('@/src/app/services/shareService');
-      await shareService.sharePost(post);
-    } catch (error) {
-      console.error('Error sharing post:', error);
-    }
-  }, [post]);
-
-  // Safe destructuring with defaults
+  // Safe destructuring with defaults - MUST be before any hooks
   const {
     id = '',
     isLiked = false,
@@ -273,7 +253,30 @@ const UserPost: React.FC<UserPostProps> = ({
     commentsCount = 0,
     occupancy = '',
     isHighlighted = false,
-  } = post;
+  } = post ?? {};
+
+  // Navigate to PostDetail screen
+  const handleNavigateToDetail = useCallback(() => {
+    if (!id) return;
+    (navigation as any).navigate('PostDetail', { postId: id });
+  }, [navigation, id]);
+
+  // Navigate to UserDetail screen
+  const handleNavigateToUser = useCallback(() => {
+    if (!userId) return;
+    (navigation as any).navigate('UserDetail', { userId });
+  }, [navigation, userId]);
+
+  // Share post - memoize with stable dependencies
+  const handleShare = useCallback(async () => {
+    if (!post) return;
+    try {
+      const { shareService } = await import('@/src/app/services/shareService');
+      await shareService.sharePost(post);
+    } catch (error) {
+      console.error('Error sharing post:', error);
+    }
+  }, [post?.id]); // Only depend on post.id for stability
 
   // Custom hooks with safe values
   const { liked, likeCount, handleLikeToggle } = usePostLike(
@@ -303,6 +306,28 @@ const UserPost: React.FC<UserPostProps> = ({
     onCommentPress(id, user?.expoPushToken ?? '', userId);
   }, [id, user?.expoPushToken, userId, onCommentPress]);
 
+  // Handle like long press to show liked users
+  const handleLikeLongPress = useCallback(async () => {
+    if (id) {
+      setLoadingLikedUsers(true);
+      try {
+        const users = await postService.getLikedUsers(id);
+        setLikedUsers(users);
+        setShowLikedUsersModal(true);
+      } catch (error) {
+        console.error('Error fetching liked users:', error);
+        // Show error toast if needed
+      } finally {
+        setLoadingLikedUsers(false);
+      }
+    }
+  }, [id]);
+
+  // Handle user press in liked users modal
+  const handleLikedUserPress = useCallback((userId: number) => {
+    (navigation as any).navigate('UserDetail', { userId: userId.toString() });
+  }, [navigation]);
+
   // // Computed values
   // const shouldShowBlur = useMemo(() => {
   //   // Don't show blur while user data is loading
@@ -316,8 +341,8 @@ const UserPost: React.FC<UserPostProps> = ({
 
   const trimmedPlaceName = useMemo(() => trimPlaceName(placeName), [placeName]);
 
-  // Don't render if essential data is missing
-  if (!id || !photoUrl) {
+  // Don't render if essential data is missing - after all hooks
+  if (!post || !id || !photoUrl) {
     return null;
   }
 
@@ -439,8 +464,18 @@ const UserPost: React.FC<UserPostProps> = ({
           occupancy={occupancy}
           isHighlighted={isHighlighted}
           isFiltering={isFiltering}
+          onLikeLongPress={handleLikeLongPress}
         />
       </View>
+
+      {/* Liked Users Modal */}
+      <LikedUsersModal
+        visible={showLikedUsersModal}
+        onClose={() => setShowLikedUsersModal(false)}
+        users={likedUsers}
+        onUserPress={handleLikedUserPress}
+        loading={loadingLikedUsers}
+      />
     </Animated.View>
   );
 };
