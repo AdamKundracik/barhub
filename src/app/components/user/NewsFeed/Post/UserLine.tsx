@@ -208,7 +208,7 @@ const UserLineComponent = ({
   const queryClient = useQueryClient();
   const { placeId: currentPlaceId } = usePlaceStore();
   const { setPlaceId, setPlaceName, setPlaceAddress } = usePlaceStore();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { showSuccessToast, showErrorToast } = useCustomToast();
 
   // Sync local highlight state with prop when it changes
@@ -254,8 +254,7 @@ const UserLineComponent = ({
         // Convert ReportReason to ReasonTypeEnum (they match now after enum update)
         const backendReason = reason as unknown as ReasonTypeEnum;
 
-        await reportService.createReport(
-          parseInt(currentUserId, 10),
+        await reportService.reportPost(
           postId, // reportService handles string to number conversion
           backendReason,
           customReason

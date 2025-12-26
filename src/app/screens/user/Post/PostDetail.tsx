@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import * as Icons from '@fortawesome/free-solid-svg-icons';
+import { Icons } from '@/src/app/utils/icons/icons';
 import FastImage from 'react-native-fast-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
@@ -42,13 +42,13 @@ import {
 import { Text } from '@/components/ui/text';
 import { HStack } from '@/components/ui/hstack';
 import { VStack } from '@/components/ui/vstack';
-import { Center } from '@/components/ui/center';
 import InlineAd from '@/src/app/components/user/InlineAd';
 import { PremiumHelpers } from '@/src/app/config/premiumConfig';
 import {
   addCacheBuster,
   createImageKey,
 } from '@/src/app/utils/cache/imageCacheUtils';
+import { PostCommentsModal } from '@/src/app/components/user/NewsFeed/Post/Comments/PostCommentsModal';
 
 export const PostDetail = () => {
   const route = useRoute();
@@ -56,7 +56,7 @@ export const PostDetail = () => {
   const { t } = useTranslation();
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const queryClient = useQueryClient();
-  const { getUserId, isPremium } = useUserStore();
+  const { getUserId, isPremium, userData } = useUserStore();
 
   // Check if we can go back (if there's a previous screen in the stack)
   const canGoBack = navigation.canGoBack();
@@ -68,6 +68,7 @@ export const PostDetail = () => {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isImageZoomed, setIsImageZoomed] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showCommentsModal, setShowCommentsModal] = useState(false);
 
   // Local like state for optimistic updates
   const [localLiked, setLocalLiked] = useState(post?.isLiked || false);
@@ -97,6 +98,11 @@ export const PostDetail = () => {
       }
     }
   }, [post?.isLiked, post?.likesCount, post?.isHighlighted, post?.id]);
+
+  // Handle comment press - open modal
+  const handleCommentPress = useCallback(() => {
+    setShowCommentsModal(true);
+  }, []);
 
   // Cleanup debounce timer on unmount
   useEffect(() => {
@@ -155,12 +161,7 @@ export const PostDetail = () => {
 
     try {
       const backendReason = reason as unknown as ReasonTypeEnum;
-      await reportService.createReport(
-        parseInt(userId, 10),
-        post.id,
-        backendReason,
-        customReason
-      );
+      await reportService.reportPost(post.id, backendReason, customReason);
 
       showSuccessToast(
         t('reportPost.successTitle'),
@@ -381,7 +382,15 @@ export const PostDetail = () => {
         setIsOptionsModalOpen(false);
       }
     });
-  }, [post, confirmDelete, queryClient, showSuccessToast, showErrorToast, t, handleBackPress]);
+  }, [
+    post,
+    confirmDelete,
+    queryClient,
+    showSuccessToast,
+    showErrorToast,
+    t,
+    handleBackPress,
+  ]);
 
   if (isLoading) {
     return (
@@ -395,7 +404,7 @@ export const PostDetail = () => {
     return (
       <View style={styles.errorContainer}>
         <FontAwesomeIcon
-          icon={Icons.faExclamationCircle}
+          icon={Icons.XCircle}
           size={64}
           color={secondaryTextColor}
         />
@@ -406,7 +415,7 @@ export const PostDetail = () => {
             style={styles.secondaryButton}
             onPress={handleBackPress}
           >
-            <FontAwesomeIcon icon={Icons.faArrowLeft} size={16} color="#fff" />
+            <FontAwesomeIcon icon={Icons.Back} size={16} color="#fff" />
             <Text style={styles.secondaryButtonText}>{t('go-back')}</Text>
           </TouchableOpacity>
 
@@ -422,11 +431,7 @@ export const PostDetail = () => {
             {isRefreshing ? (
               <ActivityIndicator size="small" color="#000" />
             ) : (
-              <FontAwesomeIcon
-                icon={Icons.faRotateBack}
-                size={16}
-                color="#000"
-              />
+              <FontAwesomeIcon icon={Icons.Rotate} size={16} color="#000" />
             )}
             <Text style={styles.backButtonText}>
               {isRefreshing ? t('loading') : t('retry')}
@@ -449,7 +454,7 @@ export const PostDetail = () => {
             style={styles.headerButton}
             onPress={handleBackPress}
           >
-            <FontAwesomeIcon icon={Icons.faArrowLeft} size={24} color="#fff" />
+            <FontAwesomeIcon icon={Icons.Back} size={24} color="#fff" />
           </TouchableOpacity>
 
           <HStack space="md">
@@ -458,7 +463,7 @@ export const PostDetail = () => {
               onPress={() => setIsOptionsModalOpen(true)}
             >
               <FontAwesomeIcon
-                icon={Icons.faEllipsisV}
+                icon={Icons.EllipsisVertical}
                 size={20}
                 color="#fff"
               />
@@ -499,7 +504,11 @@ export const PostDetail = () => {
                 <Avatar size="md" style={styles.avatarContainer}>
                   {post.user?.photoUrl ? (
                     <AvatarImage
-                      key={createImageKey('postdetail', post.user.id, post.user.photoUrl)}
+                      key={createImageKey(
+                        'postdetail',
+                        post.user.id,
+                        post.user.photoUrl
+                      )}
                       source={{
                         uri: addCacheBuster(post.user.photoUrl, post.user.id),
                       }}
@@ -523,7 +532,7 @@ export const PostDetail = () => {
                   {localIsHighlighted && (
                     <View style={styles.highlightBadge}>
                       <FontAwesomeIcon
-                        icon={Icons.faStar}
+                        icon={Icons.Star}
                         size={12}
                         color="#FFC107"
                       />
@@ -552,16 +561,14 @@ export const PostDetail = () => {
             comments={post.commentsCount}
             occupancy={post.occupancy}
             onLikeToggle={handleLikeToggle}
-            onCommentToggle={() => {
-              // TODO: Open comments
-            }}
+            onCommentToggle={handleCommentPress}
           />
 
           {/* Place Info Card */}
           <View style={styles.placeCard}>
             <HStack space="md" style={styles.placeHeader}>
               <FontAwesomeIcon
-                icon={Icons.faMapMarkerAlt}
+                icon={Icons.MapMarkerAlt}
                 size={20}
                 color={primaryColor}
               />
@@ -589,7 +596,7 @@ export const PostDetail = () => {
               onPress={handleShare}
             >
               <FontAwesomeIcon
-                icon={Icons.faShareNodes}
+                icon={Icons.Share}
                 size={20}
                 color={primaryColor}
               />
@@ -603,31 +610,13 @@ export const PostDetail = () => {
               onPress={handleCopyLink}
             >
               <FontAwesomeIcon
-                icon={Icons.faLink}
+                icon={Icons.ShareAlt}
                 size={20}
                 color={primaryColor}
               />
               <Text style={styles.quickActionText}>{t('copy-link')}</Text>
             </TouchableOpacity>
           </HStack>
-
-          {/* Comments Section - Placeholder */}
-          <View style={styles.commentsSection}>
-            <HStack style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{t('comments')}</Text>
-              <Text style={styles.commentCount}>{post.commentsCount || 0}</Text>
-            </HStack>
-            <Center style={styles.commentsPlaceholder}>
-              <FontAwesomeIcon
-                icon={Icons.faComments}
-                size={32}
-                color={secondaryTextColor}
-              />
-              <Text style={styles.placeholderText}>
-                {t('comments-coming-soon')}
-              </Text>
-            </Center>
-          </View>
         </View>
       </ScrollView>
 
@@ -656,6 +645,22 @@ export const PostDetail = () => {
           visible={isReportModalOpen}
           onClose={() => setIsReportModalOpen(false)}
           onSave={handleReport}
+        />
+      )}
+
+      {/* Comments Modal */}
+      {post && (
+        <PostCommentsModal
+          visible={showCommentsModal}
+          onClose={() => setShowCommentsModal(false)}
+          postId={post.id}
+          commentsCount={post.commentsCount}
+          onCommentAdded={() => {
+            refetch();
+          }}
+          onCommentDeleted={() => {
+            refetch();
+          }}
         />
       )}
     </View>
@@ -862,41 +867,6 @@ const styles = StyleSheet.create({
     width: 1,
     height: 30,
     backgroundColor: 'rgba(255,255,255,0.1)',
-  },
-  commentsSection: {
-    marginTop: 20,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.05)',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: primaryTextColor,
-  },
-  commentCount: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: secondaryTextColor,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  commentsPlaceholder: {
-    paddingVertical: 40,
-  },
-  placeholderText: {
-    fontSize: 14,
-    color: secondaryTextColor,
-    marginTop: 12,
   },
 });
 

@@ -20,6 +20,7 @@ interface InteractionBarProps {
   isHighlighted?: boolean;
   isFiltering?: boolean;
   onLikeLongPress?: () => void;
+  showCommentButton?: boolean; // Optional prop to hide comment button
 }
 
 // Constants
@@ -138,6 +139,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
   isHighlighted = false,
   isFiltering = false,
   onLikeLongPress,
+  showCommentButton = true, // Default to true for backward compatibility
 }) => {
   const { t } = useTranslation();
   const getOccupancyTranslation = useOccupancyTranslation();
@@ -183,16 +185,18 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
         isCompact={isCompact}
       />
 
-      {/* Commented out Comments Button - keeping for future use */}
-      {/*
-      <InteractionButton
-        icon={Icons.Comment}
-        count={comments}
-        color={primaryColor}
-        onPress={onCommentToggle}
-        isCompact={isCompact}
-      />
-      */}
+      {/* Comments Button - only show if showCommentButton is true */}
+      {showCommentButton && (
+        <InteractionButton
+          key="comments"
+          buttonKey="comments"
+          icon={Icons.Comment}
+          count={comments}
+          color={primaryColor}
+          onPress={onCommentToggle}
+          isCompact={isCompact}
+        />
+      )}
 
       {/* Share Button - only show if onShare is provided */}
       {onShare && (
