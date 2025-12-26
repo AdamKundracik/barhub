@@ -2,7 +2,7 @@ import { Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Place } from '../types/types';
 import { mapPlaceDetailToPlace } from './mapPlaceDetailToPlace';
-import { fetchPlaceDetails } from './fetchPlacesAPI';
+import { fetchPlaceDetails } from '../api/fetchPlacesAPI';
 import i18n from '../../../localization/i18n';
 
 export const openCamera = async (

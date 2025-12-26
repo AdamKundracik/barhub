@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 import UserPost from './Post/UserPost';
 import LoadingIndicator from './LoadingIndicator';
@@ -54,9 +54,10 @@ const PostsList = ({
   const { placeId } = usePlaceStore();
   const { isPremium } = useUserStore();
   const flatListRef = useRef<FlashListRef<any>>(null);
-  // const [showScrollTopButton, setShowScrollTopButton] = useState(false);
-  // const scrollButtonAnimation = useRef(new Animated.Value(0)).current;
   const { setListRef } = usePostsStore();
+
+  // Memoize premium status to prevent recalculation on each render
+  const hasPremium = useMemo(() => isPremium(), [isPremium]);
 
   useEffect(() => {
     if (flatListRef) {
@@ -95,39 +96,44 @@ const PostsList = ({
     return now - timestampMs > minutesInMs;
   };
 
-  const ListFooter = ({
-    isFetchingNextPage,
-    hasMorePosts,
-  }: {
-    isFetchingNextPage: boolean;
-    hasMorePosts?: boolean;
-  }) => {
-    if (isFetchingNextPage) return <LoadingIndicator />;
-    if (!hasMorePosts)
-      return (
-        <Text style={{ textAlign: 'center', padding: 16, color: 'gray' }}>
-          {t('thats-it')}👋
-        </Text>
-      );
-    return null;
-  };
+  const ListFooter = useCallback(
+    ({
+      isFetchingNextPage,
+      hasMorePosts,
+    }: {
+      isFetchingNextPage: boolean;
+      hasMorePosts?: boolean;
+    }) => {
+      if (isFetchingNextPage) return <LoadingIndicator />;
+      if (!hasMorePosts)
+        return (
+          <Text style={{ textAlign: 'center', padding: 16, color: 'gray' }}>
+            {t('thats-it')}👋
+          </Text>
+        );
+      return null;
+    },
+    [t]
+  );
+
+  // Memoize posts length to prevent renderItem recreation
+  const postsLength = posts.length;
+
+  const ListHeader = useCallback(() => {
+    if (!placeId || posts.length === 0) return null;
+    if (!isOlderThanMinutes(posts[0].creationTime, 30)) return null;
+    return <PostOldInfo requestPhoto={requestPhoto} />;
+  }, [placeId, posts.length, posts[0]?.creationTime, requestPhoto]);
 
   const renderItem = useCallback(
     ({ item, index }: { item: Post; index: number }) => {
       const postView = (
-        <View
-          style={{
-            marginVertical: 10,
-            zIndex: zoomedPost === item.photoUrl ? 1 : 0,
-          }}
-        >
+        <View style={{ marginVertical: 10 }}>
           <UserPost
             requestPhoto={requestPhoto}
-            onCommentPress={(postId, expoPushToken, userId) =>
-              onCommentPress(postId, expoPushToken, userId)
-            }
+            onCommentPress={onCommentPress}
             isFiltering={isFiltering}
-            hasPremium={isPremium()}
+            hasPremium={hasPremium}
             post={item}
             setZoomedPost={setZoomedPost}
             isZoomed={zoomedPost === item.photoUrl}
@@ -141,28 +147,28 @@ const PostsList = ({
         if (!PremiumHelpers.shouldAlwaysShowAds()) {
           return false;
         }
-        
+
         const config = getFrequencyConfig();
-        const totalPosts = posts.length;
-        
+        const totalPosts = postsLength;
+
         // Skip first post for better UX
         if (index < config.MIN_POSTS_FOR_ADS) {
           return false;
         }
-        
+
         // Skip last post
         if (index >= totalPosts - 1) {
           return false;
         }
-        
+
         // Adaptive frequency based on feed size and performance
         let frequency = config.BASE_FREQUENCY;
-        
+
         if (totalPosts < 5) {
           // For very small feeds, show one ad in the middle
           return index === Math.floor(totalPosts / 2);
         }
-        
+
         // Reduce frequency if ads are failing too often
         if (simpleAdMetrics.shouldReduceFrequency()) {
           frequency = Math.min(5, frequency + 1); // Less frequent if failing
@@ -170,14 +176,14 @@ const PostsList = ({
           // More frequent in long feeds for better revenue (only if ads are working)
           frequency = Math.max(2, frequency - 1);
         }
-        
+
         // Primary ad positions
         return index % frequency === 0;
       })();
 
       if (shouldShowAd) {
         return (
-          <View>
+          <View key={`ad-${index}`}>
             <InlineAd />
             {postView}
           </View>
@@ -187,14 +193,41 @@ const PostsList = ({
       return postView;
     },
     [
-      zoomedPost,
-      isPremium,
+      hasPremium,
       requestPhoto,
       onCommentPress,
       isFiltering,
       setZoomedPost,
+      postsLength,
+      zoomedPost,
     ]
   );
+
+  // Optimize item type for better recycling
+  const getItemType = useCallback((item: Post, index: number) => {
+    const shouldShowAd = (() => {
+      if (!PremiumHelpers.shouldAlwaysShowAds()) {
+        return false;
+      }
+      const config = getFrequencyConfig();
+      const totalPosts = postsLength;
+      if (index < config.MIN_POSTS_FOR_ADS || index >= totalPosts - 1) {
+        return false;
+      }
+      let frequency = config.BASE_FREQUENCY;
+      if (totalPosts < 5) {
+        return index === Math.floor(totalPosts / 2);
+      }
+      if (simpleAdMetrics.shouldReduceFrequency()) {
+        frequency = Math.min(5, frequency + 1);
+      } else if (totalPosts > 20) {
+        frequency = Math.max(2, frequency - 1);
+      }
+      return index % frequency === 0;
+    })();
+
+    return shouldShowAd ? 'postWithAd' : 'post';
+  }, [postsLength]);
 
   return (
     <View style={styles.container}>
@@ -203,8 +236,9 @@ const PostsList = ({
         data={posts}
         renderItem={renderItem}
         keyExtractor={item => item.id}
+        getItemType={getItemType}
+        estimatedItemSize={400}
         contentContainerStyle={styles.scrollView}
-        drawDistance={500} // Reduce overdraw for better performance
         showsVerticalScrollIndicator={false}
         ListFooterComponent={
           <ListFooter
@@ -222,15 +256,7 @@ const PostsList = ({
         }
         onEndReached={hasMorePosts ? fetchMorePosts : null}
         onEndReachedThreshold={0.5}
-        ListHeaderComponent={
-          <>
-            {placeId &&
-              posts.length > 0 &&
-              isOlderThanMinutes(posts[0].creationTime, 30) && (
-                <PostOldInfo requestPhoto={requestPhoto} />
-              )}
-          </>
-        }
+        ListHeaderComponent={ListHeader}
       />
     </View>
   );
@@ -246,4 +272,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PostsList;
+export default React.memo(PostsList);

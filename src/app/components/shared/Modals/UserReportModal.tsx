@@ -171,6 +171,9 @@ export const UserReportModal = ({
     { value: ReportReason.SPAM, label: t('reportUser.spam') },
     { value: ReportReason.INAPPROPRIATE, label: t('reportUser.inappropriate') },
     { value: ReportReason.HARASSMENT, label: t('reportUser.harassment') },
+    { value: ReportReason.FAKE_CONTENT, label: t('reportUser.fakeContent') },
+    { value: ReportReason.VIOLENCE, label: t('reportUser.violence') },
+    { value: ReportReason.COPYRIGHT, label: t('reportUser.copyright') },
     { value: ReportReason.OTHER, label: t('reportUser.other') },
   ];
 

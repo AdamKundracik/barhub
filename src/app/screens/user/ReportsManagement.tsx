@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -52,6 +53,7 @@ const ReportItem = ({ report, onReportPress }: ReportItemProps) => {
 
   // Determine report type
   const isUserReport = !!report.reportedUserId;
+  const isCommentReport = !!(report as any).commentId;
 
   // Format timestamp with proper UTC parsing
   const formatTimestamp = (dateString: string | undefined) => {
@@ -131,6 +133,10 @@ const ReportItem = ({ report, onReportPress }: ReportItemProps) => {
                   (ID: {report.reportedUserId})
                 </Text>
               </>
+            ) : isCommentReport ? (
+              <Text style={styles.metaText}>
+                Comment ID: {(report as any).commentId}
+              </Text>
             ) : (
               <Text style={styles.metaText}>Post ID: {report.postId}</Text>
             )}
@@ -208,13 +214,17 @@ export const ReportsManagement: React.FC = () => {
   } = useQuery<ReportDTO[]>(
     ['admin', 'reports'],
     async () => {
+      console.log('[ReportsManagement] Fetching all reports...');
       const data = await reportService.getAllReports();
-      return data;
+      console.log('[ReportsManagement] Fetched reports:', data?.length || 0);
+      return data || [];
     },
     {
       enabled: isAdmin || isModerator,
-      staleTime: 30000,
+      staleTime: 0, // Always fetch fresh data
       refetchOnWindowFocus: true,
+      refetchOnMount: true,
+      cacheTime: 0, // Don't cache
     }
   );
 
@@ -273,13 +283,17 @@ export const ReportsManagement: React.FC = () => {
       return reports;
     }
 
-    // Filter by report type (POST/USER)
+    // Filter by report type (POST/USER/COMMENT)
     if (selectedFilter === 'POST') {
-      return reports.filter(r => !!r.postId);
+      return reports.filter(r => !!r.postId && !(r as any).commentId);
     }
 
     if (selectedFilter === 'USER') {
       return reports.filter(r => !!r.reportedUserId);
+    }
+
+    if (selectedFilter === 'COMMENT') {
+      return reports.filter(r => !!(r as any).commentId);
     }
 
     // Filter by reason type
@@ -294,8 +308,10 @@ export const ReportsManagement: React.FC = () => {
   const stats = useMemo(() => {
     return {
       total: reports.length,
-      postReports: reports.filter(r => !!r.postId).length,
+      postReports: reports.filter(r => !!r.postId && !(r as any).commentId)
+        .length,
       userReports: reports.filter(r => !!r.reportedUserId).length,
+      commentReports: reports.filter(r => !!(r as any).commentId).length,
       spam: reports.filter(r => r.reason.toUpperCase() === 'SPAM').length,
       inappropriate: reports.filter(
         r => r.reason.toUpperCase() === 'INAPPROPRIATE'
@@ -310,6 +326,11 @@ export const ReportsManagement: React.FC = () => {
     { key: 'ALL', label: t('admin.all'), color: primaryColor },
     { key: 'POST', label: t('admin.postReports'), color: '#3B82F6' },
     { key: 'USER', label: t('admin.userReports'), color: '#8B5CF6' },
+    {
+      key: 'COMMENT',
+      label: t('admin.commentReports') || 'Comment Reports',
+      color: '#10B981',
+    },
     { key: 'SPAM', label: t('admin.spam'), color: '#EF4444' },
     { key: 'INAPPROPRIATE', label: t('admin.inappropriate'), color: '#F59E0B' },
     { key: 'HARASSMENT', label: t('admin.harassment'), color: '#EF4444' },
@@ -388,6 +409,18 @@ export const ReportsManagement: React.FC = () => {
                 adjustsFontSizeToFit
               >
                 {t('admin.userReports')}
+              </Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={[styles.statValue, { color: '#10B981' }]}>
+                {stats.commentReports}
+              </Text>
+              <Text
+                style={styles.statLabel}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
+                {t('admin.commentReports') || 'Comments'}
               </Text>
             </View>
             <View style={styles.statItem}>
@@ -486,31 +519,60 @@ export const ReportsManagement: React.FC = () => {
             <Text style={styles.loadingText}>{t('admin.loadingReports')}</Text>
           </View>
         ) : (
-          <FlashList
-            data={filteredReports}
-            keyExtractor={item =>
-              item.id?.toString() || Math.random().toString()
-            }
-            renderItem={({ item }) => (
-              <ReportItem report={item} onReportPress={handleReportPress} />
-            )}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-            extraData={selectedFilter}
-            ListEmptyComponent={
-              <View style={styles.emptyContainer}>
-                <FontAwesomeIcon
-                  icon={Icons.Check}
-                  size={48}
-                  color={primaryColor}
-                />
-                <Text style={styles.emptyText}>
-                  {t('admin.noReportsFound')}
+          <>
+            {/* Debug info */}
+            {__DEV__ && (
+              <View style={styles.debugContainer}>
+                <Text style={styles.debugText}>
+                  Total reports: {reports.length} | Filtered:{' '}
+                  {filteredReports.length} | Filter: {selectedFilter}
                 </Text>
-                <Text style={styles.emptySubtext}>{t('admin.allClear')}</Text>
+                {reports.length > 0 && (
+                  <>
+                    <Text style={styles.debugText}>All Report Objects:</Text>
+                    <ScrollView
+                      style={styles.debugScrollView}
+                      nestedScrollEnabled={true}
+                    >
+                      <Text style={styles.debugJsonText} selectable>
+                        {JSON.stringify(reports, null, 2)}
+                      </Text>
+                    </ScrollView>
+                  </>
+                )}
               </View>
-            }
-          />
+            )}
+            <FlashList
+              data={filteredReports}
+              keyExtractor={item =>
+                item.id?.toString() || Math.random().toString()
+              }
+              renderItem={({ item }) => (
+                <ReportItem report={item} onReportPress={handleReportPress} />
+              )}
+              contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
+              extraData={selectedFilter}
+              ListEmptyComponent={
+                <View style={styles.emptyContainer}>
+                  <FontAwesomeIcon
+                    icon={Icons.Check}
+                    size={48}
+                    color={primaryColor}
+                  />
+                  <Text style={styles.emptyText}>
+                    {t('admin.noReportsFound')}
+                  </Text>
+                  <Text style={styles.emptySubtext}>{t('admin.allClear')}</Text>
+                  {__DEV__ && (
+                    <Text style={styles.debugText}>
+                      Total in DB: {reports.length}
+                    </Text>
+                  )}
+                </View>
+              }
+            />
+          </>
         )}
 
         {/* Report Actions Modal */}
@@ -552,11 +614,21 @@ export const ReportsManagement: React.FC = () => {
                       (ID: {selectedReport.reportedUserId})
                     </Text>
                   </View>
-                ) : (
+                ) : selectedReport?.postId ? (
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>{t('admin.postId')}:</Text>
                     <Text style={styles.detailValue}>
-                      {selectedReport?.postId}
+                      {selectedReport.postId}
+                    </Text>
+                  </View>
+                ) : null}
+                {selectedReport?.commentId && (
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>
+                      {t('admin.commentId') || 'Comment ID'}:
+                    </Text>
+                    <Text style={styles.detailValue}>
+                      {selectedReport.commentId}
                     </Text>
                   </View>
                 )}
@@ -598,6 +670,21 @@ export const ReportsManagement: React.FC = () => {
                   )}
               </View>
 
+              {/* Full Report Object (Debug) */}
+              {__DEV__ && selectedReport && (
+                <View style={styles.jsonContainer}>
+                  <Text style={styles.jsonLabel}>Full Report Object:</Text>
+                  <ScrollView
+                    style={styles.jsonScrollView}
+                    nestedScrollEnabled={true}
+                  >
+                    <Text style={styles.jsonText} selectable>
+                      {JSON.stringify(selectedReport, null, 2)}
+                    </Text>
+                  </ScrollView>
+                </View>
+              )}
+
               {/* Actions */}
               <View style={styles.modalActions}>
                 {selectedReport?.postId && (
@@ -614,6 +701,27 @@ export const ReportsManagement: React.FC = () => {
                       style={[styles.actionButtonText, { color: primaryColor }]}
                     >
                       {t('admin.viewPost')}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                {selectedReport?.reportedUserId && (
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.viewButton]}
+                    onPress={() => {
+                      navigation.navigate('UserDetail', {
+                        userId: selectedReport.reportedUserId!.toString(),
+                      });
+                    }}
+                  >
+                    <FontAwesomeIcon
+                      icon={Icons.User}
+                      size={18}
+                      color={primaryColor}
+                    />
+                    <Text
+                      style={[styles.actionButtonText, { color: primaryColor }]}
+                    >
+                      {t('view-profile-detail') || 'View Profile'}
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -833,6 +941,31 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: separatorColor,
   },
+  debugContainer: {
+    padding: 8,
+    backgroundColor: 'rgba(255, 255, 0, 0.1)',
+    marginHorizontal: 20,
+    marginBottom: 8,
+    borderRadius: 8,
+  },
+  debugText: {
+    fontSize: 12,
+    color: '#FFD700',
+    fontFamily: 'monospace',
+    marginBottom: 4,
+  },
+  debugScrollView: {
+    maxHeight: 150,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 4,
+    padding: 8,
+    marginTop: 8,
+  },
+  debugJsonText: {
+    fontSize: 10,
+    color: '#00FF00',
+    fontFamily: 'monospace',
+  },
   unauthorizedContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -900,6 +1033,33 @@ const styles = StyleSheet.create({
   detailValue: {
     fontSize: 14,
     color: '#FFF',
+  },
+  jsonContainer: {
+    marginTop: 16,
+    marginBottom: 16,
+    padding: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  jsonLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFD700',
+    marginBottom: 8,
+    fontFamily: 'monospace',
+  },
+  jsonScrollView: {
+    maxHeight: 200,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 4,
+    padding: 8,
+  },
+  jsonText: {
+    fontSize: 10,
+    color: '#00FF00',
+    fontFamily: 'monospace',
   },
   modalActions: {
     gap: 12,

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "512336450609",
+    "project_id": "barhub-prod",
+    "storage_bucket": "barhub-prod.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:512336450609:android:b21eeda056d055733cb110",
+        "android_client_info": {
+          "package_name": "com.barhub.barhub"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0jpI32teVC6H9pf2Lcr29ra8I7TBgKzE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

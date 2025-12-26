@@ -37,14 +37,19 @@ const NotificationsList: React.FC = () => {
   const { isPremium } = useUserStore();
   const { data: storeData, markAllAsSeen } = useNotificationsStore();
 
-  const { isLoading, refetch, isFetching, isError, error } = useNotificationsQuery();
+  const { data: queryData, isLoading, refetch, isFetching, isError, error } = useNotificationsQuery();
   const [isScrollEnabled, setIsScrollEnabled] = useState(true);
   const [showAllRead, setShowAllRead] = useState(false);
 
+  // Use queryData (which has fallback to storeData) as the primary source
+  const notificationsData = queryData || storeData;
+
   // Debug logging
   console.log('[NotificationsList] Component state:', {
+    queryDataExists: !!queryData,
     storeDataExists: !!storeData,
-    notificationsCount: storeData?.notifications?.length || 0,
+    notificationsDataExists: !!notificationsData,
+    notificationsCount: notificationsData?.notifications?.length || 0,
     isLoading,
     isFetching,
     isError,
@@ -56,13 +61,13 @@ const NotificationsList: React.FC = () => {
 
   // Memoized notifications count for performance
   const notificationStats = useMemo(() => {
-    if (!storeData?.notifications) return { total: 0, unread: 0 };
+    if (!notificationsData?.notifications) return { total: 0, unread: 0 };
 
-    const total = storeData.notifications.length;
-    const unread = storeData.notifications.filter(n => !n.read).length;
+    const total = notificationsData.notifications.length;
+    const unread = notificationsData.notifications.filter(n => !n.read).length;
 
     return { total, unread };
-  }, [storeData?.notifications]);
+  }, [notificationsData?.notifications]);
 
   // Swipe handlers with better state management
   const handleSwipeStart = useCallback(() => setIsScrollEnabled(false), []);
@@ -103,7 +108,7 @@ const NotificationsList: React.FC = () => {
   // Enhanced loading state with better UX
   // Only show loading if we're actually loading AND don't have any cached data
   // This prevents infinite loading when query fails or returns empty data
-  const shouldShowLoading = isLoading && !storeData && !isError;
+  const shouldShowLoading = isLoading && !notificationsData && !isError;
   
   if (shouldShowLoading) {
     return (
@@ -120,9 +125,9 @@ const NotificationsList: React.FC = () => {
     );
   }
 
-  // Ensure we have storeData (should be set even on error with empty array)
-  // If storeData is still null after loading, use empty state
-  const notifications = storeData?.notifications || [];
+  // Use notificationsData (queryData with fallback to storeData)
+  // This ensures data is available immediately when query completes
+  const notifications = notificationsData?.notifications || [];
 
   return (
     <ScreenLayout

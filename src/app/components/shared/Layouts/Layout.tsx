@@ -1,4 +1,4 @@
-import { SafeAreaView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, StyleSheet, TouchableOpacity, View, Text } from 'react-native';
 import React, { ReactNode } from 'react';
 import {
   primaryBgColor,
@@ -12,7 +12,8 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '../../../utils/types/screen-types';
 import { useNotificationsStore } from '@/src/app/utils/store/notificationsStore';
 import { useModalsStore } from '@/src/app/utils/store/modalsStore';
-import { PremiumHelpers } from '@/src/app/config/premiumConfig';
+import { useLocationStore } from '@/src/app/utils/store/locationStore';
+import { useTranslation } from 'react-i18next';
 
 type LayoutProps = {
   children: ReactNode | ReactNode[];
@@ -24,7 +25,9 @@ type LayoutProps = {
 export const Layout = ({ children, showTopBar = true }: LayoutProps) => {
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { data } = useNotificationsStore();
-  const { toggleFilter } = useModalsStore();
+  const { toggleFilter, openTravelMode } = useModalsStore();
+  const { useFakeLocation } = useLocationStore();
+  const { t } = useTranslation();
 
   return (
     <SafeAreaView style={styles.wrapper}>
@@ -34,8 +37,10 @@ export const Layout = ({ children, showTopBar = true }: LayoutProps) => {
             display: 'flex',
             flexDirection: 'row',
             justifyContent: 'space-between',
+            alignItems: 'center',
             paddingHorizontal: 20,
             paddingBottom: 5,
+            position: 'relative',
           }}
         >
           <View>
@@ -50,6 +55,38 @@ export const Layout = ({ children, showTopBar = true }: LayoutProps) => {
               />
             </Svg>
           </View>
+
+          {/* Travel Mode Icon - Center */}
+          {useFakeLocation && (
+            <View
+              style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1,
+                pointerEvents: 'box-none',
+              }}
+            >
+              <TouchableOpacity
+                onPress={openTravelMode}
+                activeOpacity={0.7}
+                style={{ alignItems: 'center', padding: 4 }}
+                hitSlop={{ top: 5, bottom: 5, left: 10, right: 10 }}
+              >
+                <FontAwesomeIcon
+                  icon={Icons.Plane}
+                  size={20}
+                  color={primaryColor}
+                />
+                <Text style={{ color: primaryColor, fontSize: 9, fontWeight: '600', marginTop: 2 }}>
+                  {t('active')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           <View style={{ gap: 20, display: 'flex', flexDirection: 'row' }}>
             <TouchableOpacity
               onPress={() => navigation.navigate('NotificationsList')}
@@ -77,6 +114,7 @@ export const Layout = ({ children, showTopBar = true }: LayoutProps) => {
           </View>
         </View>
       )}
+
       <View style={{ flex: 1 }}>{children}</View>
     </SafeAreaView>
   );

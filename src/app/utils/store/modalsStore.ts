@@ -8,6 +8,7 @@ interface ModalsState {
   isLogoutConfirmOpen: boolean;
   isCustomReasonOpen: boolean;
   isOccupancyOpen: boolean;
+  isTravelModeOpen: boolean;
   occupancyValue: OccupancyEnum | null;
   occupancyCallback: ((value: OccupancyEnum) => void) | null;
 
@@ -31,6 +32,10 @@ interface ModalsState {
   closeCustomReason: () => void;
   toggleCustomReason: () => void;
 
+  openTravelMode: () => void;
+  closeTravelMode: () => void;
+  toggleTravelMode: () => void;
+
   openOccupancy: (
     initialValue?: OccupancyEnum | null,
     callback?: (value: OccupancyEnum) => void
@@ -46,6 +51,7 @@ export const useModalsStore = create<ModalsState>(set => ({
   isLogoutConfirmOpen: false,
   isCustomReasonOpen: false,
   isOccupancyOpen: false,
+  isTravelModeOpen: false,
   occupancyValue: null,
   occupancyCallback: null,
 
@@ -70,6 +76,11 @@ export const useModalsStore = create<ModalsState>(set => ({
   closeCustomReason: () => set({ isCustomReasonOpen: false }),
   toggleCustomReason: () =>
     set(state => ({ isCustomReasonOpen: !state.isCustomReasonOpen })),
+
+  openTravelMode: () => set({ isTravelModeOpen: true }),
+  closeTravelMode: () => set({ isTravelModeOpen: false }),
+  toggleTravelMode: () =>
+    set(state => ({ isTravelModeOpen: !state.isTravelModeOpen })),
 
   openOccupancy: (initialValue, callback) =>
     set({

@@ -35,3 +35,5 @@ export function getRemainingCooldownSeconds(lastUploadedPostAt: string | null | 
   // Return remaining seconds (or 0 if cooldown is over)
   return Math.max(0, Math.ceil(remainingTime / 1000));
 }
+
+

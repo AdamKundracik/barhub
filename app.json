@@ -7,13 +7,6 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "scheme": "barhubapp",
-    "linking": {
-      "prefixes": [
-        "https://barhubapp.com",
-        "https://www.barhubapp.com"
-      ]
-    },
-    "entryPoint": "./index.js",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -300,7 +293,8 @@
         }
       ],
       "expo-web-browser",
-      "expo-mail-composer"
+      "expo-mail-composer",
+      "expo-secure-store"
     ],
     "extra": {
       "eas": {

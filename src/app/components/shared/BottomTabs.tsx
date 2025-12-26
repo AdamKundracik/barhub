@@ -54,7 +54,7 @@ const BottomTabs = () => {
 
   // Track navigation state changes to store previous page
   useEffect(() => {
-    const unsubscribe = navigation.addListener('state', (e) => {
+    const unsubscribe = navigation.addListener('state', e => {
       const state = e.data.state;
       if (state && state.routes && state.routes.length > 0) {
         const currentRoute = state.routes[state.index];
@@ -85,39 +85,44 @@ const BottomTabs = () => {
           const minutes = Math.floor(remainingSeconds / 60);
           const seconds = remainingSeconds % 60;
           const formatWait = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-          
+
           setIsCheckingUpload(false);
-          Alert.alert(
-            t('camera.waitBeforeNextUpload', { time: formatWait })
-          );
+          Alert.alert(t('camera.waitBeforeNextUpload', { time: formatWait }));
           return;
         }
       } catch (error: any) {
         console.error('Error checking upload permission:', error);
         setIsCheckingUpload(false);
-        
+
         // Extract error data from server response
         const responseData = error?.response?.data;
-        const errorType = responseData?.error || error?.response?.statusText || 'Error';
+        const errorType =
+          responseData?.error || error?.response?.statusText || 'Error';
         const statusCode = responseData?.status || error?.response?.status;
-        const errorMessage = responseData?.message || error?.message || t('errors.uploadCheckFailed') || 'Failed to check upload permission';
-        
+        const errorMessage =
+          responseData?.message ||
+          error?.message ||
+          t('errors.uploadCheckFailed') ||
+          'Failed to check upload permission';
+
         // Format: "Internal Server Error: 500"
-        const errorTitle = statusCode ? `${errorType}: ${statusCode}` : errorType;
-        
+        const errorTitle = statusCode
+          ? `${errorType}: ${statusCode}`
+          : errorType;
+
         // Show error toast with formatted title and message
         showErrorToast(errorTitle, errorMessage);
-        
+
         // Fallback to local check if API fails
-        const remainingSeconds = getRemainingCooldownSeconds(userData?.lastUploadedPostAt);
+        const remainingSeconds = getRemainingCooldownSeconds(
+          userData?.lastUploadedPostAt
+        );
         if (remainingSeconds > 0) {
           const minutes = Math.floor(remainingSeconds / 60);
           const seconds = remainingSeconds % 60;
           const formatWait = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-          
-          Alert.alert(
-            t('camera.waitBeforeNextUpload', { time: formatWait })
-          );
+
+          Alert.alert(t('camera.waitBeforeNextUpload', { time: formatWait }));
           return;
         }
         // If no cooldown, allow upload to proceed
@@ -148,7 +153,7 @@ const BottomTabs = () => {
           ),
           tabBarStyle: styles.tabBar,
           tabBarLabelStyle: styles.tabBarLabel,
-          tabBarItemStyle: { paddingVertical: 0 },
+          tabBarItemStyle: styles.tabBarItem,
           tabBarActiveTintColor: 'white',
           tabBarInactiveTintColor: separatorColor,
         }}
@@ -263,9 +268,9 @@ export default BottomTabs;
 
 const styles = StyleSheet.create({
   tabBar: {
-    paddingTop: 5,
+    // paddingTop: Platform.OS === 'ios' ? 8 : 5,
+    // paddingBottom: Platform.OS === 'ios' ? 5 : 5,
     position: 'absolute',
-    bottom: 10,
     borderRadius: 20,
     overflow: 'hidden',
     borderTopWidth: 0,
@@ -289,10 +294,17 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
+  tabBarItem: {
+    paddingVertical: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   tabBarLabel: {
     fontSize: 10,
     lineHeight: 12,
-    marginTop: 2,
+    marginTop: Platform.OS === 'ios' ? 2 : 2,
+    marginBottom: 0,
     textAlign: 'center',
+    paddingHorizontal: 4,
   },
 });

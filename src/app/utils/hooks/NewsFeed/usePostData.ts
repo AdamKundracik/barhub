@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 import { useInfiniteQuery, useQueryClient } from 'react-query';
 import { handleFreshContent } from '../../functions/posts-functions';
 import { useFiltersStore } from '../../store/filtersStorage';
@@ -56,15 +56,16 @@ export const useNewsFeedData = () => {
     isRefetching,
   } = useInfiniteQuery(
     queryKey,
-    ({ pageParam = null }) =>
-      handleFreshContent(
+    ({ pageParam = null }) => {
+      return handleFreshContent(
         distance,
         pageParam,
         placeId,
         currentLocation!,
         selectedPlaces.length > 0 ? selectedPlaces : undefined,
         selectedOccupancy.length > 0 ? selectedOccupancy : undefined
-      ),
+      );
+    },
     {
       getNextPageParam: lastPage => lastPage?.lastVisible || null, // lastVisible is mapped from nextCursor
       enabled: !!currentLocation && isAuthenticated && !!userId, // Wait for location, authentication, and userId to be available
@@ -76,6 +77,23 @@ export const useNewsFeedData = () => {
       refetchOnReconnect: true, // Refetch when network reconnects
     }
   );
+
+  const prevIsRefetchingRef = useRef(false);
+  useEffect(() => {
+    prevIsRefetchingRef.current = isRefetching;
+  }, [isRefetching]);
+
+  const wrappedRefetch = useMemo(() => {
+    return () => refetch();
+  }, [refetch]);
+
+  // Vytvoríme stabilný string z IDs pre memoizáciu
+  const postsIdsString = useMemo(() => {
+    if (!postsData?.pages) return '';
+    return postsData.pages
+      .map(page => page.posts?.map(p => p.id).join(',') || '')
+      .join('|');
+  }, [postsData?.pages]);
 
   const posts = useMemo(() => {
     if (!postsData?.pages) return [];
@@ -91,7 +109,9 @@ export const useNewsFeedData = () => {
     }
 
     return uniquePosts;
-  }, [postsData?.pages, showHighlightedPosts]);
+    // FlashList potrebuje stabilnú referenciu na data array
+    // Používame postsIdsString namiesto priameho mapovania v dependencies
+  }, [postsIdsString, showHighlightedPosts]);
 
   const fetchMorePosts = async () => {
     if (hasNextPage) {
@@ -114,7 +134,7 @@ export const useNewsFeedData = () => {
     isRefetching,
     isFetchingNextPage,
     hasNextPage,
-    refetch,
+    refetch: wrappedRefetch,
     forceRefetch,
     fetchMorePosts,
   };

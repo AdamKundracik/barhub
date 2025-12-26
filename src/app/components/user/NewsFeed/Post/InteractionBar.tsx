@@ -1,5 +1,11 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, Dimensions } from 'react-native';
+import {
+  Dimensions,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import Device from 'react-native-device-info';
 import { useTranslation } from 'react-i18next';
@@ -19,6 +25,8 @@ interface InteractionBarProps {
   occupancy: string;
   isHighlighted?: boolean;
   isFiltering?: boolean;
+  onLikeLongPress?: () => void;
+  showCommentButton?: boolean; // Optional prop to hide comment button
 }
 
 // Constants
@@ -57,54 +65,70 @@ const InteractionButton: React.FC<{
   count?: number | string;
   color?: string;
   onPress?: () => void;
+  onLongPress?: () => void;
   isActive?: boolean;
   activeColor?: string;
   isCompact?: boolean;
-}> = ({
-  icon,
-  count,
-  color = 'white',
-  onPress,
-  isActive,
-  activeColor = 'red',
-  isCompact = false,
-}) => {
-  const buttonColor = isActive ? activeColor : color;
-  const textStyle = useMemo(
-    () => [styles.count, isCompact && compactStyles.count],
-    [isCompact]
-  );
+  buttonKey?: string;
+}> = React.memo(
+  ({
+    icon,
+    count,
+    color = 'white',
+    onPress,
+    onLongPress,
+    isActive,
+    activeColor = 'red',
+    isCompact = false,
+    buttonKey,
+  }) => {
+    const buttonColor = isActive ? activeColor : color;
 
-  if (onPress) {
-    return (
-      <TouchableOpacity onPress={onPress} style={[styles.iconContainer, isCompact && compactStyles.iconContainer]}>
-        <FontAwesomeIcon icon={icon} size={ICON_SIZE} color={buttonColor} />
-        <Text 
-          style={textStyle}
-          numberOfLines={2}
-          adjustsFontSizeToFit={true}
-          minimumFontScale={0.7}
+    // useMemo needed to maintain referential equality for FlashList optimization
+    const textStyle = useMemo(
+      () => [styles.count, isCompact && compactStyles.count],
+      [isCompact]
+    );
+
+    // Create a unique key for the text wrapper to force re-render when content changes
+    // This ensures adjustsFontSizeToFit recalculates correctly when content changes
+    const textKey = `text-wrapper-${buttonKey}-${count}-${isCompact}`;
+    const textContent = String(count ?? '');
+
+    if (onPress) {
+      return (
+        <TouchableOpacity
+          onPress={onPress}
+          onLongPress={onLongPress}
+          style={[
+            styles.iconContainer,
+            isCompact && compactStyles.iconContainer,
+          ]}
         >
-          {count}
-        </Text>
-      </TouchableOpacity>
+          <FontAwesomeIcon icon={icon} size={ICON_SIZE} color={buttonColor} />
+          <View key={textKey}>
+            <Text style={textStyle} numberOfLines={2}>
+              {textContent}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      );
+    }
+
+    return (
+      <View
+        style={[styles.iconContainer, isCompact && compactStyles.iconContainer]}
+      >
+        <FontAwesomeIcon icon={icon} size={ICON_SIZE} color={buttonColor} />
+        <View key={textKey}>
+          <Text style={textStyle} numberOfLines={2}>
+            {textContent}
+          </Text>
+        </View>
+      </View>
     );
   }
-
-  return (
-    <View style={[styles.iconContainer, isCompact && compactStyles.iconContainer]}>
-      <FontAwesomeIcon icon={icon} size={ICON_SIZE} color={buttonColor} />
-      <Text 
-        style={textStyle}
-        numberOfLines={2}
-        adjustsFontSizeToFit={true}
-        minimumFontScale={0.7}
-      >
-        {count}
-      </Text>
-    </View>
-  );
-};
+);
 
 // Main component
 const InteractionBar: React.FC<InteractionBarProps> = ({
@@ -117,22 +141,19 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
   occupancy,
   isHighlighted = false,
   isFiltering = false,
+  onLikeLongPress,
+  showCommentButton = true, // Default to true for backward compatibility
 }) => {
   const { t } = useTranslation();
   const getOccupancyTranslation = useOccupancyTranslation();
-  const occupancyText = useMemo(
-    () => getOccupancyTranslation(occupancy ?? ''),
-    [occupancy, getOccupancyTranslation]
-  );
+  const occupancyText = getOccupancyTranslation(occupancy ?? '');
 
   // Use compact mode when highlighted and filtering (border takes up space)
   // More aggressive on smaller devices
-  const isCompact = useMemo(() => {
-    if (!isHighlighted || !isFiltering) return false;
-    // Always use compact on very small devices, or on devices < 390px when highlighted+filtered
-    return isSmallDevice || SCREEN_WIDTH < 390;
-  }, [isHighlighted, isFiltering]);
+  const isCompact =
+    isHighlighted && isFiltering && (isSmallDevice || SCREEN_WIDTH < 390);
 
+  // useMemo needed to maintain referential equality for FlashList optimization
   const containerStyle = useMemo(
     () => [
       styles.container,
@@ -146,6 +167,8 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
     <View style={containerStyle}>
       {/* Occupancy Display */}
       <InteractionButton
+        key="occupancy"
+        buttonKey="occupancy"
         icon={Icons.Group}
         count={occupancyText}
         color="white"
@@ -154,29 +177,36 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
 
       {/* Like Button */}
       <InteractionButton
+        key="likes"
+        buttonKey="likes"
         icon={isLiked ? Icons.HeartSolid : Icons.Heart}
         count={likes}
         color={primaryColor}
         onPress={onLikeToggle}
+        onLongPress={onLikeLongPress}
         isActive={isLiked}
         activeColor="red"
         isCompact={isCompact}
       />
 
-      {/* Commented out Comments Button - keeping for future use */}
-      {/*
-      <InteractionButton
-        icon={Icons.Comment}
-        count={comments}
-        color={primaryColor}
-        onPress={onCommentToggle}
-        isCompact={isCompact}
-      />
-      */}
+      {/* Comments Button - only show if showCommentButton is true */}
+      {showCommentButton && (
+        <InteractionButton
+          key="comments"
+          buttonKey="comments"
+          icon={Icons.Comment}
+          count={comments}
+          color={primaryColor}
+          onPress={onCommentToggle}
+          isCompact={isCompact}
+        />
+      )}
 
       {/* Share Button - only show if onShare is provided */}
       {onShare && (
         <InteractionButton
+          key="share"
+          buttonKey="share"
           icon={Icons.Share}
           count={t('share')}
           color="white"
@@ -250,6 +280,9 @@ export default React.memo(InteractionBar, (prevProps, nextProps) => {
     prevProps.isLiked === nextProps.isLiked &&
     prevProps.occupancy === nextProps.occupancy &&
     prevProps.onShare === nextProps.onShare &&
+    prevProps.onLikeToggle === nextProps.onLikeToggle &&
+    prevProps.onCommentToggle === nextProps.onCommentToggle &&
+    prevProps.onLikeLongPress === nextProps.onLikeLongPress &&
     prevProps.isHighlighted === nextProps.isHighlighted &&
     prevProps.isFiltering === nextProps.isFiltering
   );

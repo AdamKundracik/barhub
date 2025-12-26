@@ -26,8 +26,10 @@ import { useCustomToast } from '../../components/shared/Toaster';
 import FastImage from 'react-native-fast-image';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { useNavigation } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 import { useTranslation } from 'react-i18next';
+import { UserStackList } from '../../utils/types/screen-types';
 
 interface UserItemProps {
   user: ClientDTO;
@@ -150,7 +152,7 @@ export const AdminPanel: React.FC = () => {
   const { isAdmin, isModerator, role } = useUserRole();
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const queryClient = useQueryClient();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t } = useTranslation();
 
   const [searchQuery, setSearchQuery] = useState('');

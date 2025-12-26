@@ -26,9 +26,14 @@ import { trimPlaceName } from '@/src/app/utils/helper-functions/trimPlaceName';
 
 import { UserLine } from './UserLine';
 import InteractionBar from './InteractionBar';
-import { postBgColor, primaryBgColor } from '@/src/app/utils/styles/colors';
+import { postBgColor } from '@/src/app/utils/styles/colors';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useTranslation } from 'react-i18next';
+import {
+  LikedUser,
+  LikedUsersModal,
+} from '@/src/app/components/shared/Modals/LikedUsersModal';
+import { PostCommentsModal } from '../../../shared/Modals/PostCommentsModal';
 
 // Constants
 const isTablet = Device.isTablet();
@@ -44,7 +49,7 @@ interface UserPostProps {
   isZoomed: boolean;
   hasPremium: boolean;
   isFiltering: boolean;
-  onCommentPress: (
+  onCommentPress?: (
     postId: string,
     expoPushToken: string,
     userId: string
@@ -230,35 +235,17 @@ const UserPost: React.FC<UserPostProps> = ({
   isFiltering,
   onCommentPress,
 }) => {
-  // const { isPremium, canSeeContent, userData } = useUserStore();
   const navigation = useNavigation();
 
-  // Early return if no post
-  if (!post) {
-    return null;
-  }
+  // State for liked users modal
+  const [showLikedUsersModal, setShowLikedUsersModal] = useState(false);
+  const [likedUsers, setLikedUsers] = useState<LikedUser[]>([]);
+  const [loadingLikedUsers, setLoadingLikedUsers] = useState(false);
 
-  // Navigate to PostDetail screen
-  const handleNavigateToDetail = useCallback(() => {
-    (navigation as any).navigate('PostDetail', { postId: post.id });
-  }, [navigation, post.id]);
+  // State for comments modal
+  const [showCommentsModal, setShowCommentsModal] = useState(false);
 
-  // Navigate to UserDetail screen
-  const handleNavigateToUser = useCallback(() => {
-    (navigation as any).navigate('UserDetail', { userId: post.userId });
-  }, [navigation, post.userId]);
-
-  // Share post
-  const handleShare = useCallback(async () => {
-    try {
-      const { shareService } = await import('@/src/app/services/shareService');
-      await shareService.sharePost(post);
-    } catch (error) {
-      console.error('Error sharing post:', error);
-    }
-  }, [post]);
-
-  // Safe destructuring with defaults
+  // Safe destructuring with defaults - MUST be before any hooks
   const {
     id = '',
     isLiked = false,
@@ -273,7 +260,30 @@ const UserPost: React.FC<UserPostProps> = ({
     commentsCount = 0,
     occupancy = '',
     isHighlighted = false,
-  } = post;
+  } = post ?? {};
+
+  // Navigate to PostDetail screen
+  const handleNavigateToDetail = useCallback(() => {
+    if (!id) return;
+    (navigation as any).navigate('PostDetail', { postId: id });
+  }, [navigation, id]);
+
+  // Navigate to UserDetail screen
+  const handleNavigateToUser = useCallback(() => {
+    if (!userId) return;
+    (navigation as any).navigate('UserDetail', { userId });
+  }, [navigation, userId]);
+
+  // Share post - memoize with stable dependencies
+  const handleShare = useCallback(async () => {
+    if (!post) return;
+    try {
+      const { shareService } = await import('@/src/app/services/shareService');
+      await shareService.sharePost(post);
+    } catch (error) {
+      console.error('Error sharing post:', error);
+    }
+  }, [post?.id]); // Only depend on post.id for stability
 
   // Custom hooks with safe values
   const { liked, likeCount, handleLikeToggle } = usePostLike(
@@ -300,8 +310,51 @@ const UserPost: React.FC<UserPostProps> = ({
   );
 
   const handleCommentPress = useCallback(() => {
-    onCommentPress(id, user?.expoPushToken ?? '', userId);
+    // Use new modal if available, otherwise fallback to old callback
+    if (id) {
+      setShowCommentsModal(true);
+    }
+    // Also call old callback for backward compatibility
+    if (onCommentPress) {
+      onCommentPress(id, user?.expoPushToken ?? '', userId);
+    }
   }, [id, user?.expoPushToken, userId, onCommentPress]);
+
+  // Handle comment added/deleted to refresh count
+  const handleCommentAdded = useCallback(() => {
+    // Could trigger a refetch of posts if needed
+    // For now, the count will update on next load
+  }, []);
+
+  const handleCommentDeleted = useCallback(() => {
+    // Could trigger a refetch of posts if needed
+    // For now, the count will update on next load
+  }, []);
+
+  // Handle like long press to show liked users
+  const handleLikeLongPress = useCallback(async () => {
+    if (id) {
+      setLoadingLikedUsers(true);
+      try {
+        const users = await postService.getLikedUsers(id);
+        setLikedUsers(users);
+        setShowLikedUsersModal(true);
+      } catch (error) {
+        console.error('Error fetching liked users:', error);
+        // Show error toast if needed
+      } finally {
+        setLoadingLikedUsers(false);
+      }
+    }
+  }, [id]);
+
+  // Handle user press in liked users modal
+  const handleLikedUserPress = useCallback(
+    (userId: number) => {
+      (navigation as any).navigate('UserDetail', { userId: userId.toString() });
+    },
+    [navigation]
+  );
 
   // // Computed values
   // const shouldShowBlur = useMemo(() => {
@@ -316,8 +369,8 @@ const UserPost: React.FC<UserPostProps> = ({
 
   const trimmedPlaceName = useMemo(() => trimPlaceName(placeName), [placeName]);
 
-  // Don't render if essential data is missing
-  if (!id || !photoUrl) {
+  // Don't render if essential data is missing - after all hooks
+  if (!post || !id || !photoUrl) {
     return null;
   }
 
@@ -439,8 +492,30 @@ const UserPost: React.FC<UserPostProps> = ({
           occupancy={occupancy}
           isHighlighted={isHighlighted}
           isFiltering={isFiltering}
+          onLikeLongPress={handleLikeLongPress}
         />
       </View>
+
+      {/* Liked Users Modal */}
+      <LikedUsersModal
+        visible={showLikedUsersModal}
+        onClose={() => setShowLikedUsersModal(false)}
+        users={likedUsers}
+        onUserPress={handleLikedUserPress}
+        loading={loadingLikedUsers}
+      />
+
+      {/* Comments Modal */}
+      {id && (
+        <PostCommentsModal
+          visible={showCommentsModal}
+          onClose={() => setShowCommentsModal(false)}
+          postId={id}
+          commentsCount={commentsCount}
+          onCommentAdded={handleCommentAdded}
+          onCommentDeleted={handleCommentDeleted}
+        />
+      )}
     </Animated.View>
   );
 };
