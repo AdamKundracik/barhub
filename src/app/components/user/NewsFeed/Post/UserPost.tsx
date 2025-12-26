@@ -33,7 +33,7 @@ import {
   LikedUser,
   LikedUsersModal,
 } from '@/src/app/components/shared/Modals/LikedUsersModal';
-import { PostCommentsModal } from './Comments/PostCommentsModal';
+import { PostCommentsModal } from '../../../shared/Modals/PostCommentsModal';
 
 // Constants
 const isTablet = Device.isTablet();

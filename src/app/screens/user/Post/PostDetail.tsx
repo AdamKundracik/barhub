@@ -48,7 +48,7 @@ import {
   addCacheBuster,
   createImageKey,
 } from '@/src/app/utils/cache/imageCacheUtils';
-import { PostCommentsModal } from '@/src/app/components/user/NewsFeed/Post/Comments/PostCommentsModal';
+import { PostCommentsModal } from '@/src/app/components/shared/Modals/PostCommentsModal';
 
 export const PostDetail = () => {
   const route = useRoute();
