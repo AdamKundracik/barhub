@@ -117,6 +117,14 @@ export const ENDPOINTS = {
     VERSIONS: '/consents/versions',
   },
 
+  // Comment endpoints
+  COMMENTS: {
+    BASE: '/comments',
+    BY_ID: (id: string) => `/comments/${id}`,
+    BY_POST: (postId: string) => `/comments/post/${postId}`,
+    COUNT_BY_POST: (postId: string) => `/comments/post/${postId}/count`,
+  },
+
   // Admin endpoints
   ADMIN: {
     CONSENT_VERSIONS: '/admin/consents/versions',

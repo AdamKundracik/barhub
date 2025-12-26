@@ -26,10 +26,14 @@ import { trimPlaceName } from '@/src/app/utils/helper-functions/trimPlaceName';
 
 import { UserLine } from './UserLine';
 import InteractionBar from './InteractionBar';
-import { postBgColor, primaryBgColor } from '@/src/app/utils/styles/colors';
+import { postBgColor } from '@/src/app/utils/styles/colors';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { useTranslation } from 'react-i18next';
-import { LikedUsersModal, LikedUser } from '@/src/app/components/shared/Modals/LikedUsersModal';
+import {
+  LikedUser,
+  LikedUsersModal,
+} from '@/src/app/components/shared/Modals/LikedUsersModal';
+import { PostCommentsModal } from '../../../shared/Modals/PostCommentsModal';
 
 // Constants
 const isTablet = Device.isTablet();
@@ -45,7 +49,7 @@ interface UserPostProps {
   isZoomed: boolean;
   hasPremium: boolean;
   isFiltering: boolean;
-  onCommentPress: (
+  onCommentPress?: (
     postId: string,
     expoPushToken: string,
     userId: string
@@ -232,11 +236,14 @@ const UserPost: React.FC<UserPostProps> = ({
   onCommentPress,
 }) => {
   const navigation = useNavigation();
-  
+
   // State for liked users modal
   const [showLikedUsersModal, setShowLikedUsersModal] = useState(false);
   const [likedUsers, setLikedUsers] = useState<LikedUser[]>([]);
   const [loadingLikedUsers, setLoadingLikedUsers] = useState(false);
+
+  // State for comments modal
+  const [showCommentsModal, setShowCommentsModal] = useState(false);
 
   // Safe destructuring with defaults - MUST be before any hooks
   const {
@@ -303,8 +310,26 @@ const UserPost: React.FC<UserPostProps> = ({
   );
 
   const handleCommentPress = useCallback(() => {
-    onCommentPress(id, user?.expoPushToken ?? '', userId);
+    // Use new modal if available, otherwise fallback to old callback
+    if (id) {
+      setShowCommentsModal(true);
+    }
+    // Also call old callback for backward compatibility
+    if (onCommentPress) {
+      onCommentPress(id, user?.expoPushToken ?? '', userId);
+    }
   }, [id, user?.expoPushToken, userId, onCommentPress]);
+
+  // Handle comment added/deleted to refresh count
+  const handleCommentAdded = useCallback(() => {
+    // Could trigger a refetch of posts if needed
+    // For now, the count will update on next load
+  }, []);
+
+  const handleCommentDeleted = useCallback(() => {
+    // Could trigger a refetch of posts if needed
+    // For now, the count will update on next load
+  }, []);
 
   // Handle like long press to show liked users
   const handleLikeLongPress = useCallback(async () => {
@@ -324,9 +349,12 @@ const UserPost: React.FC<UserPostProps> = ({
   }, [id]);
 
   // Handle user press in liked users modal
-  const handleLikedUserPress = useCallback((userId: number) => {
-    (navigation as any).navigate('UserDetail', { userId: userId.toString() });
-  }, [navigation]);
+  const handleLikedUserPress = useCallback(
+    (userId: number) => {
+      (navigation as any).navigate('UserDetail', { userId: userId.toString() });
+    },
+    [navigation]
+  );
 
   // // Computed values
   // const shouldShowBlur = useMemo(() => {
@@ -476,6 +504,18 @@ const UserPost: React.FC<UserPostProps> = ({
         onUserPress={handleLikedUserPress}
         loading={loadingLikedUsers}
       />
+
+      {/* Comments Modal */}
+      {id && (
+        <PostCommentsModal
+          visible={showCommentsModal}
+          onClose={() => setShowCommentsModal(false)}
+          postId={id}
+          commentsCount={commentsCount}
+          onCommentAdded={handleCommentAdded}
+          onCommentDeleted={handleCommentDeleted}
+        />
+      )}
     </Animated.View>
   );
 };

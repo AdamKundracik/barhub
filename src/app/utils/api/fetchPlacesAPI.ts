@@ -26,7 +26,7 @@ export const fetchNearbyPlaces = async (
 
   const url = 'https://places.googleapis.com/v1/places:searchNearby';
   const requestBody = {
-    includedTypes: ['bar', 'cafe', 'bakery', 'night_club', 'restaurant'],
+    includedTypes: ['bar', 'cafe', 'night_club', 'restaurant', 'movie_theater'],
     maxResultCount: 20,
     languageCode: locales[0].languageCode,
     locationRestriction: {
@@ -69,7 +69,13 @@ export const fetchPlaceAutocomplete = async (
   const requestBody = {
     input: query,
     sessionToken: sessionToken,
-    includedPrimaryTypes: ['bar', 'cafe', 'bakery', 'night_club', 'restaurant'],
+    includedPrimaryTypes: [
+      'bar',
+      'cafe',
+      'night_club',
+      'restaurant',
+      'movie_theater',
+    ],
     languageCode: locales[0].languageCode,
     locationRestriction: {
       circle: {

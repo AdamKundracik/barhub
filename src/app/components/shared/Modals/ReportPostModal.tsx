@@ -129,6 +129,9 @@ export const PostReportModal = ({
     { value: ReportReason.SPAM, label: t('reportPost.spam') },
     { value: ReportReason.INAPPROPRIATE, label: t('reportPost.inappropriate') },
     { value: ReportReason.HARASSMENT, label: t('reportPost.harassment') },
+    { value: ReportReason.FAKE_CONTENT, label: t('reportPost.fakeContent') },
+    { value: ReportReason.VIOLENCE, label: t('reportPost.violence') },
+    { value: ReportReason.COPYRIGHT, label: t('reportPost.copyright') },
     { value: ReportReason.OTHER, label: t('reportPost.other') },
   ];
 
