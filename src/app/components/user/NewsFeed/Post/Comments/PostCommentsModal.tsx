@@ -1,23 +1,29 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
   Alert,
   Keyboard,
-  KeyboardAvoidingView,
-  Platform,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import {
   BottomSheetBackdrop,
+  BottomSheetFooter,
+  BottomSheetFooterProps,
   BottomSheetModal,
+  BottomSheetScrollView,
   BottomSheetTextInput,
-  BottomSheetView,
 } from '@gorhom/bottom-sheet';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { getLocales } from 'expo-localization';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -62,6 +68,86 @@ type PostCommentsModalProps = {
   onCommentDeleted?: () => void;
 };
 
+// Footer component - manages its own comment state
+type CommentInputFooterProps = {
+  userData: any;
+  currentUserId: string;
+  handleComment: (comment: string) => Promise<boolean>;
+  isPosting: boolean;
+  t: (key: string) => string;
+};
+
+const CommentInputFooter: React.FC<CommentInputFooterProps> = ({
+  userData,
+  currentUserId,
+  handleComment,
+  isPosting,
+  t,
+}) => {
+  // Footer manages its own comment state
+  const [comment, setComment] = useState('');
+
+  const handleSubmit = useCallback(async () => {
+    if (!comment.trim() || isPosting) return;
+
+    const success = await handleComment(comment);
+    if (success) {
+      // Clear input only on success
+      setComment('');
+    }
+    // On error, keep the comment so user can retry
+  }, [comment, isPosting, handleComment]);
+
+  return (
+    <View style={styles.footerContainer}>
+      <Avatar size="sm" style={styles.inputAvatar}>
+        {userData?.photoUrl ? (
+          <AvatarImage
+            key={createImageKey(
+              'comment-input',
+              currentUserId,
+              userData.photoUrl
+            )}
+            source={{
+              uri: addCacheBuster(userData.photoUrl, currentUserId),
+            }}
+          />
+        ) : (
+          <AvatarFallbackText className="text-white">
+            {userData?.name || 'U'}
+          </AvatarFallbackText>
+        )}
+      </Avatar>
+      <BottomSheetTextInput
+        style={styles.input}
+        placeholder={t('add-comment') || 'Add a comment...'}
+        placeholderTextColor={secondaryTextColor}
+        value={comment}
+        onChangeText={setComment}
+        multiline
+        maxLength={80}
+        editable={!isPosting}
+        blurOnSubmit={false}
+        returnKeyType="default"
+      />
+      <TouchableOpacity
+        onPress={handleSubmit}
+        disabled={!comment.trim() || isPosting}
+        style={[
+          styles.sendButton,
+          (!comment.trim() || isPosting) && styles.sendButtonDisabled,
+        ]}
+      >
+        {isPosting ? (
+          <ActivityIndicator size="small" color="#000" />
+        ) : (
+          <FontAwesomeIcon icon={Icons.Right} size={14} color="#000" />
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+};
+
 export const PostCommentsModal = ({
   visible,
   onClose,
@@ -76,16 +162,17 @@ export const PostCommentsModal = ({
   const { hasAdminAccess } = useUserRole();
   const { getUserId, userData } = useUserStore();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
-  const inputRef = useRef<TextInput>(null);
   const commentsListRef = useRef<any>(null);
   const locales = getLocales();
+  const insets = useSafeAreaInsets();
+
+  // Fixed snap points - keyboard handling is managed by BottomSheetModal
+  const snapPoints = useMemo(() => ['50%', '70%'], []);
 
   const [comments, setComments] = useState<PostComment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
-  const [newComment, setNewComment] = useState('');
-  const [snapPoint, setSnapPoint] = useState<string | number>('70%');
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const [commentToReport, setCommentToReport] = useState<PostComment | null>(
     null
@@ -188,26 +275,6 @@ export const PostCommentsModal = ({
     }
   }, [visible, postId]);
 
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      'keyboardDidShow',
-      () => {
-        setSnapPoint('50%');
-      }
-    );
-    const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardDidHide',
-      () => {
-        setSnapPoint('70%');
-      }
-    );
-
-    return () => {
-      keyboardDidShowListener.remove();
-      keyboardDidHideListener.remove();
-    };
-  }, []);
-
   const loadComments = useCallback(async () => {
     if (!postId) return;
 
@@ -231,73 +298,74 @@ export const PostCommentsModal = ({
     }
   }, [postId, t, showErrorToast]);
 
-  const handleAddComment = useCallback(async () => {
-    if (!newComment.trim() || !postId || !currentUserId || isPosting) return;
+  const handleAddComment = useCallback(
+    async (commentText: string): Promise<boolean> => {
+      if (!commentText.trim() || !postId || !currentUserId || isPosting)
+        return false;
 
-    const commentText = newComment.trim();
-    setIsPosting(true);
-    setNewComment(''); // Clear input immediately for better UX
+      const trimmedComment = commentText.trim();
+      setIsPosting(true);
 
-    try {
-      const addedComment = await commentService.addCommentToPost(
-        postId,
-        currentUserId,
-        commentText
-      );
-
-      // Add to list (prepend for newest first)
-      setComments(prev => [addedComment, ...prev]);
-
-      // Scroll to top to show new comment
-      setTimeout(() => {
-        commentsListRef.current?.scrollToIndex({
-          index: 0,
-          animated: true,
-        });
-      }, 100);
-
-      // Notify parent component
-      onCommentAdded?.();
-
-      // Dismiss keyboard
-      Keyboard.dismiss();
-    } catch (error: any) {
-      console.error('Error adding comment:', error);
-      // Restore comment text on error
-      setNewComment(commentText);
-
-      const status = error?.response?.status;
-      const errorData: ErrorResponse = error?.response?.data || {};
-      const errorCode = errorData.errorCode;
-      const errorMessage = errorData.message || error?.message || '';
-
-      // Handle 409 Conflict - Comment too soon (30s delay)
-      if (status === 409 && errorCode === CommentErrorCode.COMMENT_TOO_SOON) {
-        const remainingSeconds = errorData.remainingSeconds || 30;
-        showErrorToast(
-          t('error') || 'Error',
-          t('comment-spam-delay-with-time', { seconds: remainingSeconds }) ||
-            `Please wait ${remainingSeconds} seconds before commenting again to prevent spam`
+      try {
+        const addedComment = await commentService.addCommentToPost(
+          postId,
+          currentUserId,
+          trimmedComment
         );
-      } else {
-        // Generic error handling
-        showErrorToast(
-          t('error') || 'Error',
-          errorMessage || t('failed-to-add-comment') || 'Failed to add comment'
-        );
+
+        // Add to list (prepend for newest first)
+        setComments(prev => [addedComment, ...prev]);
+
+        // Scroll to top to show new comment
+        setTimeout(() => {
+          commentsListRef.current?.scrollToIndex({
+            index: 0,
+            animated: true,
+          });
+        }, 100);
+
+        // Notify parent component
+        onCommentAdded?.();
+
+        // Dismiss keyboard
+        Keyboard.dismiss();
+
+        // Return success - footer will clear its own state
+        return true;
+      } catch (error: any) {
+        console.error('Error adding comment:', error);
+
+        const status = error?.response?.status;
+        const errorData: ErrorResponse = error?.response?.data || {};
+        const errorCode = errorData.errorCode;
+        const errorMessage = errorData.message || error?.message || '';
+
+        // Handle 409 Conflict - Comment too soon (30s delay)
+        if (status === 409 && errorCode === CommentErrorCode.COMMENT_TOO_SOON) {
+          const remainingSeconds = errorData.remainingSeconds || 30;
+          showErrorToast(
+            t('error') || 'Error',
+            t('comment-spam-delay-with-time', { seconds: remainingSeconds }) ||
+              `Please wait ${remainingSeconds} seconds before commenting again to prevent spam`
+          );
+        } else {
+          // Generic error handling
+          showErrorToast(
+            t('error') || 'Error',
+            errorMessage ||
+              t('failed-to-add-comment') ||
+              'Failed to add comment'
+          );
+        }
+
+        // Return false on error - footer will keep the comment
+        return false;
+      } finally {
+        setIsPosting(false);
       }
-    } finally {
-      setIsPosting(false);
-    }
-  }, [
-    newComment,
-    postId,
-    currentUserId,
-    isPosting,
-    onCommentAdded,
-    t,
-    showErrorToast,
-  ]);
+    },
+    [postId, currentUserId, isPosting, onCommentAdded, t, showErrorToast]
+  );
 
   const handleDeleteComment = useCallback(
     (commentId: string) => {
@@ -417,6 +485,26 @@ export const PostCommentsModal = ({
     setReportModalVisible(true);
   }, []);
 
+  // Footer component with input - stays sticky at bottom and reacts to keyboard
+  const renderFooter = useCallback(
+    (props: BottomSheetFooterProps) => {
+      if (!currentUserId) return null;
+
+      return (
+        <BottomSheetFooter key="comment-footer" {...props} bottomInset={0}>
+          <CommentInputFooter
+            userData={userData}
+            currentUserId={currentUserId}
+            handleComment={handleAddComment}
+            isPosting={isPosting}
+            t={t}
+          />
+        </BottomSheetFooter>
+      );
+    },
+    [currentUserId, userData, insets.bottom, t, handleAddComment, isPosting]
+  );
+
   const renderCommentItem = ({ item }: { item: PostComment }) => {
     const canDelete = item.canDelete || hasAdminAccess;
     const canReport = item.canReport; // Default to true if not set
@@ -522,141 +610,86 @@ export const PostCommentsModal = ({
     );
   };
 
-  const getSnapPoints = () => {
-    if (typeof snapPoint === 'string') {
-      return [snapPoint];
-    }
-    return ['70%', '90%'];
-  };
-
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
-      snapPoints={getSnapPoints()}
+      snapPoints={snapPoints}
+      index={1}
       backdropComponent={renderBackdrop}
       onDismiss={onClose}
       backgroundStyle={{ backgroundColor: bottomModalBgColor }}
-      handleHeight={50}
+      handleHeight={24}
       enablePanDownToClose
       handleIndicatorStyle={styles.handleIndicator}
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
       android_keyboardInputMode="adjustResize"
+      topInset={insets.top}
+      enableOverDrag={false}
+      animateOnMount={true}
+      footerComponent={renderFooter}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}
+      <BottomSheetScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+        keyboardShouldPersistTaps="handled"
       >
-        <BottomSheetView style={styles.content}>
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.headerContent}>
-              <FontAwesomeIcon
-                icon={Icons.Comments}
-                size={20}
-                color={primaryColor}
-              />
-              <Text style={styles.headerTitle}>
-                {t('comments') || 'Comments'}
-              </Text>
-              <View style={styles.countBadge}>
-                <Text style={styles.countText}>
-                  {comments.length || commentsCount || 0}
-                </Text>
-              </View>
-            </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Text style={styles.closeButtonText}>
-                {t('close') || 'Close'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Comments List */}
-          {isLoading ? (
-            <View style={styles.loadingState}>
-              <ActivityIndicator size="large" color={primaryColor} />
-              <Text style={styles.loadingText}>
-                {t('loading') || 'Loading...'}
-              </Text>
-            </View>
-          ) : comments.length > 0 ? (
-            <FlashList
-              ref={commentsListRef}
-              data={comments}
-              renderItem={renderCommentItem}
-              keyExtractor={item => item.id}
-              style={styles.commentsList}
-              contentContainerStyle={styles.commentsListContent}
-              showsVerticalScrollIndicator={false}
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <FontAwesomeIcon
+              icon={Icons.Comments}
+              size={20}
+              color={primaryColor}
             />
-          ) : (
-            <View style={styles.emptyState}>
-              <FontAwesomeIcon
-                icon={Icons.Comments}
-                size={48}
-                color={secondaryTextColor}
-              />
-              <Text style={styles.emptyText}>
-                {t('no-comments-yet') || 'No comments yet'}
-              </Text>
-              <Text style={styles.emptySubtext}>
-                {t('be-first-to-comment') || 'Be the first to comment!'}
+            <Text style={styles.headerTitle}>
+              {t('comments') || 'Comments'}
+            </Text>
+            <View style={styles.countBadge}>
+              <Text style={styles.countText}>
+                {comments.length || commentsCount || 0}
               </Text>
             </View>
-          )}
+          </View>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Text style={styles.closeButtonText}>{t('close') || 'Close'}</Text>
+          </TouchableOpacity>
+        </View>
 
-          {/* Input Section */}
-          {currentUserId && (
-            <View style={styles.inputContainer}>
-              <Avatar size="sm" style={styles.inputAvatar}>
-                {userData?.photoUrl ? (
-                  <AvatarImage
-                    key={createImageKey(
-                      'comment-input',
-                      currentUserId,
-                      userData.photoUrl
-                    )}
-                    source={{
-                      uri: addCacheBuster(userData.photoUrl, currentUserId),
-                    }}
-                  />
-                ) : (
-                  <AvatarFallbackText className="text-white">
-                    {userData?.name || 'U'}
-                  </AvatarFallbackText>
-                )}
-              </Avatar>
-              <BottomSheetTextInput
-                ref={inputRef}
-                style={styles.input}
-                placeholder={t('add-comment') || 'Add a comment...'}
-                placeholderTextColor={secondaryTextColor}
-                value={newComment}
-                onChangeText={setNewComment}
-                multiline
-                maxLength={80}
-                editable={!isPosting}
-              />
-              <TouchableOpacity
-                onPress={handleAddComment}
-                disabled={!newComment.trim() || isPosting}
-                style={[
-                  styles.sendButton,
-                  (!newComment.trim() || isPosting) &&
-                    styles.sendButtonDisabled,
-                ]}
-              >
-                {isPosting ? (
-                  <ActivityIndicator size="small" color="#000" />
-                ) : (
-                  <FontAwesomeIcon icon={Icons.Right} size={14} color="#000" />
-                )}
-              </TouchableOpacity>
-            </View>
-          )}
-        </BottomSheetView>
-      </KeyboardAvoidingView>
+        {/* Comments List */}
+        {isLoading ? (
+          <View style={styles.loadingState}>
+            <ActivityIndicator size="large" color={primaryColor} />
+            <Text style={styles.loadingText}>
+              {t('loading') || 'Loading...'}
+            </Text>
+          </View>
+        ) : comments.length > 0 ? (
+          <FlashList
+            ref={commentsListRef}
+            data={comments}
+            renderItem={renderCommentItem}
+            keyExtractor={item => item.id}
+            style={styles.commentsList}
+            contentContainerStyle={styles.commentsListContent}
+            showsVerticalScrollIndicator={false}
+          />
+        ) : (
+          <View style={styles.emptyState}>
+            <FontAwesomeIcon
+              icon={Icons.Comments}
+              size={48}
+              color={secondaryTextColor}
+            />
+            <Text style={styles.emptyText}>
+              {t('no-comments-yet') || 'No comments yet'}
+            </Text>
+            <Text style={styles.emptySubtext}>
+              {t('be-first-to-comment') || 'Be the first to comment!'}
+            </Text>
+          </View>
+        )}
+      </BottomSheetScrollView>
 
       {/* Report Comment Modal */}
       <ReportCommentModal
@@ -674,6 +707,13 @@ export const PostCommentsModal = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollViewContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 100, // Space for footer to prevent overlap
   },
   content: {
     flex: 1,
@@ -813,12 +853,21 @@ const styles = StyleSheet.create({
     marginTop: 12,
     textAlign: 'center',
   },
-  inputContainer: {
+  footerContainer: {
+    // marginBottom: 28,
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
+    paddingHorizontal: 20,
     paddingTop: 16,
+    paddingBottom: 24,
+    backgroundColor: 'rgba(20,27,34,1)',
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
   inputAvatar: {
     marginRight: 12,
