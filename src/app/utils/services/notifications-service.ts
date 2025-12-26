@@ -80,11 +80,13 @@ export const getUserNotifications =
     try {
       const userId = useUserStore.getState().getUserId();
       console.log('[getUserNotifications] User ID:', userId);
-      
+
       if (!userId) {
         // User not authenticated - return empty data silently
         // This is expected during app initialization
-        console.log('[getUserNotifications] User not authenticated - returning empty data');
+        console.log(
+          '[getUserNotifications] User not authenticated - returning empty data'
+        );
         return {
           notifications: [],
           hasNewNotifications: false,
@@ -92,16 +94,27 @@ export const getUserNotifications =
         };
       }
 
-      console.log('[getUserNotifications] Calling notificationService.getUserNotifications with userId:', userId);
+      console.log(
+        '[getUserNotifications] Calling notificationService.getUserNotifications with userId:',
+        userId
+      );
       const response = await notificationService.getUserNotifications(userId);
-      console.log('[getUserNotifications] Response received - notifications:', response.notifications?.length || 0, 'newCount:', response.newNotificationsCount);
+      console.log(
+        '[getUserNotifications] Response received - notifications:',
+        response.notifications?.length || 0,
+        'newCount:',
+        response.newNotificationsCount
+      );
 
       // Convert backend DTOs to frontend NotificationItems
       const notifications = (response.notifications || []).map(
         mapNotificationDTOToItem
       );
 
-      console.log('[getUserNotifications] Mapped notifications count:', notifications.length);
+      console.log(
+        '[getUserNotifications] Mapped notifications count:',
+        notifications.length
+      );
 
       return {
         notifications,
@@ -112,13 +125,21 @@ export const getUserNotifications =
       // Only log actual errors, not "User not authenticated" which is expected
       const errorMessage = error?.message || String(error);
       console.error('[getUserNotifications] Error caught:', errorMessage);
-      
-      if (!errorMessage.includes('User not authenticated') && !errorMessage.includes('not authenticated')) {
-        console.error('[getUserNotifications] Actual error (not auth related):', error);
+
+      if (
+        !errorMessage.includes('User not authenticated') &&
+        !errorMessage.includes('not authenticated')
+      ) {
+        console.error(
+          '[getUserNotifications] Actual error (not auth related):',
+          error
+        );
       } else {
-        console.log('[getUserNotifications] User not authenticated error (expected) - returning empty data');
+        console.log(
+          '[getUserNotifications] User not authenticated error (expected) - returning empty data'
+        );
       }
-      
+
       return {
         notifications: [],
         hasNewNotifications: false,
@@ -168,25 +189,27 @@ export const sendRequestNotificationToRecipients = async (
   placeLocation: { latitude: number; longitude: number },
   senderToken: string
 ): Promise<boolean> => {
-  try {
-    const userId = useUserStore.getState().getUserId();
-    if (!userId) {
-      throw new Error('User not authenticated');
-    }
+  const userId = useUserStore.getState().getUserId();
+  if (!userId) {
+    throw new Error('User not authenticated');
+  }
 
+  try {
     const response = await notificationService.sendRequestNotification({
-      placeId, // Google Place ID is string
+      placeId,
       placeName,
       placeLocation,
       senderToken,
       senderId: Number(userId),
     });
 
-    // console.log('[sendRequestNotification] Response:', response);
-    return response?.success || false;
-  } catch (error) {
-    console.error('Error sending request notification:', error);
-    return false;
+    if (!response || !response.success) {
+      throw new Error('Failed to send request notification');
+    }
+    
+    return true;
+  } catch (error: any) {
+    throw error;
   }
 };
 

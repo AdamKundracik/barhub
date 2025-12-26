@@ -3,7 +3,6 @@ import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import Animated, {
   FadeIn,
-  useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
@@ -39,14 +38,99 @@ import {
   AvatarImage,
 } from '@/components/ui/avatar';
 
+// Isolated RelativeTime component - has its own interval, doesn't cause parent re-renders
+const RelativeTime: React.FC<{
+  date: Date | string | number | any | undefined;
+}> = React.memo(({ date }) => {
+  const { t, i18n } = useTranslation();
+  const [currentTime, setCurrentTime] = useState(Date.now());
+
+  // Update time every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const formattedTime = useMemo(() => {
+    if (!date) return '';
+
+    try {
+      let dateObj: Date;
+      if (date instanceof Date) {
+        dateObj = date;
+      } else if (typeof date === 'string' || typeof date === 'number') {
+        dateObj = new Date(date);
+      } else if (
+        typeof date === 'object' &&
+        'toDate' in date &&
+        typeof date.toDate === 'function'
+      ) {
+        dateObj = date.toDate();
+      } else {
+        return '';
+      }
+
+      if (isNaN(dateObj.getTime())) {
+        return '';
+      }
+
+      const diffInMinutes = Math.floor(
+        (currentTime - dateObj.getTime()) / (1000 * 60)
+      );
+      const diffInHours = Math.floor(diffInMinutes / 60);
+      const diffInDays = Math.floor(diffInHours / 24);
+
+      if (diffInDays < 1) {
+        if (diffInMinutes < 1) {
+          return t('just-now') || 'práve teraz';
+        } else if (diffInMinutes < 60) {
+          if (
+            i18n.language === 'es' ||
+            i18n.language === 'sk' ||
+            i18n.language === 'de'
+          ) {
+            return `${t('ago')} ${diffInMinutes} min`;
+          }
+          return `${diffInMinutes} min ${t('ago')}`;
+        } else {
+          if (
+            i18n.language === 'es' ||
+            i18n.language === 'sk' ||
+            i18n.language === 'de'
+          ) {
+            return `${t('ago')} ${diffInHours}h`;
+          }
+          return `${diffInHours}h ${t('ago')}`;
+        }
+      }
+
+      const locales = getLocales();
+      const userLocale = locales[0]?.languageTag || 'en-US';
+
+      return dateObj.toLocaleString(userLocale, {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error, date);
+      return '';
+    }
+  }, [date, currentTime, t, i18n.language]);
+
+  return <Text style={styles.timeText}>{formattedTime}</Text>;
+});
+
 // Enhanced More Options Button
 const MoreOptionsButton: React.FC<{ onPress: () => void }> = ({ onPress }) => {
   const scale = useSharedValue(1);
   const rotation = useSharedValue(0);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }, { rotate: `${rotation.value}deg` }],
-  }));
 
   const handlePress = () => {
     scale.value = withSpring(0.9, { duration: 100 }, () => {
@@ -124,107 +208,13 @@ const UserLineComponent = ({
   const queryClient = useQueryClient();
   const { placeId: currentPlaceId } = usePlaceStore();
   const { setPlaceId, setPlaceName, setPlaceAddress } = usePlaceStore();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { showSuccessToast, showErrorToast } = useCustomToast();
 
   // Sync local highlight state with prop when it changes
   useEffect(() => {
     setLocalIsHighlighted(isHighlighted);
   }, [isHighlighted]);
-
-  // --- ENHANCED TIME FORMATTING WITH AUTO-UPDATE ---
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  // Update current time every minute for live time display
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000); // Update every minute
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const formattedTime = useMemo(() => {
-    if (!date) return '';
-
-    try {
-      // Convert to Date object if needed (React Query cache may serialize Date to string/object)
-      let dateObj: Date;
-      if (date instanceof Date) {
-        dateObj = date;
-      } else if (typeof date === 'string' || typeof date === 'number') {
-        // Parse date string - if it has Z suffix, it's already UTC
-        // JavaScript will correctly convert to local time
-        dateObj = new Date(date);
-      } else if (
-        typeof date === 'object' &&
-        'toDate' in date &&
-        typeof date.toDate === 'function'
-      ) {
-        // Firestore Timestamp
-        dateObj = date.toDate();
-      } else {
-        return '';
-      }
-
-      // Validate date
-      if (isNaN(dateObj.getTime())) {
-        return '';
-      }
-
-      // Calculate difference using current time (updates every minute)
-      const diffInMinutes = Math.floor(
-        (currentTime.getTime() - dateObj.getTime()) / (1000 * 60)
-      );
-      const diffInHours = Math.floor(diffInMinutes / 60);
-      const diffInDays = Math.floor(diffInHours / 24);
-
-      // Ak je menej ako 1 deň, používaj relatívny čas
-      if (diffInDays < 1) {
-        if (diffInMinutes < 1) {
-          return t('just-now') || 'práve teraz';
-        } else if (diffInMinutes < 60) {
-          // Special handling for Spanish, Slovak, and German - "hace/pred/vor X min" instead of "X min hace/dozadu/vor"
-          if (
-            i18n.language === 'es' ||
-            i18n.language === 'sk' ||
-            i18n.language === 'de'
-          ) {
-            return `${t('ago')} ${diffInMinutes} min`;
-          }
-          return `${diffInMinutes} min ${t('ago')}`;
-        } else {
-          // Special handling for Spanish, Slovak, and German - "hace/pred/vor Xh" instead of "Xh hace/dozadu/vor"
-          if (
-            i18n.language === 'es' ||
-            i18n.language === 'sk' ||
-            i18n.language === 'de'
-          ) {
-            return `${t('ago')} ${diffInHours}h`;
-          }
-          return `${diffInHours}h ${t('ago')}`;
-        }
-      }
-
-      // Ak je viac ako 1 deň, zobraz dátum a čas v lokálnej časovej zóne
-      const locales = getLocales();
-      const userLocale = locales[0]?.languageTag || 'en-US';
-
-      const formattedDate = dateObj.toLocaleString(userLocale, {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-      });
-
-      return formattedDate;
-    } catch (error) {
-      console.error('Error formatting date:', error, date);
-      return '';
-    }
-  }, [date, currentTime, t]);
 
   // Use permissions from backend instead of calculating locally
   // Backend already handles ownership and role checks
@@ -241,7 +231,14 @@ const UserLineComponent = ({
       setPlaceId(placeIdProp);
       setPlaceAddress(safePlaceAddress);
     }
-  }, [placeName, placeIdProp, safePlaceAddress, setPlaceName, setPlaceId, setPlaceAddress]);
+  }, [
+    placeName,
+    placeIdProp,
+    safePlaceAddress,
+    setPlaceName,
+    setPlaceId,
+    setPlaceAddress,
+  ]);
 
   // --- CALLBACKS ---
   const handleReport = useCallback(
@@ -257,8 +254,7 @@ const UserLineComponent = ({
         // Convert ReportReason to ReasonTypeEnum (they match now after enum update)
         const backendReason = reason as unknown as ReasonTypeEnum;
 
-        await reportService.createReport(
-          parseInt(currentUserId, 10),
+        await reportService.reportPost(
           postId, // reportService handles string to number conversion
           backendReason,
           customReason
@@ -533,7 +529,7 @@ const UserLineComponent = ({
             {/* Place name nad userName s šípkou */}
             {showPlace && safePlaceName && (
               <View style={styles.placeNameRow}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   onPress={handleNavigateToPlace}
                   style={styles.placeNameContainer}
                 >
@@ -552,26 +548,27 @@ const UserLineComponent = ({
 
             {/* User name row */}
             <View style={styles.nameRow}>
-              <TouchableOpacity onPress={onUserPress} disabled={!onUserPress}>
-                <Text style={styles.name} numberOfLines={1}>
-                  {safeUserName}
-                </Text>
-              </TouchableOpacity>
-              {localIsHighlighted && (
-                <View style={styles.highlightBadge}>
-                  <FontAwesomeIcon
-                    icon={Icons.Bolt}
-                    size={14}
-                    color="#FFC107"
-                  />
-                </View>
-              )}
+              <View style={styles.nameWithBadge}>
+                <TouchableOpacity onPress={onUserPress} disabled={!onUserPress}>
+                  <Text style={styles.name} numberOfLines={1}>
+                    {safeUserName}
+                  </Text>
+                </TouchableOpacity>
+                {localIsHighlighted && (
+                  <View style={styles.highlightBadge}>
+                    <FontAwesomeIcon
+                      icon={Icons.Bolt}
+                      size={14}
+                      color="#FFC107"
+                    />
+                  </View>
+                )}
+              </View>
             </View>
-
 
             {/* Čas na vlastnom riadku - vylepšené formátovanie */}
             <View style={styles.timeRow}>
-              <Text style={styles.timeText}>{formattedTime}</Text>
+              <RelativeTime date={date} />
             </View>
           </View>
         </TouchableOpacity>
@@ -667,7 +664,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
-  
+
   placeNameRow: {
     marginBottom: 1,
   },
@@ -685,7 +682,7 @@ const styles = StyleSheet.create({
   placeArrowIcon: {
     opacity: 0.7,
   },
-  
+
   // User Section
   userInfoSection: {
     flexDirection: 'row',
@@ -709,8 +706,12 @@ const styles = StyleSheet.create({
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     marginBottom: 4,
+  },
+  nameWithBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   name: {
     fontSize: 16,
@@ -718,7 +719,7 @@ const styles = StyleSheet.create({
     color: 'white',
     letterSpacing: 0.3,
   },
-  
+
   // Badges
   badgesContainer: {
     flexDirection: 'row',
@@ -742,8 +743,9 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderWidth: 1,
     borderColor: 'rgba(255, 193, 7, 0.3)',
+    marginLeft: 8,
   },
-  
+
   // Time Section
   timeRow: {
     flexDirection: 'row',
@@ -758,7 +760,7 @@ const styles = StyleSheet.create({
     color: primaryColor,
     fontWeight: '600',
   },
-  
+
   // More Button
   moreButton: {
     width: 36,

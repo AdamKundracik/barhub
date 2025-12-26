@@ -8,6 +8,7 @@ import UserDetail from '../screens/user/UserDetail';
 import NotificationsList from '../screens/user/Notifications/NotificationsList';
 import SelectFakeLocation from '../screens/user/SelectFakeLocation';
 import Licenses from '@/src/app/screens/user/Info/Screens/LIcenses';
+import AppVersion from '@/src/app/screens/user/Info/Screens/AppVersion';
 import BottomTabs from '@/src/app/components/shared/BottomTabs';
 import { PasswordChangeScreen } from '@/src/app/screens/user/ChangePassword';
 import { AdminPanel } from '@/src/app/screens/user/AdminPanel';
@@ -29,7 +30,7 @@ const RootStack = createNativeStackNavigator();
 export function UserNav() {
   // Initialize notifications handler for authenticated users
   const { unsubscribeNotifications } = useNotificationsHandler();
-  
+
   // Set global reference for AuthProvider to use during logout
   useEffect(() => {
     setGlobalUnsubscribeNotifications(unsubscribeNotifications);
@@ -66,19 +67,29 @@ export function UserNav() {
       />
 
       <RootStack.Screen name="Licenses" component={Licenses} />
+      <RootStack.Screen name="AppVersion" component={AppVersion} />
       <RootStack.Screen name="BlockedUsers" component={BlockedUsers} />
       <RootStack.Screen name="MyPosts" component={MyPosts} />
 
       {/* Legal Documents */}
       <RootStack.Screen name="TermsOfService" component={TermsOfService} />
       <RootStack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
-      <RootStack.Screen name="CommunityGuidelines" component={CommunityGuidelines} />
+      <RootStack.Screen
+        name="CommunityGuidelines"
+        component={CommunityGuidelines}
+      />
 
       {/* Admin Panel for ADMIN/MODERATOR */}
       <RootStack.Screen name="AdminPanel" component={AdminPanel} />
-      <RootStack.Screen name="ConsentManagement" component={ConsentManagement} />
+      <RootStack.Screen
+        name="ConsentManagement"
+        component={ConsentManagement}
+      />
       <RootStack.Screen name="PrivacyData" component={PrivacyData} />
-      <RootStack.Screen name="ReportsManagement" component={ReportsManagement} />
+      <RootStack.Screen
+        name="ReportsManagement"
+        component={ReportsManagement}
+      />
     </RootStack.Navigator>
   );
 }

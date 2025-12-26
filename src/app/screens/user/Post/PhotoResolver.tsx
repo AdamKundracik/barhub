@@ -14,7 +14,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { MapPinIcon } from 'lucide-react-native';
 
 import { ScreenLayout } from '@/src/app/components/shared/Layouts/ScreenLayout';
-import { fetchNearbyPlaces } from '../../../utils/helper-functions/fetchPlacesAPI';
+import { fetchNearbyPlaces } from '../../../utils/api/fetchPlacesAPI';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
 import { radius } from '@/src/app/utils/constants/constants';
 import { Place } from '../../../utils/types/types';

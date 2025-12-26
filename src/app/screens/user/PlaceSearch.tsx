@@ -30,7 +30,7 @@ import { usePlaceStore } from '../../utils/store/placesStore';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
 import { useUserData } from '@/src/app/hooks/useUserQuery';
 import { UserStackList } from '../../utils/types/screen-types';
-import { fetchPlaceAutocomplete } from '../../utils/helper-functions/fetchPlacesAPI';
+import { fetchPlaceAutocomplete } from '../../utils/api/fetchPlacesAPI';
 import { generateUID } from '@/src/app/utils/helper-functions/generateUID';
 import { Icons } from '../../utils/icons/icons';
 import { primaryColor, primaryDeepColor } from '../../utils/styles/colors';
@@ -91,7 +91,8 @@ const useDebounce = (value: string, delay: number) => {
 const EmptyState: React.FC<{
   message: string;
   type?: 'no-results' | 'error' | 'no-history' | 'no-favorites';
-}> = ({ message, type = 'no-results' }) => {
+  onShowMap?: () => void;
+}> = ({ message, type = 'no-results', onShowMap }) => {
   const { t } = useTranslation();
   const getEmptyStateContent = () => {
     switch (type) {
@@ -108,7 +109,8 @@ const EmptyState: React.FC<{
           subtitle:
             t('try-different-search') || 'Skúste zadať iný názov miesta',
           suggestion:
-            t('search-on-map') || 'Môžete tiež použiť mapu na výber miesta',
+            t('try-map-if-not-found') ||
+            'Ak ste nenašli podnik, skúste použiť mapu',
         };
       case 'error':
         return {
@@ -177,6 +179,18 @@ const EmptyState: React.FC<{
             {content.suggestion}
           </Text>
         </View>
+      )}
+      {type === 'no-results' && onShowMap && (
+        <TouchableOpacity
+          style={styles.mapButtonEmptyState}
+          onPress={onShowMap}
+          activeOpacity={0.7}
+        >
+          <FontAwesomeIcon icon={Icons.Map} size={18} color="white" />
+          <Text style={styles.mapButtonText}>
+            {t('open-map') || 'Otvoriť mapu'}
+          </Text>
+        </TouchableOpacity>
       )}
     </View>
   );
@@ -460,6 +474,7 @@ export const PlaceSearch: React.FC = () => {
         <EmptyState
           message={t('no-results-found') || 'Žiadne výsledky'}
           type="no-results"
+          onShowMap={handleShowMap}
         />
       );
     }
@@ -472,6 +487,7 @@ export const PlaceSearch: React.FC = () => {
     hasSearched,
     debouncedQuery,
     handlePlaceSelect,
+    handleShowMap,
     t,
   ]);
 
@@ -767,6 +783,22 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.6)',
     textAlign: 'center',
     flex: 1,
+  },
+  mapButtonEmptyState: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: primaryColor,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 20,
+    marginTop: 16,
+    gap: 8,
+  },
+  mapButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000',
   },
   emptyStateText: {
     fontSize: 16,

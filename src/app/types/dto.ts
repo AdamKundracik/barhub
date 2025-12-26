@@ -280,19 +280,90 @@ export enum ReasonTypeEnum {
   SPAM = 'SPAM',
   INAPPROPRIATE = 'INAPPROPRIATE',
   HARASSMENT = 'HARASSMENT',
+  FAKE_CONTENT = 'FAKE_CONTENT',
+  VIOLENCE = 'VIOLENCE',
+  COPYRIGHT = 'COPYRIGHT',
   OTHER = 'OTHER',
 }
 
-export interface ReportDTO extends AbstractAuditableEntityDTO {
-  userId: number;
-  userName: string; // Name of user who created the report
-  postId?: number; // Optional for post reports
-  reportedUserId?: number; // Optional for user reports
-  reportedUserName?: string; // Name of reported user (for user reports)
-  reason: ReasonTypeEnum | string; // Backend may return string
+export enum ReportTypeEnum {
+  USER = 'USER',
+  POST = 'POST',
+  COMMENT = 'COMMENT',
+}
+
+// Unified Report DTO for creating reports
+export interface UnifiedReportDTO {
+  reportType: ReportTypeEnum;
+  userId?: number;      // For USER reports
+  postId?: number;      // For POST reports  
+  commentId?: number;   // For COMMENT reports
+  reason: ReasonTypeEnum;
   otherReasonMessage?: string;
 }
 
+// Enhanced Report DTO with all context information
+export interface ReportDTO extends AbstractAuditableEntityDTO {
+  userId: number;
+  userName: string; // Name of user who created the report
+  reportType: ReportTypeEnum;
+  
+  // Entity IDs
+  postId?: number; // Optional for post reports
+  commentId?: number; // Optional for comment reports
+  reportedUserId?: number; // Optional for user reports
+  
+  // Context information
+  reportedUserName?: string; // Name of reported user (for user reports)
+  postContent?: string; // Post metadata for post reports
+  commentContent?: string; // Comment text for comment reports
+  
+  reason: ReasonTypeEnum | string; // Backend may return string
+  otherReasonMessage?: string;
+  
+  // Resolution fields
+  resolved: boolean;
+  resolutionNotes?: string;
+  resolvedAt?: string;
+  resolvedById?: number;
+  resolverName?: string;
+}
+
+// Management DTO with rich context for admin interface
+export interface ReportManagementDTO extends ReportDTO {
+  // Enhanced context
+  reportedUser?: {
+    id: number;
+    name: string;
+    email: string;
+    photoUrl?: string;
+    premium: boolean;
+    role: string;
+  };
+  
+  post?: {
+    id: number;
+    occupancy: string;
+    placeId: string;
+    placeName: string;
+    placeAddress: string;
+    photoUrl: string;
+    createdAt: string;
+  };
+  
+  comment?: {
+    id: number;
+    content: string;
+    createdAt: string;
+  };
+  
+  // Aggregated data
+  totalReportsForUser?: number;
+  totalReportsForPost?: number;
+  totalReportsForComment?: number;
+}
+
+// Legacy DTO for backward compatibility
 export interface ReportUserDTO {
   reportedUserId: number;
   reason: ReasonTypeEnum;

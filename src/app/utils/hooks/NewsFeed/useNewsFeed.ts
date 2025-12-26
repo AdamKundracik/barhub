@@ -50,11 +50,21 @@ export const useNewsFeed = () => {
       fetchMorePosts: feedData.fetchMorePosts,
     }),
     [
-      feedData,
-      postZoom,
+      // Rozlož feedData na jednotlivé hodnoty namiesto celého objektu
+      feedData.isLoading,
+      feedData.posts,
+      feedData.isRefetching,
+      feedData.hasNextPage,
+      feedData.isFetchingNextPage,
+      feedData.refetch,
+      feedData.forceRefetch,
+      feedData.fetchMorePosts,
+      postZoom.zoomedPost,
+      postZoom.setZoomedPost,
       photoRequest.requestPhoto,
       comments.openComments,
       placeId,
+      userData,
     ]
   );
 

@@ -185,7 +185,7 @@ const LeaderboardScreen = () => {
     'week'
   );
   const { data, isLoading, error, refetch } = useLeaderboard(selectedTab);
-  const { isAdmin, isModerator } = useUserRole();
+  const { isAdmin } = useUserRole();
   const flashListRef = useRef<FlashListRef<LeaderboardUser>>(null);
   const { setListRef } = useLeaderboardStore();
 
@@ -267,8 +267,23 @@ const LeaderboardScreen = () => {
     }
   };
 
+  // Export button component for header
+  const exportButton = isAdmin ? (
+    <TouchableOpacity
+      style={styles.headerExportButton}
+      onPress={exportToCSV}
+      activeOpacity={0.7}
+    >
+      <FontAwesomeIcon icon={faDownload} size={20} color={primaryColor} />
+    </TouchableOpacity>
+  ) : null;
+
   return (
-    <ScreenLayout title={`🏆 ${t('leaderboard.topUsers')}`} showTitle>
+    <ScreenLayout 
+      title={`🏆 ${t('leaderboard.topUsers')}`} 
+      showTitle
+      rightButton={exportButton}
+    >
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.subtitle}>
@@ -278,18 +293,6 @@ const LeaderboardScreen = () => {
               ? t('leaderboard.monthly')
               : t('leaderboard.yearly')}
         </Text>
-
-        {/* Export Button - Only for Admin/Moderator */}
-        {(isAdmin || isModerator) && (
-          <TouchableOpacity
-            style={styles.exportButton}
-            onPress={exportToCSV}
-            activeOpacity={0.7}
-          >
-            <FontAwesomeIcon icon={faDownload} size={18} color="black" />
-            <Text style={styles.exportButtonText}>Export CSV</Text>
-          </TouchableOpacity>
-        )}
       </View>
 
       {/* Tab Switcher */}
@@ -434,20 +437,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingHorizontal: 20,
   },
-  exportButton: {
-    flexDirection: 'row',
+  headerExportButton: {
+    padding: 8,
     alignItems: 'center',
-    backgroundColor: primaryColor,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    marginTop: 12,
-    gap: 8,
-  },
-  exportButtonText: {
-    color: 'black',
-    fontWeight: '600',
-    fontSize: 14,
+    justifyContent: 'center',
   },
   mainTitle: {
     fontSize: 28,

@@ -165,7 +165,16 @@ class PushTokenService {
     try {
       // console.log('[PushTokenService] Initializing push token service');
 
-      // Get push token
+      // Check if user already has a push token stored
+      const { currentPushToken } = useUserStore.getState();
+      if (currentPushToken) {
+        // User already has a push token, use it instead of fetching a new one
+        this.currentToken = currentPushToken;
+        // console.log('[PushTokenService] Using existing push token:', currentPushToken);
+        return currentPushToken;
+      }
+
+      // Get push token only if user doesn't have one
       const token = await this.getExpoPushToken();
 
       if (token && userId) {

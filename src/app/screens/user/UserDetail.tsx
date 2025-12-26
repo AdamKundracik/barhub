@@ -739,7 +739,7 @@ export const UserDetail = () => {
               <Text style={styles.modernStatNumber}>
                 {userProfile.lastUploadedPostAt
                   ? formatDate(userProfile.lastUploadedPostAt)
-                  : t('user.never') || 'Never'}
+                  : '—'}
               </Text>
               <Text style={styles.modernStatDescription}>
                 {t('user.last-post-desc') || 'Last contribution'}

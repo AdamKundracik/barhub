@@ -220,26 +220,6 @@ export const PostOptionsModal = ({
           </TouchableOpacity>
         )}
 
-        {showDelete && (
-          <TouchableOpacity
-            style={styles.option}
-            activeOpacity={0.7}
-            onPress={handleDelete}
-            disabled={loading}
-          >
-            <View style={styles.optionRow}>
-              <Text style={[styles.optionText, { color: warningColor }]}>
-                {t('delete-post')}
-              </Text>
-              <FontAwesomeIcon
-                icon={Icons.TrashCan}
-                size={16}
-                color={warningColor}
-              />
-            </View>
-          </TouchableOpacity>
-        )}
-
         {showReport && (
           <TouchableOpacity
             style={styles.option}
@@ -253,6 +233,26 @@ export const PostOptionsModal = ({
               </Text>
               <FontAwesomeIcon
                 icon={Icons.Flag}
+                size={16}
+                color={warningColor}
+              />
+            </View>
+          </TouchableOpacity>
+        )}
+
+        {showDelete && (
+          <TouchableOpacity
+            style={styles.option}
+            activeOpacity={0.7}
+            onPress={handleDelete}
+            disabled={loading}
+          >
+            <View style={styles.optionRow}>
+              <Text style={[styles.optionText, { color: warningColor }]}>
+                {t('delete-post')}
+              </Text>
+              <FontAwesomeIcon
+                icon={Icons.TrashCan}
                 size={16}
                 color={warningColor}
               />

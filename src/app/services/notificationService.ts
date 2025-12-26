@@ -115,20 +115,16 @@ class NotificationService {
   // Send request notification (matches backend RequestNotificationDTO)
   async sendRequestNotification(
     request: RequestNotificationDTO
-  ): Promise<{ success: boolean; recipients: number[] } | null> {
-    try {
-      // console.log(
-      //   '[NotificationService] Sending request notification:',
-      //   request
-      // );
-      return await apiUtils.post<{
-        success: boolean;
-        recipients: number[];
-      }>(`${ENDPOINTS.NOTIFICATIONS.BASE}/send-request`, request);
-    } catch (error) {
-      console.error('Error sending request notification:', error);
-      return null;
-    }
+  ): Promise<{ success: boolean; recipients: number[] }> {
+    // console.log(
+    //   '[NotificationService] Sending request notification:',
+    //   request
+    // );
+    // Propagate error instead of returning null - let the caller handle it
+    return await apiUtils.post<{
+      success: boolean;
+      recipients: number[];
+    }>(`${ENDPOINTS.NOTIFICATIONS.BASE}/send-request`, request);
   }
 
   // Send response notification (matches backend ResponseNotificationDTO)

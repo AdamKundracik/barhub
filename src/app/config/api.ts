@@ -57,6 +57,7 @@ export const ENDPOINTS = {
     BY_ID: (id: string) => `/posts/${id}`,
     LIKE: (id: string) => `/posts/${id}/like`,
     LIKES_COUNT: (id: string) => `/posts/${id}/likes/count`,
+    LIKED_USERS: (id: string) => `/posts/${id}/liked-users`,
     FRESH_CONTENT: '/posts/fresh-content',
     BY_PLACE: '/posts/placeId',
     USER_HIGHLIGHTS_ACTIVE: (userId: string) =>
@@ -114,6 +115,14 @@ export const ENDPOINTS = {
     STATUS: '/consents/status',
     WITHDRAW: '/consents/withdraw',
     VERSIONS: '/consents/versions',
+  },
+
+  // Comment endpoints
+  COMMENTS: {
+    BASE: '/comments',
+    BY_ID: (id: string) => `/comments/${id}`,
+    BY_POST: (postId: string) => `/comments/post/${postId}`,
+    COUNT_BY_POST: (postId: string) => `/comments/post/${postId}/count`,
   },
 
   // Admin endpoints
