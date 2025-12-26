@@ -17,12 +17,12 @@ import { Icons } from '../../../utils/icons/icons';
 import { mapSearchRadius } from '../../../utils/constants/constants';
 import { mapPlaceToPlacePrediction } from '../../../utils/helper-functions/mapPlaceToPlacePrediction';
 import { usePlaceStore } from '../../../utils/store/placesStore';
-import { fetchNearbyPlaces } from '../../../utils/helper-functions/fetchPlacesAPI';
+import { fetchNearbyPlaces } from '../../../utils/api/fetchPlacesAPI';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { 
-  GEOFENCE_CONFIG, 
-  isLocationWithinPerimeter 
+import {
+  GEOFENCE_CONFIG,
+  isLocationWithinPerimeter,
 } from '../../../utils/helper-functions/geofencing';
 import {
   postBgColor,
@@ -71,25 +71,47 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
   const pickPlace = useCallback(() => {
     if (!selectedPlace) return;
 
+    console.log('=== PLACE CONFIRMED/SELECTED ===');
+    console.log('Place Details:', JSON.stringify(selectedPlace, null, 2));
+    console.log('ID:', selectedPlace.id);
+    console.log('Display Name:', selectedPlace.displayName.text);
+    console.log('Formatted Address:', selectedPlace.formattedAddress);
+    console.log('Location:', {
+      latitude: selectedPlace.location.latitude,
+      longitude: selectedPlace.location.longitude,
+    });
+    console.log('Types:', selectedPlace.types);
+    console.log('================================');
+
     const placePrediction = mapPlaceToPlacePrediction(selectedPlace);
     setPlaceId(placePrediction.placeId);
     setPlaceName(placePrediction.structuredFormat.mainText.text);
     setPlaceAddress(placePrediction.structuredFormat.secondaryText.text);
     closeMap();
     navigation.navigate('Feed');
-  }, [selectedPlace, setPlaceId, setPlaceName, setPlaceAddress, closeMap, navigation]);
+  }, [
+    selectedPlace,
+    setPlaceId,
+    setPlaceName,
+    setPlaceAddress,
+    closeMap,
+    navigation,
+  ]);
 
   const handleSearchSurrounding = useCallback(async () => {
     if (loading) return;
 
     // Check if current map region is within 30km from user's actual location
-    const regionLocation = { 
-      latitude: region.latitude, 
-      longitude: region.longitude 
+    const regionLocation = {
+      latitude: region.latitude,
+      longitude: region.longitude,
     };
-    
+
     if (!isLocationWithinPerimeter(regionLocation, location)) {
-      alert(t('outside-allowed-area') || 'You moved too far from your location. Maximum 30km allowed.');
+      alert(
+        t('outside-allowed-area') ||
+          'You moved too far from your location. Maximum 30km allowed.'
+      );
       return;
     }
 
@@ -175,7 +197,20 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
                 latitude: place.location.latitude,
                 longitude: place.location.longitude,
               }}
-              onPress={() => setSelectedPlace(place)}
+              onPress={() => {
+                console.log('=== PLACE SELECTED ===');
+                console.log('Place Details:', JSON.stringify(place, null, 2));
+                console.log('ID:', place.id);
+                console.log('Display Name:', place.displayName.text);
+                console.log('Formatted Address:', place.formattedAddress);
+                console.log('Location:', {
+                  latitude: place.location.latitude,
+                  longitude: place.location.longitude,
+                });
+                console.log('Types:', place.types);
+                console.log('====================');
+                setSelectedPlace(place);
+              }}
             >
               <View style={styles.markerContainer}>
                 <FontAwesomeIcon

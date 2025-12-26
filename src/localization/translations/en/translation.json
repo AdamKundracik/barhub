@@ -175,6 +175,8 @@
   "no-results-found": "No results found",
   "try-different-search": "Try a different search term",
   "search-on-map": "Search on map",
+  "try-map-if-not-found": "If you didn't find the place, try using the map",
+  "open-map": "Open map",
   "clear-search": "Clear search",
   "search-places": "Search places",
   "where-do-you-want-to-go": "Where do you want to go?",

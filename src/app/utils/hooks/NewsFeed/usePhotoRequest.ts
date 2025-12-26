@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { usePlaceStore } from '../../store/placesStore';
-import { fetchPlaceDetails } from '../../helper-functions/fetchPlacesAPI';
+import { fetchPlaceDetails } from '../../api/fetchPlacesAPI';
 import { sendRequestNotificationToRecipients } from '@/src/app/utils/services/notifications-service';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { LocationType } from '@/src/app/utils/types/types';
@@ -41,12 +41,12 @@ export const usePhotoRequest = () => {
         );
       }
     } catch (error: any) {
-      const isNoUsersError = 
-        error?.status === 404 || 
+      const isNoUsersError =
+        error?.status === 404 ||
         error?.errorCode === 'NO_USERS_FOUND_IN_RADIUS' ||
         error?.message?.toLowerCase().includes('no users found') ||
         error?.message?.toLowerCase().includes('users found in radius');
-      
+
       if (isNoUsersError) {
         showErrorToast(
           t('error') || 'Error',

@@ -173,6 +173,8 @@
   "no-results-found": "Neboli nájdené žiadne výsledky",
   "try-different-search": "Skús iný vyhľadávací výraz",
   "search-on-map": "Hľadať na mape",
+  "try-map-if-not-found": "Ak ste nenašli podnik, skúste použiť mapu",
+  "open-map": "Otvoriť mapu",
   "clear-search": "Vymazať vyhľadávanie",
   "search-places": "Vyhľadať miesta",
   "where-do-you-want-to-go": "Kam sa chcete vybrať?",

@@ -553,7 +553,6 @@ export const ReportsManagement: React.FC = () => {
               contentContainerStyle={styles.listContent}
               showsVerticalScrollIndicator={false}
               extraData={selectedFilter}
-              estimatedItemSize={100}
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>
                   <FontAwesomeIcon

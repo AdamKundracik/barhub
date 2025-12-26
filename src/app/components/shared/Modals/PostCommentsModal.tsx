@@ -22,6 +22,7 @@ import {
   BottomSheetModal,
   BottomSheetScrollView,
   BottomSheetTextInput,
+  BottomSheetView,
 } from '@gorhom/bottom-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -629,12 +630,8 @@ export const PostCommentsModal = ({
       animateOnMount={true}
       footerComponent={renderFooter}
     >
-      <BottomSheetScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Header */}
+      <BottomSheetView style={styles.container}>
+        {/* Fixed Header */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <FontAwesomeIcon
@@ -656,40 +653,46 @@ export const PostCommentsModal = ({
           </TouchableOpacity>
         </View>
 
-        {/* Comments List */}
-        {isLoading ? (
-          <View style={styles.loadingState}>
-            <ActivityIndicator size="large" color={primaryColor} />
-            <Text style={styles.loadingText}>
-              {t('loading') || 'Loading...'}
-            </Text>
-          </View>
-        ) : comments.length > 0 ? (
-          <FlashList
-            ref={commentsListRef}
-            data={comments}
-            renderItem={renderCommentItem}
-            keyExtractor={item => item.id}
-            style={styles.commentsList}
-            contentContainerStyle={styles.commentsListContent}
-            showsVerticalScrollIndicator={false}
-          />
-        ) : (
-          <View style={styles.emptyState}>
-            <FontAwesomeIcon
-              icon={Icons.Comments}
-              size={48}
-              color={secondaryTextColor}
+        {/* Scrollable Comments List */}
+        <BottomSheetScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          {isLoading ? (
+            <View style={styles.loadingState}>
+              <ActivityIndicator size="large" color={primaryColor} />
+              <Text style={styles.loadingText}>
+                {t('loading') || 'Loading...'}
+              </Text>
+            </View>
+          ) : comments.length > 0 ? (
+            <FlashList
+              ref={commentsListRef}
+              data={comments}
+              renderItem={renderCommentItem}
+              keyExtractor={item => item.id}
+              style={styles.commentsList}
+              contentContainerStyle={styles.commentsListContent}
+              showsVerticalScrollIndicator={false}
             />
-            <Text style={styles.emptyText}>
-              {t('no-comments-yet') || 'No comments yet'}
-            </Text>
-            <Text style={styles.emptySubtext}>
-              {t('be-first-to-comment') || 'Be the first to comment!'}
-            </Text>
-          </View>
-        )}
-      </BottomSheetScrollView>
+          ) : (
+            <View style={styles.emptyState}>
+              <FontAwesomeIcon
+                icon={Icons.Comments}
+                size={48}
+                color={secondaryTextColor}
+              />
+              <Text style={styles.emptyText}>
+                {t('no-comments-yet') || 'No comments yet'}
+              </Text>
+              <Text style={styles.emptySubtext}>
+                {t('be-first-to-comment') || 'Be the first to comment!'}
+              </Text>
+            </View>
+          )}
+        </BottomSheetScrollView>
+      </BottomSheetView>
 
       {/* Report Comment Modal */}
       <ReportCommentModal
@@ -713,6 +716,7 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     paddingHorizontal: 20,
+    paddingTop: 16,
     paddingBottom: 100, // Space for footer to prevent overlap
   },
   content: {
@@ -728,9 +732,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingBottom: 20,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: bottomModalBgColor,
+    zIndex: 10,
   },
   headerContent: {
     flexDirection: 'row',
