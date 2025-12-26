@@ -13,7 +13,6 @@ import { useNetwork } from '../providers/NetworkProvider';
 import { NetworkTopBar } from '../components/shared/NetworkTopBar';
 import { OfflineScreen } from '../screens/shared/OfflineScreen';
 import { tokenManager } from '../utils/api/tokenManager';
-import { logDebug, logInfo, logWarn } from '../utils/store/logsStore';
 
 // Deep linking configuration for NotVerified navigator
 const notVerifiedLinking = {
@@ -135,7 +134,8 @@ export const Navigation = () => {
   const { isAppInitialized } = useAppInitialization();
   const { isAuthenticated, isLoading: isAuthLoading, user } = useAuth();
 
-  const { hasAllRequiredPermissions, checkAllPermissions } = usePermissionsContext();
+  const { hasAllRequiredPermissions, checkAllPermissions } =
+    usePermissionsContext();
   const { appState } = useAppState();
   const { isConnected, isLoading: isNetworkLoading } = useNetwork();
 
@@ -145,31 +145,26 @@ export const Navigation = () => {
   // Log isAuthenticated changes in Navigation (only log actual changes)
   const prevIsAuthenticatedRef = React.useRef<boolean | null>(null);
   const prevRoutingRef = React.useRef<string | null>(null);
-  
+
   React.useEffect(() => {
     const currentRouting = isAuthenticated ? 'UserNavWrapper' : 'AuthNav';
-    
+
     // Only log if value actually changed
-    if (prevIsAuthenticatedRef.current !== isAuthenticated || prevRoutingRef.current !== currentRouting) {
-      logDebug(
-        'Navigation',
-        `isAuthenticated changed in Navigation: ${prevIsAuthenticatedRef.current} -> ${isAuthenticated}`,
-        {
-          isAuthenticated,
-          isAuthLoading,
-          isAppInitialized,
-          isNetworkLoading,
-          isConnected,
-          hasAllRequiredPermissions: hasAllRequiredPermissions(),
-          isEmailVerified,
-          userId: user?.id,
-          routingTo: currentRouting,
-        }
-      );
+    if (
+      prevIsAuthenticatedRef.current !== isAuthenticated ||
+      prevRoutingRef.current !== currentRouting
+    ) {
       prevIsAuthenticatedRef.current = isAuthenticated;
       prevRoutingRef.current = currentRouting;
     }
-  }, [isAuthenticated, isAuthLoading, isAppInitialized, isNetworkLoading, isConnected, user]);
+  }, [
+    isAuthenticated,
+    isAuthLoading,
+    isAppInitialized,
+    isNetworkLoading,
+    isConnected,
+    user,
+  ]);
 
   // BULLETPROOF PROTECTION: Simplified state management
   const [protectionState, setProtectionState] = React.useState<{
@@ -183,26 +178,29 @@ export const Navigation = () => {
     initialCheckDone: false,
     networkWaitDone: false,
   });
-  
+
   // Single effect to handle all token checks
   React.useEffect(() => {
     const checkTokenStatus = async () => {
       try {
         // Check tokens in memory
         const hasTokens = tokenManager.hasTokensInMemory();
-        
+
         // Check refresh token validity (only if no tokens in memory and not authenticated)
         let hasValidRefresh = false;
         if (!hasTokens && !isAuthenticated && !isAuthLoading) {
           try {
             const refreshToken = await tokenManager.getRefreshToken();
-            hasValidRefresh = !!(refreshToken && refreshToken !== '' && 
-                            !tokenManager.isTokenExpired(refreshToken));
+            hasValidRefresh = !!(
+              refreshToken &&
+              refreshToken !== '' &&
+              !tokenManager.isTokenExpired(refreshToken)
+            );
           } catch (error) {
             hasValidRefresh = false;
           }
         }
-        
+
         setProtectionState(prev => ({
           ...prev,
           hasTokensInMemory: hasTokens,
@@ -212,23 +210,23 @@ export const Navigation = () => {
         console.error('[Navigation] Error checking token status:', error);
       }
     };
-    
+
     // Check immediately
     checkTokenStatus();
-    
+
     // Set up interval only during auth loading
     let interval: NodeJS.Timeout | null = null;
     if (isAuthLoading) {
       interval = setInterval(checkTokenStatus, 100);
     }
-    
+
     return () => {
       if (interval) {
         clearInterval(interval);
       }
     };
   }, [isAuthLoading, isAuthenticated]);
-  
+
   // Initial check timer
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -236,7 +234,7 @@ export const Navigation = () => {
     }, 200);
     return () => clearTimeout(timer);
   }, []);
-  
+
   // Network wait timer for refresh token scenario
   React.useEffect(() => {
     if (protectionState.hasValidRefreshToken) {
@@ -271,29 +269,43 @@ export const Navigation = () => {
   }
 
   // BULLETPROOF PROTECTION: Comprehensive token-based decision logic
-  
+
   // 1. TOKENS IN MEMORY PROTECTION: If we have tokens but auth check is not complete, wait
   if (protectionState.hasTokensInMemory && !isAuthenticated && !isAuthLoading) {
-    console.log('[Navigation] Have tokens in memory but not authenticated yet, waiting...');
+    console.log(
+      '[Navigation] Have tokens in memory but not authenticated yet, waiting...'
+    );
     return <Loading />;
   }
-  
+
   // 2. REFRESH TOKEN PROTECTION: If we have valid refresh token but auth failed, wait for network
-  if (!isAuthenticated && !isAuthLoading && 
-      protectionState.hasValidRefreshToken && !protectionState.networkWaitDone) {
-    console.log('[Navigation] Valid refresh token detected but auth failed - possible network issue, waiting...');
+  if (
+    !isAuthenticated &&
+    !isAuthLoading &&
+    protectionState.hasValidRefreshToken &&
+    !protectionState.networkWaitDone
+  ) {
+    console.log(
+      '[Navigation] Valid refresh token detected but auth failed - possible network issue, waiting...'
+    );
     return <Loading />;
   }
-  
+
   // 3. INITIAL CHECK PROTECTION: Brief wait to determine token status
-  if (!isAuthLoading && !isAuthenticated && 
-      !protectionState.hasTokensInMemory && !protectionState.initialCheckDone) {
+  if (
+    !isAuthLoading &&
+    !isAuthenticated &&
+    !protectionState.hasTokensInMemory &&
+    !protectionState.initialCheckDone
+  ) {
     return <Loading />;
   }
 
   // ADDITIONAL SAFETY: If user is supposed to be authenticated but we don't have user data yet, wait
   if (isAuthenticated && !user) {
-    console.log('[Navigation] User authenticated but no user data yet, waiting...');
+    console.log(
+      '[Navigation] User authenticated but no user data yet, waiting...'
+    );
     return <Loading />;
   }
 

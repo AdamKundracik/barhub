@@ -22,7 +22,6 @@ import PrivacyPolicy from '../screens/auth/LegalDocuments/PrivacyPolicy';
 import CommunityGuidelines from '../screens/auth/LegalDocuments/CommunityGuidelines';
 import { useNotificationsHandler } from '../components/user/NewsFeed/NotificationHandler';
 import { setGlobalUnsubscribeNotifications } from '../providers/AuthProvider';
-import DebugLogsScreen from '../screens/dev/DebugLogs';
 
 const RootStack = createNativeStackNavigator();
 
@@ -31,7 +30,7 @@ const RootStack = createNativeStackNavigator();
 export function UserNav() {
   // Initialize notifications handler for authenticated users
   const { unsubscribeNotifications } = useNotificationsHandler();
-  
+
   // Set global reference for AuthProvider to use during logout
   useEffect(() => {
     setGlobalUnsubscribeNotifications(unsubscribeNotifications);
@@ -75,16 +74,22 @@ export function UserNav() {
       {/* Legal Documents */}
       <RootStack.Screen name="TermsOfService" component={TermsOfService} />
       <RootStack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
-      <RootStack.Screen name="CommunityGuidelines" component={CommunityGuidelines} />
+      <RootStack.Screen
+        name="CommunityGuidelines"
+        component={CommunityGuidelines}
+      />
 
       {/* Admin Panel for ADMIN/MODERATOR */}
       <RootStack.Screen name="AdminPanel" component={AdminPanel} />
-      <RootStack.Screen name="ConsentManagement" component={ConsentManagement} />
+      <RootStack.Screen
+        name="ConsentManagement"
+        component={ConsentManagement}
+      />
       <RootStack.Screen name="PrivacyData" component={PrivacyData} />
-      <RootStack.Screen name="ReportsManagement" component={ReportsManagement} />
-
-      {/* Debug */}
-      <RootStack.Screen name="DebugLogs" component={DebugLogsScreen} />
+      <RootStack.Screen
+        name="ReportsManagement"
+        component={ReportsManagement}
+      />
     </RootStack.Navigator>
   );
 }
