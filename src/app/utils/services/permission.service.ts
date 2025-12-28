@@ -177,7 +177,7 @@ export const getGeolocationPermissionStatus = async () => {
     let bgStatus = null;
     try {
       const bgState = await BackgroundGeolocation.getProviderState();
-      bgStatus = bgState.authorization;
+      bgStatus = bgState.accuracyAuthorization;
       console.log(
         '[getGeolocationPermissionStatus] BackgroundGeolocation authorization:',
         bgStatus
