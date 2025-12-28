@@ -37,7 +37,7 @@ import { BlurView } from 'expo-blur';
 
 const LATITUDE_DELTA = 0.0035;
 const LONGITUDE_DELTA = 0.0035;
-const DEBOUNCE_DELAY = 100;
+const DEBOUNCE_DELAY = 500;
 
 type LayoutProps = {
   setIsMapShown: (isSearching: boolean) => void;
@@ -162,6 +162,9 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
         onRegionChangeComplete={onRegionChangeComplete}
         showsMyLocationButton={false}
         showsCompass={false}
+        clusteringEnabled={true}
+        moveOnMarkerPress={false}
+        tracksViewChanges={false}
         clusterColor={primaryColor}
         clusterTextColor={primaryBgColor}
       >

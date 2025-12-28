@@ -1,12 +1,9 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { Loading } from '../components/shared/Loading';
 import AuthNav from './AuthNav';
 import NotVerifiedNav from './NotVerifiedNav';
 import { UserNavWrapper } from './UserNavWrapper';
-import { useAppState } from '../providers/AppStateProvider';
-import { PermissionsScreen } from '../screens/user/Permissions/Permissions';
-import { usePermissionsContext } from '../providers/PermissionsProvider';
 import { useAppInitialization } from '../utils/hooks/useInitializationApp';
 import { useAuth } from '../providers/AuthProvider';
 import { useNetwork } from '../providers/NetworkProvider';
@@ -133,10 +130,6 @@ const mainLinking = {
 export const Navigation = () => {
   const { isAppInitialized } = useAppInitialization();
   const { isAuthenticated, isLoading: isAuthLoading, user } = useAuth();
-
-  const { hasAllRequiredPermissions, checkAllPermissions } =
-    usePermissionsContext();
-  const { appState } = useAppState();
   const { isConnected, isLoading: isNetworkLoading } = useNetwork();
 
   // Check if email is verified
@@ -247,22 +240,6 @@ export const Navigation = () => {
     }
   }, [protectionState.hasValidRefreshToken]);
 
-  useEffect(() => {
-    switch (appState) {
-      case 'active':
-        console.log('[Navigation] App became active, checking permissions...');
-        checkAllPermissions();
-        break;
-    }
-  }, [appState, checkAllPermissions]);
-
-  // Always check permissions when app starts, even if none are required
-  useEffect(() => {
-    if (isAppInitialized && !isAuthLoading && !isNetworkLoading) {
-      checkAllPermissions();
-    }
-  }, [isAppInitialized, isAuthLoading, isNetworkLoading]);
-
   // CRITICAL: Wait for all systems AND auth state to be determined
   if (!isAppInitialized || isNetworkLoading || isAuthLoading) {
     return <Loading />;
@@ -307,10 +284,6 @@ export const Navigation = () => {
       '[Navigation] User authenticated but no user data yet, waiting...'
     );
     return <Loading />;
-  }
-
-  if (!hasAllRequiredPermissions()) {
-    return <PermissionsScreen />;
   }
 
   // Show email verification screen if authenticated but email not verified

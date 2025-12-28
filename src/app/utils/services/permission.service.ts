@@ -1,5 +1,5 @@
 import * as Notifications from 'expo-notifications';
-import { Linking, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import { requestCameraPermissionsAsync } from 'expo-image-picker';
 import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
 import BackgroundGeolocation from 'react-native-background-geolocation';
@@ -46,38 +46,115 @@ export const requestNotificationPermission = async () => {
 export const requestGeolocationPermission = async () => {
   try {
     const authStatus = await BackgroundGeolocation.requestPermission();
-    return authStatus === BackgroundGeolocation.AUTHORIZATION_STATUS_WHEN_IN_USE || 
-           authStatus === BackgroundGeolocation.AUTHORIZATION_STATUS_ALWAYS;
+    return (
+      authStatus === BackgroundGeolocation.AUTHORIZATION_STATUS_WHEN_IN_USE ||
+      authStatus === BackgroundGeolocation.AUTHORIZATION_STATUS_ALWAYS
+    );
   } catch (error) {
     console.error('Geolocation permission error:', error);
     return false;
   }
 };
 
+// Cache for permission status to prevent infinite loops
+let permissionCache: { status: boolean; timestamp: number } | null = null;
+const CACHE_DURATION = 5000; // 5 seconds cache (increased from 2s)
+let lastClearTime = 0;
+const MIN_CLEAR_INTERVAL = 3000; // Minimum 3 seconds between cache clears
+
+// Clear permission cache (useful when user changes permissions in settings)
+export const clearGeolocationPermissionCache = () => {
+  const now = Date.now();
+
+  // Prevent excessive cache clearing
+  if (now - lastClearTime < MIN_CLEAR_INTERVAL) {
+    console.log(
+      '[clearGeolocationPermissionCache] Skipping cache clear - too frequent'
+    );
+    return;
+  }
+
+  permissionCache = null;
+  lastClearTime = now;
+  console.log('[clearGeolocationPermissionCache] Permission cache cleared');
+};
+
+// Track API calls to prevent excessive requests
+let lastApiCall = 0;
+const MIN_API_INTERVAL = 1000; // Minimum 1 second between API calls
+let isCheckingPermission = false; // Global flag to prevent concurrent checks
+
 // Check permission status without requesting
-export const checkGeolocationPermission = async () => {
+export const checkGeolocationPermission = async (
+  forceRefresh: boolean = false
+) => {
   try {
-    // Use expo-location for more reliable permission checking
-    const { status } = await Location.getForegroundPermissionsAsync();
-    const isGranted = status === 'granted';
-    
-    console.log('[checkGeolocationPermission] Expo Location status:', status, 'granted:', isGranted);
-    
-    // Also check BackgroundGeolocation state for consistency
+    const now = Date.now();
+
+    // If force refresh, clear cache first
+    if (forceRefresh) {
+      permissionCache = null;
+      console.log('[checkGeolocationPermission] Force refresh - cache cleared');
+    }
+
+    // Check cache first to prevent infinite loops (unless force refresh)
+    if (
+      !forceRefresh &&
+      permissionCache &&
+      now - permissionCache.timestamp < CACHE_DURATION
+    ) {
+      console.log(
+        '[checkGeolocationPermission] Using cached result:',
+        permissionCache.status
+      );
+      return permissionCache.status;
+    }
+
+    // Prevent concurrent permission checks
+    if (isCheckingPermission) {
+      console.log(
+        '[checkGeolocationPermission] Permission check already in progress globally'
+      );
+      return permissionCache?.status ?? false;
+    }
+
+    // Prevent excessive API calls (unless force refresh)
+    if (!forceRefresh && now - lastApiCall < MIN_API_INTERVAL) {
+      console.log(
+        '[checkGeolocationPermission] API call too frequent, using last cached result or default'
+      );
+      return permissionCache?.status ?? false;
+    }
+
+    isCheckingPermission = true;
+    lastApiCall = now;
+
     try {
-      const bgState = await BackgroundGeolocation.getProviderState();
-      const bgGranted = bgState.authorization === BackgroundGeolocation.AUTHORIZATION_STATUS_WHEN_IN_USE || 
-                       bgState.authorization === BackgroundGeolocation.AUTHORIZATION_STATUS_ALWAYS;
-      console.log('[checkGeolocationPermission] BackgroundGeolocation authorization:', bgState.authorization, 'granted:', bgGranted);
-      
-      // Return true if either is granted (expo-location is primary source)
-      return isGranted || bgGranted;
-    } catch (bgError) {
-      console.warn('[checkGeolocationPermission] BackgroundGeolocation check failed, using expo-location result:', bgError);
+      // Use expo-location for more reliable permission checking
+      const { status } = await Location.getForegroundPermissionsAsync();
+      const isGranted = status === 'granted';
+
+      console.log(
+        '[checkGeolocationPermission] Expo Location status:',
+        status,
+        'granted:',
+        isGranted
+      );
+
+      // Cache the result
+      permissionCache = { status: isGranted, timestamp: now };
+
       return isGranted;
+    } finally {
+      isCheckingPermission = false;
     }
   } catch (error) {
     console.error('Geolocation permission check error:', error);
+    // Cache negative result to prevent repeated failures
+    const now = Date.now();
+    permissionCache = { status: false, timestamp: now };
+    lastApiCall = now;
+    isCheckingPermission = false;
     return false;
   }
 };
@@ -90,27 +167,36 @@ export const getGeolocationPermissionStatus = async () => {
     const granted = expoStatus.status === 'granted';
     const canRequest = expoStatus.status === 'undetermined';
     const denied = expoStatus.status === 'denied';
-    
-    console.log('[getGeolocationPermissionStatus] Expo Location status:', expoStatus.status);
-    
+
+    console.log(
+      '[getGeolocationPermissionStatus] Expo Location status:',
+      expoStatus.status
+    );
+
     // Also check BackgroundGeolocation for additional info
     let bgStatus = null;
     try {
       const bgState = await BackgroundGeolocation.getProviderState();
       bgStatus = bgState.authorization;
-      console.log('[getGeolocationPermissionStatus] BackgroundGeolocation authorization:', bgStatus);
+      console.log(
+        '[getGeolocationPermissionStatus] BackgroundGeolocation authorization:',
+        bgStatus
+      );
     } catch (bgError) {
-      console.warn('[getGeolocationPermissionStatus] BackgroundGeolocation check failed:', bgError);
+      console.warn(
+        '[getGeolocationPermissionStatus] BackgroundGeolocation check failed:',
+        bgError
+      );
     }
-    
+
     const result = {
       granted: granted,
       canRequest: canRequest,
       denied: denied,
       status: expoStatus.status,
-      bgAuthorization: bgStatus
+      bgAuthorization: bgStatus,
     };
-    
+
     console.log('[getGeolocationPermissionStatus] Final result:', result);
     return result;
   } catch (error) {
@@ -120,7 +206,7 @@ export const getGeolocationPermissionStatus = async () => {
       canRequest: false,
       denied: true,
       status: null,
-      bgAuthorization: null
+      bgAuthorization: null,
     };
   }
 };

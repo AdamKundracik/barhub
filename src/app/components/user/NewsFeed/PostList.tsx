@@ -204,30 +204,33 @@ const PostsList = ({
   );
 
   // Optimize item type for better recycling
-  const getItemType = useCallback((item: Post, index: number) => {
-    const shouldShowAd = (() => {
-      if (!PremiumHelpers.shouldAlwaysShowAds()) {
-        return false;
-      }
-      const config = getFrequencyConfig();
-      const totalPosts = postsLength;
-      if (index < config.MIN_POSTS_FOR_ADS || index >= totalPosts - 1) {
-        return false;
-      }
-      let frequency = config.BASE_FREQUENCY;
-      if (totalPosts < 5) {
-        return index === Math.floor(totalPosts / 2);
-      }
-      if (simpleAdMetrics.shouldReduceFrequency()) {
-        frequency = Math.min(5, frequency + 1);
-      } else if (totalPosts > 20) {
-        frequency = Math.max(2, frequency - 1);
-      }
-      return index % frequency === 0;
-    })();
+  const getItemType = useCallback(
+    (item: Post, index: number) => {
+      const shouldShowAd = (() => {
+        if (!PremiumHelpers.shouldAlwaysShowAds()) {
+          return false;
+        }
+        const config = getFrequencyConfig();
+        const totalPosts = postsLength;
+        if (index < config.MIN_POSTS_FOR_ADS || index >= totalPosts - 1) {
+          return false;
+        }
+        let frequency = config.BASE_FREQUENCY;
+        if (totalPosts < 5) {
+          return index === Math.floor(totalPosts / 2);
+        }
+        if (simpleAdMetrics.shouldReduceFrequency()) {
+          frequency = Math.min(5, frequency + 1);
+        } else if (totalPosts > 20) {
+          frequency = Math.max(2, frequency - 1);
+        }
+        return index % frequency === 0;
+      })();
 
-    return shouldShowAd ? 'postWithAd' : 'post';
-  }, [postsLength]);
+      return shouldShowAd ? 'postWithAd' : 'post';
+    },
+    [postsLength]
+  );
 
   return (
     <View style={styles.container}>
@@ -237,7 +240,6 @@ const PostsList = ({
         renderItem={renderItem}
         keyExtractor={item => item.id}
         getItemType={getItemType}
-        estimatedItemSize={400}
         contentContainerStyle={styles.scrollView}
         showsVerticalScrollIndicator={false}
         ListFooterComponent={
@@ -267,7 +269,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollView: {
-    flexGrow: 1,
     paddingBottom: 80,
   },
 });

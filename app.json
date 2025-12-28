@@ -100,6 +100,10 @@
       }
     },
     "android": {
+      "statusBar": {
+        "backgroundColor": "#020213",
+        "barStyle": "light-content"
+      },
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyAMoNX-aQzrjpnZ0KjYegeyhV47C8rRBVU"
