@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Modal,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -49,6 +50,7 @@ import {
   createImageKey,
 } from '@/src/app/utils/cache/imageCacheUtils';
 import { PostCommentsModal } from '@/src/app/components/shared/Modals/PostCommentsModal';
+import MapView, { Marker } from 'react-native-maps';
 
 export const PostDetail = () => {
   const route = useRoute();
@@ -56,7 +58,7 @@ export const PostDetail = () => {
   const { t } = useTranslation();
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const queryClient = useQueryClient();
-  const { getUserId, isPremium, userData } = useUserStore();
+  const { getUserId, isPremium } = useUserStore();
 
   // Check if we can go back (if there's a previous screen in the stack)
   const canGoBack = navigation.canGoBack();
@@ -69,6 +71,7 @@ export const PostDetail = () => {
   const [isImageZoomed, setIsImageZoomed] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showCommentsModal, setShowCommentsModal] = useState(false);
+  const [showMapModal, setShowMapModal] = useState(false);
 
   // Local like state for optimistic updates
   const [localLiked, setLocalLiked] = useState(post?.isLiked || false);
@@ -580,6 +583,48 @@ export const PostDetail = () => {
             <Text style={styles.placeAddress} numberOfLines={3}>
               {post.placeAddress}
             </Text>
+
+            {/* Place Location Map */}
+            {post.location?._lat && post.location?._long && (
+              <TouchableOpacity
+                style={styles.mapContainer}
+                activeOpacity={0.8}
+                onPress={() => setShowMapModal(true)}
+              >
+                <MapView
+                  style={styles.map}
+                  initialRegion={{
+                    latitude: post.location._lat,
+                    longitude: post.location._long,
+                    latitudeDelta: 0.005,
+                    longitudeDelta: 0.005,
+                  }}
+                  scrollEnabled={false}
+                  zoomEnabled={false}
+                  pitchEnabled={false}
+                  rotateEnabled={false}
+                  showsUserLocation={false}
+                  showsMyLocationButton={false}
+                  toolbarEnabled={false}
+                  pointerEvents="none"
+                >
+                  <Marker
+                    coordinate={{
+                      latitude: post.location._lat,
+                      longitude: post.location._long,
+                    }}
+                  >
+                    <View style={styles.markerContainer}>
+                      <FontAwesomeIcon
+                        icon={Icons.Pin}
+                        size={32}
+                        color="#000"
+                      />
+                    </View>
+                  </Marker>
+                </MapView>
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Inline Ad */}
@@ -662,6 +707,65 @@ export const PostDetail = () => {
             refetch();
           }}
         />
+      )}
+
+      {/* Map Modal */}
+      {post && post.location?._lat && post.location?._long && (
+        <Modal
+          visible={showMapModal}
+          animationType="slide"
+          transparent={false}
+          onRequestClose={() => setShowMapModal(false)}
+        >
+          <View style={styles.mapModalContainer}>
+            {/* Header */}
+            <LinearGradient
+              colors={['rgba(0,0,0,0.9)', 'rgba(0,0,0,0)']}
+              style={styles.mapModalHeader}
+            >
+              <HStack style={styles.mapModalHeaderContent}>
+                <TouchableOpacity
+                  style={styles.mapModalCloseButton}
+                  onPress={() => setShowMapModal(false)}
+                >
+                  <FontAwesomeIcon icon={Icons.Back} size={24} color="#fff" />
+                </TouchableOpacity>
+                <VStack style={{ flex: 1, marginLeft: 16 }}>
+                  <Text style={styles.mapModalTitle} numberOfLines={1}>
+                    {post.placeName}
+                  </Text>
+                  <Text style={styles.mapModalSubtitle} numberOfLines={1}>
+                    {post.placeAddress}
+                  </Text>
+                </VStack>
+              </HStack>
+            </LinearGradient>
+
+            {/* Map */}
+            <MapView
+              style={styles.mapModalMap}
+              initialRegion={{
+                latitude: post.location._lat,
+                longitude: post.location._long,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+              }}
+              showsUserLocation={false}
+              showsMyLocationButton={false}
+            >
+              <Marker
+                coordinate={{
+                  latitude: post.location._lat,
+                  longitude: post.location._long,
+                }}
+              >
+                <View style={styles.mapModalMarkerContainer}>
+                  <FontAwesomeIcon icon={Icons.Pin} size={40} color="#000" />
+                </View>
+              </Marker>
+            </MapView>
+          </View>
+        </Modal>
       )}
     </View>
   );
@@ -826,6 +930,71 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginTop: 4,
     paddingLeft: 32,
+  },
+  mapContainer: {
+    marginTop: 12,
+    height: 150,
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  map: {
+    width: '100%',
+    height: '100%',
+  },
+  markerContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mapModalContainer: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  mapModalHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    paddingTop: 50,
+    paddingBottom: 20,
+    paddingHorizontal: 16,
+  },
+  mapModalHeaderContent: {
+    alignItems: 'center',
+  },
+  mapModalCloseButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mapModalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  mapModalSubtitle: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    marginTop: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  mapModalMap: {
+    flex: 1,
+    width: '100%',
+  },
+  mapModalMarkerContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   adContainer: {
     marginHorizontal: 16,
