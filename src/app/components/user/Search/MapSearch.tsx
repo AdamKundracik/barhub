@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react';
-import MapView, { Circle, Marker, Region } from 'react-native-maps';
-import MapViewCluster from 'react-native-map-clustering';
+import { Circle, Marker, Region } from 'react-native-maps';
+import MapView from 'react-native-map-clustering';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -51,7 +51,7 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
   const tabBarHeight = useBottomTabBarHeight();
   const { setPlaceId, setPlaceName, setPlaceAddress } = usePlaceStore();
 
-  const mapRef = useRef<MapView>(null);
+  const mapRef = useRef<any>(null);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
@@ -70,19 +70,6 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
 
   const pickPlace = useCallback(() => {
     if (!selectedPlace) return;
-
-    console.log('=== PLACE CONFIRMED/SELECTED ===');
-    console.log('Place Details:', JSON.stringify(selectedPlace, null, 2));
-    console.log('ID:', selectedPlace.id);
-    console.log('Display Name:', selectedPlace.displayName.text);
-    console.log('Formatted Address:', selectedPlace.formattedAddress);
-    console.log('Location:', {
-      latitude: selectedPlace.location.latitude,
-      longitude: selectedPlace.location.longitude,
-    });
-    console.log('Types:', selectedPlace.types);
-    console.log('================================');
-
     const placePrediction = mapPlaceToPlacePrediction(selectedPlace);
     setPlaceId(placePrediction.placeId);
     setPlaceName(placePrediction.structuredFormat.mainText.text);
@@ -101,7 +88,6 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
   const handleSearchSurrounding = useCallback(async () => {
     if (loading) return;
 
-    // Check if current map region is within 30km from user's actual location
     const regionLocation = {
       latitude: region.latitude,
       longitude: region.longitude,
@@ -153,18 +139,22 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
     );
   }, [location]);
 
+  const handleMarkerPress = useCallback((place: Place) => {
+    setSelectedPlace(place);
+  }, []);
+
   return (
     <View style={styles.container}>
-      <MapViewCluster
+      <MapView
         style={styles.map}
-        region={region}
-        ref={mapRef}
+        initialRegion={region}
+        mapRef={(ref: any) => {
+          mapRef.current = ref;
+        }}
         onRegionChangeComplete={onRegionChangeComplete}
-        showsMyLocationButton={false}
         showsCompass={false}
         clusteringEnabled={true}
         moveOnMarkerPress={false}
-        tracksViewChanges={false}
         clusterColor={primaryColor}
         clusterTextColor={primaryBgColor}
       >
@@ -175,7 +165,7 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
               latitude: location.latitude,
               longitude: location.longitude,
             }}
-            radius={GEOFENCE_CONFIG.maxRadiusKm * 1000} // Convert km to meters
+            radius={GEOFENCE_CONFIG.maxRadiusKm * 1000}
             strokeColor="rgba(255, 165, 0, 0.5)"
             fillColor="rgba(255, 165, 0, 0.05)"
             strokeWidth={2}
@@ -195,25 +185,12 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
         {!loading &&
           places.map(place => (
             <Marker
-              key={`${place.location.latitude}-${place.location.longitude}-${place.id}`}
+              key={`${place.id}-${selectedPlace?.id === place.id ? 'selected' : 'unselected'}`}
               coordinate={{
                 latitude: place.location.latitude,
                 longitude: place.location.longitude,
               }}
-              onPress={() => {
-                console.log('=== PLACE SELECTED ===');
-                console.log('Place Details:', JSON.stringify(place, null, 2));
-                console.log('ID:', place.id);
-                console.log('Display Name:', place.displayName.text);
-                console.log('Formatted Address:', place.formattedAddress);
-                console.log('Location:', {
-                  latitude: place.location.latitude,
-                  longitude: place.location.longitude,
-                });
-                console.log('Types:', place.types);
-                console.log('====================');
-                setSelectedPlace(place);
-              }}
+              onPress={() => handleMarkerPress(place)}
             >
               <View style={styles.markerContainer}>
                 <FontAwesomeIcon
@@ -224,7 +201,7 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
               </View>
             </Marker>
           ))}
-      </MapViewCluster>
+      </MapView>
 
       {/* Center marker */}
       <View style={styles.centerMarker}>
@@ -235,7 +212,7 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
         <View style={styles.centerMarkerShadow} />
       </View>
 
-      {/* Enhanced header with place info when selected */}
+      {/* Header */}
       <BlurView
         intensity={80}
         tint="dark"
@@ -274,7 +251,7 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
         </TouchableOpacity>
       </BlurView>
 
-      {/* Bottom action buttons with better styling */}
+      {/* Bottom actions */}
       <View
         style={[
           styles.bottomActions,
@@ -321,7 +298,7 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
         )}
       </View>
 
-      {/* Full screen loading overlay */}
+      {/* Loading overlay */}
       {loading && (
         <View style={styles.loadingOverlay}>
           <BlurView
@@ -346,8 +323,6 @@ const styles = StyleSheet.create({
   map: {
     ...StyleSheet.absoluteFillObject,
   },
-
-  // Center marker
   centerMarker: {
     position: 'absolute',
     top: '50%',
@@ -370,8 +345,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     transform: [{ scaleX: 1.5 }],
   },
-
-  // Place markers
   markerContainer: {
     backgroundColor: primaryBgColor,
     borderRadius: 20,
@@ -384,8 +357,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-
-  // Enhanced header with place info
   header: {
     position: 'absolute',
     left: 20,
@@ -437,8 +408,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
   },
-
-  // Bottom actions with consistent styling
   bottomActions: {
     position: 'absolute',
     left: 20,
@@ -484,8 +453,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
-
-  // Loading
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',

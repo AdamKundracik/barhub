@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 import UserPost from './Post/UserPost';
 import LoadingIndicator from './LoadingIndicator';
@@ -8,10 +8,9 @@ import { primaryColor } from '../../../utils/styles/colors';
 import { useTranslation } from 'react-i18next';
 import InlineAd from '@/src/app/components/user/InlineAd';
 import { useUserStore } from '@/src/app/utils/store/userStore';
-import { usePostsStore } from '@/src/app/utils/store/postStore';
 import { Post } from '@/src/app/types/postTypes';
 import { User } from '@/shared';
-import { FlashList, FlashListRef } from '@shopify/flash-list';
+import { FlashList } from '@shopify/flash-list';
 import { PremiumHelpers } from '@/src/app/config/premiumConfig';
 import { getFrequencyConfig } from '@/src/app/config/productionAdConfig';
 import { simpleAdMetrics } from '@/src/app/utils/simpleAdMetrics';
@@ -53,17 +52,9 @@ const PostsList = ({
   const { t } = useTranslation();
   const { placeId } = usePlaceStore();
   const { isPremium } = useUserStore();
-  const flatListRef = useRef<FlashListRef<any>>(null);
-  const { setListRef } = usePostsStore();
 
   // Memoize premium status to prevent recalculation on each render
   const hasPremium = useMemo(() => isPremium(), [isPremium]);
-
-  useEffect(() => {
-    if (flatListRef) {
-      setListRef(flatListRef);
-    }
-  }, [setListRef]);
 
   const isOlderThanMinutes = (
     date: Date | string | number | any,
@@ -235,13 +226,13 @@ const PostsList = ({
   return (
     <View style={styles.container}>
       <FlashList
-        ref={flatListRef}
         data={posts}
         renderItem={renderItem}
         keyExtractor={item => item.id}
         getItemType={getItemType}
         contentContainerStyle={styles.scrollView}
         showsVerticalScrollIndicator={false}
+        estimatedItemSize={826}
         ListFooterComponent={
           <ListFooter
             isFetchingNextPage={isFetchingNextPage}

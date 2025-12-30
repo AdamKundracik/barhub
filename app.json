@@ -2,11 +2,18 @@
   "expo": {
     "name": "Barhub",
     "slug": "barhub-app",
-    "version": "1.2.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "scheme": "barhubapp",
+    "linking": {
+      "prefixes": [
+        "https://barhubapp.com",
+        "https://www.barhubapp.com"
+      ]
+    },
+    "entryPoint": "./index.js",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -100,12 +107,8 @@
       }
     },
     "android": {
-      "statusBar": {
-        "backgroundColor": "#020213",
-        "barStyle": "light-content"
-      },
       "config": {
-        "googleMaps": {
+        "googleMapApiKey": {
           "apiKey": "AIzaSyAMoNX-aQzrjpnZ0KjYegeyhV47C8rRBVU"
         }
       },
