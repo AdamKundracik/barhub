@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Circle, Marker, Region } from 'react-native-maps';
 import MapView from 'react-native-map-clustering';
 import {
@@ -46,23 +46,31 @@ type LayoutProps = {
 export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
-  const { location } = useLocationStore();
+  const { location, useFakeLocation, fakeLocation } = useLocationStore();
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const { setPlaceId, setPlaceName, setPlaceAddress } = usePlaceStore();
 
+  // Get the effective location (fake location if travel mode is on, otherwise real location)
+  const effectiveLocation = useMemo(() => {
+    return useFakeLocation && fakeLocation ? fakeLocation : location;
+  }, [useFakeLocation, fakeLocation, location]);
+
   const mapRef = useRef<any>(null);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+  const userMovedMapRef = useRef<boolean>(false);
+  const lastLocationRef = useRef<{ latitude: number; longitude: number } | null>(null);
+  const lastUseFakeLocationRef = useRef<boolean>(useFakeLocation);
 
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [loading, setLoading] = useState(false);
   const [places, setPlaces] = useState<Place[]>([]);
-  const [region, setRegion] = useState<Region>({
+  const [region, setRegion] = useState<Region>(() => ({
     latitudeDelta: LATITUDE_DELTA,
     longitudeDelta: LONGITUDE_DELTA,
-    latitude: location?.latitude ?? 0,
-    longitude: location?.longitude ?? 0,
-  });
+    latitude: effectiveLocation?.latitude ?? 0,
+    longitude: effectiveLocation?.longitude ?? 0,
+  }));
 
   const closeMap = useCallback(() => {
     setIsMapShown(false);
@@ -93,7 +101,7 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
       longitude: region.longitude,
     };
 
-    if (!isLocationWithinPerimeter(regionLocation, location)) {
+    if (!isLocationWithinPerimeter(regionLocation, effectiveLocation)) {
       alert(
         t('outside-allowed-area') ||
           'You moved too far from your location. Maximum 30km allowed.'
@@ -112,7 +120,7 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
     } finally {
       setLoading(false);
     }
-  }, [loading, region, location, t]);
+  }, [loading, region, effectiveLocation, t]);
 
   const onRegionChangeComplete = useCallback((newRegion: Region) => {
     if (debounceTimeout.current) {
@@ -122,26 +130,70 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
     debounceTimeout.current = setTimeout(() => {
       setRegion(newRegion);
       setSelectedPlace(null);
+      // Mark that user manually moved the map
+      userMovedMapRef.current = true;
     }, DEBOUNCE_DELAY);
   }, []);
 
   const centerMapOnUserLocation = useCallback(() => {
-    if (!location || !mapRef.current) return;
+    if (!effectiveLocation || !mapRef.current) return;
 
+    userMovedMapRef.current = false; // Reset flag when user manually centers
     mapRef.current.animateToRegion(
       {
-        latitude: location.latitude,
-        longitude: location.longitude,
+        latitude: effectiveLocation.latitude,
+        longitude: effectiveLocation.longitude,
         latitudeDelta: LATITUDE_DELTA,
         longitudeDelta: LONGITUDE_DELTA,
       },
       500
     );
-  }, [location]);
+  }, [effectiveLocation]);
 
   const handleMarkerPress = useCallback((place: Place) => {
     setSelectedPlace(place);
   }, []);
+
+  // Update map when location changes or travel mode is toggled
+  useEffect(() => {
+    if (!effectiveLocation || !mapRef.current) return;
+
+    const travelModeChanged = lastUseFakeLocationRef.current !== useFakeLocation;
+    const lastLocation = lastLocationRef.current;
+    const isFirstLocation = !lastLocation;
+    
+    // Calculate distance in meters (rough approximation: 1 degree ≈ 111km)
+    const distanceChanged = lastLocation ? 
+      Math.sqrt(
+        Math.pow(effectiveLocation.latitude - lastLocation.latitude, 2) +
+        Math.pow(effectiveLocation.longitude - lastLocation.longitude, 2)
+      ) * 111000 > 10 : false;
+
+    const shouldUpdate = travelModeChanged || isFirstLocation || 
+      (!userMovedMapRef.current && distanceChanged);
+
+    if (shouldUpdate) {
+      if (travelModeChanged) {
+        lastUseFakeLocationRef.current = useFakeLocation;
+        userMovedMapRef.current = false;
+      }
+
+      mapRef.current.animateToRegion(
+        {
+          latitude: effectiveLocation.latitude,
+          longitude: effectiveLocation.longitude,
+          latitudeDelta: region.latitudeDelta,
+          longitudeDelta: region.longitudeDelta,
+        },
+        travelModeChanged || isFirstLocation ? 500 : 1000
+      );
+
+      lastLocationRef.current = {
+        latitude: effectiveLocation.latitude,
+        longitude: effectiveLocation.longitude,
+      };
+    }
+  }, [effectiveLocation, useFakeLocation, region.latitudeDelta, region.longitudeDelta]);
 
   return (
     <View style={styles.container}>
@@ -153,17 +205,19 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
         }}
         onRegionChangeComplete={onRegionChangeComplete}
         showsCompass={false}
+        showsUserLocation={true}
+        showsMyLocationButton={false}
         clusteringEnabled={true}
         moveOnMarkerPress={false}
         clusterColor={primaryColor}
         clusterTextColor={primaryBgColor}
       >
         {/* User's perimeter circle - 30km max range */}
-        {location && (
+        {effectiveLocation && (
           <Circle
             center={{
-              latitude: location.latitude,
-              longitude: location.longitude,
+              latitude: effectiveLocation.latitude,
+              longitude: effectiveLocation.longitude,
             }}
             radius={GEOFENCE_CONFIG.maxRadiusKm * 1000}
             strokeColor="rgba(255, 165, 0, 0.5)"

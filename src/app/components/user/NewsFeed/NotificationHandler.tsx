@@ -67,7 +67,9 @@ export function useNotificationsHandler() {
     // Listener pre prijaté notifikácie
     notificationListener.current =
       Notifications.addNotificationReceivedListener(async () => {
-        console.log('[NotificationHandler] Notification received - calling refetch');
+        console.log(
+          '[NotificationHandler] Notification received - calling refetch'
+        );
         try {
           await refetch();
           console.log('[NotificationHandler] Refetch completed');
@@ -102,9 +104,9 @@ export function useNotificationsHandler() {
         if (processingNotification.current === notificationKey) {
           return;
         }
-        
+
         processingNotification.current = notificationKey;
-        
+
         // Reset after 2 seconds to allow retry if needed
         setTimeout(() => {
           processingNotification.current = null;
@@ -112,7 +114,6 @@ export function useNotificationsHandler() {
 
         switch (notificationType as NotificationType) {
           case NotificationType.LIKE:
-          case NotificationType.COMMENT:
             // Navigate to PostDetail if postId is available
             if (postId) {
               navigation.navigate('PostDetail', { postId });
@@ -120,12 +121,21 @@ export function useNotificationsHandler() {
               navigation.navigate('NotificationsList');
             }
             break;
+          case NotificationType.COMMENT:
+            // Navigate to PostDetail with openComments flag for comment notifications
+            if (postId) {
+              navigation.navigate('PostDetail', { postId, openComments: true });
+            } else {
+              navigation.navigate('NotificationsList');
+            }
+            break;
 
           case NotificationType.REQUEST:
             // Check if elapsed time is less than 3 minutes (180 seconds)
-            const elapsedTime = new Date().getTime() - new Date(sentAt).getTime();
+            const elapsedTime =
+              new Date().getTime() - new Date(sentAt).getTime();
             const threeMinutesInMs = 3 * 60 * 1000; // 3 minutes in milliseconds
-            
+
             if (elapsedTime >= threeMinutesInMs) {
               Alert.alert(t('request-expired'), t('missed-request-info'));
             } else {

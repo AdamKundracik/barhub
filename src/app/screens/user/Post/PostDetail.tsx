@@ -63,7 +63,10 @@ export const PostDetail = () => {
   // Check if we can go back (if there's a previous screen in the stack)
   const canGoBack = navigation.canGoBack();
 
-  const { postId } = route.params as { postId: string };
+  const { postId, openComments } = route.params as { 
+    postId: string;
+    openComments?: boolean;
+  };
   const { post, isLoading, error, refetch } = usePostDetail(postId);
 
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
@@ -101,6 +104,17 @@ export const PostDetail = () => {
       }
     }
   }, [post?.isLiked, post?.likesCount, post?.isHighlighted, post?.id]);
+
+  // Open comments modal if requested from notification
+  useEffect(() => {
+    if (openComments && post && !isLoading) {
+      // Small delay to ensure screen is fully rendered
+      const timer = setTimeout(() => {
+        setShowCommentsModal(true);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [openComments, post, isLoading]);
 
   // Handle comment press - open modal
   const handleCommentPress = useCallback(() => {
