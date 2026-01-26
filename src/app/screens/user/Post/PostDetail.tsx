@@ -63,7 +63,7 @@ export const PostDetail = () => {
   // Check if we can go back (if there's a previous screen in the stack)
   const canGoBack = navigation.canGoBack();
 
-  const { postId, openComments } = route.params as { 
+  const { postId, openComments } = route.params as {
     postId: string;
     openComments?: boolean;
   };
@@ -788,7 +788,7 @@ export const PostDetail = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: postBgColor,
   },
   loadingContainer: {
     flex: 1,
@@ -977,6 +977,7 @@ const styles = StyleSheet.create({
   },
   mapModalHeaderContent: {
     alignItems: 'center',
+    marginTop: 8,
   },
   mapModalCloseButton: {
     width: 40,

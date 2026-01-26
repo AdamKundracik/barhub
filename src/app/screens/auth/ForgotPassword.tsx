@@ -210,6 +210,7 @@ export const ForgotPassword = ({ navigation }: any) => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}

@@ -649,7 +649,7 @@ export const PostCommentsModal = ({
             </View>
           </View>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Text style={styles.closeButtonText}>{t('close') || 'Close'}</Text>
+            <Text style={styles.closeButtonText}>{t('close')}</Text>
           </TouchableOpacity>
         </View>
 

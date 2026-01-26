@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef, useEffect } from 'react';
 import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 import UserPost from './Post/UserPost';
 import LoadingIndicator from './LoadingIndicator';
@@ -10,10 +10,11 @@ import InlineAd from '@/src/app/components/user/InlineAd';
 import { useUserStore } from '@/src/app/utils/store/userStore';
 import { Post } from '@/src/app/types/postTypes';
 import { User } from '@/shared';
-import { FlashList } from '@shopify/flash-list';
+import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { PremiumHelpers } from '@/src/app/config/premiumConfig';
 import { getFrequencyConfig } from '@/src/app/config/productionAdConfig';
 import { simpleAdMetrics } from '@/src/app/utils/simpleAdMetrics';
+import { usePostsStore } from '@/src/app/utils/store/postStore';
 
 interface PostsListProps {
   posts: Post[];
@@ -52,6 +53,14 @@ const PostsList = ({
   const { t } = useTranslation();
   const { placeId } = usePlaceStore();
   const { isPremium } = useUserStore();
+  const { setListRef } = usePostsStore();
+  const listRef = useRef<FlashListRef<Post> | null>(null);
+
+  // Register the FlashList ref in the store for scroll-to-top functionality
+  useEffect(() => {
+    setListRef(listRef);
+    return () => setListRef(null);
+  }, [setListRef]);
 
   // Memoize premium status to prevent recalculation on each render
   const hasPremium = useMemo(() => isPremium(), [isPremium]);
@@ -226,6 +235,7 @@ const PostsList = ({
   return (
     <View style={styles.container}>
       <FlashList
+        ref={listRef}
         data={posts}
         renderItem={renderItem}
         keyExtractor={item => item.id}

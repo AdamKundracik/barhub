@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useInfiniteQuery, useQueryClient } from 'react-query';
 import { handleFreshContent } from '../../functions/posts-functions';
 import { useFiltersStore } from '../../store/filtersStorage';
@@ -10,7 +10,7 @@ import { useUserStore } from '../../store/userStore';
 export const useNewsFeedData = () => {
   const { distance, selectedPlaces, selectedOccupancy, showHighlightedPosts } =
     useFiltersStore();
-  const { location, fakeLocation, useFakeLocation } = useLocationStore();
+  const { location, fakeLocation, useFakeLocation, isLocationLoading } = useLocationStore();
   const { placeId } = usePlaceStore();
   const { isAuthenticated } = useAuth();
   const userId = useUserStore(state => state.getUserId());
@@ -18,39 +18,23 @@ export const useNewsFeedData = () => {
 
   const currentLocation = useFakeLocation ? fakeLocation : location;
 
-  // Round GPS coordinates to 4 decimal places (~11 meters precision)
-  // This prevents query key from changing on tiny location updates
-  const roundedLat = currentLocation?.latitude
-    ? Math.round(currentLocation.latitude * 10000) / 10000
-    : null;
-  const roundedLong = currentLocation?.longitude
-    ? Math.round(currentLocation.longitude * 10000) / 10000
+  // Include location coordinates in queryKey so query refetches when location changes
+  const locationKey = currentLocation
+    ? `${currentLocation.latitude.toFixed(4)},${currentLocation.longitude.toFixed(4)}`
     : null;
 
   const queryKey = placeId
-    ? [
-        'posts',
-        placeId,
-        roundedLat,
-        roundedLong,
-        distance,
-        selectedPlaces,
-        selectedOccupancy,
-      ]
-    : [
-        'posts',
-        roundedLat,
-        roundedLong,
-        distance,
-        selectedPlaces,
-        selectedOccupancy,
-      ];
+    ? ['posts', placeId, distance, selectedPlaces, selectedOccupancy, locationKey]
+    : ['posts', distance, selectedPlaces, selectedOccupancy, locationKey];
+
+  // Check if we're waiting for location (no location OR actively fetching)
+  const isWaitingForLocation = !currentLocation || isLocationLoading;
 
   const {
     data: postsData,
     isFetchingNextPage,
     fetchNextPage,
-    isLoading,
+    isLoading: isQueryLoading,
     hasNextPage,
     refetch,
     isRefetching,
@@ -127,6 +111,9 @@ export const useNewsFeedData = () => {
     // Then refetch
     await refetch();
   };
+
+  // Show loading when: query is loading OR we're waiting for location
+  const isLoading = isQueryLoading || isWaitingForLocation;
 
   return {
     posts,

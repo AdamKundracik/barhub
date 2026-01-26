@@ -149,15 +149,10 @@ export const FeedContent: React.FC<FeedContentProps> = ({
     postsCount: posts?.length || 0,
   });
 
-  if (isLoading || hasGeolocationPermission === null) {
-    console.log(
-      '[FeedContent] Showing PostLoaderView - loading or permission check pending'
-    );
-    return <PostLoaderView />;
-  }
-
-  // If no location permission, show location required state
-  if (!hasGeolocationPermission) {
+  // IMPORTANT: Check permission BEFORE loading state
+  // If permission is denied (false), show LocationRequiredState immediately
+  // Don't wait for location loading to complete - it will never complete without permission
+  if (hasGeolocationPermission === false) {
     console.log(
       '[FeedContent] ✅ Showing LocationRequiredState - no geolocation permission'
     );
@@ -179,26 +174,13 @@ export const FeedContent: React.FC<FeedContentProps> = ({
     );
   }
 
-  // // If no location permission, show location required state
-  // if (!hasGeolocationPermission) {
-  //   console.log('[FeedContent] Showing LocationRequiredState');
-  //   return (
-  //     <ScrollView
-  //       contentContainerStyle={styles.scrollViewContent}
-  //       showsVerticalScrollIndicator={false}
-  //       refreshControl={
-  //         <RefreshControl
-  //           refreshing={isRefetching}
-  //           onRefresh={onRefresh}
-  //           tintColor={primaryColor}
-  //           colors={[primaryColor]}
-  //         />
-  //       }
-  //     >
-  //       <LocationRequiredState requestPhoto={requestPhoto} />
-  //     </ScrollView>
-  //   );
-  // }
+  // Show loading only if permission check is pending (null) or we're waiting for data
+  if (isLoading || hasGeolocationPermission === null) {
+    console.log(
+      '[FeedContent] Showing PostLoaderView - loading or permission check pending'
+    );
+    return <PostLoaderView />;
+  }
 
   // If we have location permission and posts, show the list
   if (posts?.length > 0) {

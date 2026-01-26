@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Circle, Marker, Region } from 'react-native-maps';
 import MapView from 'react-native-map-clustering';
 import {
@@ -20,6 +20,7 @@ import { usePlaceStore } from '../../../utils/store/placesStore';
 import { fetchNearbyPlaces } from '../../../utils/api/fetchPlacesAPI';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import BackgroundGeolocation from 'react-native-background-geolocation';
 import {
   GEOFENCE_CONFIG,
   isLocationWithinPerimeter,
@@ -52,14 +53,16 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
   const { setPlaceId, setPlaceName, setPlaceAddress } = usePlaceStore();
 
   // Get the effective location (fake location if travel mode is on, otherwise real location)
-  const effectiveLocation = useMemo(() => {
-    return useFakeLocation && fakeLocation ? fakeLocation : location;
-  }, [useFakeLocation, fakeLocation, location]);
+  const effectiveLocation =
+    useFakeLocation && fakeLocation ? fakeLocation : location;
 
   const mapRef = useRef<any>(null);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const userMovedMapRef = useRef<boolean>(false);
-  const lastLocationRef = useRef<{ latitude: number; longitude: number } | null>(null);
+  const lastLocationRef = useRef<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
   const lastUseFakeLocationRef = useRef<boolean>(useFakeLocation);
 
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
@@ -135,20 +138,70 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
     }, DEBOUNCE_DELAY);
   }, []);
 
-  const centerMapOnUserLocation = useCallback(() => {
-    if (!effectiveLocation || !mapRef.current) return;
+  const centerMapOnUserLocation = useCallback(async () => {
+    if (!mapRef.current) return;
 
-    userMovedMapRef.current = false; // Reset flag when user manually centers
-    mapRef.current.animateToRegion(
-      {
-        latitude: effectiveLocation.latitude,
-        longitude: effectiveLocation.longitude,
-        latitudeDelta: LATITUDE_DELTA,
-        longitudeDelta: LONGITUDE_DELTA,
-      },
-      500
-    );
-  }, [effectiveLocation]);
+    // Check if using fake location
+    const storeState = useLocationStore.getState();
+    if (storeState.useFakeLocation && storeState.fakeLocation) {
+      userMovedMapRef.current = false;
+      mapRef.current.animateToRegion(
+        {
+          latitude: storeState.fakeLocation.latitude,
+          longitude: storeState.fakeLocation.longitude,
+          latitudeDelta: LATITUDE_DELTA,
+          longitudeDelta: LONGITUDE_DELTA,
+        },
+        500
+      );
+      return;
+    }
+
+    // Get current position directly from BackgroundGeolocation
+    try {
+      const location = await BackgroundGeolocation.getCurrentPosition({
+        timeout: 10,
+        maximumAge: 5000,
+        desiredAccuracy: 10,
+        samples: 1,
+      });
+
+      if (location?.coords?.latitude && location?.coords?.longitude) {
+        // Update store with latest location
+        useLocationStore.getState().setLocation({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        });
+
+        userMovedMapRef.current = false;
+        mapRef.current.animateToRegion(
+          {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+            latitudeDelta: LATITUDE_DELTA,
+            longitudeDelta: LONGITUDE_DELTA,
+          },
+          500
+        );
+      }
+    } catch (error) {
+      console.error('Error getting current position:', error);
+      // Fallback to store location
+      const storeLocation = storeState.location;
+      if (storeLocation) {
+        userMovedMapRef.current = false;
+        mapRef.current.animateToRegion(
+          {
+            latitude: storeLocation.latitude,
+            longitude: storeLocation.longitude,
+            latitudeDelta: LATITUDE_DELTA,
+            longitudeDelta: LONGITUDE_DELTA,
+          },
+          500
+        );
+      }
+    }
+  }, []);
 
   const handleMarkerPress = useCallback((place: Place) => {
     setSelectedPlace(place);
@@ -158,18 +211,24 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
   useEffect(() => {
     if (!effectiveLocation || !mapRef.current) return;
 
-    const travelModeChanged = lastUseFakeLocationRef.current !== useFakeLocation;
+    const travelModeChanged =
+      lastUseFakeLocationRef.current !== useFakeLocation;
     const lastLocation = lastLocationRef.current;
     const isFirstLocation = !lastLocation;
-    
-    // Calculate distance in meters (rough approximation: 1 degree ≈ 111km)
-    const distanceChanged = lastLocation ? 
-      Math.sqrt(
-        Math.pow(effectiveLocation.latitude - lastLocation.latitude, 2) +
-        Math.pow(effectiveLocation.longitude - lastLocation.longitude, 2)
-      ) * 111000 > 10 : false;
 
-    const shouldUpdate = travelModeChanged || isFirstLocation || 
+    // Calculate distance in meters (rough approximation: 1 degree ≈ 111km)
+    const distanceChanged = lastLocation
+      ? Math.sqrt(
+          Math.pow(effectiveLocation.latitude - lastLocation.latitude, 2) +
+            Math.pow(effectiveLocation.longitude - lastLocation.longitude, 2)
+        ) *
+          111000 >
+        10
+      : false;
+
+    const shouldUpdate =
+      travelModeChanged ||
+      isFirstLocation ||
       (!userMovedMapRef.current && distanceChanged);
 
     if (shouldUpdate) {
@@ -193,7 +252,12 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
         longitude: effectiveLocation.longitude,
       };
     }
-  }, [effectiveLocation, useFakeLocation, region.latitudeDelta, region.longitudeDelta]);
+  }, [
+    effectiveLocation,
+    useFakeLocation,
+    region.latitudeDelta,
+    region.longitudeDelta,
+  ]);
 
   return (
     <View style={styles.container}>
