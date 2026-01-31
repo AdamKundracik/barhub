@@ -7,274 +7,27 @@ import { UserNavWrapper } from './UserNavWrapper';
 import { useAppInitialization } from '../utils/hooks/useInitializationApp';
 import { useAuth } from '../providers/AuthProvider';
 import { useNetwork } from '../providers/NetworkProvider';
+import { useTokenProtection } from '../utils/hooks/useTokenProtection';
 import { NetworkTopBar } from '../components/shared/NetworkTopBar';
 import { OfflineScreen } from '../screens/shared/OfflineScreen';
-import { tokenManager } from '../utils/api/tokenManager';
-
-// Deep linking configuration for NotVerified navigator
-const notVerifiedLinking = {
-  prefixes: ['https://barhubapp.com', 'https://www.barhubapp.com'],
-  config: {
-    screens: {
-      EmailNotVerified: 'email-not-verified',
-      VerifyEmail: {
-        path: 'verify-email/:token',
-        parse: {
-          token: (token: string) => token,
-        },
-        stringify: {
-          token: (token: string) => token,
-        },
-      },
-      ResetPassword: {
-        path: 'reset-password/:token',
-        parse: {
-          token: (token: string) => token,
-        },
-        stringify: {
-          token: (token: string) => token,
-        },
-      },
-    },
-  },
-};
-
-// Deep linking configuration for Auth navigator
-const authLinking = {
-  prefixes: ['https://barhubapp.com', 'https://www.barhubapp.com'],
-  config: {
-    screens: {
-      Login: 'login',
-      Register: 'register',
-      ForgotPassword: 'forgot-password',
-      ResetPassword: {
-        path: 'reset-password/:token',
-        parse: {
-          token: (token: string) => token,
-        },
-        stringify: {
-          token: (token: string) => token,
-        },
-      },
-      VerifyEmail: {
-        path: 'verify-email/:token',
-        parse: {
-          token: (token: string) => token,
-        },
-        stringify: {
-          token: (token: string) => token,
-        },
-      },
-      PostDetail: {
-        path: 'post/:postId',
-        parse: {
-          postId: (postId: string) => postId,
-        },
-      },
-      UserDetail: {
-        path: 'user/:userId',
-        parse: {
-          userId: (userId: string) => userId,
-        },
-      },
-    },
-  },
-};
-
-// Deep linking configuration for main app
-const mainLinking = {
-  prefixes: ['https://barhubapp.com', 'https://www.barhubapp.com'],
-  config: {
-    screens: {
-      MainTabs: {
-        path: '',
-        screens: {
-          Feed: 'feed',
-          PlaceSearch: 'search',
-          Profile: 'profile',
-        },
-      },
-      PostDetail: {
-        path: 'post/:postId',
-        parse: {
-          postId: (postId: string) => postId,
-        },
-      },
-      UserDetail: {
-        path: 'user/:userId',
-        parse: {
-          userId: (userId: string) => userId,
-        },
-      },
-      VerifyEmail: {
-        path: 'verify-email/:token',
-        parse: {
-          token: (token: string) => token,
-        },
-      },
-      ResetPassword: {
-        path: 'reset-password/:token',
-        parse: {
-          token: (token: string) => token,
-        },
-      },
-      PhotoResolver: 'photo-resolver',
-      PostSummary: 'post-summary',
-      NotificationsList: 'notifications',
-      Info: 'info',
-      AdminPanel: 'admin',
-    },
-  },
-};
+import { notVerifiedLinking, authLinking, mainLinking } from './linking';
 
 export const Navigation = () => {
   const { isAppInitialized } = useAppInitialization();
   const { isAuthenticated, isLoading: isAuthLoading, user } = useAuth();
   const { isConnected, isLoading: isNetworkLoading } = useNetwork();
+  const { shouldShowLoading } = useTokenProtection(isAuthLoading, isAuthenticated);
 
   // Check if email is verified
   const isEmailVerified = user?.emailVerified ?? false;
-
-  // Log isAuthenticated changes in Navigation (only log actual changes)
-  const prevIsAuthenticatedRef = React.useRef<boolean | null>(null);
-  const prevRoutingRef = React.useRef<string | null>(null);
-
-  React.useEffect(() => {
-    const currentRouting = isAuthenticated ? 'UserNavWrapper' : 'AuthNav';
-
-    // Only log if value actually changed
-    if (
-      prevIsAuthenticatedRef.current !== isAuthenticated ||
-      prevRoutingRef.current !== currentRouting
-    ) {
-      prevIsAuthenticatedRef.current = isAuthenticated;
-      prevRoutingRef.current = currentRouting;
-    }
-  }, [
-    isAuthenticated,
-    isAuthLoading,
-    isAppInitialized,
-    isNetworkLoading,
-    isConnected,
-    user,
-  ]);
-
-  // BULLETPROOF PROTECTION: Simplified state management
-  const [protectionState, setProtectionState] = React.useState<{
-    hasTokensInMemory: boolean;
-    hasValidRefreshToken: boolean;
-    initialCheckDone: boolean;
-    networkWaitDone: boolean;
-  }>({
-    hasTokensInMemory: false,
-    hasValidRefreshToken: false,
-    initialCheckDone: false,
-    networkWaitDone: false,
-  });
-
-  // Single effect to handle all token checks
-  React.useEffect(() => {
-    const checkTokenStatus = async () => {
-      try {
-        // Check tokens in memory
-        const hasTokens = tokenManager.hasTokensInMemory();
-
-        // Check refresh token validity (only if no tokens in memory and not authenticated)
-        let hasValidRefresh = false;
-        if (!hasTokens && !isAuthenticated && !isAuthLoading) {
-          try {
-            const refreshToken = await tokenManager.getRefreshToken();
-            hasValidRefresh = !!(
-              refreshToken &&
-              refreshToken !== '' &&
-              !tokenManager.isTokenExpired(refreshToken)
-            );
-          } catch (error) {
-            hasValidRefresh = false;
-          }
-        }
-
-        setProtectionState(prev => ({
-          ...prev,
-          hasTokensInMemory: hasTokens,
-          hasValidRefreshToken: hasValidRefresh,
-        }));
-      } catch (error) {
-        console.error('[Navigation] Error checking token status:', error);
-      }
-    };
-
-    // Check immediately
-    checkTokenStatus();
-
-    // Set up interval only during auth loading
-    let interval: NodeJS.Timeout | null = null;
-    if (isAuthLoading) {
-      interval = setInterval(checkTokenStatus, 100);
-    }
-
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
-  }, [isAuthLoading, isAuthenticated]);
-
-  // Initial check timer
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setProtectionState(prev => ({ ...prev, initialCheckDone: true }));
-    }, 200);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Network wait timer for refresh token scenario
-  React.useEffect(() => {
-    if (protectionState.hasValidRefreshToken) {
-      const timer = setTimeout(() => {
-        setProtectionState(prev => ({ ...prev, networkWaitDone: true }));
-      }, 3000);
-      return () => clearTimeout(timer);
-    } else {
-      setProtectionState(prev => ({ ...prev, networkWaitDone: false }));
-    }
-  }, [protectionState.hasValidRefreshToken]);
 
   // CRITICAL: Wait for all systems AND auth state to be determined
   if (!isAppInitialized || isNetworkLoading || isAuthLoading) {
     return <Loading />;
   }
 
-  // BULLETPROOF PROTECTION: Comprehensive token-based decision logic
-
-  // 1. TOKENS IN MEMORY PROTECTION: If we have tokens but auth check is not complete, wait
-  if (protectionState.hasTokensInMemory && !isAuthenticated && !isAuthLoading) {
-    console.log(
-      '[Navigation] Have tokens in memory but not authenticated yet, waiting...'
-    );
-    return <Loading />;
-  }
-
-  // 2. REFRESH TOKEN PROTECTION: If we have valid refresh token but auth failed, wait for network
-  if (
-    !isAuthenticated &&
-    !isAuthLoading &&
-    protectionState.hasValidRefreshToken &&
-    !protectionState.networkWaitDone
-  ) {
-    console.log(
-      '[Navigation] Valid refresh token detected but auth failed - possible network issue, waiting...'
-    );
-    return <Loading />;
-  }
-
-  // 3. INITIAL CHECK PROTECTION: Brief wait to determine token status
-  if (
-    !isAuthLoading &&
-    !isAuthenticated &&
-    !protectionState.hasTokensInMemory &&
-    !protectionState.initialCheckDone
-  ) {
+  // Token-based protection loading
+  if (shouldShowLoading) {
     return <Loading />;
   }
 
@@ -308,6 +61,7 @@ export const Navigation = () => {
     );
   }
 
+  // Main navigation - authenticated or auth flow
   return (
     <>
       <NetworkTopBar />

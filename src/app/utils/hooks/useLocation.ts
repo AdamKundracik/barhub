@@ -1,10 +1,44 @@
 import { useEffect, useRef } from 'react';
-import { AppState, AppStateStatus } from 'react-native';
+import { AppState, AppStateStatus, Platform } from 'react-native';
 import BackgroundGeolocation from 'react-native-background-geolocation';
+import * as Location from 'expo-location';
 import { useLocationStore } from '../store/locationStore';
 import { tokenManager } from '@/src/app/utils/api/tokenManager';
 import { API_CONFIG, ENDPOINTS } from '@/src/app/config/api';
 import { useUserStore } from '@/src/app/utils/store/userStore';
+import {
+  registerBackgroundLocationTask,
+  unregisterBackgroundLocationTask,
+} from '../backgroundLocationTask';
+
+// Helper function to sync location to backend (used by Android)
+async function syncLocationToBackend(
+  userId: string,
+  latitude: number,
+  longitude: number
+): Promise<void> {
+  try {
+    const token = await tokenManager.getAccessToken();
+    const url = `${API_CONFIG.BASE_URL}${ENDPOINTS.USERS.LOCATION(userId)}`;
+
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ latitude, longitude }),
+    });
+
+    if (response.ok) {
+      console.log('[useLocation] Location synced to backend successfully');
+    } else {
+      console.warn('[useLocation] Failed to sync location:', response.status);
+    }
+  } catch (error) {
+    console.error('[useLocation] Error syncing location:', error);
+  }
+}
 
 export const useLocation = () => {
   const {
@@ -21,8 +55,12 @@ export const useLocation = () => {
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
   const isFetchingPositionRef = useRef(false);
 
-  // 1. Setup plugin - runs ONCE when userId is ready
+  // ============================================
+  // iOS ONLY: Setup react-native-background-geolocation
+  // ============================================
   useEffect(() => {
+    // Skip on Android - we use expo-background-task instead
+    if (Platform.OS !== 'ios') return;
     if (!userId || !initialized) return;
 
     let subs: Array<{ remove: () => void }> = [];
@@ -32,7 +70,6 @@ export const useLocation = () => {
       const url = `${API_CONFIG.BASE_URL}${ENDPOINTS.USERS.LOCATION(userId)}`;
 
       // Location listener - only save location for explicit requests (getCurrentPosition)
-      // Background location updates are ignored - we only care when user stops
       subs.push(
         BackgroundGeolocation.onLocation(event => {
           if (!event.coords) return;
@@ -40,15 +77,14 @@ export const useLocation = () => {
           // Skip intermediate samples - wait for final accurate location
           if (event.sample) {
             console.log(
-              '[useLocation] Skipping sample location, waiting for final...'
+              '[useLocation:iOS] Skipping sample location, waiting for final...'
             );
             return;
           }
 
           // Only save location if we explicitly requested it (getCurrentPosition)
-          // This handles: foreground refresh, toggle fake location
           if (isFetchingPositionRef.current) {
-            console.log('[useLocation] Explicit request - saving location:', {
+            console.log('[useLocation:iOS] Explicit request - saving location:', {
               latitude: event.coords.latitude,
               longitude: event.coords.longitude,
               accuracy: event.coords.accuracy,
@@ -62,35 +98,31 @@ export const useLocation = () => {
             isFetchingPositionRef.current = false;
             setIsLocationLoading(false);
           }
-          // Background updates during movement are ignored
         })
       );
 
       // Motion change listener - save location when user STOPS moving
-      // This is the main trigger for location updates in background
       subs.push(
         BackgroundGeolocation.onMotionChange(event => {
-          console.log('[useLocation] Motion change:', {
+          console.log('[useLocation:iOS] Motion change:', {
             isMoving: event.isMoving,
             location: event.location?.coords,
           });
 
           if (!event.isMoving) {
-            // User stopped moving - request a fresh, accurate GPS fix
-            // The event.location might be stale (last recorded during movement)
             console.log(
-              '[useLocation] User stopped - requesting fresh location...'
+              '[useLocation:iOS] User stopped - requesting fresh location...'
             );
 
             BackgroundGeolocation.getCurrentPosition({
               samples: 3,
               persist: true,
               timeout: 30,
-              maximumAge: 0, // Force fresh location, no cache
-              desiredAccuracy: 10, // 10m accuracy requirement
+              maximumAge: 0,
+              desiredAccuracy: 10,
             })
               .then(location => {
-                console.log('[useLocation] Fresh stationary location:', {
+                console.log('[useLocation:iOS] Fresh stationary location:', {
                   latitude: location.coords.latitude,
                   longitude: location.coords.longitude,
                   accuracy: location.coords.accuracy,
@@ -101,9 +133,8 @@ export const useLocation = () => {
                 });
               })
               .catch(err => {
-                // Fallback to the event location if getCurrentPosition fails
                 console.warn(
-                  '[useLocation] Failed to get fresh location, using event location:',
+                  '[useLocation:iOS] Failed to get fresh location, using event location:',
                   err
                 );
                 if (event.location?.coords) {
@@ -117,13 +148,11 @@ export const useLocation = () => {
         })
       );
 
-      // Activity change listener - log activity changes for debugging
-      // Note: We let the plugin manage motion state automatically via its built-in
-      // elasticity (distanceFilter increases at higher speeds) for better battery efficiency
+      // Activity change listener
       subs.push(
         BackgroundGeolocation.onActivityChange(event => {
           console.log(
-            '[useLocation] Activity changed:',
+            '[useLocation:iOS] Activity changed:',
             event.activity,
             event.confidence
           );
@@ -146,14 +175,14 @@ export const useLocation = () => {
         maxRecordsToPersist: 50,
         disableLocationAuthorizationAlert: true,
         desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_NAVIGATION,
-        distanceFilter: 5, // Record location every 5m for better accuracy when entering stationary
-        stopTimeout: 2, // 2 minutes of stillness before entering stationary state
+        distanceFilter: 5,
+        stopTimeout: 2,
         stopOnTerminate: false,
         startOnBoot: true,
-        enableHeadless: true, // Android: allows background service to continue when app is killed
+        enableHeadless: true,
         showsBackgroundLocationIndicator: false,
-        debug: false, // Enable sounds and notifications for location events
-        logLevel: BackgroundGeolocation.LOG_LEVEL_OFF, // Verbose logging
+        debug: false,
+        logLevel: BackgroundGeolocation.LOG_LEVEL_OFF,
       });
     };
 
@@ -162,36 +191,92 @@ export const useLocation = () => {
     return () => subs.forEach(s => s.remove());
   }, [userId, initialized, setLocation]);
 
-  // 2. Toggle tracking based on fake location
+  // ============================================
+  // Toggle tracking based on fake location
+  // ============================================
   useEffect(() => {
     if (!initialized) return;
 
     const toggle = async () => {
       if (useFakeLocation) {
-        console.log('[useLocation] Fake location ON, using:', fakeLocation);
+        console.log(`[useLocation:${Platform.OS}] Fake location ON, using:`, fakeLocation);
         isFetchingPositionRef.current = false;
         setIsLocationLoading(false);
-        await BackgroundGeolocation.stop();
+
+        if (Platform.OS === 'ios') {
+          // iOS: Stop BackgroundGeolocation
+          await BackgroundGeolocation.stop();
+        } else {
+          // Android: Unregister background task
+          await unregisterBackgroundLocationTask();
+        }
+
         if (fakeLocation) setLocation(fakeLocation);
       } else {
-        console.log('[useLocation] Fake location OFF, starting real tracking');
-        // Set loading state BEFORE requesting position
+        console.log(`[useLocation:${Platform.OS}] Fake location OFF, starting real tracking`);
         isFetchingPositionRef.current = true;
         setIsLocationLoading(true);
 
-        await BackgroundGeolocation.start();
-        // Request fresh location - result delivered via onLocation listener
-        BackgroundGeolocation.getCurrentPosition({
-          samples: 3, // Multiple samples for better accuracy
-          persist: true,
-          timeout: 15,
-          maximumAge: 10000, // Only accept cached if < 10s old
-          desiredAccuracy: 20, // 20m accuracy
-        }).catch(err => {
-          console.warn('[useLocation] getCurrentPosition failed:', err);
-          isFetchingPositionRef.current = false;
-          setIsLocationLoading(false);
-        });
+        if (Platform.OS === 'ios') {
+          // iOS: Start BackgroundGeolocation
+          await BackgroundGeolocation.start();
+          BackgroundGeolocation.getCurrentPosition({
+            samples: 3,
+            persist: true,
+            timeout: 15,
+            maximumAge: 10000,
+            desiredAccuracy: 20,
+          }).catch(err => {
+            console.warn('[useLocation:iOS] getCurrentPosition failed:', err);
+            isFetchingPositionRef.current = false;
+            setIsLocationLoading(false);
+          });
+        } else {
+          // Android: Use expo-location + expo-background-task
+          try {
+            // Request permissions if not granted
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+              console.warn('[useLocation:Android] Location permission not granted');
+              isFetchingPositionRef.current = false;
+              setIsLocationLoading(false);
+              return;
+            }
+
+            // Get current location
+            const currentLocation = await Location.getCurrentPositionAsync({
+              accuracy: Location.Accuracy.High,
+            });
+
+            console.log('[useLocation:Android] Got location:', {
+              latitude: currentLocation.coords.latitude,
+              longitude: currentLocation.coords.longitude,
+              accuracy: currentLocation.coords.accuracy,
+            });
+
+            setLocation({
+              latitude: currentLocation.coords.latitude,
+              longitude: currentLocation.coords.longitude,
+            });
+
+            // Sync to backend
+            if (userId) {
+              await syncLocationToBackend(
+                userId,
+                currentLocation.coords.latitude,
+                currentLocation.coords.longitude
+              );
+            }
+
+            // Register background task for periodic updates
+            await registerBackgroundLocationTask();
+          } catch (error) {
+            console.warn('[useLocation:Android] Failed to get location:', error);
+          } finally {
+            isFetchingPositionRef.current = false;
+            setIsLocationLoading(false);
+          }
+        }
       }
     };
 
@@ -202,35 +287,71 @@ export const useLocation = () => {
     initialized,
     setLocation,
     setIsLocationLoading,
+    userId,
   ]);
 
-  // 3. Foreground refresh
+  // ============================================
+  // Foreground refresh when app becomes active
+  // ============================================
   useEffect(() => {
-    const handleAppState = (next: AppStateStatus) => {
+    const handleAppState = async (next: AppStateStatus) => {
       const wasBackground = appStateRef.current.match(/inactive|background/);
       appStateRef.current = next;
 
       if (wasBackground && next === 'active' && !useFakeLocation) {
-        // Set loading state for foreground refresh
         isFetchingPositionRef.current = true;
         setIsLocationLoading(true);
 
-        BackgroundGeolocation.getCurrentPosition({
-          samples: 3,
-          persist: true, // Also sync to server
-          timeout: 30,
-          maximumAge: 0, // Force fresh location, no cache
-          desiredAccuracy: 15,
-        }).catch(() => {
-          isFetchingPositionRef.current = false;
-          setIsLocationLoading(false);
-        });
+        if (Platform.OS === 'ios') {
+          // iOS: Use BackgroundGeolocation
+          BackgroundGeolocation.getCurrentPosition({
+            samples: 3,
+            persist: true,
+            timeout: 30,
+            maximumAge: 0,
+            desiredAccuracy: 15,
+          }).catch(() => {
+            isFetchingPositionRef.current = false;
+            setIsLocationLoading(false);
+          });
+        } else {
+          // Android: Use expo-location
+          try {
+            const currentLocation = await Location.getCurrentPositionAsync({
+              accuracy: Location.Accuracy.High,
+            });
+
+            console.log('[useLocation:Android] Foreground refresh - got location:', {
+              latitude: currentLocation.coords.latitude,
+              longitude: currentLocation.coords.longitude,
+            });
+
+            setLocation({
+              latitude: currentLocation.coords.latitude,
+              longitude: currentLocation.coords.longitude,
+            });
+
+            // Sync to backend
+            if (userId) {
+              await syncLocationToBackend(
+                userId,
+                currentLocation.coords.latitude,
+                currentLocation.coords.longitude
+              );
+            }
+          } catch (error) {
+            console.warn('[useLocation:Android] Foreground refresh failed:', error);
+          } finally {
+            isFetchingPositionRef.current = false;
+            setIsLocationLoading(false);
+          }
+        }
       }
     };
 
     const sub = AppState.addEventListener('change', handleAppState);
     return () => sub.remove();
-  }, [useFakeLocation, setIsLocationLoading]);
+  }, [useFakeLocation, setIsLocationLoading, setLocation, userId]);
 
   return { location, useFakeLocation, isLocationLoading };
 };
