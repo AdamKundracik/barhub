@@ -2,8 +2,7 @@ import { registerRootComponent } from 'expo';
 
 import App from './App';
 
-// Import background task to ensure it's defined in global scope (Android only)
-// This must be imported before the app is registered
+// Import background task (Android) - must be before app registration
 import './src/app/utils/backgroundLocationTask';
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);

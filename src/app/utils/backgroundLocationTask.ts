@@ -1,209 +1,87 @@
-import { Platform } from 'react-native';
+/**
+ * Android Background Location Task
+ * Uses expo-background-task (WorkManager) - runs every 15+ minutes
+ */
 import * as BackgroundTask from 'expo-background-task';
 import * as TaskManager from 'expo-task-manager';
 import * as Location from 'expo-location';
+import { Platform } from 'react-native';
 import { useLocationStore } from './store/locationStore';
+import { useUserStore } from './store/userStore';
 import { tokenManager } from './api/tokenManager';
 import { API_CONFIG, ENDPOINTS } from '../config/api';
-import { useUserStore } from './store/userStore';
 
-export const BACKGROUND_LOCATION_TASK = 'background-location-task';
+export const BACKGROUND_TASK_NAME = 'background-location-task';
 
-// Define the background task in the global scope (required by expo-task-manager)
-// This runs when the system triggers the background task on Android
+// Define task (Android only)
 if (Platform.OS === 'android') {
-  TaskManager.defineTask(BACKGROUND_LOCATION_TASK, async () => {
+  TaskManager.defineTask(BACKGROUND_TASK_NAME, async () => {
+    console.log('[BG Task] Triggered:', new Date().toISOString());
+
     try {
-      console.log(
-        `[BackgroundLocationTask] Task triggered at: ${new Date().toISOString()}`
-      );
-
-      const locationStore = useLocationStore.getState();
-
-      // Skip if using fake location
-      if (locationStore.useFakeLocation) {
-        console.log(
-          '[BackgroundLocationTask] Using fake location, skipping GPS fetch'
-        );
+      // Skip if fake location
+      if (useLocationStore.getState().useFakeLocation) {
         return BackgroundTask.BackgroundTaskResult.Success;
       }
 
-      // Check location permissions
-      const { status } = await Location.getForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        console.log(
-          '[BackgroundLocationTask] Location permission not granted'
-        );
-        return BackgroundTask.BackgroundTaskResult.Failed;
-      }
-
-      // Get current location
-      const location = await Location.getCurrentPositionAsync({
+      // Get location
+      const { coords } = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.High,
-        timeInterval: 10000,
-        distanceInterval: 0,
       });
 
-      console.log('[BackgroundLocationTask] Got location:', {
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-        accuracy: location.coords.accuracy,
-      });
+      console.log('[BG Task] Location:', coords.latitude, coords.longitude);
 
-      // Update local store
-      locationStore.setLocation({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
+      // Update store
+      useLocationStore.getState().setLocation({
+        latitude: coords.latitude,
+        longitude: coords.longitude,
       });
 
       // Sync to backend
-      const userId = useUserStore.getState().getUserId();
+      const userId = useUserStore.getState().userData?.id?.toString();
       if (userId) {
-        try {
-          const token = await tokenManager.getAccessToken();
-          const url = `${API_CONFIG.BASE_URL}${ENDPOINTS.USERS.LOCATION(userId)}`;
-
-          const response = await fetch(url, {
-            method: 'PATCH',
-            headers: {
-              ...(token && { Authorization: `Bearer ${token}` }),
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              latitude: location.coords.latitude,
-              longitude: location.coords.longitude,
-            }),
-          });
-
-          if (response.ok) {
-            console.log(
-              '[BackgroundLocationTask] Location synced to backend successfully'
-            );
-          } else {
-            console.warn(
-              '[BackgroundLocationTask] Failed to sync location:',
-              response.status
-            );
-          }
-        } catch (error) {
-          console.error(
-            '[BackgroundLocationTask] Error syncing location:',
-            error
-          );
-        }
+        const token = await tokenManager.getAccessToken();
+        await fetch(`${API_CONFIG.BASE_URL}${ENDPOINTS.USERS.LOCATION(userId)}`, {
+          method: 'PATCH',
+          headers: {
+            ...(token && { Authorization: `Bearer ${token}` }),
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+          }),
+        });
       }
 
       return BackgroundTask.BackgroundTaskResult.Success;
     } catch (error) {
-      console.error('[BackgroundLocationTask] Task failed:', error);
+      console.error('[BG Task] Error:', error);
       return BackgroundTask.BackgroundTaskResult.Failed;
     }
   });
 }
 
-// Register the background task
-export async function registerBackgroundLocationTask(): Promise<void> {
-  if (Platform.OS !== 'android') {
-    console.log(
-      '[BackgroundLocationTask] Skipping registration - not Android'
-    );
-    return;
-  }
+// Register task
+export async function registerBackgroundTask() {
+  if (Platform.OS !== 'android') return;
 
-  try {
-    const isRegistered = await TaskManager.isTaskRegisteredAsync(
-      BACKGROUND_LOCATION_TASK
-    );
+  const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_TASK_NAME);
+  if (isRegistered) return;
 
-    if (isRegistered) {
-      console.log('[BackgroundLocationTask] Task already registered');
-      return;
-    }
-
-    await BackgroundTask.registerTaskAsync(BACKGROUND_LOCATION_TASK, {
-      minimumInterval: 15, // Minimum 15 minutes (Android WorkManager minimum)
-    });
-
-    console.log('[BackgroundLocationTask] Task registered successfully');
-  } catch (error) {
-    console.error('[BackgroundLocationTask] Failed to register task:', error);
-  }
+  await BackgroundTask.registerTaskAsync(BACKGROUND_TASK_NAME, {
+    minimumInterval: 15,
+  });
+  console.log('[BG Task] Registered');
 }
 
-// Unregister the background task
-export async function unregisterBackgroundLocationTask(): Promise<void> {
-  if (Platform.OS !== 'android') {
-    return;
-  }
+// Unregister task
+export async function unregisterBackgroundTask() {
+  if (Platform.OS !== 'android') return;
 
-  try {
-    const isRegistered = await TaskManager.isTaskRegisteredAsync(
-      BACKGROUND_LOCATION_TASK
-    );
+  const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_TASK_NAME);
+  if (!isRegistered) return;
 
-    if (!isRegistered) {
-      console.log('[BackgroundLocationTask] Task not registered');
-      return;
-    }
-
-    await BackgroundTask.unregisterTaskAsync(BACKGROUND_LOCATION_TASK);
-    console.log('[BackgroundLocationTask] Task unregistered successfully');
-  } catch (error) {
-    console.error(
-      '[BackgroundLocationTask] Failed to unregister task:',
-      error
-    );
-  }
-}
-
-// Get the status of background tasks
-export async function getBackgroundTaskStatus(): Promise<BackgroundTask.BackgroundTaskStatus | null> {
-  if (Platform.OS !== 'android') {
-    return null;
-  }
-
-  try {
-    return await BackgroundTask.getStatusAsync();
-  } catch (error) {
-    console.error(
-      '[BackgroundLocationTask] Failed to get status:',
-      error
-    );
-    return null;
-  }
-}
-
-// Check if the task is registered
-export async function isBackgroundLocationTaskRegistered(): Promise<boolean> {
-  if (Platform.OS !== 'android') {
-    return false;
-  }
-
-  try {
-    return await TaskManager.isTaskRegisteredAsync(BACKGROUND_LOCATION_TASK);
-  } catch (error) {
-    console.error(
-      '[BackgroundLocationTask] Failed to check registration:',
-      error
-    );
-    return false;
-  }
-}
-
-// Trigger the task manually for testing (only works in development)
-export async function triggerBackgroundTaskForTesting(): Promise<void> {
-  if (Platform.OS !== 'android') {
-    console.log('[BackgroundLocationTask] Testing only available on Android');
-    return;
-  }
-
-  try {
-    await BackgroundTask.triggerTaskWorkerForTestingAsync();
-    console.log('[BackgroundLocationTask] Test trigger sent');
-  } catch (error) {
-    console.error(
-      '[BackgroundLocationTask] Failed to trigger test:',
-      error
-    );
-  }
+  await BackgroundTask.unregisterTaskAsync(BACKGROUND_TASK_NAME);
+  console.log('[BG Task] Unregistered');
 }
