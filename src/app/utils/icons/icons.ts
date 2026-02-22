@@ -72,6 +72,7 @@ import {
   faUsers,
   faWifi,
   faX,
+  faMailForward,
 } from '@fortawesome/free-solid-svg-icons';
 import {
   faComment,
@@ -163,4 +164,5 @@ export const Icons = {
   Clock: faClock,
   TimesCircle: faTimesCircle,
   TrendingUp: faArrowTrendUp,
+  Debug: faMailForward,
 };

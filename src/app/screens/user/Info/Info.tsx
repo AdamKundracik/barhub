@@ -117,19 +117,6 @@ const InfoScreen = () => {
             color={'white'}
           />
         </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.infoLink}
-          onPress={() => navigation.navigate('DebugLogs')}
-        >
-          <Text style={styles.infoText}>Debug Logs</Text>
-          <FontAwesomeIcon
-            style={{ alignSelf: 'center' }}
-            icon={Icons.ChevronRight}
-            size={16}
-            color={'white'}
-          />
-        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );

@@ -10,11 +10,13 @@ interface LocationStore {
   useFakeLocation: boolean;
   fakeLocationName: string;
   initialized: boolean;
+  isLocationLoading: boolean;
   setLocation: (loc: LocationType) => void;
   setFakeLocation: (location: LocationType) => void;
   setUseFakeLocation: (val: boolean) => void;
   setFakeLocationName: (name: string) => void;
   setInitialized: (val: boolean) => void;
+  setIsLocationLoading: (val: boolean) => void;
 }
 
 // ✅ Jednoduchší store
@@ -25,8 +27,10 @@ export const useLocationStore = create<LocationStore>()(
     useFakeLocation: false,
     fakeLocationName: '',
     initialized: false,
+    isLocationLoading: false,
 
     setLocation: (loc: LocationType) => {
+      console.log('loc', loc);
       set({ location: loc });
     },
     setFakeLocation: (location: LocationType) => {
@@ -39,6 +43,7 @@ export const useLocationStore = create<LocationStore>()(
       set({ fakeLocationName: name });
     },
     setInitialized: (val: boolean) => set({ initialized: val }),
+    setIsLocationLoading: (val: boolean) => set({ isLocationLoading: val }),
   }))
 );
 
@@ -49,17 +54,22 @@ useLocationStore.subscribe(
     if (newVal !== prevVal) {
       // Update local store
       useNewUserStore.getState().updateUserData({ usingFakeLocation: newVal });
-      
+
       // Update backend using new userService
       const newUserStore = useNewUserStore.getState();
       const userId = newUserStore.getUserId();
-      
+
       if (userId) {
         try {
           await userService.updateUser(userId, { usingFakeLocation: newVal });
-          console.log('[LocationStore] Fake location preference updated successfully in backend');
+          console.log(
+            '[LocationStore] Fake location preference updated successfully in backend'
+          );
         } catch (error) {
-          console.error('[LocationStore] Error updating fake location preference in backend:', error);
+          console.error(
+            '[LocationStore] Error updating fake location preference in backend:',
+            error
+          );
         }
       }
     }
@@ -69,34 +79,29 @@ useLocationStore.subscribe(
 useLocationStore.subscribe(
   state => state.location,
   async (newVal, prevVal) => {
-    if (newVal !== prevVal && newVal) {
-      // console.log(
-      //   '[LocationStore] Location changed, updating backend:',
-      //   newVal
-      // );
+    console.log('[LocationStore] Location changed, updating backend:', newVal);
 
-      // Update new user store (for new system)
-      const newUserStore = useNewUserStore.getState();
-      const userId = newUserStore.getUserId();
+    // Update new user store (for new system)
+    const newUserStore = useNewUserStore.getState();
+    const userId = newUserStore.getUserId();
 
-      if (userId) {
-        try {
-          // Update backend with new location API
-          await userService.updateLocation(userId, {
-            latitude: newVal.latitude,
-            longitude: newVal.longitude,
-          });
-          // console.log(
-          //   '[LocationStore] Location updated successfully in backend'
-          // );
-        } catch (error) {
-          console.error(
-            '[LocationStore] Error updating location in backend:',
-            error
-          );
-        }
-      }
-    }
+    // if (userId) {
+    //   try {
+    //     // Update backend with new location API
+    //     await userService.updateLocation(userId, {
+    //       latitude: newVal.latitude,
+    //       longitude: newVal.longitude,
+    //     });
+    //     // console.log(
+    //     //   '[LocationStore] Location updated successfully in backend'
+    //     // );
+    //   } catch (error) {
+    //     console.error(
+    //       '[LocationStore] Error updating location in backend:',
+    //       error
+    //     );
+    //   }
+    // }
   }
 );
 

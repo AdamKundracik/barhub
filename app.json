@@ -1,12 +1,19 @@
 {
   "expo": {
     "name": "Barhub",
-    "slug": "barhub-app",
-    "version": "1.2.0",
+    "slug": "baruj-app",
+    "version": "1.2.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "scheme": "barhubapp",
+    "linking": {
+      "prefixes": [
+        "https://barhubapp.com",
+        "https://www.barhubapp.com"
+      ]
+    },
+    "entryPoint": "./index.js",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -101,7 +108,7 @@
     },
     "android": {
       "config": {
-        "googleMaps": {
+        "googleMapApiKey": {
           "apiKey": "AIzaSyAMoNX-aQzrjpnZ0KjYegeyhV47C8rRBVU"
         }
       },
@@ -199,9 +206,9 @@
         "expo-build-properties",
         {
           "android": {
-            "compileSdkVersion": 34,
-            "targetSdkVersion": 34,
-            "buildToolsVersion": "34.0.0",
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "buildToolsVersion": "35.0.0",
             "minSdkVersion": 24
           },
           "ios": {
@@ -294,7 +301,8 @@
       ],
       "expo-web-browser",
       "expo-mail-composer",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-background-task"
     ],
     "extra": {
       "eas": {

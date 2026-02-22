@@ -268,17 +268,16 @@ export default BottomTabs;
 
 const styles = StyleSheet.create({
   tabBar: {
-    // paddingTop: Platform.OS === 'ios' ? 8 : 5,
-    // paddingBottom: Platform.OS === 'ios' ? 5 : 5,
     position: 'absolute',
-    borderRadius: 20,
+    borderTopStartRadius: 20,
+    borderTopEndRadius: 20,
     overflow: 'hidden',
     borderTopWidth: 0,
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(7,5,5,0.5)',
   },
   blurBackground: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(7,5,5,0.15)',
+    backgroundColor: 'rgba(7,5,5,0.5)',
   },
   cameraButton: {
     width: 50,

@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useInfiniteQuery, useQueryClient } from 'react-query';
 import { handleFreshContent } from '../../functions/posts-functions';
 import { useFiltersStore } from '../../store/filtersStorage';
@@ -10,7 +10,7 @@ import { useUserStore } from '../../store/userStore';
 export const useNewsFeedData = () => {
   const { distance, selectedPlaces, selectedOccupancy, showHighlightedPosts } =
     useFiltersStore();
-  const { location, fakeLocation, useFakeLocation } = useLocationStore();
+  const { location, fakeLocation, useFakeLocation, isLocationLoading } = useLocationStore();
   const { placeId } = usePlaceStore();
   const { isAuthenticated } = useAuth();
   const userId = useUserStore(state => state.getUserId());
@@ -18,39 +18,23 @@ export const useNewsFeedData = () => {
 
   const currentLocation = useFakeLocation ? fakeLocation : location;
 
-  // Round GPS coordinates to 4 decimal places (~11 meters precision)
-  // This prevents query key from changing on tiny location updates
-  const roundedLat = currentLocation?.latitude
-    ? Math.round(currentLocation.latitude * 10000) / 10000
-    : null;
-  const roundedLong = currentLocation?.longitude
-    ? Math.round(currentLocation.longitude * 10000) / 10000
-    : null;
-
+  // Query key už nezahŕňa polohu – zmena polohy sama o sebe nespustí refetch.
+  // Data sa refetchnú:
+  // - pri manuálnom pull-to-refresh / forceRefetch
+  // - pri zmene filtrov/placeId
+  // - keď expiroje staleTime (2 min)
   const queryKey = placeId
-    ? [
-        'posts',
-        placeId,
-        roundedLat,
-        roundedLong,
-        distance,
-        selectedPlaces,
-        selectedOccupancy,
-      ]
-    : [
-        'posts',
-        roundedLat,
-        roundedLong,
-        distance,
-        selectedPlaces,
-        selectedOccupancy,
-      ];
+    ? ['posts', placeId, distance, selectedPlaces, selectedOccupancy]
+    : ['posts', distance, selectedPlaces, selectedOccupancy];
+
+  // Check if we're waiting for location (no location OR actively fetching)
+  const isWaitingForLocation = !currentLocation || isLocationLoading;
 
   const {
     data: postsData,
     isFetchingNextPage,
     fetchNextPage,
-    isLoading,
+    isLoading: isQueryLoading,
     hasNextPage,
     refetch,
     isRefetching,
@@ -69,12 +53,18 @@ export const useNewsFeedData = () => {
     {
       getNextPageParam: lastPage => lastPage?.lastVisible || null, // lastVisible is mapped from nextCursor
       enabled: !!currentLocation && isAuthenticated && !!userId, // Wait for location, authentication, and userId to be available
-      refetchOnWindowFocus: false, // Don't refetch when app comes to foreground
-      refetchOnMount: 'always', // Always refetch on mount for fresh data after app refresh
-      staleTime: 30 * 1000, // 30 seconds - shorter for fresher data
-      cacheTime: 5 * 60 * 1000, // 5 minutes - shorter cache time
-      refetchInterval: false, // DISABLED: Prevent automatic refetching that can cause refresh loops
-      refetchOnReconnect: true, // Refetch when network reconnects
+      // Plne manuálny režim refetchu pre feed:
+      // - žiadny auto-refresh pri návrate do appky
+      // - žiadny auto-refresh pri reconnecte siete
+      // - žiadny auto-refresh pri mount-e
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      refetchInterval: false,
+      // Cache iba určuje, ako dlho sú dáta "platné" v pamäti/persistencii,
+      // ale refetch sa spúšťa už len manuálne alebo cez invalidateQueries.
+      staleTime: 2 * 60 * 1000, // 2 minutes - data considered fresh
+      cacheTime: 5 * 60 * 1000, // 5 minutes - cache lifetime
     }
   );
 
@@ -127,6 +117,14 @@ export const useNewsFeedData = () => {
     // Then refetch
     await refetch();
   };
+
+  // Show loading len pri úplne prvom loade (keď ešte nemáme žiadne posty).
+  // Pri ďalších návratoch do appky už loader neskáče, aj keď sa refreshuje lokácia.
+  const hasAnyPosts =
+    !!postsData?.pages &&
+    postsData.pages.some(page => Array.isArray(page.posts) && page.posts.length > 0);
+
+  const isLoading = (isQueryLoading || isWaitingForLocation) && !hasAnyPosts;
 
   return {
     posts,

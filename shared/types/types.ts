@@ -54,9 +54,3 @@ export interface UserInfo {
   expoPushToken?: string;
   role?: 'USER' | 'MODERATOR' | 'ADMIN';
 }
-
-// Legacy type - use Post from @/common/types/postTypes instead
-export interface PostUrlExtended {
-  url: string;
-  // ... extends Post properties
-}
