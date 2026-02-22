@@ -18,10 +18,6 @@ import {
 
 type Coords = { latitude: number; longitude: number };
 
-BackgroundGeolocation.getLog(log => {
-  console.log('[BGGeo] Log:', log);
-});
-
 // Sync location to backend
 async function syncToBackend(userId: string, coords: Coords) {
   const token = await tokenManager.getAccessToken();
@@ -58,6 +54,7 @@ export function useLocation() {
 
     const setup = async () => {
       const token = await tokenManager.getAccessToken();
+      const refreshToken = await tokenManager.getRefreshToken();
 
       subs.current.push(
         BackgroundGeolocation.onLocation(e => {
@@ -75,29 +72,106 @@ export function useLocation() {
               longitude: e.location.coords.longitude,
             });
           }
+        }),
+
+        // Poslúchaj authorization events (token refresh)
+        BackgroundGeolocation.onAuthorization(async event => {
+          if (event.success) {
+            console.log('[BGGeo] Authorization success - token refreshed');
+
+            try {
+              // BackgroundGeolocation JWT strategy returns refreshed tokens
+              // Try to extract them from the event payload and sync with our TokenManager
+              const anyEvent: any = event;
+              const source =
+                anyEvent.response || anyEvent.data || anyEvent || {};
+
+              const newAccessToken =
+                source.accessToken || source.token || source.jwt;
+              const newRefreshToken = source.refreshToken;
+
+              if (newAccessToken && newRefreshToken) {
+                // 1) Ulož nové tokeny do nášho TokenManagera / SecureStore
+                await tokenManager.setTokens(newAccessToken, newRefreshToken);
+                console.log(
+                  '[BGGeo] Synced refreshed tokens to TokenManager / SecureStore'
+                );
+
+                // 2) Uprav aj konfiguráciu BackgroundGeolocation, aby ďalší refresh
+                // používal už ROTOVANÝ refreshToken z backendu (inak by posielal starý)
+                await BackgroundGeolocation.setConfig({
+                  authorization: {
+                    strategy: 'JWT',
+                    accessToken: newAccessToken,
+                    refreshToken: newRefreshToken,
+                  },
+                });
+                console.log(
+                  '[BGGeo] Updated BackgroundGeolocation authorization config with refreshed tokens'
+                );
+              } else {
+                console.log(
+                  '[BGGeo] Authorization event success but no tokens found in response payload'
+                );
+              }
+            } catch (err) {
+              console.error(
+                '[BGGeo] Failed to sync refreshed tokens from authorization event:',
+                err
+              );
+            }
+          } else {
+            console.error(
+              '[BGGeo] Authorization failure:',
+              (event as any).error
+            );
+            // TODO: Možno presmerovať na login ak refresh zlyhal
+          }
+        }),
+
+        // Poslúchaj HTTP response events
+        BackgroundGeolocation.onHttp(event => {
+          if (event.success) {
+            console.log('[BGGeo] HTTP success:', event.status);
+          } else {
+            console.error(
+              '[BGGeo] HTTP error:',
+              event.status,
+              event.responseText
+            );
+          }
         })
       );
 
       await BackgroundGeolocation.ready({
         url: `${API_CONFIG.BASE_URL}${ENDPOINTS.USERS.LOCATION(userId)}`,
         method: 'PATCH' as any,
-        headers: {
-          ...(token && { Authorization: `Bearer ${token}` }),
-          'Content-Type': 'application/json',
-        },
         locationTemplate:
           '{"latitude":<%= latitude %>,"longitude":<%= longitude %>}',
         httpRootProperty: '.',
         autoSync: true,
         desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
-        distanceFilter: 50,
+        distanceFilter: 20,
         stopTimeout: 5,
         stopOnTerminate: false,
         startOnBoot: true,
         enableHeadless: true,
         showsBackgroundLocationIndicator: false,
         debug: false,
-        logLevel: BackgroundGeolocation.LOG_LEVEL_OFF,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        logLevel: BackgroundGeolocation.LOG_LEVEL_VERBOSE,
+        authorization: {
+          strategy: 'JWT',
+          accessToken: token || '',
+          refreshToken: refreshToken || '',
+          refreshUrl: `${API_CONFIG.BASE_URL}${ENDPOINTS.AUTH.REFRESH}`,
+          refreshPayload: {
+            refreshToken: '{refreshToken}',
+          },
+          expires: -1, // Nech server rozhodne cez HTTP 401
+        },
       });
     };
 

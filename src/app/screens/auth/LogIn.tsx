@@ -117,215 +117,213 @@ export const LogIn = ({ navigation }: any) => {
         </Svg>
 
         <KeyboardAvoidingView
-        style={styles.content}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-      >
-        <View style={styles.mainContent}>
-          <View style={styles.authPageContainer}>
-            {/* Logo */}
-            <Center style={styles.logoContainer}>
-              <Svg width="348" height="90" viewBox="0 0 348 90" fill="none">
-                <Path
-                  d="M35.2971 84.4969L35.297 90.0009L0.225006 90L0.22514 84.496L35.2971 84.4969ZM125.718 84.4991L125.718 90.0031L35.35 90.0009L35.3501 84.4969L47.7661 84.4972L47.7682 0.529183L82.5842 0.530033C88.6429 0.530181 93.8482 1.25564 98.2001 2.70642C102.637 4.15719 105.923 6.11994 108.056 8.59466C112.152 13.2028 114.2 18.4081 114.2 24.2108C114.199 31.2081 111.981 36.4134 107.543 39.8266C105.922 41.0213 104.813 41.7892 104.215 42.1306C103.618 42.3866 102.551 42.8559 101.015 43.5385C106.562 44.7333 110.956 47.2507 114.199 51.0908C117.527 54.8456 119.191 59.5389 119.191 65.1709C119.19 73.6189 115.862 80.0615 109.206 84.4987L125.718 84.4991ZM62.8703 76.0496L86.5503 76.0501C92.097 76.0503 96.321 75.197 99.2224 73.4904C102.209 71.6985 103.703 68.3706 103.703 63.5066C103.703 55.5706 97.3456 51.6024 84.6309 51.6021L62.8709 51.6016L62.8703 76.0496ZM62.8713 37.6496L82.0713 37.65C92.994 37.6503 98.4554 33.9384 98.4556 26.5144C98.4557 22.2478 97.1331 19.1757 94.4878 17.2983C91.8425 15.4209 87.7465 14.4822 82.1999 14.482L62.8719 14.4816L62.8713 37.6496ZM232.117 84.5017L232.117 90.0057L203.573 90.005L194.614 69.6528L149.814 69.6517L140.853 90.0035L112.309 90.0028L112.309 84.4988L127.157 84.4991L164.151 0.532025L180.279 0.532419L217.269 84.5013L232.117 84.5017ZM188.47 55.7006L172.215 18.8362L155.958 55.6998L188.47 55.7006ZM316.109 84.5037L316.109 90.0077L288.461 90.0071L267.086 59.9265L247.246 59.9261L247.245 90.0061L219.725 90.0054L219.725 84.5014L232.141 84.5017L232.143 0.533685L265.423 0.534498C279.077 0.534831 288.847 2.83907 294.735 7.44722C300.623 12.0554 303.567 19.4368 303.566 29.5914C303.566 44.3541 297.123 53.6553 284.238 57.495L303.693 84.5034L316.109 84.5037ZM266.062 46.2305C274.595 46.2307 280.398 44.9082 283.47 42.2629C286.542 39.6177 288.078 35.3937 288.078 29.5911C288.079 23.7031 286.5 19.6924 283.343 17.5589C280.185 15.3402 274.554 14.2307 266.447 14.2305L247.247 14.2301L247.246 46.2301L266.062 46.2305ZM347.922 84.5045L347.922 90.0085L312.85 90.0077L312.85 84.5037L347.922 84.5045Z"
-                  fill="white"
-                />
-              </Svg>
-            </Center>
+          style={styles.content}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        >
+          <View style={styles.mainContent}>
+            <View style={styles.authPageContainer}>
+              {/* Logo */}
+              <Center style={[styles.logoContainer]}>
+                <Svg width="395" height="186" viewBox="0 0 395 186" fill="none">
+                  <Path
+                    d="M175.105 133.5V136.252H161.345V117.948H139.137V136.252H131.585V91.5159H139.137V110.908H161.345V91.5159H168.897V133.5H175.105ZM131.585 133.5H125.377V136.252H131.585V133.5ZM224.279 133.5V136.252H175.127V133.5H188.375C183.298 129.959 180.759 124.348 180.759 116.668V91.5159H188.311V116.348C188.311 120.444 189.335 123.687 191.383 126.076C193.431 128.465 196.205 129.66 199.703 129.66C203.202 129.66 205.975 128.465 208.023 126.076C210.071 123.687 211.095 120.444 211.095 116.348V91.5159H218.647V116.668C218.647 124.391 216.087 130.001 210.967 133.5H224.279ZM269.436 133.5V136.252H224.252V133.5H230.46V91.5159H247.868C250.898 91.5159 253.5 91.8786 255.676 92.604C257.895 93.3293 259.538 94.3106 260.604 95.548C262.652 97.852 263.676 100.455 263.676 103.356C263.676 106.855 262.567 109.457 260.348 111.164C259.538 111.761 258.983 112.145 258.684 112.316C258.386 112.444 257.852 112.679 257.084 113.02C259.858 113.617 262.055 114.876 263.676 116.796C265.34 118.673 266.172 121.02 266.172 123.836C266.172 128.06 264.508 131.281 261.18 133.5H269.436ZM238.012 129.276H249.852C252.626 129.276 254.738 128.849 256.188 127.996C257.682 127.1 258.428 125.436 258.428 123.004C258.428 119.036 255.25 117.052 248.892 117.052H238.012V129.276ZM238.012 110.076H247.612C253.074 110.076 255.804 108.22 255.804 104.508C255.804 102.375 255.143 100.839 253.82 99.9C252.498 98.9613 250.45 98.492 247.676 98.492H238.012V110.076Z"
+                    fill="#10D9B9"
+                  />
+                  <Path
+                    d="M58.6978 83.9689L58.6977 89.4729L23.6257 89.4722L23.6258 83.9682L58.6978 83.9689ZM149.119 83.9707L149.119 89.4747L58.7507 89.4729L58.7508 83.9689L71.1668 83.9691L71.1693 0.00109128L105.985 0.00178567C112.044 0.00190651 117.249 0.727344 121.601 2.1781C126.039 3.62886 129.324 5.59159 131.457 8.0663C135.553 12.6744 137.601 17.8798 137.601 23.6824C137.6 30.6798 135.382 35.885 130.944 39.2983C129.323 40.4929 128.213 41.2609 127.616 41.6022C127.019 41.8582 125.952 42.3275 124.416 43.0102C129.963 44.2049 134.357 46.7224 137.6 50.5624C140.928 54.3172 142.592 59.0105 142.591 64.6425C142.591 73.0905 139.263 79.5331 132.607 83.9703L149.119 83.9707ZM86.2711 75.5214L109.951 75.5219C115.498 75.522 119.722 74.6687 122.623 72.9621C125.61 71.1702 127.103 67.8422 127.103 62.9782C127.104 55.0422 120.746 51.0741 108.032 51.0738L86.2718 51.0734L86.2711 75.5214ZM86.2722 37.1214L105.472 37.1218C116.395 37.122 121.856 33.4101 121.857 25.9861C121.857 21.7194 120.534 18.6474 117.889 16.77C115.244 14.8926 111.148 13.9539 105.601 13.9538L86.2729 13.9534L86.2722 37.1214ZM255.518 83.9728L255.518 89.4768L226.974 89.4762L218.014 69.124L173.214 69.1231L164.254 89.475L135.71 89.4744L135.71 83.9704L150.558 83.9707L187.552 0.0034125L203.68 0.00373416L240.67 83.9725L255.518 83.9728ZM211.871 55.1719L195.616 18.3076L179.359 55.1713L211.871 55.1719ZM339.51 83.9745L339.51 89.4785L311.862 89.4779L290.487 59.3975L270.647 59.3971L270.646 89.4771L243.126 89.4765L243.126 83.9725L255.542 83.9728L255.544 0.00476857L288.824 0.00543233C302.478 0.00570464 312.248 2.3099 318.136 6.91802C324.024 11.5261 326.968 18.9075 326.967 29.0622C326.967 43.8249 320.524 53.1261 307.639 56.9658L327.094 83.9742L339.51 83.9745ZM289.463 45.7015C297.996 45.7016 303.799 44.3791 306.871 41.7338C309.943 39.0885 311.479 34.8646 311.479 29.0619C311.48 23.1739 309.901 19.1632 306.744 17.0298C303.587 14.8111 297.955 13.7016 289.848 13.7015L270.648 13.7011L270.647 45.7011L289.463 45.7015ZM371.323 83.9751L371.323 89.4791L336.251 89.4784L336.251 83.9744L371.323 83.9751Z"
+                    fill="white"
+                  />
+                </Svg>
+              </Center>
 
-            {/* BarHub Text Logo */}
-            <Center style={styles.subLogoContainer}>
-              <Svg width="146" height="45" viewBox="0 0 146 45" fill="none">
-                <Path
-                  d="M50.6968 42.248V45H36.9368V26.696H14.7288V45H7.17675V0.263996H14.7288V19.656H36.9368V0.263996H44.4888V42.248H50.6968ZM7.17675 42.248H0.96875V45H7.17675V42.248ZM99.8708 42.248V45H50.7188V42.248H63.9668C58.8894 38.7067 56.3508 33.096 56.3508 25.416V0.263996H63.9028V25.096C63.9028 29.192 64.9268 32.4347 66.9748 34.824C69.0228 37.2133 71.7961 38.408 75.2948 38.408C78.7934 38.408 81.5668 37.2133 83.6147 34.824C85.6628 32.4347 86.6868 29.192 86.6868 25.096V0.263996H94.2388V25.416C94.2388 33.1387 91.6788 38.7493 86.5588 42.248H99.8708ZM145.028 42.248V45H99.8438V42.248H106.052V0.263996H123.46C126.489 0.263996 129.092 0.626663 131.268 1.352C133.486 2.07733 135.129 3.05866 136.196 4.296C138.244 6.6 139.268 9.20267 139.268 12.104C139.268 15.6027 138.158 18.2053 135.94 19.912C135.129 20.5093 134.574 20.8933 134.276 21.064C133.977 21.192 133.444 21.4267 132.676 21.768C135.449 22.3653 137.646 23.624 139.268 25.544C140.932 27.4213 141.764 29.768 141.764 32.584C141.764 36.808 140.1 40.0293 136.772 42.248H145.028ZM113.604 38.024H125.444C128.217 38.024 130.329 37.5973 131.78 36.744C133.273 35.848 134.02 34.184 134.02 31.752C134.02 27.784 130.841 25.8 124.484 25.8H113.604V38.024ZM113.604 18.824H123.204C128.665 18.824 131.396 16.968 131.396 13.256C131.396 11.1227 130.734 9.58667 129.412 8.648C128.089 7.70933 126.041 7.24 123.268 7.24H113.604V18.824Z"
-                  fill="#10D9B9"
-                />
-              </Svg>
-            </Center>
+              {/*/!* Welcome Text *!/*/}
+              {/*<View style={styles.welcomeContainer}>*/}
+              {/*  <Text style={styles.welcomeSubtitle}>*/}
+              {/*    {t('sign-in-to-continue') ||*/}
+              {/*      'Sign in to your account to continue'}*/}
+              {/*  </Text>*/}
+              {/*</View>*/}
 
-            {/*/!* Welcome Text *!/*/}
-            {/*<View style={styles.welcomeContainer}>*/}
-            {/*  <Text style={styles.welcomeSubtitle}>*/}
-            {/*    {t('sign-in-to-continue') ||*/}
-            {/*      'Sign in to your account to continue'}*/}
-            {/*  </Text>*/}
-            {/*</View>*/}
-
-            {/* Email Input */}
-            <FormControl
-              size="md"
-              isDisabled={false}
-              isReadOnly={false}
-              style={styles.formControl}
-              isInvalid={touched.email && !!errors.email}
-            >
-              <FormControlLabel>
-                <FormControlLabelText style={styles.labelText}>
-                  {t('email')} <Text style={styles.requiredStar}>*</Text>
-                </FormControlLabelText>
-              </FormControlLabel>
-              <Input
-                className="my-1"
-                variant="rounded"
-                size="xl"
-                style={[
-                  formStyles.inputPrimary,
-                  focusedInput === 'email' && styles.inputFocused,
-                ]}
+              {/* Email Input */}
+              <FormControl
+                size="md"
+                isDisabled={false}
+                isReadOnly={false}
+                style={styles.formControl}
+                isInvalid={touched.email && !!errors.email}
               >
-                <InputField
-                  type="text"
-                  placeholder={t('email')}
-                  style={{ color: primaryTextColor }}
-                  onChangeText={value => updateField('email', value)}
-                  onFocus={() => setFocusedInput('email')}
-                  onBlur={() => {
-                    setFocusedInput(null);
-                    handleBlur('email');
-                  }}
-                  value={formData.email}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  autoComplete="email"
-                />
-              </Input>
-              {touched.email && errors.email && (
-                <FormControlError>
-                  <FormControlErrorIcon as={AlertCircleIcon} />
-                  <FormControlErrorText>{errors.email}</FormControlErrorText>
-                </FormControlError>
-              )}
-              {formData.email.length > 0 &&
-                !errors.email &&
-                !isValidEmail(formData.email) && (
-                  <FormControlHelper>
-                    <FormControlHelperText style={styles.warningText}>
-                      {t('enter-valid-email') || 'Please enter a valid email'}
-                    </FormControlHelperText>
-                  </FormControlHelper>
-                )}
-            </FormControl>
-
-            {/* Password Input */}
-            <FormControl
-              size="md"
-              isDisabled={false}
-              isReadOnly={false}
-              style={styles.formControl}
-              isInvalid={touched.password && !!errors.password}
-            >
-              <FormControlLabel>
-                <FormControlLabelText style={styles.labelText}>
-                  {t('password')} <Text style={styles.requiredStar}>*</Text>
-                </FormControlLabelText>
-              </FormControlLabel>
-              <Input
-                className="my-1"
-                variant="rounded"
-                size="xl"
-                style={[
-                  formStyles.inputPrimary,
-                  focusedInput === 'password' && styles.inputFocused,
-                ]}
-              >
-                <InputField
-                  type={togglePassword ? 'text' : 'password'}
-                  placeholder={t('password')}
-                  style={{ color: primaryTextColor }}
-                  onChangeText={value => updateField('password', value)}
-                  onFocus={() => setFocusedInput('password')}
-                  onBlur={() => {
-                    setFocusedInput(null);
-                    handleBlur('password');
-                  }}
-                  value={formData.password}
-                />
-                <InputSlot
-                  className="pr-3"
-                  onPress={() => setTogglePassword(!togglePassword)}
+                <FormControlLabel>
+                  <FormControlLabelText style={styles.labelText}>
+                    {t('email')} <Text style={styles.requiredStar}>*</Text>
+                  </FormControlLabelText>
+                </FormControlLabel>
+                <Input
+                  className="my-1"
+                  variant="rounded"
+                  size="xl"
+                  style={[
+                    formStyles.inputPrimary,
+                    focusedInput === 'email' && styles.inputFocused,
+                  ]}
                 >
-                  <InputIcon as={togglePassword ? EyeIcon : EyeOffIcon} />
-                </InputSlot>
-              </Input>
-              {touched.password && errors.password && (
-                <FormControlError>
-                  <FormControlErrorIcon as={AlertCircleIcon} />
-                  <FormControlErrorText>{errors.password}</FormControlErrorText>
-                </FormControlError>
-              )}
-              {formData.password.length > 0 &&
-                formData.password.length < 8 &&
-                !errors.password && (
-                  <FormControlHelper>
-                    <FormControlHelperText style={styles.warningText}>
-                      {t('password-min-length') || 'Minimum 8 characters'}
-                    </FormControlHelperText>
-                  </FormControlHelper>
+                  <InputField
+                    type="text"
+                    placeholder={t('email')}
+                    style={{ color: primaryTextColor }}
+                    onChangeText={value => updateField('email', value)}
+                    onFocus={() => setFocusedInput('email')}
+                    onBlur={() => {
+                      setFocusedInput(null);
+                      handleBlur('email');
+                    }}
+                    value={formData.email}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    autoComplete="email"
+                  />
+                </Input>
+                {touched.email && errors.email && (
+                  <FormControlError>
+                    <FormControlErrorIcon as={AlertCircleIcon} />
+                    <FormControlErrorText>{errors.email}</FormControlErrorText>
+                  </FormControlError>
                 )}
-            </FormControl>
+                {formData.email.length > 0 &&
+                  !errors.email &&
+                  !isValidEmail(formData.email) && (
+                    <FormControlHelper>
+                      <FormControlHelperText style={styles.warningText}>
+                        {t('enter-valid-email') || 'Please enter a valid email'}
+                      </FormControlHelperText>
+                    </FormControlHelper>
+                  )}
+              </FormControl>
 
-            {/* Forgot Password Link */}
-            <TouchableOpacity
-              style={styles.forgotPasswordButton}
-              onPress={() => navigation.navigate('ForgotPassword')}
-            >
-              <Text style={styles.forgotPasswordText}>
-                {t('forgotPassword') || 'Forgot Password?'}
-              </Text>
-            </TouchableOpacity>
-
-            {/* Sign In Button */}
-            <Button
-              variant="solid"
-              size="lg"
-              style={styles.signInButton}
-              onPress={onSignIn}
-              isDisabled={loading}
-            >
-              {!loading && (
-                <ButtonText style={styles.signInButtonText}>
-                  {t('login')}
-                </ButtonText>
-              )}
-              {loading && <ButtonSpinner />}
-            </Button>
-
-            {/* Separator */}
-            <OSeparator />
-
-            {/* Social Sign In Buttons */}
-            <View style={styles.socialButtonsContainer}>
-              <AppleButton
-                buttonStyle={AppleButton.Style.WHITE}
-                buttonType={AppleButton.Type.SIGN_IN}
-                style={styles.socialButton}
-                cornerRadius={10}
-                onPress={onAppleButtonPress}
-              />
-
-              {/* Google Sign-In Button */}
-              <TouchableOpacity
-                style={styles.socialButton}
-                onPress={onGoogleButtonPress}
-                disabled={loading}
+              {/* Password Input */}
+              <FormControl
+                size="md"
+                isDisabled={false}
+                isReadOnly={false}
+                style={styles.formControl}
+                isInvalid={touched.password && !!errors.password}
               >
-                <GoogleIcon />
-              </TouchableOpacity>
-            </View>
+                <FormControlLabel>
+                  <FormControlLabelText style={styles.labelText}>
+                    {t('password')} <Text style={styles.requiredStar}>*</Text>
+                  </FormControlLabelText>
+                </FormControlLabel>
+                <Input
+                  className="my-1"
+                  variant="rounded"
+                  size="xl"
+                  style={[
+                    formStyles.inputPrimary,
+                    focusedInput === 'password' && styles.inputFocused,
+                  ]}
+                >
+                  <InputField
+                    type={togglePassword ? 'text' : 'password'}
+                    placeholder={t('password')}
+                    style={{ color: primaryTextColor }}
+                    onChangeText={value => updateField('password', value)}
+                    onFocus={() => setFocusedInput('password')}
+                    onBlur={() => {
+                      setFocusedInput(null);
+                      handleBlur('password');
+                    }}
+                    value={formData.password}
+                  />
+                  <InputSlot
+                    className="pr-3"
+                    onPress={() => setTogglePassword(!togglePassword)}
+                  >
+                    <InputIcon as={togglePassword ? EyeIcon : EyeOffIcon} />
+                  </InputSlot>
+                </Input>
+                {touched.password && errors.password && (
+                  <FormControlError>
+                    <FormControlErrorIcon as={AlertCircleIcon} />
+                    <FormControlErrorText>
+                      {errors.password}
+                    </FormControlErrorText>
+                  </FormControlError>
+                )}
+                {formData.password.length > 0 &&
+                  formData.password.length < 8 &&
+                  !errors.password && (
+                    <FormControlHelper>
+                      <FormControlHelperText style={styles.warningText}>
+                        {t('password-min-length') || 'Minimum 8 characters'}
+                      </FormControlHelperText>
+                    </FormControlHelper>
+                  )}
+              </FormControl>
 
-            {/* Register Link */}
-            <Center style={styles.registerContainer}>
-              <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                <Text style={styles.registerText}>
-                  {t('noAccount') || "Don't have an account?"}{' '}
-                  <Text style={styles.registerTextBold}>
-                    {t('registerYourself') || 'Sign Up'}
-                  </Text>
+              {/* Forgot Password Link */}
+              <TouchableOpacity
+                style={styles.forgotPasswordButton}
+                onPress={() => navigation.navigate('ForgotPassword')}
+              >
+                <Text style={styles.forgotPasswordText}>
+                  {t('forgotPassword') || 'Forgot Password?'}
                 </Text>
               </TouchableOpacity>
-            </Center>
+
+              {/* Sign In Button */}
+              <Button
+                variant="solid"
+                size="lg"
+                style={styles.signInButton}
+                onPress={onSignIn}
+                isDisabled={loading}
+              >
+                {!loading && (
+                  <ButtonText style={styles.signInButtonText}>
+                    {t('login')}
+                  </ButtonText>
+                )}
+                {loading && <ButtonSpinner />}
+              </Button>
+
+              {/* Separator */}
+              <OSeparator />
+
+              {/* Social Sign In Buttons */}
+              <View style={styles.socialButtonsContainer}>
+                <AppleButton
+                  buttonStyle={AppleButton.Style.WHITE}
+                  buttonType={AppleButton.Type.SIGN_IN}
+                  style={styles.socialButton}
+                  cornerRadius={10}
+                  onPress={onAppleButtonPress}
+                />
+
+                {/* Google Sign-In Button */}
+                <TouchableOpacity
+                  style={styles.socialButton}
+                  onPress={onGoogleButtonPress}
+                  disabled={loading}
+                >
+                  <GoogleIcon />
+                </TouchableOpacity>
+              </View>
+
+              {/* Register Link */}
+              <Center style={styles.registerContainer}>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Register')}
+                >
+                  <Text style={styles.registerText}>
+                    {t('noAccount') || "Don't have an account?"}{' '}
+                    <Text style={styles.registerTextBold}>
+                      {t('registerYourself') || 'Sign Up'}
+                    </Text>
+                  </Text>
+                </TouchableOpacity>
+              </Center>
+            </View>
           </View>
-        </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </TouchableWithoutFeedback>
@@ -353,14 +351,7 @@ const styles = StyleSheet.create({
     minHeight: '100%',
   },
   logoContainer: {
-    marginBottom: 8,
-  },
-  subLogoContainer: {
-    marginBottom: 16,
-  },
-  welcomeContainer: {
-    marginBottom: 16,
-    paddingHorizontal: 4,
+    marginTop: 20,
   },
   welcomeTitle: {
     fontSize: 28,

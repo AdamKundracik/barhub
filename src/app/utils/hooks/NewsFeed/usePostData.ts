@@ -18,14 +18,14 @@ export const useNewsFeedData = () => {
 
   const currentLocation = useFakeLocation ? fakeLocation : location;
 
-  // Include location coordinates in queryKey so query refetches when location changes
-  const locationKey = currentLocation
-    ? `${currentLocation.latitude.toFixed(4)},${currentLocation.longitude.toFixed(4)}`
-    : null;
-
+  // Query key už nezahŕňa polohu – zmena polohy sama o sebe nespustí refetch.
+  // Data sa refetchnú:
+  // - pri manuálnom pull-to-refresh / forceRefetch
+  // - pri zmene filtrov/placeId
+  // - keď expiroje staleTime (2 min)
   const queryKey = placeId
-    ? ['posts', placeId, distance, selectedPlaces, selectedOccupancy, locationKey]
-    : ['posts', distance, selectedPlaces, selectedOccupancy, locationKey];
+    ? ['posts', placeId, distance, selectedPlaces, selectedOccupancy]
+    : ['posts', distance, selectedPlaces, selectedOccupancy];
 
   // Check if we're waiting for location (no location OR actively fetching)
   const isWaitingForLocation = !currentLocation || isLocationLoading;
@@ -53,12 +53,18 @@ export const useNewsFeedData = () => {
     {
       getNextPageParam: lastPage => lastPage?.lastVisible || null, // lastVisible is mapped from nextCursor
       enabled: !!currentLocation && isAuthenticated && !!userId, // Wait for location, authentication, and userId to be available
-      refetchOnWindowFocus: false, // Don't refetch when app comes to foreground
-      refetchOnMount: 'always', // Always refetch on mount for fresh data after app refresh
-      staleTime: 30 * 1000, // 30 seconds - shorter for fresher data
-      cacheTime: 5 * 60 * 1000, // 5 minutes - shorter cache time
-      refetchInterval: false, // DISABLED: Prevent automatic refetching that can cause refresh loops
-      refetchOnReconnect: true, // Refetch when network reconnects
+      // Plne manuálny režim refetchu pre feed:
+      // - žiadny auto-refresh pri návrate do appky
+      // - žiadny auto-refresh pri reconnecte siete
+      // - žiadny auto-refresh pri mount-e
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      refetchInterval: false,
+      // Cache iba určuje, ako dlho sú dáta "platné" v pamäti/persistencii,
+      // ale refetch sa spúšťa už len manuálne alebo cez invalidateQueries.
+      staleTime: 2 * 60 * 1000, // 2 minutes - data considered fresh
+      cacheTime: 5 * 60 * 1000, // 5 minutes - cache lifetime
     }
   );
 
@@ -112,8 +118,13 @@ export const useNewsFeedData = () => {
     await refetch();
   };
 
-  // Show loading when: query is loading OR we're waiting for location
-  const isLoading = isQueryLoading || isWaitingForLocation;
+  // Show loading len pri úplne prvom loade (keď ešte nemáme žiadne posty).
+  // Pri ďalších návratoch do appky už loader neskáče, aj keď sa refreshuje lokácia.
+  const hasAnyPosts =
+    !!postsData?.pages &&
+    postsData.pages.some(page => Array.isArray(page.posts) && page.posts.length > 0);
+
+  const isLoading = (isQueryLoading || isWaitingForLocation) && !hasAnyPosts;
 
   return {
     posts,

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 import UserPost from './Post/UserPost';
 import LoadingIndicator from './LoadingIndicator';
@@ -13,8 +13,9 @@ import { User } from '@/shared';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { PremiumHelpers } from '@/src/app/config/premiumConfig';
 import { getFrequencyConfig } from '@/src/app/config/productionAdConfig';
-import { simpleAdMetrics } from '@/src/app/utils/simpleAdMetrics';
 import { usePostsStore } from '@/src/app/utils/store/postStore';
+
+type FeedItem = { type: 'post'; post: Post } | { type: 'ad'; id: string };
 
 interface PostsListProps {
   posts: Post[];
@@ -54,7 +55,7 @@ const PostsList = ({
   const { placeId } = usePlaceStore();
   const { isPremium } = useUserStore();
   const { setListRef } = usePostsStore();
-  const listRef = useRef<FlashListRef<Post> | null>(null);
+  const listRef = useRef<FlashListRef<FeedItem> | null>(null);
 
   // Register the FlashList ref in the store for scroll-to-top functionality
   useEffect(() => {
@@ -116,8 +117,33 @@ const PostsList = ({
     [t]
   );
 
-  // Memoize posts length to prevent renderItem recreation
-  const postsLength = posts.length;
+  // Vygeneruj stabilný zoznam itemov (posty + reklamy), aby sa pozície reklám
+  // po dotiahnutí ďalších strán nemenili v existujúcej časti feedu.
+  const feedItems: FeedItem[] = useMemo(() => {
+    const items: FeedItem[] = [];
+
+    const adsEnabled = PremiumHelpers.shouldAlwaysShowAds();
+    const baseFrequency = getFrequencyConfig().BASE_FREQUENCY; // napr. 3,4,5...
+
+    posts.forEach((post, index) => {
+      const totalPostsSoFar = index + 1;
+
+      // Vždy pridaj post
+      items.push({ type: 'post', post });
+
+      // Reklamu vlož až ZA post, a len podľa prefixu (totalPostsSoFar),
+      // aby sa už vložené reklamy pri ďalšom načítaní nemenili.
+      if (
+        adsEnabled &&
+        totalPostsSoFar >= baseFrequency &&
+        totalPostsSoFar % baseFrequency === 0
+      ) {
+        items.push({ type: 'ad', id: `ad-${totalPostsSoFar}` });
+      }
+    });
+
+    return items;
+  }, [posts]);
 
   const ListHeader = useCallback(() => {
     if (!placeId || posts.length === 0) return null;
@@ -126,71 +152,30 @@ const PostsList = ({
   }, [placeId, posts.length, posts[0]?.creationTime, requestPhoto]);
 
   const renderItem = useCallback(
-    ({ item, index }: { item: Post; index: number }) => {
-      const postView = (
+    ({ item }: { item: FeedItem; index: number }) => {
+      if (item.type === 'ad') {
+        return (
+          <View style={{ marginVertical: 10 }}>
+            <InlineAd />
+          </View>
+        );
+      }
+
+      const post = item.post;
+
+      return (
         <View style={{ marginVertical: 10 }}>
           <UserPost
             requestPhoto={requestPhoto}
             onCommentPress={onCommentPress}
             isFiltering={isFiltering}
             hasPremium={hasPremium}
-            post={item}
+            post={post}
             setZoomedPost={setZoomedPost}
-            isZoomed={zoomedPost === item.photoUrl}
+            isZoomed={zoomedPost === post.photoUrl}
           />
         </View>
       );
-
-      // Production-optimized ad positioning
-      const shouldShowAd = (() => {
-        // Check if ads are enabled
-        if (!PremiumHelpers.shouldAlwaysShowAds()) {
-          return false;
-        }
-
-        const config = getFrequencyConfig();
-        const totalPosts = postsLength;
-
-        // Skip first post for better UX
-        if (index < config.MIN_POSTS_FOR_ADS) {
-          return false;
-        }
-
-        // Skip last post
-        if (index >= totalPosts - 1) {
-          return false;
-        }
-
-        // Adaptive frequency based on feed size and performance
-        let frequency = config.BASE_FREQUENCY;
-
-        if (totalPosts < 5) {
-          // For very small feeds, show one ad in the middle
-          return index === Math.floor(totalPosts / 2);
-        }
-
-        // Reduce frequency if ads are failing too often
-        if (simpleAdMetrics.shouldReduceFrequency()) {
-          frequency = Math.min(5, frequency + 1); // Less frequent if failing
-        } else if (totalPosts > 20) {
-          // More frequent in long feeds for better revenue (only if ads are working)
-          frequency = Math.max(2, frequency - 1);
-        }
-
-        // Primary ad positions
-        return index % frequency === 0;
-      })();
-
-      if (shouldShowAd) {
-        return (
-          <View key={`ad-${index}`}>
-            <InlineAd />
-            {postView}
-          </View>
-        );
-      }
-
-      return postView;
     },
     [
       hasPremium,
@@ -198,47 +183,20 @@ const PostsList = ({
       onCommentPress,
       isFiltering,
       setZoomedPost,
-      postsLength,
       zoomedPost,
     ]
   );
 
-  // Optimize item type for better recycling
-  const getItemType = useCallback(
-    (item: Post, index: number) => {
-      const shouldShowAd = (() => {
-        if (!PremiumHelpers.shouldAlwaysShowAds()) {
-          return false;
-        }
-        const config = getFrequencyConfig();
-        const totalPosts = postsLength;
-        if (index < config.MIN_POSTS_FOR_ADS || index >= totalPosts - 1) {
-          return false;
-        }
-        let frequency = config.BASE_FREQUENCY;
-        if (totalPosts < 5) {
-          return index === Math.floor(totalPosts / 2);
-        }
-        if (simpleAdMetrics.shouldReduceFrequency()) {
-          frequency = Math.min(5, frequency + 1);
-        } else if (totalPosts > 20) {
-          frequency = Math.max(2, frequency - 1);
-        }
-        return index % frequency === 0;
-      })();
-
-      return shouldShowAd ? 'postWithAd' : 'post';
-    },
-    [postsLength]
-  );
+  // Typ itemu – rozlišujeme post a reklamu kvôli recyklácii, ale pozície reklám sú stabilné.
+  const getItemType = useCallback((item: FeedItem) => item.type, []);
 
   return (
     <View style={styles.container}>
       <FlashList
         ref={listRef}
-        data={posts}
+        data={feedItems}
         renderItem={renderItem}
-        keyExtractor={item => item.id}
+        keyExtractor={item => (item.type === 'ad' ? item.id : item.post.id)}
         getItemType={getItemType}
         contentContainerStyle={styles.scrollView}
         showsVerticalScrollIndicator={false}
