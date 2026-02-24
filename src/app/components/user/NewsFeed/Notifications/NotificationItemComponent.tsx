@@ -248,12 +248,19 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
         await openCamera(item.placeId, item.senderToken, navigation, item.id);
       } else if (
         item.notificationType === NotificationType.RESPONSE ||
-        item.notificationType === NotificationType.LIKE ||
-        item.notificationType === NotificationType.COMMENT
+        item.notificationType === NotificationType.LIKE
       ) {
-        // Navigate to PostDetail for response/like/comment notifications
+        // Navigate to PostDetail for response/like notifications
         if (item.postId) {
           (navigation as any).navigate('PostDetail', { postId: item.postId });
+        }
+      } else if (item.notificationType === NotificationType.COMMENT) {
+        // Navigate to PostDetail with openComments flag for comment notifications
+        if (item.postId) {
+          (navigation as any).navigate('PostDetail', { 
+            postId: item.postId,
+            openComments: true 
+          });
         }
       }
     } catch (error) {

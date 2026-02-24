@@ -18,7 +18,7 @@ export type UserStackList = {
 
   PostSummary: { image: string; place: Place };
 
-  PostDetail: { postId: string };
+  PostDetail: { postId: string; openComments?: boolean };
 
   NotificationsList: undefined;
 
@@ -41,8 +41,6 @@ export type UserStackList = {
   UserDetail: { userId: string };
 
   AppVersion: undefined;
-
-  DebugLogs: undefined;
 };
 
 export type FeedsScreenProps = NativeStackScreenProps<
