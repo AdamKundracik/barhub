@@ -569,8 +569,8 @@ export const PostCommentsModal = ({
                 {item.user?.name || item.userName || 'Unknown'}
               </Text>
             </TouchableOpacity>
-            {timeAgo ? <Text style={styles.commentTime}>{timeAgo}</Text> : null}
           </View>
+          {timeAgo ? <Text style={styles.commentTime}>{timeAgo}</Text> : null}
           <Text style={styles.commentText}>
             {item.content || item.text || ''}
           </Text>
@@ -649,7 +649,7 @@ export const PostCommentsModal = ({
             </View>
           </View>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Text style={styles.closeButtonText}>{t('close') || 'Close'}</Text>
+            <Text style={styles.closeButtonText}>{t('close')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -794,31 +794,37 @@ const styles = StyleSheet.create({
   commentContent: {
     flex: 1,
     flexDirection: 'column',
+    minWidth: 0,
   },
   commentHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 2,
+    flexShrink: 1,
   },
   commentAuthor: {
     fontSize: 14,
     fontWeight: '600',
     color: primaryTextColor,
-    marginRight: 8,
+    flexShrink: 1,
   },
   commentTime: {
     fontSize: 12,
     color: secondaryTextColor,
+    marginBottom: 4,
   },
   commentText: {
     fontSize: 15,
     color: primaryTextColor,
     lineHeight: 20,
+    flexShrink: 1,
   },
   actionsContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 8,
+    flexShrink: 0,
+    paddingTop: 2,
   },
   reportButton: {
     padding: 8,

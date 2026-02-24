@@ -1,11 +1,19 @@
-import React from 'react';
-import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  AppState,
+  AppStateStatus,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+} from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import PostsList from '../../../components/user/NewsFeed/PostList';
 import PostLoaderView from '../../../components/user/NewsFeed/Post/Loaders/PostLoaderView';
 import EmptyState from '../../../components/user/NewsFeed/EmptyState';
 import LocationRequiredState from '../../../components/user/NewsFeed/LocationRequiredState';
 import { primaryColor } from '../../../utils/styles/colors';
-import { usePermissionsContext } from '../../../providers/PermissionsProvider';
+import { checkGeolocationPermission } from '../../../utils/services/permission.service';
 
 interface FeedContentProps {
   isLoading: boolean;
@@ -41,20 +49,113 @@ export const FeedContent: React.FC<FeedContentProps> = ({
   isFetchingNextPage,
   fetchMorePosts,
 }) => {
-  const { permissions } = usePermissionsContext();
+  const [hasGeolocationPermission, setHasGeolocationPermission] = useState<
+    boolean | null
+  >(null);
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  const lastPermissionCheckRef = useRef<number>(0);
 
-  // Debug log
-  // console.log('[FeedContent] Current permissions:', permissions);
-  // console.log('[FeedContent] Has geolocation:', permissions.geolocation);
-  // console.log('[FeedContent] Posts count:', posts?.length);
+  // Permission check function
+  const checkPermission = useCallback(async (forceRefresh: boolean = false) => {
+    const now = Date.now();
 
-  if (isLoading) {
-    return <PostLoaderView />;
-  }
+    // Prevent rapid successive permission checks
+    if (!forceRefresh && now - lastPermissionCheckRef.current < 3000) {
+      console.log('[FeedContent] Permission check too recent, skipping');
+      return;
+    }
 
-  // If no location permission, show location required state
-  if (!permissions.geolocation) {
-    console.log('[FeedContent] Showing LocationRequiredState');
+    try {
+      console.log(
+        '[FeedContent] Checking geolocation permission (forceRefresh:',
+        forceRefresh,
+        ')'
+      );
+      const granted = await checkGeolocationPermission(forceRefresh);
+      console.log('[FeedContent] Permission check result:', granted);
+      setHasGeolocationPermission(granted);
+      lastPermissionCheckRef.current = Date.now();
+    } catch (error) {
+      console.error('[FeedContent] Permission check failed:', error);
+      setHasGeolocationPermission(false);
+      lastPermissionCheckRef.current = Date.now();
+    }
+  }, []);
+
+  // Initial permission check on mount
+  useEffect(() => {
+    console.log('[FeedContent] Initial permission check on mount');
+    checkPermission(false);
+  }, [checkPermission]);
+
+  // Android: Use React Navigation focus event (prevents infinite loop)
+  useFocusEffect(
+    useCallback(() => {
+      if (Platform.OS === 'android') {
+        console.log(
+          '[FeedContent] Android screen focused, checking permission'
+        );
+        // Small delay to ensure screen is fully focused
+        const timeout = setTimeout(() => {
+          checkPermission(true);
+        }, 500);
+
+        return () => {
+          clearTimeout(timeout);
+        };
+      }
+    }, [checkPermission])
+  );
+
+  // iOS: Use AppState "change" event (works correctly on iOS)
+  useEffect(() => {
+    if (Platform.OS === 'ios') {
+      const handleAppStateChange = (nextAppState: AppStateStatus) => {
+        const prevAppState = appStateRef.current;
+
+        console.log(
+          '[FeedContent] iOS AppState change:',
+          prevAppState,
+          '->',
+          nextAppState
+        );
+
+        // When app becomes active, check geolocation permission
+        if (prevAppState !== 'active' && nextAppState === 'active') {
+          console.log(
+            '[FeedContent] iOS app became active, checking permission'
+          );
+          checkPermission(true);
+        }
+
+        appStateRef.current = nextAppState;
+      };
+
+      const subscription = AppState.addEventListener(
+        'change',
+        handleAppStateChange
+      );
+
+      return () => {
+        subscription.remove();
+      };
+    }
+  }, [checkPermission]);
+
+  // Debug logging
+  console.log('[FeedContent] Render state:', {
+    isLoading,
+    hasGeolocationPermission,
+    postsCount: posts?.length || 0,
+  });
+
+  // IMPORTANT: Check permission BEFORE loading state
+  // If permission is denied (false), show LocationRequiredState immediately
+  // Don't wait for location loading to complete - it will never complete without permission
+  if (hasGeolocationPermission === false) {
+    console.log(
+      '[FeedContent] ✅ Showing LocationRequiredState - no geolocation permission'
+    );
     return (
       <ScrollView
         contentContainerStyle={styles.scrollViewContent}
@@ -71,6 +172,14 @@ export const FeedContent: React.FC<FeedContentProps> = ({
         <LocationRequiredState requestPhoto={requestPhoto} />
       </ScrollView>
     );
+  }
+
+  // Show loading only if permission check is pending (null) or we're waiting for data
+  if (isLoading || hasGeolocationPermission === null) {
+    console.log(
+      '[FeedContent] Showing PostLoaderView - loading or permission check pending'
+    );
+    return <PostLoaderView />;
   }
 
   // If we have location permission and posts, show the list

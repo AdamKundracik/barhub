@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { StatusBar } from 'react-native';
 import { QueryClientProvider } from 'react-query';
 import { I18nextProvider } from 'react-i18next';
 import {
@@ -9,13 +10,13 @@ import {
 
 import { Navigation } from './src/app/navigation';
 import { AuthProvider } from './src/app/providers/AuthProvider';
-import { PermissionsProvider } from './src/app/providers/PermissionsProvider';
 import { AppStateProvider } from './src/app/providers/AppStateProvider';
 import { NetworkProvider } from './src/app/providers/NetworkProvider';
 
 import i18n from './src/localization/i18n';
 import { createQueryClientWithPersistence } from './src/app/utils/hooks/useQueryClient';
 import { useAppInitialization } from './src/app/utils/hooks/useInitializationApp';
+import { primaryBgColor } from './src/app/utils/styles/colors';
 
 import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
 import '@/global.css';
@@ -38,6 +39,11 @@ const AppInitializationWrapper: React.FC<{ children: ReactNode }> = ({ children 
 export default function App() {
   return (
     <SafeAreaProvider>
+      <StatusBar
+        backgroundColor={primaryBgColor}
+        barStyle="light-content"
+        translucent={false}
+      />
       <GestureHandlerRootView style={{ flex: 1 }}>
         <GluestackUIProvider mode="dark">
           <QueryClientProvider client={queryClient}>
@@ -45,13 +51,11 @@ export default function App() {
               <AuthProvider>
                 <NetworkProvider>
                   <AppStateProvider>
-                    <PermissionsProvider>
-                      <BottomSheetModalProvider>
-                        <AppInitializationWrapper>
-                          <Navigation />
-                        </AppInitializationWrapper>
-                      </BottomSheetModalProvider>
-                    </PermissionsProvider>
+                    <BottomSheetModalProvider>
+                      <AppInitializationWrapper>
+                        <Navigation />
+                      </AppInitializationWrapper>
+                    </BottomSheetModalProvider>
                   </AppStateProvider>
                 </NetworkProvider>
               </AuthProvider>
