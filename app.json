@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Barhub",
-    "slug": "baruj-app",
+    "slug": "barhub-app",
     "version": "1.2.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -108,7 +108,7 @@
     },
     "android": {
       "config": {
-        "googleMapApiKey": {
+        "googleMaps": {
           "apiKey": "AIzaSyAMoNX-aQzrjpnZ0KjYegeyhV47C8rRBVU"
         }
       },
@@ -163,12 +163,6 @@
         "expo-apple-authentication"
       ],
       [
-        "react-native-background-geolocation",
-        {
-          "license": "YOUR_LICENSE_KEY_HERE"
-        }
-      ],
-      [
         "expo-tracking-transparency",
         {
           "userTrackingPermission": "Allow this app to collect app-related data that can be used for tracking you or your device and deliver personalized ads to you."
@@ -206,9 +200,9 @@
         "expo-build-properties",
         {
           "android": {
-            "compileSdkVersion": 35,
-            "targetSdkVersion": 35,
-            "buildToolsVersion": "35.0.0",
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "buildToolsVersion": "34.0.0",
             "minSdkVersion": 24
           },
           "ios": {
@@ -301,8 +295,7 @@
       ],
       "expo-web-browser",
       "expo-mail-composer",
-      "expo-secure-store",
-      "expo-background-task"
+      "expo-secure-store"
     ],
     "extra": {
       "eas": {
