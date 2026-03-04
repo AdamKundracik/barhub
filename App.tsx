@@ -22,6 +22,7 @@ import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
 import '@/global.css';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
@@ -38,31 +39,33 @@ const AppInitializationWrapper: React.FC<{ children: ReactNode }> = ({ children 
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <StatusBar
-        backgroundColor={primaryBgColor}
-        barStyle="light-content"
-        translucent={false}
-      />
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <GluestackUIProvider mode="dark">
-          <QueryClientProvider client={queryClient}>
-            <I18nextProvider i18n={i18n}>
-              <AuthProvider>
-                <NetworkProvider>
-                  <AppStateProvider>
-                    <BottomSheetModalProvider>
-                      <AppInitializationWrapper>
-                        <Navigation />
-                      </AppInitializationWrapper>
-                    </BottomSheetModalProvider>
-                  </AppStateProvider>
-                </NetworkProvider>
-              </AuthProvider>
-            </I18nextProvider>
-          </QueryClientProvider>
-        </GluestackUIProvider>
-      </GestureHandlerRootView>
-    </SafeAreaProvider>
+    <KeyboardProvider>
+      <SafeAreaProvider>
+        <StatusBar
+          backgroundColor={primaryBgColor}
+          barStyle="light-content"
+          translucent={false}
+        />
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <GluestackUIProvider mode="dark">
+            <QueryClientProvider client={queryClient}>
+              <I18nextProvider i18n={i18n}>
+                <AuthProvider>
+                  <NetworkProvider>
+                    <AppStateProvider>
+                      <BottomSheetModalProvider>
+                        <AppInitializationWrapper>
+                          <Navigation />
+                        </AppInitializationWrapper>
+                      </BottomSheetModalProvider>
+                    </AppStateProvider>
+                  </NetworkProvider>
+                </AuthProvider>
+              </I18nextProvider>
+            </QueryClientProvider>
+          </GluestackUIProvider>
+        </GestureHandlerRootView>
+      </SafeAreaProvider>
+    </KeyboardProvider>
   );
 }

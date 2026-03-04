@@ -6,11 +6,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
 import {
   BottomSheetBackdrop,
+  BottomSheetFlatList,
   BottomSheetModal,
-  BottomSheetView,
 } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -52,6 +51,8 @@ export const LikedUsersModal = ({
   const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 
+  const snapPoints = ['70%'];
+
   useEffect(() => {
     if (visible) {
       bottomSheetRef.current?.present();
@@ -72,122 +73,127 @@ export const LikedUsersModal = ({
     []
   );
 
-  const renderUserItem = ({ item }: { item: LikedUser }) => (
-    <TouchableOpacity
-      style={styles.userItem}
-      onPress={() => {
-        onUserPress(item.id);
-        onClose();
-      }}
-    >
-      <Avatar size="md" style={styles.avatar}>
-        {item.photoUrl ? (
-          <AvatarImage source={{ uri: item.photoUrl }} />
-        ) : (
-          <AvatarFallbackText className="text-white">
-            {item.name}
-          </AvatarFallbackText>
-        )}
-      </Avatar>
-      <Text style={styles.username}>{item.name}</Text>
-      <FontAwesomeIcon
-        icon={Icons.ChevronRight}
-        size={16}
-        color={secondaryTextColor}
-      />
-    </TouchableOpacity>
+  const renderItem = useCallback(
+    ({ item }: { item: LikedUser }) => (
+      <TouchableOpacity
+        style={styles.userItem}
+        onPress={() => {
+          onUserPress(item.id);
+          onClose();
+        }}
+      >
+        <Avatar size="md" style={styles.avatar}>
+          {item.photoUrl ? (
+            <AvatarImage source={{ uri: item.photoUrl }} />
+          ) : (
+            <AvatarFallbackText className="text-white">
+              {item.name}
+            </AvatarFallbackText>
+          )}
+        </Avatar>
+        <Text style={styles.username}>{item.name}</Text>
+        <FontAwesomeIcon
+          icon={Icons.ChevronRight}
+          size={16}
+          color={secondaryTextColor}
+        />
+      </TouchableOpacity>
+    ),
+    [onUserPress, onClose]
   );
 
-  const getSnapPoints = () => {
-    // Menší default snap point s možnosťou rozšírenia
-    return ['40%', '80%'];
-  };
+  // Header je stickyHeaderIndices={[0]} — ostane fixný pri scrollovaní
+  const ListHeader = useCallback(
+    () => (
+      <View style={styles.header}>
+        <View style={styles.headerContent}>
+          <FontAwesomeIcon icon={Icons.HeartSolid} size={20} color="#FF6B6B" />
+          <Text style={styles.headerTitle}>{t('liked-by') || 'Liked by'}</Text>
+          <View style={styles.countBadge}>
+            <Text style={styles.countText}>{users.length}</Text>
+          </View>
+        </View>
+        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+          <Text style={styles.closeButtonText}>{t('cancel') || 'Cancel'}</Text>
+        </TouchableOpacity>
+      </View>
+    ),
+    [t, users.length, onClose]
+  );
+
+  const ListEmpty = useCallback(
+    () => (
+      <View style={styles.emptyState}>
+        <FontAwesomeIcon
+          icon={Icons.Heart}
+          size={48}
+          color={secondaryTextColor}
+        />
+        <Text style={styles.emptyText}>
+          {t('no-likes-yet') || 'No likes yet'}
+        </Text>
+      </View>
+    ),
+    [t]
+  );
+
+  const ListLoading = useCallback(
+    () => (
+      <View style={styles.loadingState}>
+        <ActivityIndicator size="large" color={primaryColor} />
+        <Text style={styles.loadingText}>{t('loading') || 'Loading...'}</Text>
+      </View>
+    ),
+    [t]
+  );
 
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
-      snapPoints={getSnapPoints()}
+      snapPoints={snapPoints}
+      index={0}
       backdropComponent={renderBackdrop}
       onDismiss={onClose}
       backgroundStyle={{ backgroundColor: bottomModalBgColor }}
-      handleHeight={50}
+      handleHeight={24}
       enablePanDownToClose
       handleIndicatorStyle={styles.handleIndicator}
     >
-      <BottomSheetView style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <FontAwesomeIcon
-              icon={Icons.HeartSolid}
-              size={20}
-              color="#FF6B6B"
-            />
-            <Text style={styles.headerTitle}>
-              {t('liked-by') || 'Liked by'}
-            </Text>
-            <View style={styles.countBadge}>
-              <Text style={styles.countText}>{users.length}</Text>
-            </View>
-          </View>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Text style={styles.closeButtonText}>
-              {t('cancel') || 'Cancel'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Users List */}
-        {loading ? (
-          <View style={styles.loadingState}>
-            <ActivityIndicator size="large" color={primaryColor} />
-            <Text style={styles.loadingText}>
-              {t('loading') || 'Loading...'}
-            </Text>
-          </View>
-        ) : users.length > 0 ? (
-          <FlashList
-            data={users}
-            renderItem={renderUserItem}
-            keyExtractor={item => item.id.toString()}
-            style={styles.usersList}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.usersListContent}
-          />
-        ) : (
-          <View style={styles.emptyState}>
-            <FontAwesomeIcon
-              icon={Icons.Heart}
-              size={48}
-              color={secondaryTextColor}
-            />
-            <Text style={styles.emptyText}>
-              {t('no-likes-yet') || 'No likes yet'}
-            </Text>
-          </View>
-        )}
-      </BottomSheetView>
+      {/*
+        BottomSheetFlatList je priamy child BottomSheetModal — bez BottomSheetView wrappera.
+        To je kľúčové: BottomSheetView blokuje scroll keď sheet nie je roztiahnutý na max.
+        stickyHeaderIndices={[0]} zabezpečí že header ostane fixný aj počas scrollovania.
+      */}
+      <BottomSheetFlatList
+        data={loading ? [] : users}
+        renderItem={renderItem}
+        keyExtractor={item => item.id.toString()}
+        ListHeaderComponent={ListHeader}
+        ListEmptyComponent={loading ? ListLoading : ListEmpty}
+        stickyHeaderIndices={[0]}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+      />
     </BottomSheetModal>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
   handleIndicator: {
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
     width: 40,
   },
+  // Header má backgroundColor aby sticky efekt vyzeral správne
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingBottom: 20,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: bottomModalBgColor,
   },
   headerContent: {
     flexDirection: 'row',
@@ -217,26 +223,20 @@ const styles = StyleSheet.create({
   closeButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   closeButtonText: {
     fontSize: 14,
     fontWeight: '500',
     color: secondaryTextColor,
   },
-  usersList: {
-    flex: 1,
-    marginTop: 16,
-  },
-  usersListContent: {
+  listContent: {
     paddingBottom: 20,
   },
   userItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
-    paddingHorizontal: 4,
+    paddingHorizontal: 24,
   },
   avatar: {
     marginRight: 12,
@@ -250,21 +250,19 @@ const styles = StyleSheet.create({
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 40,
-    height: 150,
+    paddingVertical: 60,
   },
   emptyText: {
     fontSize: 16,
+    fontWeight: '500',
     color: primaryTextColor,
     marginTop: 12,
     textAlign: 'center',
-    fontWeight: '500',
   },
   loadingState: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 40,
-    height: 150,
+    paddingVertical: 60,
   },
   loadingText: {
     fontSize: 16,

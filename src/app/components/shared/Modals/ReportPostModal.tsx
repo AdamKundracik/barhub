@@ -137,6 +137,7 @@ export const PostReportModal = ({
 
   return (
     <BottomSheetModal
+      enableDynamicSizing
       ref={bottomSheetRef}
       snapPoints={showCustomReason ? ['90%'] : ['60%']}
       backdropComponent={renderBackdrop}

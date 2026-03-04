@@ -3,9 +3,6 @@ import {
   StyleSheet,
   View,
   SafeAreaView,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
   TouchableOpacity,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -38,6 +35,7 @@ import * as Icons from '@fortawesome/free-solid-svg-icons';
 import { AlertCircleIcon, EyeIcon, EyeOffIcon } from '@/components/ui/icon';
 import { authService } from '../../services/authService';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useRoute } from '@react-navigation/native';
 
 type InputFieldType = 'password' | 'confirmPassword';
@@ -212,15 +210,13 @@ export const ResetPassword = ({ navigation }: any) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <KeyboardAwareScrollView
         style={{ flex: 1 }}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        bottomOffset={16}
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
           <View style={styles.container}>
             {/* Back Button */}
             <TouchableOpacity
@@ -295,8 +291,7 @@ export const ResetPassword = ({ navigation }: any) => {
               </TouchableOpacity>
             </Center>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 };

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Keyboard,
-  KeyboardAvoidingView,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -32,6 +31,7 @@ import { Input, InputField } from '@/components/ui/input';
 import { Button, ButtonText } from '@/components/ui/button';
 import { Textarea, TextareaInput } from '@/components/ui/textarea';
 import { Center } from '@/components/ui/center';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 const MAX_CHAR_COUNT = 300;
 
@@ -45,8 +45,8 @@ const HelpScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <KeyboardAvoidingView style={styles.flex} behavior="padding">
-          <View style={styles.flexGrow}>
+        <KeyboardAwareScrollView style={styles.flex} contentContainerStyle={styles.flexGrow}>
+          <View>
             {/* Header */}
             <View style={styles.header}>
               <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -134,7 +134,7 @@ const HelpScreen = () => {
               </Button>
             </Center>
           </View>
-        </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
       </TouchableWithoutFeedback>
     </SafeAreaView>
   );

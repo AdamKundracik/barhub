@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Barhub",
-    "slug": "barhub-app",
+    "slug": "baruj-app",
     "version": "1.2.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -17,7 +17,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#000000"
     },
     "ios": {
       "bundleIdentifier": "com.barhub.barhub",
@@ -136,12 +136,11 @@
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FFFFFF"
+        "backgroundColor": "#000000"
       },
       "googleServicesFile": "./google-services.json",
       "permissions": [
         "android.permission.INTERNET",
-        "android.permission.RECORD_AUDIO",
         "android.permission.CAMERA",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
@@ -161,6 +160,12 @@
       ],
       [
         "expo-apple-authentication"
+      ],
+      [
+        "react-native-background-geolocation",
+        {
+          "license": "YOUR_LICENSE_KEY_HERE"
+        }
       ],
       [
         "expo-tracking-transparency",
@@ -295,7 +300,8 @@
       ],
       "expo-web-browser",
       "expo-mail-composer",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-background-task"
     ],
     "extra": {
       "eas": {

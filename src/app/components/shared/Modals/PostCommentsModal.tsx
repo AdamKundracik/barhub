@@ -1,4 +1,5 @@
 import React, {
+  memo,
   useCallback,
   useEffect,
   useMemo,
@@ -14,16 +15,25 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
+import type {
+  BottomSheetScrollViewMethods,
+  BottomSheetScrollViewProps,
+} from '@gorhom/bottom-sheet';
 import {
   BottomSheetBackdrop,
   BottomSheetFooter,
   BottomSheetFooterProps,
   BottomSheetModal,
-  BottomSheetScrollView,
   BottomSheetTextInput,
   BottomSheetView,
+  createBottomSheetScrollableComponent,
+  SCROLLABLE_TYPE,
 } from '@gorhom/bottom-sheet';
+import {
+  KeyboardAwareScrollView,
+  KeyboardAwareScrollViewProps,
+} from 'react-native-keyboard-controller';
+import Reanimated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { getLocales } from 'expo-localization';
@@ -60,6 +70,24 @@ import {
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '@/src/app/utils/types/screen-types';
 
+// ─── BottomSheetKeyboardAwareScrollView ───────────────────────────────────────
+// Docs: https://kirillzyusko.github.io/react-native-keyboard-controller/docs/1.12.0/api/components/keyboard-aware-scroll-view#gorhombottom-sheet
+const AnimatedKeyboardAwareScrollView =
+  Reanimated.createAnimatedComponent<KeyboardAwareScrollViewProps>(
+    KeyboardAwareScrollView
+  );
+
+const BottomSheetKeyboardAwareScrollView = memo(
+  createBottomSheetScrollableComponent<
+    BottomSheetScrollViewMethods,
+    BottomSheetScrollViewProps
+  >(SCROLLABLE_TYPE.SCROLLVIEW, AnimatedKeyboardAwareScrollView)
+) as (
+  props: BottomSheetScrollViewProps & KeyboardAwareScrollViewProps
+) => JSX.Element;
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 type PostCommentsModalProps = {
   visible: boolean;
   onClose: () => void;
@@ -69,7 +97,6 @@ type PostCommentsModalProps = {
   onCommentDeleted?: () => void;
 };
 
-// Footer component - manages its own comment state
 type CommentInputFooterProps = {
   userData: any;
   currentUserId: string;
@@ -85,18 +112,12 @@ const CommentInputFooter: React.FC<CommentInputFooterProps> = ({
   isPosting,
   t,
 }) => {
-  // Footer manages its own comment state
   const [comment, setComment] = useState('');
 
   const handleSubmit = useCallback(async () => {
     if (!comment.trim() || isPosting) return;
-
     const success = await handleComment(comment);
-    if (success) {
-      // Clear input only on success
-      setComment('');
-    }
-    // On error, keep the comment so user can retry
+    if (success) setComment('');
   }, [comment, isPosting, handleComment]);
 
   return (
@@ -109,9 +130,7 @@ const CommentInputFooter: React.FC<CommentInputFooterProps> = ({
               currentUserId,
               userData.photoUrl
             )}
-            source={{
-              uri: addCacheBuster(userData.photoUrl, currentUserId),
-            }}
+            source={{ uri: addCacheBuster(userData.photoUrl, currentUserId) }}
           />
         ) : (
           <AvatarFallbackText className="text-white">
@@ -163,11 +182,9 @@ export const PostCommentsModal = ({
   const { hasAdminAccess } = useUserRole();
   const { getUserId, userData } = useUserStore();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
-  const commentsListRef = useRef<any>(null);
   const locales = getLocales();
   const insets = useSafeAreaInsets();
 
-  // Fixed snap points - keyboard handling is managed by BottomSheetModal
   const snapPoints = useMemo(() => ['50%', '70%'], []);
 
   const [comments, setComments] = useState<PostComment[]>([]);
@@ -182,28 +199,18 @@ export const PostCommentsModal = ({
 
   const currentUserId = getUserId();
 
-  // Update current time every minute for live time display
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000); // Update every minute
-
+    const interval = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(interval);
   }, []);
 
-  // Helper function to format time ago with translations
   const formatTimeAgo = useCallback(
     (date: Date | string | undefined): string => {
       if (!date) return '';
-
       try {
-        // Parse date string if needed
         let dateObj: Date;
         if (typeof date === 'string') {
-          // Backend sends LocalDateTime as string: "2025-10-07T22:29:23.517475"
           let dateStr = date.includes('T') ? date : date.replace(' ', 'T');
-
-          // Add 'Z' suffix to indicate UTC time
           if (
             !dateStr.endsWith('Z') &&
             !dateStr.includes('+') &&
@@ -215,52 +222,31 @@ export const PostCommentsModal = ({
         } else {
           dateObj = date;
         }
-
         if (isNaN(dateObj.getTime())) return '';
-
-        // Calculate difference using current time (updates every minute)
         const diffInSeconds = Math.floor(
           (currentTime.getTime() - dateObj.getTime()) / 1000
         );
         const diffInMinutes = Math.floor(diffInSeconds / 60);
         const diffInHours = Math.floor(diffInMinutes / 60);
         const diffInDays = Math.floor(diffInHours / 24);
-
-        // Less than 1 day - use relative time
         if (diffInDays < 1) {
-          if (diffInMinutes < 1) {
-            return t('just-now') || 'just now';
-          } else if (diffInMinutes < 60) {
-            // Special handling for Spanish, Slovak, and German - "pred/vor/hace X min" instead of "X min pred/vor/hace"
-            if (
-              i18n.language === 'es' ||
-              i18n.language === 'sk' ||
-              i18n.language === 'de'
-            ) {
+          if (diffInMinutes < 1) return t('just-now') || 'just now';
+          if (diffInMinutes < 60) {
+            if (['es', 'sk', 'de'].includes(i18n.language))
               return `${t('ago')} ${diffInMinutes} min`;
-            }
             return `${diffInMinutes} min ${t('ago')}`;
-          } else {
-            // Special handling for Spanish, Slovak, and German - "pred/vor/hace Xh" instead of "Xh pred/vor/hace"
-            if (
-              i18n.language === 'es' ||
-              i18n.language === 'sk' ||
-              i18n.language === 'de'
-            ) {
-              return `${t('ago')} ${diffInHours}h`;
-            }
-            return `${diffInHours}h ${t('ago')}`;
           }
+          if (['es', 'sk', 'de'].includes(i18n.language))
+            return `${t('ago')} ${diffInHours}h`;
+          return `${diffInHours}h ${t('ago')}`;
         }
-
-        // More than 1 day - show date and time in local timezone
         const userLocale = locales[0]?.languageTag || 'en-US';
         return dateObj.toLocaleDateString(userLocale, {
           month: 'short',
           day: 'numeric',
           ...(diffInDays < 365 && { hour: '2-digit', minute: '2-digit' }),
         });
-      } catch (e) {
+      } catch {
         return '';
       }
     },
@@ -278,18 +264,11 @@ export const PostCommentsModal = ({
 
   const loadComments = useCallback(async () => {
     if (!postId) return;
-
     setIsLoading(true);
     try {
-      const fetchedComments = await commentService.getCommentsForPost(
-        postId,
-        0,
-        100 // Load first 100 comments
-      );
-      // Reverse to show newest first (or oldest first, depending on backend order)
-      setComments(fetchedComments.reverse());
-    } catch (error: any) {
-      console.error('Error loading comments:', error);
+      const fetched = await commentService.getCommentsForPost(postId, 0, 100);
+      setComments(fetched.reverse());
+    } catch {
       showErrorToast(
         t('error') || 'Error',
         t('failed-to-load-comments') || 'Failed to load comments'
@@ -303,54 +282,30 @@ export const PostCommentsModal = ({
     async (commentText: string): Promise<boolean> => {
       if (!commentText.trim() || !postId || !currentUserId || isPosting)
         return false;
-
-      const trimmedComment = commentText.trim();
       setIsPosting(true);
-
       try {
-        const addedComment = await commentService.addCommentToPost(
+        const added = await commentService.addCommentToPost(
           postId,
           currentUserId,
-          trimmedComment
+          commentText.trim()
         );
-
-        // Add to list (prepend for newest first)
-        setComments(prev => [addedComment, ...prev]);
-
-        // Scroll to top to show new comment
-        setTimeout(() => {
-          commentsListRef.current?.scrollToIndex({
-            index: 0,
-            animated: true,
-          });
-        }, 100);
-
-        // Notify parent component
+        setComments(prev => [added, ...prev]);
         onCommentAdded?.();
-
-        // Dismiss keyboard
         Keyboard.dismiss();
-
-        // Return success - footer will clear its own state
         return true;
       } catch (error: any) {
-        console.error('Error adding comment:', error);
-
         const status = error?.response?.status;
         const errorData: ErrorResponse = error?.response?.data || {};
         const errorCode = errorData.errorCode;
         const errorMessage = errorData.message || error?.message || '';
-
-        // Handle 409 Conflict - Comment too soon (30s delay)
         if (status === 409 && errorCode === CommentErrorCode.COMMENT_TOO_SOON) {
           const remainingSeconds = errorData.remainingSeconds || 30;
           showErrorToast(
             t('error') || 'Error',
             t('comment-spam-delay-with-time', { seconds: remainingSeconds }) ||
-              `Please wait ${remainingSeconds} seconds before commenting again to prevent spam`
+              `Please wait ${remainingSeconds} seconds`
           );
         } else {
-          // Generic error handling
           showErrorToast(
             t('error') || 'Error',
             errorMessage ||
@@ -358,8 +313,6 @@ export const PostCommentsModal = ({
               'Failed to add comment'
           );
         }
-
-        // Return false on error - footer will keep the comment
         return false;
       } finally {
         setIsPosting(false);
@@ -371,17 +324,12 @@ export const PostCommentsModal = ({
   const handleDeleteComment = useCallback(
     (commentId: string) => {
       if (!commentId || isDeleting === commentId) return;
-
-      // Show confirmation alert
       Alert.alert(
         t('delete-comment') || 'Delete Comment',
         t('delete-comment-confirm') ||
           'Are you sure you want to delete this comment?',
         [
-          {
-            text: t('cancel') || 'Cancel',
-            style: 'cancel',
-          },
+          { text: t('cancel') || 'Cancel', style: 'cancel' },
           {
             text: t('delete') || 'Delete',
             style: 'destructive',
@@ -389,16 +337,13 @@ export const PostCommentsModal = ({
               setIsDeleting(commentId);
               try {
                 await commentService.deleteComment(commentId);
-                // Remove from list
                 setComments(prev => prev.filter(c => c.id !== commentId));
-                // Notify parent component
                 onCommentDeleted?.();
                 showSuccessToast(
                   t('success') || 'Success',
                   t('comment-deleted') || 'Comment deleted'
                 );
               } catch (error: any) {
-                console.error('Error deleting comment:', error);
                 showErrorToast(
                   t('error') || 'Error',
                   error?.response?.data?.message ||
@@ -432,14 +377,10 @@ export const PostCommentsModal = ({
   const handleReportComment = useCallback(
     async (reason: ReportReason, customReason?: string) => {
       if (!commentToReport) return;
-
       try {
-        // Convert ReportReason to ReasonTypeEnum (they have the same values)
-        // Both enums have identical string values, so we can safely cast
-        const reasonTypeEnum = reason as unknown as ReasonTypeEnum;
         await reportService.reportComment(
           commentToReport.id,
-          reasonTypeEnum,
+          reason as unknown as ReasonTypeEnum,
           customReason
         );
         showSuccessToast(
@@ -449,31 +390,22 @@ export const PostCommentsModal = ({
         setReportModalVisible(false);
         setCommentToReport(null);
       } catch (error: any) {
-        console.error('Error reporting comment:', error);
-
         const status = error?.response?.status;
         const errorData: ErrorResponse = error?.response?.data || {};
         const errorCode = errorData.errorCode;
         const errorMessage = errorData.message || error?.message || '';
-
-        // Handle 409 Conflict - Already reported
         if (
           status === 409 &&
           errorCode === CommentErrorCode.COMMENT_ALREADY_REPORTED
         ) {
           showErrorToast(
             t('error') || 'Error',
-            t('comment-already-reported') ||
-              errorMessage ||
-              'You have already reported this comment'
+            t('comment-already-reported') || errorMessage || 'Already reported'
           );
         } else {
-          // Generic error handling
           showErrorToast(
             t('error') || 'Error',
-            errorMessage ||
-              t('failed-to-report-comment') ||
-              'Failed to report comment'
+            errorMessage || t('failed-to-report-comment') || 'Failed to report'
           );
         }
       }
@@ -486,11 +418,9 @@ export const PostCommentsModal = ({
     setReportModalVisible(true);
   }, []);
 
-  // Footer component with input - stays sticky at bottom and reacts to keyboard
   const renderFooter = useCallback(
     (props: BottomSheetFooterProps) => {
       if (!currentUserId) return null;
-
       return (
         <BottomSheetFooter key="comment-footer" {...props} bottomInset={0}>
           <CommentInputFooter
@@ -506,110 +436,115 @@ export const PostCommentsModal = ({
     [currentUserId, userData, insets.bottom, t, handleAddComment, isPosting]
   );
 
-  const renderCommentItem = ({ item }: { item: PostComment }) => {
-    const canDelete = item.canDelete || hasAdminAccess;
-    const canReport = item.canReport; // Default to true if not set
-    const isDeletingThis = isDeleting === item.id;
+  const renderCommentItem = useCallback(
+    (item: PostComment) => {
+      const canDelete = item.canDelete || hasAdminAccess;
+      const canReport = item.canReport;
+      const isDeletingThis = isDeleting === item.id;
+      let timeAgo = '';
+      if (item.createdAt) timeAgo = formatTimeAgo(item.createdAt);
+      else if (item.creationTime) timeAgo = formatTimeAgo(item.creationTime);
 
-    // Parse creation time
-    let timeAgo = '';
-    if (item.createdAt) {
-      timeAgo = formatTimeAgo(item.createdAt);
-    } else if (item.creationTime) {
-      timeAgo = formatTimeAgo(item.creationTime);
-    }
+      const commentUserId = item.user?.id || item.userId;
+      const handleUserPress = () => {
+        if (commentUserId) {
+          onClose();
+          navigation.navigate('UserDetail', { userId: commentUserId });
+        }
+      };
 
-    // Get user ID for navigation
-    const commentUserId = item.user?.id || item.userId;
-    const handleUserPress = () => {
-      if (commentUserId) {
-        onClose(); // Close modal first
-        navigation.navigate('UserDetail', { userId: commentUserId });
-      }
-    };
-
-    return (
-      <View style={styles.commentItem}>
-        <TouchableOpacity
-          onPress={handleUserPress}
-          disabled={!commentUserId}
-          activeOpacity={0.7}
-        >
-          <Avatar size="md" style={styles.avatar}>
-            {item.user?.photoUrl || item.userPhotoUrl ? (
-              <AvatarImage
-                key={createImageKey(
-                  'comment',
-                  item.user?.id || item.userId || '',
-                  item.user?.photoUrl || item.userPhotoUrl || ''
-                )}
-                source={{
-                  uri: addCacheBuster(
-                    item.user?.photoUrl || item.userPhotoUrl || '',
-                    item.user?.id || item.userId || undefined
-                  ),
-                }}
-              />
-            ) : (
-              <AvatarFallbackText className="text-white">
-                {item.user?.name || item.userName || 'U'}
-              </AvatarFallbackText>
-            )}
-          </Avatar>
-        </TouchableOpacity>
-
-        <View style={styles.commentContent}>
-          <View style={styles.commentHeader}>
-            <TouchableOpacity
-              onPress={handleUserPress}
-              disabled={!commentUserId}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.commentAuthor}>
-                {item.user?.name || item.userName || 'Unknown'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          {timeAgo ? <Text style={styles.commentTime}>{timeAgo}</Text> : null}
-          <Text style={styles.commentText}>
-            {item.content || item.text || ''}
-          </Text>
-        </View>
-
-        <View style={styles.actionsContainer}>
-          {canReport && (
-            <TouchableOpacity
-              onPress={() => openReportModal(item)}
-              style={styles.reportButton}
-            >
-              <FontAwesomeIcon
-                icon={Icons.Flag}
-                size={14}
-                color={secondaryTextColor}
-              />
-            </TouchableOpacity>
-          )}
-          {canDelete && (
-            <TouchableOpacity
-              onPress={() => handleDeleteComment(item.id)}
-              disabled={isDeletingThis}
-              style={styles.deleteButton}
-            >
-              {isDeletingThis ? (
-                <ActivityIndicator size="small" color={secondaryTextColor} />
+      return (
+        <View key={item.id} style={styles.commentItem}>
+          <TouchableOpacity
+            onPress={handleUserPress}
+            disabled={!commentUserId}
+            activeOpacity={0.7}
+          >
+            <Avatar size="md" style={styles.avatar}>
+              {item.user?.photoUrl || item.userPhotoUrl ? (
+                <AvatarImage
+                  key={createImageKey(
+                    'comment',
+                    item.user?.id || item.userId || '',
+                    item.user?.photoUrl || item.userPhotoUrl || ''
+                  )}
+                  source={{
+                    uri: addCacheBuster(
+                      item.user?.photoUrl || item.userPhotoUrl || '',
+                      item.user?.id || item.userId || undefined
+                    ),
+                  }}
+                />
               ) : (
+                <AvatarFallbackText className="text-white">
+                  {item.user?.name || item.userName || 'U'}
+                </AvatarFallbackText>
+              )}
+            </Avatar>
+          </TouchableOpacity>
+
+          <View style={styles.commentContent}>
+            <View style={styles.commentHeader}>
+              <TouchableOpacity
+                onPress={handleUserPress}
+                disabled={!commentUserId}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.commentAuthor}>
+                  {item.user?.name || item.userName || 'Unknown'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {timeAgo ? <Text style={styles.commentTime}>{timeAgo}</Text> : null}
+            <Text style={styles.commentText}>
+              {item.content || item.text || ''}
+            </Text>
+          </View>
+
+          <View style={styles.actionsContainer}>
+            {canReport && (
+              <TouchableOpacity
+                onPress={() => openReportModal(item)}
+                style={styles.reportButton}
+              >
                 <FontAwesomeIcon
-                  icon={Icons.TrashCan}
-                  size={16}
+                  icon={Icons.Flag}
+                  size={14}
                   color={secondaryTextColor}
                 />
-              )}
-            </TouchableOpacity>
-          )}
+              </TouchableOpacity>
+            )}
+            {canDelete && (
+              <TouchableOpacity
+                onPress={() => handleDeleteComment(item.id)}
+                disabled={isDeletingThis}
+                style={styles.deleteButton}
+              >
+                {isDeletingThis ? (
+                  <ActivityIndicator size="small" color={secondaryTextColor} />
+                ) : (
+                  <FontAwesomeIcon
+                    icon={Icons.TrashCan}
+                    size={16}
+                    color={secondaryTextColor}
+                  />
+                )}
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
-      </View>
-    );
-  };
+      );
+    },
+    [
+      hasAdminAccess,
+      isDeleting,
+      formatTimeAgo,
+      onClose,
+      navigation,
+      openReportModal,
+      handleDeleteComment,
+    ]
+  );
 
   return (
     <BottomSheetModal
@@ -624,7 +559,7 @@ export const PostCommentsModal = ({
       handleIndicatorStyle={styles.handleIndicator}
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
-      android_keyboardInputMode="adjustResize"
+      android_keyboardInputMode="adjustPan"
       topInset={insets.top}
       enableOverDrag={false}
       animateOnMount={true}
@@ -653,11 +588,17 @@ export const PostCommentsModal = ({
           </TouchableOpacity>
         </View>
 
-        {/* Scrollable Comments List */}
-        <BottomSheetScrollView
+        {/* BottomSheetKeyboardAwareScrollView is ALWAYS rendered.
+            Comments are mapped inside it as plain Views — no FlatList/FlashList.
+            This guarantees the keyboard-aware behaviour works with any number
+            of comments, including when there are many. */}
+        <BottomSheetKeyboardAwareScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollViewContent}
+          bottomOffset={80}
+          extraKeyboardSpace={80}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
           {isLoading ? (
             <View style={styles.loadingState}>
@@ -666,17 +607,7 @@ export const PostCommentsModal = ({
                 {t('loading') || 'Loading...'}
               </Text>
             </View>
-          ) : comments.length > 0 ? (
-            <FlashList
-              ref={commentsListRef}
-              data={comments}
-              renderItem={renderCommentItem}
-              keyExtractor={item => item.id}
-              style={styles.commentsList}
-              contentContainerStyle={styles.commentsListContent}
-              showsVerticalScrollIndicator={false}
-            />
-          ) : (
+          ) : comments.length === 0 ? (
             <View style={styles.emptyState}>
               <FontAwesomeIcon
                 icon={Icons.Comments}
@@ -690,11 +621,12 @@ export const PostCommentsModal = ({
                 {t('be-first-to-comment') || 'Be the first to comment!'}
               </Text>
             </View>
+          ) : (
+            comments.map(item => renderCommentItem(item))
           )}
-        </BottomSheetScrollView>
+        </BottomSheetKeyboardAwareScrollView>
       </BottomSheetView>
 
-      {/* Report Comment Modal */}
       <ReportCommentModal
         visible={reportModalVisible}
         onClose={() => {
@@ -717,12 +649,7 @@ const styles = StyleSheet.create({
   scrollViewContent: {
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 100, // Space for footer to prevent overlap
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 100, // always leave space for the sticky footer
   },
   handleIndicator: {
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
@@ -775,13 +702,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: secondaryTextColor,
-  },
-  commentsList: {
-    flex: 1,
-    marginTop: 16,
-  },
-  commentsListContent: {
-    paddingBottom: 20,
   },
   commentItem: {
     flexDirection: 'row',
@@ -840,7 +760,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
-    flex: 1,
   },
   emptyText: {
     fontSize: 18,
@@ -859,7 +778,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
-    flex: 1,
   },
   loadingText: {
     fontSize: 16,
@@ -868,7 +786,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   footerContainer: {
-    // marginBottom: 28,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,

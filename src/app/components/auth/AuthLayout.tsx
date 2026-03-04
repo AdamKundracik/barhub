@@ -1,15 +1,8 @@
-import {
-  Animated,
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { ReactNode } from 'react';
 import { authPageStyles } from '../../utils/styles/styles';
 import Svg, { Path } from 'react-native-svg';
-import ScrollView = Animated.ScrollView;
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 type LayoutProps = {
   children: ReactNode | ReactNode[];
@@ -52,22 +45,17 @@ export const AuthLayout = ({ children }: LayoutProps) => {
         />
       </Svg>
 
-      <KeyboardAvoidingView
+      <KeyboardAwareScrollView
         style={styles.content}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        contentContainerStyle={styles.scrollView}
+        keyboardShouldPersistTaps="handled"
+        bottomOffset={16}
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView 
-          contentContainerStyle={styles.scrollView}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-          automaticallyAdjustKeyboardInsets={true}
-        >
-          <View style={styles.mainContent}>
-            <View style={authPageStyles.authPageContainer}>{children}</View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        <View style={styles.mainContent}>
+          <View style={authPageStyles.authPageContainer}>{children}</View>
+        </View>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 };

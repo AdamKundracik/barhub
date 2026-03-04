@@ -1,8 +1,5 @@
 import {
-  KeyboardAvoidingView,
-  Platform,
   SafeAreaView,
-  ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -40,6 +37,7 @@ import * as Icons from '@fortawesome/free-solid-svg-icons';
 import { useForgotPasswordAPI } from '../../hooks/useForgotPasswordAPI';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { AlertCircleIcon } from '@/components/ui/icon';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 type InputFieldType = 'email';
 
@@ -80,15 +78,13 @@ export const ForgotPassword = ({ navigation }: any) => {
   if (emailSent) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        <KeyboardAwareScrollView
           style={{ flex: 1 }}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          bottomOffset={16}
+          showsVerticalScrollIndicator={false}
         >
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
             <View style={styles.container}>
               {/* Success Icon */}
               <Center style={styles.iconContainer}>
@@ -199,24 +195,20 @@ export const ForgotPassword = ({ navigation }: any) => {
                 </HStack>
               </Button>
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
+          </KeyboardAwareScrollView>
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <KeyboardAwareScrollView
         style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        bottomOffset={20}
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
           <View style={styles.container}>
             {/* Back Button */}
             <TouchableOpacity
@@ -342,8 +334,7 @@ export const ForgotPassword = ({ navigation }: any) => {
               </TouchableOpacity>
             </Center>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 };

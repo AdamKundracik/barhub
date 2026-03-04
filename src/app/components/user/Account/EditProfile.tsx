@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import {
   Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -56,6 +53,7 @@ import {
 } from '@/components/ui/form-control';
 import { AlertCircleIcon } from '@/components/ui/icon';
 import { buttonStyles } from '../../../utils/styles/buttonStyles';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 type EditProfileProps = {
   user: ClientDTO | null;
@@ -309,16 +307,14 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
   };
 
   return (
-    <KeyboardAvoidingView
+    <KeyboardAwareScrollView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+      contentContainerStyle={styles.scrollContainer}
+      keyboardShouldPersistTaps="handled"
+      bottomOffset={100}
+      showsVerticalScrollIndicator={false}
+      bounces={false}
     >
-      <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-        bounces={false}
-      >
         {/* Profile Picture Section */}
         <View style={styles.profileCard}>
           <TouchableOpacity
@@ -532,8 +528,6 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
             )}
           </Button>
         </View>
-      </ScrollView>
-
       {/* Date Picker Modal */}
       <DatePicker
         modal
@@ -571,7 +565,7 @@ const ProfileEditScreen = ({ user, onEditCLose }: EditProfileProps) => {
         isOpeningCamera={isOpeningCamera}
         isDeletingPhoto={isDeletingPhoto}
       />
-    </KeyboardAvoidingView>
+    </KeyboardAwareScrollView>
   );
 };
 

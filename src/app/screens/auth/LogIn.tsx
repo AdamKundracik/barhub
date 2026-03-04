@@ -1,7 +1,5 @@
 import {
   Keyboard,
-  KeyboardAvoidingView,
-  Platform,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -38,6 +36,7 @@ import { Center } from '@/components/ui/center';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { useLoginForm } from '../../hooks/useLoginForm';
 import { useCustomToast } from '../../components/shared/Toaster';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 export const LogIn = ({ navigation }: any) => {
   const { t } = useTranslation();
@@ -116,13 +115,13 @@ export const LogIn = ({ navigation }: any) => {
           />
         </Svg>
 
-        <KeyboardAvoidingView
+        <KeyboardAwareScrollView
           style={styles.content}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+          contentContainerStyle={styles.mainContent}
+          keyboardShouldPersistTaps="handled"
+          bottomOffset={16}
         >
-          <View style={styles.mainContent}>
-            <View style={styles.authPageContainer}>
+          <View style={styles.authPageContainer}>
               {/* Logo */}
               <Center style={[styles.logoContainer]}>
                 <Svg width="395" height="186" viewBox="0 0 395 186" fill="none">
@@ -322,9 +321,8 @@ export const LogIn = ({ navigation }: any) => {
                   </Text>
                 </TouchableOpacity>
               </Center>
-            </View>
           </View>
-        </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
       </SafeAreaView>
     </TouchableWithoutFeedback>
   );
