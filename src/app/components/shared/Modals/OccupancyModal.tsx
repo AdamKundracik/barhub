@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ScrollView,
+  Dimensions,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -9,7 +9,7 @@ import {
 import {
   BottomSheetBackdrop,
   BottomSheetModal,
-  BottomSheetView,
+  BottomSheetScrollView,
 } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { OccupancyEnum } from '@/src/app/utils/types/Feed/PostTypes';
@@ -18,6 +18,8 @@ import {
   primaryColor,
   separatorColor,
 } from '@/src/app/utils/styles/colors';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 type OccupancyModalProps = {
   visible: boolean;
@@ -88,97 +90,101 @@ export const OccupancyModal = ({
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
-      snapPoints={['65%']}
+      // enableDynamicSizing replaces snapPoints={['65%']} — the sheet now
+      // sizes to fit the fixed list of 4 options exactly
+      enableDynamicSizing
+      maxDynamicContentSize={SCREEN_HEIGHT * 0.75}
       backdropComponent={renderBackdrop}
       onDismiss={handleClose}
       backgroundStyle={styles.modalContainer}
       handleIndicatorStyle={styles.handleIndicator}
       enablePanDownToClose
     >
-      <BottomSheetView style={styles.modalContent}>
-        {/* Header with corner buttons */}
-        <View style={styles.modalHeader}>
-          <TouchableOpacity
-            onPress={handleClose}
-            style={styles.modalHeaderButton}
-          >
-            <Text style={styles.modalCancelText}>{t('cancel')}</Text>
-          </TouchableOpacity>
-          <Text style={styles.modalTitle}>{t('select-occupancy')}</Text>
-          <TouchableOpacity
-            onPress={handleConfirm}
-            style={[
-              styles.modalHeaderButton,
-              !tempOccupancy && styles.modalDoneButtonDisabled,
-            ]}
-            disabled={!tempOccupancy}
-          >
-            <Text
-              style={[
-                styles.modalDoneText,
-                !tempOccupancy && styles.modalDoneTextDisabled,
-              ]}
-            >
-              {t('done')}
-            </Text>
-          </TouchableOpacity>
-        </View>
+      {/*
+        Structure: sticky header outside the scroll, BottomSheetScrollView
+        for the options list below it.
 
-        {/* Options */}
-        <ScrollView
-          style={styles.optionsScrollView}
-          showsVerticalScrollIndicator={false}
+        BottomSheetView with flex:1 removed — flex:1 tells the view to fill
+        all available space, which prevents dynamic sizing from measuring
+        the true content height.
+
+        Plain ScrollView replaced with BottomSheetScrollView — a native
+        ScrollView inside a BottomSheetModal creates a gesture conflict
+        where swipe-to-dismiss fights the scroll gesture.
+
+        optionsScrollView flex:1 also removed for the same reason.
+      */}
+      <View style={styles.modalHeader}>
+        <TouchableOpacity
+          onPress={handleClose}
+          style={styles.modalHeaderButton}
         >
-          <View style={styles.optionsContainer}>
-            {Object.values(OccupancyEnum).map(option => (
-              <TouchableOpacity
-                key={option}
-                style={[
-                  styles.option,
-                  tempOccupancy === option && styles.optionSelected,
-                ]}
-                onPress={() => setTempOccupancy(option)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.optionContent}>
-                  <View
-                    style={[
-                      styles.optionDot,
-                      { backgroundColor: occupancyColors[option] },
-                    ]}
-                  />
-                  <Text
-                    style={[
-                      styles.optionText,
-                      tempOccupancy === option && styles.optionTextSelected,
-                    ]}
-                  >
-                    {occupancyLabels[option]}
-                  </Text>
-                </View>
-                {tempOccupancy === option && (
-                  <Text style={styles.checkmark}>✓</Text>
-                )}
-              </TouchableOpacity>
-            ))}
-          </View>
-        </ScrollView>
-      </BottomSheetView>
+          <Text style={styles.modalCancelText}>{t('cancel')}</Text>
+        </TouchableOpacity>
+        <Text style={styles.modalTitle}>{t('select-occupancy')}</Text>
+        <TouchableOpacity
+          onPress={handleConfirm}
+          style={[
+            styles.modalHeaderButton,
+            !tempOccupancy && styles.modalDoneButtonDisabled,
+          ]}
+          disabled={!tempOccupancy}
+        >
+          <Text
+            style={[
+              styles.modalDoneText,
+              !tempOccupancy && styles.modalDoneTextDisabled,
+            ]}
+          >
+            {t('done')}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <BottomSheetScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.optionsContainer}>
+          {Object.values(OccupancyEnum).map(option => (
+            <TouchableOpacity
+              key={option}
+              style={[
+                styles.option,
+                tempOccupancy === option && styles.optionSelected,
+              ]}
+              onPress={() => setTempOccupancy(option)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.optionContent}>
+                <View
+                  style={[
+                    styles.optionDot,
+                    { backgroundColor: occupancyColors[option] },
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.optionText,
+                    tempOccupancy === option && styles.optionTextSelected,
+                  ]}
+                >
+                  {occupancyLabels[option]}
+                </Text>
+              </View>
+              {tempOccupancy === option && (
+                <Text style={styles.checkmark}>✓</Text>
+              )}
+            </TouchableOpacity>
+          ))}
+        </View>
+      </BottomSheetScrollView>
     </BottomSheetModal>
   );
 };
 
 const styles = StyleSheet.create({
-  // Modal - Much wider and better
   modalContainer: {
     backgroundColor: bottomModalBgColor,
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
-  },
-  modalContent: {
-    flex: 1,
-    paddingHorizontal: 0,
-    paddingVertical: 0,
   },
   handleIndicator: {
     backgroundColor: '#444',
@@ -224,14 +230,10 @@ const styles = StyleSheet.create({
   modalDoneButtonDisabled: {
     opacity: 0.5,
   },
-
-  // Options - Much wider and better spacing
-  optionsScrollView: {
-    flex: 1,
-  },
   optionsContainer: {
     padding: 25,
     paddingTop: 15,
+    paddingBottom: 32,
   },
   option: {
     flexDirection: 'row',
@@ -275,4 +277,3 @@ const styles = StyleSheet.create({
     marginLeft: 15,
   },
 });
-

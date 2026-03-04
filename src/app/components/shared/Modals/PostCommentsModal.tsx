@@ -1,14 +1,8 @@
-import React, {
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Dimensions,
   Keyboard,
   StyleSheet,
   Text,
@@ -69,6 +63,8 @@ import {
 } from '@/src/app/utils/cache/imageCacheUtils';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '@/src/app/utils/types/screen-types';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // ─── BottomSheetKeyboardAwareScrollView ───────────────────────────────────────
 // Docs: https://kirillzyusko.github.io/react-native-keyboard-controller/docs/1.12.0/api/components/keyboard-aware-scroll-view#gorhombottom-sheet
@@ -184,8 +180,6 @@ export const PostCommentsModal = ({
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const locales = getLocales();
   const insets = useSafeAreaInsets();
-
-  const snapPoints = useMemo(() => ['50%', '70%'], []);
 
   const [comments, setComments] = useState<PostComment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -433,7 +427,9 @@ export const PostCommentsModal = ({
         </BottomSheetFooter>
       );
     },
-    [currentUserId, userData, insets.bottom, t, handleAddComment, isPosting]
+    // insets.bottom removed — it was listed as a dep but never read inside
+    // the callback, causing unnecessary re-creation on safe area changes
+    [currentUserId, userData, t, handleAddComment, isPosting]
   );
 
   const renderCommentItem = useCallback(
@@ -549,12 +545,11 @@ export const PostCommentsModal = ({
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
-      snapPoints={snapPoints}
-      index={1}
+      enableDynamicSizing
+      maxDynamicContentSize={SCREEN_HEIGHT * 0.85}
       backdropComponent={renderBackdrop}
       onDismiss={onClose}
       backgroundStyle={{ backgroundColor: bottomModalBgColor }}
-      handleHeight={24}
       enablePanDownToClose
       handleIndicatorStyle={styles.handleIndicator}
       keyboardBehavior="interactive"
@@ -562,11 +557,17 @@ export const PostCommentsModal = ({
       android_keyboardInputMode="adjustPan"
       topInset={insets.top}
       enableOverDrag={false}
-      animateOnMount={true}
+      animateOnMount
       footerComponent={renderFooter}
     >
-      <BottomSheetView style={styles.container}>
-        {/* Fixed Header */}
+      {/*
+        BottomSheetView contains both the header and scroll view.
+        flex:1 is NOT set on it — that was the original bug that broke dynamic
+        sizing. The header lives outside the scroll view so its width is always
+        determined by the BottomSheetView, not by scroll item measurement.
+      */}
+      <BottomSheetView>
+        {/* Fixed header — always full width, never scrolls */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <FontAwesomeIcon
@@ -588,13 +589,15 @@ export const PostCommentsModal = ({
           </TouchableOpacity>
         </View>
 
-        {/* BottomSheetKeyboardAwareScrollView is ALWAYS rendered.
-            Comments are mapped inside it as plain Views — no FlatList/FlashList.
-            This guarantees the keyboard-aware behaviour works with any number
-            of comments, including when there are many. */}
+        {/* Scrollable comments — height capped by maxDynamicContentSize */}
         <BottomSheetKeyboardAwareScrollView
           style={styles.scrollView}
-          contentContainerStyle={styles.scrollViewContent}
+          contentContainerStyle={[
+            styles.scrollViewContent,
+            // Footer height (~80px) + safe area bottom inset — ensures the
+            // last comment is never hidden behind the sticky input footer
+            { paddingBottom: 80 + insets.bottom + 60 },
+          ]}
           bottomOffset={80}
           extraKeyboardSpace={80}
           keyboardShouldPersistTaps="handled"
@@ -640,21 +643,6 @@ export const PostCommentsModal = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollViewContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 100, // always leave space for the sticky footer
-  },
-  handleIndicator: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    width: 40,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -665,7 +653,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
     backgroundColor: bottomModalBgColor,
-    zIndex: 10,
+  },
+  scrollView: {
+    // Cap the scroll view height so BottomSheetView can measure it.
+    // maxDynamicContentSize on the modal is the outer cap; this reserves
+    // space for the header (~60px) so the list doesn't overflow the sheet.
+    maxHeight: SCREEN_HEIGHT * 0.85 - 60,
   },
   headerContent: {
     flexDirection: 'row',
@@ -703,10 +696,17 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: secondaryTextColor,
   },
+  scrollViewContent: {
+    // paddingBottom is set dynamically in JSX using insets.bottom
+  },
+  handleIndicator: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    width: 40,
+  },
   commentItem: {
     flexDirection: 'row',
     paddingVertical: 12,
-    paddingHorizontal: 4,
+    paddingHorizontal: 20,
   },
   avatar: {
     marginRight: 12,
@@ -760,6 +760,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
+    paddingHorizontal: 20,
   },
   emptyText: {
     fontSize: 18,
@@ -778,6 +779,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
+    paddingHorizontal: 20,
   },
   loadingText: {
     fontSize: 16,

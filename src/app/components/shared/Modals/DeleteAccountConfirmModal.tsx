@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Dimensions,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -11,16 +11,19 @@ import {
   BottomSheetBackdrop,
   BottomSheetModal,
   BottomSheetScrollView,
+  BottomSheetTextInput,
 } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
 import {
   bottomModalBgColor,
-  warningColor,
   primaryTextColor,
   secondaryTextColor,
+  warningColor,
 } from '@/src/app/utils/styles/colors';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 type DeleteAccountConfirmModalProps = {
   visible: boolean;
@@ -83,17 +86,25 @@ export const DeleteAccountConfirmModal = ({
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
-      snapPoints={['70%']}
+      // enableDynamicSizing lets the sheet grow with its content height
+      enableDynamicSizing
+      // Cap at 85% — beyond this the ScrollView takes over internally
+      maxDynamicContentSize={SCREEN_HEIGHT * 0.85}
       backdropComponent={renderBackdrop}
       onDismiss={onClose}
       backgroundStyle={styles.container}
       handleIndicatorStyle={styles.handleIndicator}
       enablePanDownToClose
     >
-      <BottomSheetScrollView 
-        style={styles.content}
+      {/*
+        BottomSheetScrollView is the correct child here (not BottomSheetView)
+        because this sheet has a TextInput which may trigger the keyboard,
+        pushing content up and requiring scroll fallback.
+      */}
+      <BottomSheetScrollView
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         {/* Header */}
         <View style={styles.header}>
@@ -108,22 +119,26 @@ export const DeleteAccountConfirmModal = ({
             {t('delete-account-confirm-title') || 'Confirm Account Deletion'}
           </Text>
           <Text style={styles.subtitle}>
-            {t('delete-account-confirm-subtitle') || 
-             'This action cannot be undone. All your data will be permanently deleted.'}
+            {t('delete-account-confirm-subtitle') ||
+              'This action cannot be undone. All your data will be permanently deleted.'}
           </Text>
         </View>
 
         {/* Confirmation Text Input */}
         <View style={styles.inputSection}>
           <Text style={styles.inputLabel}>
-            {t('delete-account-type-text') || 'Type the following text to confirm:'}
+            {t('delete-account-type-text') ||
+              'Type the following text to confirm:'}
           </Text>
           <Text style={styles.confirmationText}>{confirmationText}</Text>
-          
-          <TextInput
-            style={[styles.textInput, error && styles.textInputError]}
+
+          <BottomSheetTextInput
+            style={[
+              styles.textInput,
+              error ? styles.textInputError : undefined,
+            ]}
             value={inputText}
-            onChangeText={(text) => {
+            onChangeText={text => {
               setInputText(text);
               if (error) setError('');
             }}
@@ -133,10 +148,8 @@ export const DeleteAccountConfirmModal = ({
             autoCorrect={false}
             editable={!loading}
           />
-          
-          {error ? (
-            <Text style={styles.errorText}>{error}</Text>
-          ) : null}
+
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
         </View>
 
         {/* Action Buttons */}
@@ -146,9 +159,7 @@ export const DeleteAccountConfirmModal = ({
             onPress={onClose}
             disabled={loading}
           >
-            <Text style={styles.cancelButtonText}>
-              {t('cancel')}
-            </Text>
+            <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -180,11 +191,10 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
-  content: {
-    flex: 1,
-  },
   contentContainer: {
     paddingHorizontal: 20,
+    // Bottom padding accounts for home indicator on modern devices
+    paddingBottom: 32,
   },
   header: {
     alignItems: 'center',

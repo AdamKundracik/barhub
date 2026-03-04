@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Dimensions,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -23,19 +24,21 @@ import {
   showSaveResultAlert,
 } from '@/src/app/utils/helper-functions/saveImageToGallery';
 
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
 type PostOptionsModalProps = {
   visible: boolean;
-  showDelete?: boolean; // From backend canDelete permission
-  showReport?: boolean; // From backend canReport permission
-  showHighlight?: boolean; // From backend canHighlight permission
-  isHighlighted?: boolean; // Current highlight state
-  imageUrl?: string; // URL of the post image for saving
+  showDelete?: boolean;
+  showReport?: boolean;
+  showHighlight?: boolean;
+  isHighlighted?: boolean;
+  imageUrl?: string;
   onClose: () => void;
   onDelete: () => Promise<void> | void;
-  onReport: () => void; // otvorí Report modal
-  onHighlight?: () => void; // highlight/unhighlight post
-  onViewDetail?: () => void; // zobrazí detail príspevku
-  onShare?: () => Promise<void> | void; // share post
+  onReport: () => void;
+  onHighlight?: () => void;
+  onViewDetail?: () => void;
+  onShare?: () => Promise<void> | void;
 };
 
 export const PostOptionsModal = ({
@@ -55,39 +58,6 @@ export const PostOptionsModal = ({
   const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [loading, setLoading] = useState(false);
-
-  // Calculate number of visible options
-  const getVisibleOptionsCount = useCallback(() => {
-    let count = 0;
-    if (imageUrl) count++;
-    if (showHighlight && onHighlight) count++;
-    if (showDelete) count++;
-    if (showReport) count++;
-    if (onViewDetail) count++;
-    if (onShare) count++;
-    return count;
-  }, [
-    imageUrl,
-    showHighlight,
-    onHighlight,
-    showDelete,
-    showReport,
-    onViewDetail,
-    onShare,
-  ]);
-
-  // Calculate dynamic snap points based on number of options
-  const getSnapPoints = useCallback(() => {
-    const optionCount = getVisibleOptionsCount();
-    const baseHeight = 60; // Base height for handle and padding
-    const optionHeight = 60; // Height per option
-    const totalHeight = baseHeight + optionCount * optionHeight;
-    const calculatedPercentage = Math.min(
-      Math.max((totalHeight / 800) * 100, 25),
-      70
-    ); // Min 25%, Max 70%
-    return [`${calculatedPercentage}%`];
-  }, [getVisibleOptionsCount]);
 
   useEffect(() => {
     if (visible) {
@@ -121,7 +91,6 @@ export const PostOptionsModal = ({
 
   const handleSaveToGallery = async () => {
     if (!imageUrl) return;
-
     try {
       setLoading(true);
       const result = await saveImageToGallery(imageUrl);
@@ -135,13 +104,25 @@ export const PostOptionsModal = ({
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
-      snapPoints={getSnapPoints()}
+      // enableDynamicSizing replaces the manual getSnapPoints() calculation.
+      // That function was fragile — it hardcoded 800 as the assumed screen
+      // height, meaning it would produce wrong percentages on any device
+      // taller or shorter than 800px. Dynamic sizing measures the actual
+      // rendered content instead, so it's always exactly right.
+      enableDynamicSizing
+      // Cap at 70% so the sheet never becomes taller than needed on large screens
+      maxDynamicContentSize={SCREEN_HEIGHT * 0.7}
       backdropComponent={renderBackdrop}
       onDismiss={onClose}
       backgroundStyle={styles.container}
       handleIndicatorStyle={styles.handleIndicator}
       enablePanDownToClose
     >
+      {/*
+        BottomSheetView (not ScrollView) is correct here — this is a fixed
+        list of options with no text input, so there's no keyboard to handle
+        and no overflow to scroll. Dynamic sizing will fit it exactly.
+      */}
       <BottomSheetView style={styles.content}>
         {onViewDetail && (
           <TouchableOpacity
@@ -159,7 +140,6 @@ export const PostOptionsModal = ({
             </View>
           </TouchableOpacity>
         )}
-
 
         {imageUrl && (
           <TouchableOpacity
@@ -259,13 +239,13 @@ export const PostOptionsModal = ({
             </View>
           </TouchableOpacity>
         )}
-      </BottomSheetView>
 
-      {loading && (
-        <View style={styles.loaderOverlay}>
-          <ActivityIndicator size="large" color="#fff" />
-        </View>
-      )}
+        {loading && (
+          <View style={styles.loaderOverlay}>
+            <ActivityIndicator size="large" color="#fff" />
+          </View>
+        )}
+      </BottomSheetView>
     </BottomSheetModal>
   );
 };
@@ -278,6 +258,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 16,
+    paddingBottom: 32,
   },
   option: {
     paddingVertical: 16,
@@ -300,21 +281,6 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     alignSelf: 'center',
     marginVertical: 10,
-  },
-  cancelContainer: {
-    paddingHorizontal: 20,
-  },
-  cancelButton: {
-    marginTop: 12,
-    borderRadius: 12,
-    backgroundColor: '#222',
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  cancelText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '500',
   },
   loaderOverlay: {
     ...StyleSheet.absoluteFillObject,

@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -11,10 +10,14 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../../utils/icons/icons';
 import { useTranslation } from 'react-i18next';
-import { BottomSheetBackdrop, BottomSheetModal } from '@gorhom/bottom-sheet';
+import {
+  BottomSheetBackdrop,
+  BottomSheetModal,
+  BottomSheetView,
+} from '@gorhom/bottom-sheet';
 import { bottomModalBgColor } from '@/src/app/utils/styles/colors';
 
-const { width } = Dimensions.get('window');
+const { height: SCREEN_HEIGHT, width } = Dimensions.get('window');
 
 type SlidingViewProps = {
   visible: boolean;
@@ -63,57 +66,68 @@ export const SlidingView = ({
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
-      snapPoints={['40%']}
+      // enableDynamicSizing replaces the hardcoded snapPoints={['40%']} —
+      // the sheet now sizes itself to exactly fit the 3 options
+      enableDynamicSizing
+      maxDynamicContentSize={SCREEN_HEIGHT * 0.5}
       backdropComponent={renderBackdrop}
       onDismiss={onClose}
       backgroundStyle={{ backgroundColor: bottomModalBgColor }}
-      handleHeight={50}
       enablePanDownToClose
       handleIndicatorStyle={styles.handleIndicator}
     >
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        <TouchableOpacity 
-          style={[styles.option, isOpeningGallery && styles.disabledOption]} 
+      {/*
+        BottomSheetView instead of plain ScrollView:
+        - A native ScrollView inside a BottomSheetModal breaks gesture handling:
+          the pan-to-dismiss gesture fights with the scroll gesture, causing
+          erratic behaviour when trying to swipe the sheet down
+        - This content is 3 fixed options — it never needs to scroll,
+          so BottomSheetView is the right choice here
+      */}
+      <BottomSheetView style={styles.content}>
+        <TouchableOpacity
+          style={[styles.option, isOpeningGallery && styles.disabledOption]}
           onPress={openGallery}
           disabled={isOpeningGallery}
         >
           {isOpeningGallery ? (
             <ActivityIndicator size="small" color="white" />
           ) : (
-            <FontAwesomeIcon icon={Icons.Image} size={24} color={'white'} />
+            <FontAwesomeIcon icon={Icons.Image} size={24} color="white" />
           )}
           <Text style={styles.text}>{t('pick-from-gallery')}</Text>
         </TouchableOpacity>
-        <View style={styles.separator}></View>
-        <TouchableOpacity 
-          style={[styles.option, isOpeningCamera && styles.disabledOption]} 
+
+        <View style={styles.separator} />
+
+        <TouchableOpacity
+          style={[styles.option, isOpeningCamera && styles.disabledOption]}
           onPress={openCamera}
           disabled={isOpeningCamera}
         >
           {isOpeningCamera ? (
             <ActivityIndicator size="small" color="white" />
           ) : (
-            <FontAwesomeIcon icon={Icons.Camera} size={24} color={'white'} />
+            <FontAwesomeIcon icon={Icons.Camera} size={24} color="white" />
           )}
           <Text style={styles.text}>{t('take-new-picture')}</Text>
         </TouchableOpacity>
-        <View style={styles.separator}></View>
-        <TouchableOpacity 
-          style={[styles.option, isDeletingPhoto && styles.disabledOption]} 
+
+        <View style={styles.separator} />
+
+        <TouchableOpacity
+          style={[styles.option, isDeletingPhoto && styles.disabledOption]}
           onPress={removePicture}
           disabled={isDeletingPhoto}
         >
           {isDeletingPhoto ? (
             <ActivityIndicator size="small" color="white" />
           ) : (
-            <FontAwesomeIcon icon={Icons.Ban} size={24} color={'white'} />
+            <FontAwesomeIcon icon={Icons.Ban} size={24} color="white" />
           )}
           <Text style={styles.text}>{t('remove-picture')}</Text>
         </TouchableOpacity>
-      </ScrollView>
+      </BottomSheetView>
     </BottomSheetModal>
   );
 };
@@ -121,6 +135,7 @@ export const SlidingView = ({
 const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 16,
+    paddingBottom: 32,
   },
   option: {
     paddingVertical: 20,
@@ -146,16 +161,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     width: '10%',
     margin: 5,
-  },
-  footerContainer: {
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  footerText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });
 

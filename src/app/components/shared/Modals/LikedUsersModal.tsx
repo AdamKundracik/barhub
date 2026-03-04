@@ -51,8 +51,6 @@ export const LikedUsersModal = ({
   const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 
-  const snapPoints = ['70%'];
-
   useEffect(() => {
     if (visible) {
       bottomSheetRef.current?.present();
@@ -102,7 +100,6 @@ export const LikedUsersModal = ({
     [onUserPress, onClose]
   );
 
-  // Header je stickyHeaderIndices={[0]} — ostane fixný pri scrollovaní
   const ListHeader = useCallback(
     () => (
       <View style={styles.header}>
@@ -150,19 +147,27 @@ export const LikedUsersModal = ({
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
-      snapPoints={snapPoints}
-      index={0}
+      snapPoints={['70%']}
+      // enableDynamicSizing lets the sheet grow with content
+      enableDynamicSizing
+      // Cap the max height at 75% of the screen — beyond this it scrolls
+      maxDynamicContentSize={66 * 3 + 90}
       backdropComponent={renderBackdrop}
       onDismiss={onClose}
       backgroundStyle={{ backgroundColor: bottomModalBgColor }}
-      handleHeight={24}
       enablePanDownToClose
       handleIndicatorStyle={styles.handleIndicator}
     >
       {/*
-        BottomSheetFlatList je priamy child BottomSheetModal — bez BottomSheetView wrappera.
-        To je kľúčové: BottomSheetView blokuje scroll keď sheet nie je roztiahnutý na max.
-        stickyHeaderIndices={[0]} zabezpečí že header ostane fixný aj počas scrollovania.
+        BottomSheetFlatList must be a direct child of BottomSheetModal — no
+        BottomSheetView wrapper. A BottomSheetView wrapper would block
+        scrolling when the sheet hasn't been expanded to its maximum height.
+
+        stickyHeaderIndices={[0]} keeps the header fixed while scrolling.
+
+        With enableDynamicSizing + maxDynamicContentSize:
+          - Sheet expands to fit content naturally
+          - Once content exceeds maxDynamicContentSize, the list becomes scrollable
       */}
       <BottomSheetFlatList
         data={loading ? [] : users}
@@ -183,7 +188,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
     width: 40,
   },
-  // Header má backgroundColor aby sticky efekt vyzeral správne
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -193,6 +197,8 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    // backgroundColor is required for stickyHeaderIndices to look correct —
+    // without it the list items show through the header while scrolling
     backgroundColor: bottomModalBgColor,
   },
   headerContent: {

@@ -2,19 +2,17 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
+  Dimensions,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import {
   BottomSheetBackdrop,
   BottomSheetModal,
-  BottomSheetView,
+  BottomSheetScrollView,
+  BottomSheetTextInput,
 } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { ReportReason } from '@/src/app/utils/types/Feed/PostTypes';
@@ -22,12 +20,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
 import { bottomModalBgColor } from '@/src/app/utils/styles/colors';
 
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
 type PostReportModalProps = {
   visible: boolean;
   onClose: () => void;
-  onSave: (reason: ReportReason, customReason?: string) => Promise<void> | void; // môže byť async
-  onBlockUser?: () => void; // Optional callback for blocking user after report
-  userName?: string; // User name for display in block option
+  onSave: (reason: ReportReason, customReason?: string) => Promise<void> | void;
+  onBlockUser?: () => void;
+  userName?: string;
 };
 
 export const PostReportModal = ({
@@ -137,114 +137,127 @@ export const PostReportModal = ({
 
   return (
     <BottomSheetModal
-      enableDynamicSizing
       ref={bottomSheetRef}
-      snapPoints={showCustomReason ? ['90%'] : ['60%']}
+      // enableDynamicSizing only — snapPoints removed entirely.
+      // Having both simultaneously causes snapPoints to silently win,
+      // making enableDynamicSizing a no-op.
+      enableDynamicSizing
+      maxDynamicContentSize={SCREEN_HEIGHT * 0.9}
       backdropComponent={renderBackdrop}
       onDismiss={onClose}
       backgroundStyle={styles.container}
       handleIndicatorStyle={styles.handleIndicator}
       enablePanDownToClose
+      // Sheet handles keyboard avoidance — no KeyboardAvoidingView needed
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
       android_keyboardInputMode="adjustResize"
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+      {/*
+        BottomSheetScrollView instead of BottomSheetView + KeyboardAvoidingView:
+        - Handles overflow when keyboard pushes content on small screens
+        - keyboardShouldPersistTaps="handled" lets button taps fire
+          before the keyboard dismisses
+      */}
+      <BottomSheetScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        <BottomSheetView style={styles.content}>
-          {showCustomReason ? (
-            <>
-              <Text style={styles.title}>
-                {t('reportPost.customReasonTitle')}
-              </Text>
+        {showCustomReason ? (
+          <>
+            <Text style={styles.title}>
+              {t('reportPost.customReasonTitle')}
+            </Text>
 
-              <TextInput
+            {/*
+              BottomSheetTextInput instead of plain TextInput:
+              - Integrates with the sheet's gesture/keyboard handling
+              - Prevents the sheet from dismissing on input focus
+            */}
+            <BottomSheetTextInput
+              style={[
+                styles.textInput,
+                customReasonError ? styles.textInputError : undefined,
+              ]}
+              placeholder={t('reportPost.customReasonPlaceholder')}
+              placeholderTextColor="#666"
+              value={customReason}
+              onChangeText={text => {
+                setCustomReason(text);
+                if (customReasonError) setCustomReasonError('');
+              }}
+              multiline
+              numberOfLines={4}
+              maxLength={500}
+              editable={!loading}
+              autoFocus
+              returnKeyType="done"
+              blurOnSubmit
+            />
+
+            {customReasonError ? (
+              <Text style={styles.errorText}>{customReasonError}</Text>
+            ) : null}
+
+            <Text style={styles.characterCount}>{customReason.length}/500</Text>
+
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
                 style={[
-                  styles.textInput,
-                  customReasonError ? styles.textInputError : null,
+                  styles.button,
+                  styles.submitButton,
+                  (!customReason.trim() || loading) &&
+                    styles.submitButtonDisabled,
                 ]}
-                placeholder={t('reportPost.customReasonPlaceholder')}
-                placeholderTextColor="#666"
-                value={customReason}
-                onChangeText={text => {
-                  setCustomReason(text);
-                  if (customReasonError) setCustomReasonError('');
-                }}
-                multiline
-                numberOfLines={4}
-                maxLength={500}
-                editable={!loading}
-                autoFocus
-                returnKeyType="done"
-                blurOnSubmit={true}
-                onSubmitEditing={() => Keyboard.dismiss()}
-              />
-
-              {customReasonError ? (
-                <Text style={styles.errorText}>{customReasonError}</Text>
-              ) : null}
-
-              <Text style={styles.characterCount}>
-                {customReason.length}/500
-              </Text>
-
-              {/* Buttons inside content */}
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={[styles.button, styles.submitButton]}
-                  onPress={handleCustomReasonSubmit}
-                  disabled={loading || !customReason.trim()}
-                >
-                  <Text style={styles.submitButtonText}>
-                    {t('reportPost.submit')}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.button, styles.cancelButton]}
-                  onPress={handleBackToReasons}
-                  disabled={loading}
-                >
-                  <Text style={styles.cancelButtonText}>{t('go-back')}</Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          ) : (
-            <>
-              <Text style={styles.title}>{t('reportPost.title')}</Text>
-              <Text style={styles.subtitle}>
-                {t('reportPost.chooseReason')}
-              </Text>
-
-              {reasons.map(r => (
-                <TouchableOpacity
-                  key={r.value}
-                  style={styles.option}
-                  activeOpacity={0.7}
-                  onPress={() => handleSelect(r.value, r.label)}
-                  disabled={loading}
-                >
-                  <View style={styles.optionRow}>
-                    <Text style={styles.optionText}>{r.label}</Text>
-                    <FontAwesomeIcon
-                      icon={Icons.ChevronRight}
-                      size={16}
-                      color={'white'}
-                    />
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </>
-          )}
-
-          {loading && (
-            <View style={styles.loaderOverlay}>
-              <ActivityIndicator size="large" color="#fff" />
+                onPress={handleCustomReasonSubmit}
+                disabled={loading || !customReason.trim()}
+              >
+                <Text style={styles.submitButtonText}>
+                  {t('reportPost.submit')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={handleBackToReasons}
+                disabled={loading}
+              >
+                <Text style={styles.cancelButtonText}>{t('go-back')}</Text>
+              </TouchableOpacity>
             </View>
-          )}
-        </BottomSheetView>
-      </KeyboardAvoidingView>
+          </>
+        ) : (
+          <>
+            <Text style={styles.title}>{t('reportPost.title')}</Text>
+            <Text style={styles.subtitle}>{t('reportPost.chooseReason')}</Text>
+
+            {reasons.map(r => (
+              <TouchableOpacity
+                key={r.value}
+                style={styles.option}
+                activeOpacity={0.7}
+                onPress={() => handleSelect(r.value, r.label)}
+                disabled={loading}
+              >
+                <View style={styles.optionRow}>
+                  <Text style={styles.optionText}>{r.label}</Text>
+                  <FontAwesomeIcon
+                    icon={Icons.ChevronRight}
+                    size={16}
+                    color="white"
+                  />
+                </View>
+              </TouchableOpacity>
+            ))}
+          </>
+        )}
+
+        {loading && (
+          <View style={styles.loaderOverlay}>
+            <ActivityIndicator size="large" color="#fff" />
+          </View>
+        )}
+      </BottomSheetScrollView>
     </BottomSheetModal>
   );
 };
@@ -258,6 +271,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 20,
     paddingVertical: 10,
+    paddingBottom: 32,
   },
   title: {
     color: 'white',
@@ -292,7 +306,6 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   buttonContainer: {
-    paddingHorizontal: 0,
     gap: 12,
     marginTop: 16,
   },
@@ -304,22 +317,17 @@ const styles = StyleSheet.create({
   submitButton: {
     backgroundColor: '#007AFF',
   },
+  submitButtonDisabled: {
+    backgroundColor: '#004999',
+    opacity: 0.6,
+  },
   submitButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
   cancelButton: {
-    marginTop: 12,
-    borderRadius: 12,
     backgroundColor: '#222',
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  cancelText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '500',
   },
   cancelButtonText: {
     color: '#fff',

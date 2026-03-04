@@ -2,25 +2,25 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
+  Dimensions,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import {
   BottomSheetBackdrop,
   BottomSheetModal,
-  BottomSheetView,
+  BottomSheetScrollView,
+  BottomSheetTextInput,
 } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { ReportReason } from '@/src/app/utils/types/Feed/PostTypes';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
 import { bottomModalBgColor } from '@/src/app/utils/styles/colors';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 type CommentReportModalProps = {
   visible: boolean;
@@ -158,120 +158,137 @@ export const ReportCommentModal = ({
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
-      snapPoints={showCustomReason ? ['90%'] : ['60%']}
+      // enableDynamicSizing replaces the brittle snapPoints toggle between
+      // '60%' and '90%' — the sheet now grows naturally with its content
+      enableDynamicSizing
+      maxDynamicContentSize={SCREEN_HEIGHT * 0.9}
       backdropComponent={renderBackdrop}
       onDismiss={onClose}
       backgroundStyle={styles.container}
       handleIndicatorStyle={styles.handleIndicator}
       enablePanDownToClose
+      // Let the sheet handle keyboard avoidance — no KeyboardAvoidingView needed
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
       android_keyboardInputMode="adjustResize"
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+      {/*
+        BottomSheetScrollView instead of BottomSheetView:
+        - Handles overflow when keyboard is open and content is tall
+        - keyboardShouldPersistTaps="handled" lets button presses fire
+          before the keyboard dismisses
+        - No KeyboardAvoidingView wrapper — keyboardBehavior="interactive"
+          on the modal already handles this; doubling up causes layout bugs
+      */}
+      <BottomSheetScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        <BottomSheetView style={styles.content}>
-          {showCustomReason ? (
-            <>
-              <Text style={styles.title}>
-                {t('reportComment.customReasonTitle') ||
-                  'Describe the issue'}
-              </Text>
+        {showCustomReason ? (
+          <>
+            <Text style={styles.title}>
+              {t('reportComment.customReasonTitle') || 'Describe the issue'}
+            </Text>
 
-              <TextInput
+            {/*
+              BottomSheetTextInput instead of plain TextInput:
+              - Integrates with the sheet's keyboard handling
+              - Prevents the sheet from dismissing on focus
+            */}
+            <BottomSheetTextInput
+              style={[
+                styles.textInput,
+                customReasonError ? styles.textInputError : undefined,
+              ]}
+              placeholder={
+                t('reportComment.customReasonPlaceholder') ||
+                'Please describe why you are reporting this comment...'
+              }
+              placeholderTextColor="#666"
+              value={customReason}
+              onChangeText={text => {
+                setCustomReason(text);
+                if (customReasonError) setCustomReasonError('');
+              }}
+              multiline
+              numberOfLines={4}
+              maxLength={500}
+              editable={!loading}
+              autoFocus
+              returnKeyType="done"
+              blurOnSubmit
+            />
+
+            {customReasonError ? (
+              <Text style={styles.errorText}>{customReasonError}</Text>
+            ) : null}
+
+            <Text style={styles.characterCount}>{customReason.length}/500</Text>
+
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
                 style={[
-                  styles.textInput,
-                  customReasonError ? styles.textInputError : null,
+                  styles.button,
+                  styles.submitButton,
+                  (!customReason.trim() || loading) &&
+                    styles.submitButtonDisabled,
                 ]}
-                placeholder={
-                  t('reportComment.customReasonPlaceholder') ||
-                  'Please describe why you are reporting this comment...'
-                }
-                placeholderTextColor="#666"
-                value={customReason}
-                onChangeText={text => {
-                  setCustomReason(text);
-                  if (customReasonError) setCustomReasonError('');
-                }}
-                multiline
-                numberOfLines={4}
-                maxLength={500}
-                editable={!loading}
-                autoFocus
-                returnKeyType="done"
-                blurOnSubmit={true}
-                onSubmitEditing={() => Keyboard.dismiss()}
-              />
-
-              {customReasonError ? (
-                <Text style={styles.errorText}>{customReasonError}</Text>
-              ) : null}
-
-              <Text style={styles.characterCount}>
-                {customReason.length}/500
-              </Text>
-
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={[styles.button, styles.submitButton]}
-                  onPress={handleCustomReasonSubmit}
-                  disabled={loading || !customReason.trim()}
-                >
-                  <Text style={styles.submitButtonText}>
-                    {t('reportComment.submit') || 'Report'}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.button, styles.cancelButton]}
-                  onPress={handleBackToReasons}
-                  disabled={loading}
-                >
-                  <Text style={styles.cancelButtonText}>
-                    {t('go-back') || 'Go Back'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          ) : (
-            <>
-              <Text style={styles.title}>
-                {t('reportComment.title') || 'Report Comment'}
-              </Text>
-              <Text style={styles.subtitle}>
-                {t('reportComment.chooseReason') ||
-                  'Why are you reporting this comment?'}
-              </Text>
-
-              {reasons.map(r => (
-                <TouchableOpacity
-                  key={r.value}
-                  style={styles.option}
-                  activeOpacity={0.7}
-                  onPress={() => handleSelect(r.value, r.label)}
-                  disabled={loading}
-                >
-                  <View style={styles.optionRow}>
-                    <Text style={styles.optionText}>{r.label}</Text>
-                    <FontAwesomeIcon
-                      icon={Icons.ChevronRight}
-                      size={16}
-                      color={'white'}
-                    />
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </>
-          )}
-
-          {loading && (
-            <View style={styles.loaderOverlay}>
-              <ActivityIndicator size="large" color="#fff" />
+                onPress={handleCustomReasonSubmit}
+                disabled={loading || !customReason.trim()}
+              >
+                <Text style={styles.submitButtonText}>
+                  {t('reportComment.submit') || 'Report'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={handleBackToReasons}
+                disabled={loading}
+              >
+                <Text style={styles.cancelButtonText}>
+                  {t('go-back') || 'Go Back'}
+                </Text>
+              </TouchableOpacity>
             </View>
-          )}
-        </BottomSheetView>
-      </KeyboardAvoidingView>
+          </>
+        ) : (
+          <>
+            <Text style={styles.title}>
+              {t('reportComment.title') || 'Report Comment'}
+            </Text>
+            <Text style={styles.subtitle}>
+              {t('reportComment.chooseReason') ||
+                'Why are you reporting this comment?'}
+            </Text>
+
+            {reasons.map(r => (
+              <TouchableOpacity
+                key={r.value}
+                style={styles.option}
+                activeOpacity={0.7}
+                onPress={() => handleSelect(r.value, r.label)}
+                disabled={loading}
+              >
+                <View style={styles.optionRow}>
+                  <Text style={styles.optionText}>{r.label}</Text>
+                  <FontAwesomeIcon
+                    icon={Icons.ChevronRight}
+                    size={16}
+                    color="white"
+                  />
+                </View>
+              </TouchableOpacity>
+            ))}
+          </>
+        )}
+
+        {loading && (
+          <View style={styles.loaderOverlay}>
+            <ActivityIndicator size="large" color="#fff" />
+          </View>
+        )}
+      </BottomSheetScrollView>
     </BottomSheetModal>
   );
 };
@@ -285,6 +302,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 20,
     paddingVertical: 10,
+    paddingBottom: 32,
   },
   title: {
     color: 'white',
@@ -319,7 +337,6 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   buttonContainer: {
-    paddingHorizontal: 0,
     gap: 12,
     marginTop: 16,
   },
@@ -331,17 +348,17 @@ const styles = StyleSheet.create({
   submitButton: {
     backgroundColor: '#007AFF',
   },
+  submitButtonDisabled: {
+    backgroundColor: '#004999',
+    opacity: 0.6,
+  },
   submitButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
   cancelButton: {
-    marginTop: 12,
-    borderRadius: 12,
     backgroundColor: '#222',
-    paddingVertical: 16,
-    alignItems: 'center',
   },
   cancelButtonText: {
     color: '#fff',
@@ -382,4 +399,3 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
   },
 });
-
