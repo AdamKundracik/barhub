@@ -10,7 +10,8 @@ import { useUserStore } from '../../store/userStore';
 export const useNewsFeedData = () => {
   const { distance, selectedPlaces, selectedOccupancy, showHighlightedPosts } =
     useFiltersStore();
-  const { location, fakeLocation, useFakeLocation, isLocationLoading } = useLocationStore();
+  const { location, fakeLocation, useFakeLocation, isLocationLoading } =
+    useLocationStore();
   const { placeId } = usePlaceStore();
   const { isAuthenticated } = useAuth();
   const userId = useUserStore(state => state.getUserId());
@@ -25,7 +26,7 @@ export const useNewsFeedData = () => {
   // - keď expiroje staleTime (2 min)
   const queryKey = placeId
     ? ['posts', placeId, distance, selectedPlaces, selectedOccupancy]
-    : ['posts', distance, selectedPlaces, selectedOccupancy];
+    : ['posts', distance, selectedPlaces, selectedOccupancy, useFakeLocation];
 
   // Check if we're waiting for location (no location OR actively fetching)
   const isWaitingForLocation = !currentLocation || isLocationLoading;
@@ -122,7 +123,9 @@ export const useNewsFeedData = () => {
   // Pri ďalších návratoch do appky už loader neskáče, aj keď sa refreshuje lokácia.
   const hasAnyPosts =
     !!postsData?.pages &&
-    postsData.pages.some(page => Array.isArray(page.posts) && page.posts.length > 0);
+    postsData.pages.some(
+      page => Array.isArray(page.posts) && page.posts.length > 0
+    );
 
   const isLoading = (isQueryLoading || isWaitingForLocation) && !hasAnyPosts;
 

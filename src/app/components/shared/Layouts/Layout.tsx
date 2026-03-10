@@ -102,11 +102,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingBottom: 5,
+    paddingVertical: 4,
   },
   logo: {
     width: 100,
-    height: 35,
+    height: 28,
   },
 
   travelModeContainer: {
@@ -120,13 +120,11 @@ const styles = StyleSheet.create({
   },
   travelModeButton: {
     alignItems: 'center',
-    padding: 4,
   },
   travelModeText: {
     color: primaryColor,
     fontSize: 9,
     fontWeight: '600',
-    marginTop: 2,
   },
   rightIcons: {
     flexDirection: 'row',

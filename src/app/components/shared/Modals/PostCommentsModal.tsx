@@ -9,29 +9,29 @@ import {
   ActivityIndicator,
   Alert,
   Keyboard,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
 import {
   BottomSheetBackdrop,
+  BottomSheetFlatList,
   BottomSheetFooter,
   BottomSheetFooterProps,
   BottomSheetModal,
-  BottomSheetScrollView,
   BottomSheetTextInput,
-  BottomSheetView,
 } from '@gorhom/bottom-sheet';
 import Animated, {
+  runOnJS,
+  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
 import { useKeyboardHandler } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { getLocales } from 'expo-localization';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
 import {
@@ -64,11 +64,10 @@ import {
 } from '@/src/app/utils/cache/imageCacheUtils';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { UserStackList } from '@/src/app/utils/types/screen-types';
+import { getLocales } from 'expo-localization';
 
 // ---------------------------------------------------------------------------
-// Hook: sleduje výšku klávesnice každý frame pomocou useKeyboardHandler
-// Vracia Reanimated shared value, takže animácia beží na UI threade (žiadny
-// JS lag). Toto je odporúčané riešenie z dokumentácie keyboard-controller.
+// Hook
 // ---------------------------------------------------------------------------
 const useKeyboardHeight = () => {
   const height = useSharedValue(0);
@@ -107,16 +106,13 @@ type CommentInputFooterProps = {
   currentUserId: string;
   handleComment: (comment: string) => Promise<boolean>;
   isPosting: boolean;
-  t: (key: string) => string;
+  t: (key: string, options?: any) => string;
   keyboardHeight: Animated.SharedValue<number>;
   bottomInset: number;
 };
 
 // ---------------------------------------------------------------------------
 // CommentInputFooter
-// Animated.View s paddingBottom reaguje na keyboardHeight každý frame.
-// Keď klávesnica stúpa → paddingBottom rastie → input sa dvíha nad klávesnicu.
-// Keď klávesnica ide dolu → paddingBottom klesá → input sa vráti na spodok.
 // ---------------------------------------------------------------------------
 const CommentInputFooter: React.FC<CommentInputFooterProps> = ({
   userData,
@@ -129,9 +125,10 @@ const CommentInputFooter: React.FC<CommentInputFooterProps> = ({
 }) => {
   const [comment, setComment] = useState('');
 
-  // Animated style: paddingBottom = max(keyboardHeight, bottomInset)
-  // Ak je klávesnica zatvorená, použijeme bottomInset pre home bar na iPhone.
   const animatedFooterStyle = useAnimatedStyle(() => {
+    if (Platform.OS === 'ios') {
+      return { paddingBottom: bottomInset };
+    }
     return {
       paddingBottom:
         keyboardHeight.value > 0 ? keyboardHeight.value : bottomInset,
@@ -143,6 +140,7 @@ const CommentInputFooter: React.FC<CommentInputFooterProps> = ({
     const success = await handleComment(comment);
     if (success) {
       setComment('');
+      Keyboard.dismiss();
     }
   }, [comment, isPosting, handleComment]);
 
@@ -157,9 +155,7 @@ const CommentInputFooter: React.FC<CommentInputFooterProps> = ({
                 currentUserId,
                 userData.photoUrl
               )}
-              source={{
-                uri: addCacheBuster(userData.photoUrl, currentUserId),
-              }}
+              source={{ uri: addCacheBuster(userData.photoUrl, currentUserId) }}
             />
           ) : (
             <AvatarFallbackText className="text-white">
@@ -219,10 +215,44 @@ export const PostCommentsModal = ({
   const locales = getLocales();
   const insets = useSafeAreaInsets();
 
-  // Keyboard height shared value – animuje sa na UI threade
   const keyboardHeight = useKeyboardHeight();
 
-  const snapPoints = useMemo(() => ['50%', '70%'], []);
+  const snapPoints = useMemo(() => ['50%', '90%'], []);
+  const STARTING_INDEX = 0;
+
+  // Track previous stable index to snap back after keyboard closes.
+  const lastStableIndex = useRef(STARTING_INDEX);
+  const isKeyboardOpenRef = useRef(false);
+
+  // FIX: Create pure JS functions to handle the refs, avoiding freezing inside worklets
+  const handleKeyboardOpenJS = useCallback(() => {
+    isKeyboardOpenRef.current = true;
+  }, []);
+
+  const handleKeyboardCloseJS = useCallback(() => {
+    isKeyboardOpenRef.current = false;
+    if (visible && bottomSheetRef.current) {
+      bottomSheetRef.current.snapToIndex(lastStableIndex.current);
+    }
+  }, [visible]);
+
+  useAnimatedReaction(
+    () => keyboardHeight.value,
+    (current, previous) => {
+      const wasOpen = (previous ?? 0) > 0;
+      const isClosedNow = current === 0;
+
+      if (current > 0) {
+        runOnJS(handleKeyboardOpenJS)();
+      }
+
+      if (wasOpen && isClosedNow) {
+        runOnJS(handleKeyboardCloseJS)();
+      }
+    },
+    // Adding dependencies here to ensure reaction uses latest functions
+    [handleKeyboardOpenJS, handleKeyboardCloseJS]
+  );
 
   const [comments, setComments] = useState<PostComment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -237,9 +267,7 @@ export const PostCommentsModal = ({
   const currentUserId = getUserId();
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
+    const interval = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -300,8 +328,6 @@ export const PostCommentsModal = ({
     if (visible) {
       bottomSheetRef.current?.present();
       loadComments();
-    } else {
-      bottomSheetRef.current?.dismiss();
     }
   }, [visible, postId]);
 
@@ -348,7 +374,6 @@ export const PostCommentsModal = ({
         }, 100);
 
         onCommentAdded?.();
-        Keyboard.dismiss();
         return true;
       } catch (error: any) {
         console.error('Error adding comment:', error);
@@ -430,6 +455,7 @@ export const PostCommentsModal = ({
         disappearsOnIndex={-1}
         appearsOnIndex={0}
         opacity={0.5}
+        pressBehavior="close"
       />
     ),
     []
@@ -485,12 +511,9 @@ export const PostCommentsModal = ({
     setReportModalVisible(true);
   }, []);
 
-  // Footer renderovaný ako BottomSheetFooter.
-  // CommentInputFooter vnútri si sám animuje paddingBottom podľa keyboardHeight.
   const renderFooter = useCallback(
     (props: BottomSheetFooterProps) => {
       if (!currentUserId) return null;
-
       return (
         <BottomSheetFooter {...props} bottomInset={0}>
           <CommentInputFooter
@@ -516,190 +539,222 @@ export const PostCommentsModal = ({
     ]
   );
 
-  const renderCommentItem = ({ item }: { item: PostComment }) => {
-    const canDelete = item.canDelete || hasAdminAccess;
-    const canReport = item.canReport;
-    const isDeletingThis = isDeleting === item.id;
+  const renderCommentItem = useCallback(
+    ({ item }: { item: PostComment }) => {
+      const canDelete = item.canDelete || hasAdminAccess;
+      const canReport = item.canReport;
+      const isDeletingThis = isDeleting === item.id;
 
-    let timeAgo = '';
-    if (item.createdAt) timeAgo = formatTimeAgo(item.createdAt);
-    else if (item.creationTime) timeAgo = formatTimeAgo(item.creationTime);
+      let timeAgo = '';
+      if (item.createdAt) timeAgo = formatTimeAgo(item.createdAt);
+      else if (item.creationTime) timeAgo = formatTimeAgo(item.creationTime);
 
-    const commentUserId = item.user?.id || item.userId;
-    const handleUserPress = () => {
-      if (commentUserId) {
-        onClose();
-        navigation.navigate('UserDetail', { userId: commentUserId });
-      }
-    };
+      const commentUserId = item.user?.id || item.userId;
+      const handleUserPress = () => {
+        if (commentUserId) {
+          Keyboard.dismiss();
+          bottomSheetRef.current?.dismiss();
+          navigation.navigate('UserDetail', { userId: commentUserId });
+        }
+      };
 
-    return (
-      <View style={styles.commentItem}>
-        <TouchableOpacity
-          onPress={handleUserPress}
-          disabled={!commentUserId}
-          activeOpacity={0.7}
-        >
-          <Avatar size="md" style={styles.avatar}>
-            {item.user?.photoUrl || item.userPhotoUrl ? (
-              <AvatarImage
-                key={createImageKey(
-                  'comment',
-                  item.user?.id || item.userId || '',
-                  item.user?.photoUrl || item.userPhotoUrl || ''
-                )}
-                source={{
-                  uri: addCacheBuster(
-                    item.user?.photoUrl || item.userPhotoUrl || '',
-                    item.user?.id || item.userId || undefined
-                  ),
-                }}
-              />
-            ) : (
-              <AvatarFallbackText className="text-white">
-                {item.user?.name || item.userName || 'U'}
-              </AvatarFallbackText>
-            )}
-          </Avatar>
-        </TouchableOpacity>
-
-        <View style={styles.commentContent}>
-          <View style={styles.commentHeader}>
-            <TouchableOpacity
-              onPress={handleUserPress}
-              disabled={!commentUserId}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.commentAuthor}>
-                {item.user?.name || item.userName || 'Unknown'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          {timeAgo ? <Text style={styles.commentTime}>{timeAgo}</Text> : null}
-          <Text style={styles.commentText}>
-            {item.content || item.text || ''}
-          </Text>
-        </View>
-
-        <View style={styles.actionsContainer}>
-          {canReport && (
-            <TouchableOpacity
-              onPress={() => openReportModal(item)}
-              style={styles.reportButton}
-            >
-              <FontAwesomeIcon
-                icon={Icons.Flag}
-                size={14}
-                color={secondaryTextColor}
-              />
-            </TouchableOpacity>
-          )}
-          {canDelete && (
-            <TouchableOpacity
-              onPress={() => handleDeleteComment(item.id)}
-              disabled={isDeletingThis}
-              style={styles.deleteButton}
-            >
-              {isDeletingThis ? (
-                <ActivityIndicator size="small" color={secondaryTextColor} />
+      return (
+        <View style={styles.commentItem}>
+          <TouchableOpacity
+            onPress={handleUserPress}
+            disabled={!commentUserId}
+            activeOpacity={0.7}
+          >
+            <Avatar size="md" style={styles.avatar}>
+              {item.user?.photoUrl || item.userPhotoUrl ? (
+                <AvatarImage
+                  key={createImageKey(
+                    'comment',
+                    item.user?.id || item.userId || '',
+                    item.user?.photoUrl || item.userPhotoUrl || ''
+                  )}
+                  source={{
+                    uri: addCacheBuster(
+                      item.user?.photoUrl || item.userPhotoUrl || '',
+                      item.user?.id || item.userId || undefined
+                    ),
+                  }}
+                />
               ) : (
+                <AvatarFallbackText className="text-white">
+                  {item.user?.name || item.userName || 'U'}
+                </AvatarFallbackText>
+              )}
+            </Avatar>
+          </TouchableOpacity>
+
+          <View style={styles.commentContent}>
+            <View style={styles.commentHeader}>
+              <TouchableOpacity
+                onPress={handleUserPress}
+                disabled={!commentUserId}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.commentAuthor}>
+                  {item.user?.name || item.userName || 'Unknown'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {timeAgo ? <Text style={styles.commentTime}>{timeAgo}</Text> : null}
+            <Text style={styles.commentText}>
+              {item.content || item.text || ''}
+            </Text>
+          </View>
+
+          <View style={styles.actionsContainer}>
+            {canReport && (
+              <TouchableOpacity
+                onPress={() => openReportModal(item)}
+                style={styles.reportButton}
+              >
                 <FontAwesomeIcon
-                  icon={Icons.TrashCan}
-                  size={16}
+                  icon={Icons.Flag}
+                  size={14}
                   color={secondaryTextColor}
                 />
-              )}
-            </TouchableOpacity>
-          )}
+              </TouchableOpacity>
+            )}
+            {canDelete && (
+              <TouchableOpacity
+                onPress={() => handleDeleteComment(item.id)}
+                disabled={isDeletingThis}
+                style={styles.deleteButton}
+              >
+                {isDeletingThis ? (
+                  <ActivityIndicator size="small" color={secondaryTextColor} />
+                ) : (
+                  <FontAwesomeIcon
+                    icon={Icons.TrashCan}
+                    size={16}
+                    color={secondaryTextColor}
+                  />
+                )}
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
+      );
+    },
+    [
+      hasAdminAccess,
+      isDeleting,
+      formatTimeAgo,
+      navigation,
+      openReportModal,
+      handleDeleteComment,
+    ]
+  );
+
+  const ListHeaderComponent = useMemo(
+    () => (
+      <View style={styles.header}>
+        <View style={styles.headerContent}>
+          <FontAwesomeIcon
+            icon={Icons.Comments}
+            size={20}
+            color={primaryColor}
+          />
+          <Text style={styles.headerTitle}>{t('comments') || 'Comments'}</Text>
+          <View style={styles.countBadge}>
+            <Text style={styles.countText}>
+              {comments.length || commentsCount || 0}
+            </Text>
+          </View>
+        </View>
+        <TouchableOpacity
+          onPress={() => {
+            Keyboard.dismiss();
+            bottomSheetRef.current?.dismiss();
+          }}
+          style={styles.closeButton}
+        >
+          <Text style={styles.closeButtonText}>{t('close')}</Text>
+        </TouchableOpacity>
+      </View>
+    ),
+    [comments.length, commentsCount, t]
+  );
+
+  const ListEmptyComponent = useMemo(() => {
+    if (isLoading) {
+      return (
+        <View style={styles.loadingState}>
+          <ActivityIndicator size="large" color={primaryColor} />
+          <Text style={styles.loadingText}>{t('loading') || 'Loading...'}</Text>
+        </View>
+      );
+    }
+    return (
+      <View style={styles.emptyState}>
+        <FontAwesomeIcon
+          icon={Icons.Comments}
+          size={48}
+          color={secondaryTextColor}
+        />
+        <Text style={styles.emptyText}>
+          {t('no-comments-yet') || 'No comments yet'}
+        </Text>
+        <Text style={styles.emptySubtext}>
+          {t('be-first-to-comment') || 'Be the first to comment!'}
+        </Text>
       </View>
     );
-  };
+  }, [isLoading, t]);
+
+  const handleSheetChange = useCallback(
+    (index: number) => {
+      if (index === -1) {
+        onClose();
+        return;
+      }
+
+      if (!isKeyboardOpenRef.current) {
+        lastStableIndex.current = index;
+      }
+    },
+    [onClose]
+  );
 
   return (
-    <BottomSheetModal
-      ref={bottomSheetRef}
-      snapPoints={snapPoints}
-      index={1}
-      backdropComponent={renderBackdrop}
-      onDismiss={onClose}
-      backgroundStyle={{ backgroundColor: bottomModalBgColor }}
-      handleHeight={24}
-      enablePanDownToClose
-      handleIndicatorStyle={styles.handleIndicator}
-      keyboardBehavior="interactive"
-      keyboardBlurBehavior="restore"
-      android_keyboardInputMode="adjustResize"
-      topInset={insets.top}
-      enableOverDrag={false}
-      animateOnMount={true}
-      footerComponent={renderFooter}
-    >
-      <BottomSheetView style={styles.container}>
-        {/* Fixed Header */}
-        <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <FontAwesomeIcon
-              icon={Icons.Comments}
-              size={20}
-              color={primaryColor}
-            />
-            <Text style={styles.headerTitle}>
-              {t('comments') || 'Comments'}
-            </Text>
-            <View style={styles.countBadge}>
-              <Text style={styles.countText}>
-                {comments.length || commentsCount || 0}
-              </Text>
-            </View>
-          </View>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Text style={styles.closeButtonText}>{t('close')}</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Scrollable Comments List */}
-        <BottomSheetScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollViewContent}
+    <>
+      <BottomSheetModal
+        ref={bottomSheetRef}
+        snapPoints={snapPoints}
+        index={STARTING_INDEX}
+        backdropComponent={renderBackdrop}
+        onDismiss={onClose}
+        onChange={handleSheetChange}
+        backgroundStyle={{ backgroundColor: bottomModalBgColor }}
+        enablePanDownToClose
+        handleIndicatorStyle={styles.handleIndicator}
+        keyboardBehavior={Platform.OS === 'ios' ? 'interactive' : 'extend'}
+        keyboardBlurBehavior="restore"
+        android_keyboardInputMode="adjustResize"
+        topInset={insets.top}
+        enableOverDrag={false}
+        animateOnMount
+        enableDynamicSizing={false}
+        footerComponent={renderFooter}
+      >
+        <BottomSheetFlatList
+          ref={commentsListRef}
+          data={comments}
+          renderItem={renderCommentItem}
+          keyExtractor={item => item.id}
+          ListHeaderComponent={ListHeaderComponent}
+          ListEmptyComponent={ListEmptyComponent}
+          stickyHeaderIndices={[0]}
+          contentContainerStyle={styles.listContentContainer}
           keyboardShouldPersistTaps="handled"
-        >
-          {isLoading ? (
-            <View style={styles.loadingState}>
-              <ActivityIndicator size="large" color={primaryColor} />
-              <Text style={styles.loadingText}>
-                {t('loading') || 'Loading...'}
-              </Text>
-            </View>
-          ) : comments.length > 0 ? (
-            <FlashList
-              ref={commentsListRef}
-              data={comments}
-              renderItem={renderCommentItem}
-              keyExtractor={item => item.id}
-              style={styles.commentsList}
-              contentContainerStyle={styles.commentsListContent}
-              showsVerticalScrollIndicator={false}
-            />
-          ) : (
-            <View style={styles.emptyState}>
-              <FontAwesomeIcon
-                icon={Icons.Comments}
-                size={48}
-                color={secondaryTextColor}
-              />
-              <Text style={styles.emptyText}>
-                {t('no-comments-yet') || 'No comments yet'}
-              </Text>
-              <Text style={styles.emptySubtext}>
-                {t('be-first-to-comment') || 'Be the first to comment!'}
-              </Text>
-            </View>
-          )}
-        </BottomSheetScrollView>
-      </BottomSheetView>
+          showsVerticalScrollIndicator={false}
+        />
+      </BottomSheetModal>
 
-      {/* Report Comment Modal */}
       <ReportCommentModal
         visible={reportModalVisible}
         onClose={() => {
@@ -708,22 +763,11 @@ export const PostCommentsModal = ({
         }}
         onSave={handleReportComment}
       />
-    </BottomSheetModal>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollViewContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 100,
-  },
   handleIndicator: {
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
     width: 40,
@@ -734,11 +778,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 8,
-    paddingBottom: 8,
+    paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
     backgroundColor: bottomModalBgColor,
-    zIndex: 10,
   },
   headerContent: {
     flexDirection: 'row',
@@ -776,17 +819,13 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: secondaryTextColor,
   },
-  commentsList: {
-    flex: 1,
-    marginTop: 16,
-  },
-  commentsListContent: {
-    paddingBottom: 20,
+  listContentContainer: {
+    paddingBottom: 120,
   },
   commentItem: {
     flexDirection: 'row',
     paddingVertical: 12,
-    paddingHorizontal: 4,
+    paddingHorizontal: 20,
   },
   avatar: {
     marginRight: 12,
@@ -840,7 +879,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
-    flex: 1,
+    paddingHorizontal: 20,
   },
   emptyText: {
     fontSize: 18,
@@ -859,7 +898,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
-    flex: 1,
   },
   loadingText: {
     fontSize: 16,
@@ -867,7 +905,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     textAlign: 'center',
   },
-  // footerWrapper je Animated.View – mení paddingBottom podľa výšky klávesnice
   footerWrapper: {
     backgroundColor: 'rgba(20,27,34,1)',
     borderTopWidth: 1,
