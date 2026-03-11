@@ -23,27 +23,10 @@ export const useNotificationsQuery = (): {
   const userData = useUserStore(state => state.userData);
   const { isAuthenticated } = useAuth(); // Use auth state from AuthProvider (token-based)
 
-  console.log(
-    '[useNotificationsQuery] User authenticated:',
-    isAuthenticated,
-    'User ID:',
-    userData?.id
-  );
-
   const query = useQuery<NotificationsData, Error>({
     queryKey: ['notifications', userData?.id], // Include user ID in query key for proper cache invalidation
     queryFn: async () => {
-      console.log(
-        '[useNotificationsQuery] queryFn called - fetching notifications for user:',
-        userData?.id
-      );
       const res = await getUserNotifications();
-      console.log(
-        '[useNotificationsQuery] queryFn completed - notifications count:',
-        res.newNotificationsCount,
-        'total notifications:',
-        res.notifications?.length || 0
-      );
       return {
         notifications: res.notifications,
         hasNewNotifications: res.newNotificationsCount > 0,
@@ -53,12 +36,6 @@ export const useNotificationsQuery = (): {
     enabled: isAuthenticated, // Only fetch when user is authenticated
     retryDelay: 1000, // Wait 1 second before retry
     onSuccess: async data => {
-      console.log(
-        '[useNotificationsQuery] onSuccess - setting notifications, count:',
-        data.newNotificationsCount,
-        'total:',
-        data.notifications?.length || 0
-      );
       // Always set notifications to store, even if empty
       setNotifications(data);
     },
@@ -86,17 +63,6 @@ export const useNotificationsQuery = (): {
       return failureCount < 2;
     },
   });
-
-  console.log(
-    '[useNotificationsQuery] Query state - isLoading:',
-    query.isLoading,
-    'isFetching:',
-    query.isFetching,
-    'isError:',
-    query.isError,
-    'enabled:',
-    isAuthenticated
-  );
 
   // If query is disabled (not authenticated), return empty data from store or create empty state
   if (!isAuthenticated) {

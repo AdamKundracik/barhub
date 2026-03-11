@@ -16,7 +16,10 @@ export const Navigation = () => {
   const { isAppInitialized } = useAppInitialization();
   const { isAuthenticated, isLoading: isAuthLoading, user } = useAuth();
   const { isConnected, isLoading: isNetworkLoading } = useNetwork();
-  const { shouldShowLoading } = useTokenProtection(isAuthLoading, isAuthenticated);
+  const { shouldShowLoading } = useTokenProtection(
+    isAuthLoading,
+    isAuthenticated
+  );
 
   // Check if email is verified
   const isEmailVerified = user?.emailVerified ?? false;
@@ -33,9 +36,6 @@ export const Navigation = () => {
 
   // ADDITIONAL SAFETY: If user is supposed to be authenticated but we don't have user data yet, wait
   if (isAuthenticated && !user) {
-    console.log(
-      '[Navigation] User authenticated but no user data yet, waiting...'
-    );
     return <Loading />;
   }
 

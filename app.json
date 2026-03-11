@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Barhub",
-    "slug": "barhub-app",
+    "slug": "baruj-app",
     "version": "1.2.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -144,7 +144,10 @@
         "android.permission.CAMERA",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
-        "com.google.android.gms.permission.AD_ID"
+        "com.google.android.gms.permission.AD_ID",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_LOCATION"
       ],
       "package": "com.barhub.barhub"
     },
@@ -233,7 +236,9 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Barhub používa polohu na nájdenie miest vo vašom okolí."
+          "locationAlwaysAndWhenInUsePermission": "Barhub používa polohu na nájdenie miest vo vašom okolí.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
         }
       ],
       "react-native-background-geolocation",

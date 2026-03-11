@@ -226,7 +226,6 @@ export const Account = () => {
     async () => {
       if (!isAdmin && !isModerator) return [];
       const allReports = await reportService.getAllReports();
-      console.log('[Account] Reports loaded:', allReports?.length || 0);
       return allReports || [];
     },
     {
@@ -244,23 +243,10 @@ export const Account = () => {
   useFocusEffect(
     React.useCallback(() => {
       if ((isAdmin || isModerator) && refetchReports) {
-        console.log('[Account] Screen focused, refetching reports...');
         refetchReports();
       }
     }, [isAdmin, isModerator, refetchReports])
   );
-
-  // Debug log
-  React.useEffect(() => {
-    if (isAdmin || isModerator) {
-      console.log(
-        '[Account] Reports count for badge:',
-        reportsCount,
-        'isLoading:',
-        isLoadingReports
-      );
-    }
-  }, [reportsCount, isLoadingReports, isAdmin, isModerator]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -290,9 +276,7 @@ export const Account = () => {
   function handleSendEmailLog() {
     BackgroundGeolocation.logger
       .emailLog('adam.kundracik@gmail.com')
-      .then(success => {
-        console.log('[emailLog] SUCCESS');
-      })
+      .then(success => {})
       .catch(error => {
         console.log('[emailLog] ERROR: ', error);
       });
@@ -379,7 +363,6 @@ export const Account = () => {
       // First remove push token from backend (before account deletion)
       if (currentPushToken && userData?.id) {
         try {
-          // // console.log('[Account] Removing push token before account deletion');
           await userService.removePushToken(
             userData.id.toString(),
             currentPushToken

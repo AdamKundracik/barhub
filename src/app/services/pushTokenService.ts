@@ -20,8 +20,6 @@ class PushTokenService {
    */
   async getExpoPushToken(): Promise<string | null> {
     try {
-      // console.log('[PushTokenService] Getting Expo push token');
-
       // Check permissions first
       const { status: existingStatus } =
         await Notifications.getPermissionsAsync();

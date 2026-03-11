@@ -84,7 +84,6 @@ export const FeedContent: React.FC<FeedContentProps> = ({
 
   // Initial permission check on mount
   useEffect(() => {
-    console.log('[FeedContent] Initial permission check on mount');
     checkPermission(false);
   }, [checkPermission]);
 
@@ -113,18 +112,8 @@ export const FeedContent: React.FC<FeedContentProps> = ({
       const handleAppStateChange = (nextAppState: AppStateStatus) => {
         const prevAppState = appStateRef.current;
 
-        console.log(
-          '[FeedContent] iOS AppState change:',
-          prevAppState,
-          '->',
-          nextAppState
-        );
-
         // When app becomes active, check geolocation permission
         if (prevAppState !== 'active' && nextAppState === 'active') {
-          console.log(
-            '[FeedContent] iOS app became active, checking permission'
-          );
           checkPermission(true);
         }
 
@@ -153,9 +142,6 @@ export const FeedContent: React.FC<FeedContentProps> = ({
   // If permission is denied (false), show LocationRequiredState immediately
   // Don't wait for location loading to complete - it will never complete without permission
   if (hasGeolocationPermission === false) {
-    console.log(
-      '[FeedContent] ✅ Showing LocationRequiredState - no geolocation permission'
-    );
     return (
       <ScrollView
         contentContainerStyle={styles.scrollViewContent}
@@ -176,9 +162,6 @@ export const FeedContent: React.FC<FeedContentProps> = ({
 
   // Show loading only if permission check is pending (null) or we're waiting for data
   if (isLoading || hasGeolocationPermission === null) {
-    console.log(
-      '[FeedContent] Showing PostLoaderView - loading or permission check pending'
-    );
     return <PostLoaderView />;
   }
 

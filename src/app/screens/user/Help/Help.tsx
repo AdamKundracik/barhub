@@ -45,7 +45,10 @@ const HelpScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <KeyboardAwareScrollView style={styles.flex} contentContainerStyle={styles.flexGrow}>
+        <KeyboardAwareScrollView
+          style={styles.flex}
+          contentContainerStyle={styles.flexGrow}
+        >
           <View>
             {/* Header */}
             <View style={styles.header}>
@@ -124,9 +127,7 @@ const HelpScreen = () => {
                 size="md"
                 action="primary"
                 style={formStyles.buttonPrimary}
-                onPress={() => {
-                  // console.log('Sending help request:', { email, message });
-                }}
+                onPress={() => {}}
               >
                 <ButtonText style={formStyles.buttonText}>
                   {t('send')}

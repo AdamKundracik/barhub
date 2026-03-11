@@ -1,24 +1,28 @@
 import { apiUtils } from '../utils/api/apiClient';
-import { 
-  ReasonTypeEnum, 
-  ReportDTO, 
-  ReportUserDTO, 
-  UnifiedReportDTO, 
+import {
+  ReasonTypeEnum,
+  ReportDTO,
+  ReportUserDTO,
+  UnifiedReportDTO,
   ReportManagementDTO,
-  ReportTypeEnum 
+  ReportTypeEnum,
 } from '../types/dto';
 
 // Export types for backward compatibility
 export { ReasonTypeEnum, ReportTypeEnum } from '../types/dto';
-export type { ReportDTO, ReportUserDTO, UnifiedReportDTO, ReportManagementDTO } from '../types/dto';
+export type {
+  ReportDTO,
+  ReportUserDTO,
+  UnifiedReportDTO,
+  ReportManagementDTO,
+} from '../types/dto';
 
 class ReportService {
   // === UNIFIED REPORTING METHODS ===
-  
+
   // Unified method to create any type of report
   async createUnifiedReport(reportData: UnifiedReportDTO): Promise<ReportDTO> {
     try {
-      console.log('[ReportService] Creating unified report:', reportData);
       return await apiUtils.post<ReportDTO>('/reports/create', reportData);
     } catch (error) {
       console.error('Error creating unified report:', error);
@@ -27,12 +31,13 @@ class ReportService {
   }
 
   // === MANAGEMENT METHODS (Admin/Moderator) ===
-  
+
   // Get all reports with enhanced context for management
   async getAllReportsForManagement(): Promise<ReportManagementDTO[]> {
     try {
-      console.log('[ReportService] Fetching all reports for management');
-      const reports = await apiUtils.get<ReportManagementDTO[]>('/reports/management');
+      const reports = await apiUtils.get<ReportManagementDTO[]>(
+        '/reports/management'
+      );
       return reports || [];
     } catch (error) {
       console.error('Error fetching reports for management:', error);
@@ -43,8 +48,9 @@ class ReportService {
   // Get unresolved reports for management
   async getUnresolvedReports(): Promise<ReportManagementDTO[]> {
     try {
-      console.log('[ReportService] Fetching unresolved reports');
-      const reports = await apiUtils.get<ReportManagementDTO[]>('/reports/management/unresolved');
+      const reports = await apiUtils.get<ReportManagementDTO[]>(
+        '/reports/management/unresolved'
+      );
       return reports || [];
     } catch (error) {
       console.error('Error fetching unresolved reports:', error);
@@ -53,9 +59,10 @@ class ReportService {
   }
 
   // Get reports by type for management
-  async getReportsByTypeForManagement(reportType: ReportTypeEnum): Promise<ReportManagementDTO[]> {
+  async getReportsByTypeForManagement(
+    reportType: ReportTypeEnum
+  ): Promise<ReportManagementDTO[]> {
     try {
-      console.log('[ReportService] Fetching reports by type for management:', reportType);
       const reports = await apiUtils.get<ReportManagementDTO[]>(
         `/reports/management/type/${reportType}`
       );
@@ -67,11 +74,16 @@ class ReportService {
   }
 
   // Resolve a report
-  async resolveReport(reportId: number, resolutionNotes?: string): Promise<ReportDTO> {
+  async resolveReport(
+    reportId: number,
+    resolutionNotes?: string
+  ): Promise<ReportDTO> {
     try {
-      console.log('[ReportService] Resolving report:', reportId);
       const requestBody = resolutionNotes ? { resolutionNotes } : {};
-      return await apiUtils.put<ReportDTO>(`/reports/management/${reportId}/resolve`, requestBody);
+      return await apiUtils.put<ReportDTO>(
+        `/reports/management/${reportId}/resolve`,
+        requestBody
+      );
     } catch (error) {
       console.error('Error resolving report:', error);
       throw error;
@@ -81,7 +93,6 @@ class ReportService {
   // Delete report (Admin/Moderator only)
   async deleteReport(reportId: number): Promise<boolean> {
     try {
-      console.log('[ReportService] Deleting report:', reportId);
       await apiUtils.delete(`/reports/management/${reportId}`);
       return true;
     } catch (error) {
@@ -91,11 +102,10 @@ class ReportService {
   }
 
   // === LEGACY METHODS (for backward compatibility) ===
-  
+
   // Get all reports (Admin/Moderator only) - Legacy
   async getAllReports(): Promise<ReportDTO[]> {
     try {
-      console.log('[ReportService] Fetching all reports (legacy)');
       const reports = await apiUtils.get<ReportDTO[]>('/reports');
       return reports || [];
     } catch (error) {
@@ -107,7 +117,6 @@ class ReportService {
   // Get reports by reason type (Admin/Moderator only) - Legacy
   async getReportsByType(reasonType: string): Promise<ReportDTO[]> {
     try {
-      console.log('[ReportService] Fetching reports by reason type (legacy):', reasonType);
       const reports = await apiUtils.get<ReportDTO[]>(
         `/reports/type/${reasonType}`
       );
@@ -119,7 +128,7 @@ class ReportService {
   }
 
   // === CONVENIENCE METHODS ===
-  
+
   // Report a post using unified API
   async reportPost(
     postId: string | number,
@@ -134,7 +143,6 @@ class ReportService {
         otherReasonMessage,
       };
 
-      console.log('[ReportService] Reporting post:', reportData);
       return await this.createUnifiedReport(reportData);
     } catch (error) {
       console.error('Error reporting post:', error);
@@ -156,7 +164,6 @@ class ReportService {
         otherReasonMessage,
       };
 
-      console.log('[ReportService] Reporting user:', reportData);
       return await this.createUnifiedReport(reportData);
     } catch (error) {
       console.error('Error reporting user:', error);
@@ -173,12 +180,12 @@ class ReportService {
     try {
       const reportData: UnifiedReportDTO = {
         reportType: ReportTypeEnum.COMMENT,
-        commentId: typeof commentId === 'string' ? parseInt(commentId, 10) : commentId,
+        commentId:
+          typeof commentId === 'string' ? parseInt(commentId, 10) : commentId,
         reason,
         otherReasonMessage,
       };
 
-      console.log('[ReportService] Reporting comment:', reportData);
       return await this.createUnifiedReport(reportData);
     } catch (error) {
       console.error('Error reporting comment:', error);
@@ -187,7 +194,7 @@ class ReportService {
   }
 
   // === LEGACY METHODS (for backward compatibility) ===
-  
+
   // Create report (Any user can report a post) - Legacy
   async createReport(
     userId: number,
@@ -196,7 +203,6 @@ class ReportService {
     otherReasonMessage?: string
   ): Promise<ReportDTO> {
     try {
-      console.log('[ReportService] Creating report (legacy)');
       return await this.reportPost(postId, reason, otherReasonMessage);
     } catch (error) {
       console.error('Error creating report (legacy):', error);

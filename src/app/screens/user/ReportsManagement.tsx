@@ -202,10 +202,6 @@ export const ReportsManagement: React.FC = () => {
   const [selectedFilter, setSelectedFilter] = useState<string>('ALL');
   const [showFilters, setShowFilters] = useState(false);
 
-  // console.log('[ReportsManagement] Component rendered');
-  // console.log('[ReportsManagement] isAdmin:', isAdmin);
-  // console.log('[ReportsManagement] isModerator:', isModerator);
-
   // Fetch all reports (Admin/Moderator only)
   const {
     data: reports = [],
@@ -214,9 +210,7 @@ export const ReportsManagement: React.FC = () => {
   } = useQuery<ReportDTO[]>(
     ['admin', 'reports'],
     async () => {
-      console.log('[ReportsManagement] Fetching all reports...');
       const data = await reportService.getAllReports();
-      console.log('[ReportsManagement] Fetched reports:', data?.length || 0);
       return data || [];
     },
     {

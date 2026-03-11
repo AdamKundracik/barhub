@@ -50,8 +50,6 @@ const BottomTabs = () => {
   const [isCheckingUpload, setIsCheckingUpload] = useState(false);
   const { showErrorToast } = useCustomToast();
 
-  // console.log('[BottomTabs] showTutorial:', showTutorial);
-
   // Track navigation state changes to store previous page
   useEffect(() => {
     const unsubscribe = navigation.addListener('state', e => {

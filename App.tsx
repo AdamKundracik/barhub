@@ -1,3 +1,6 @@
+// 1. ADD THIS LINE AT THE VERY TOP
+import './src/app/utils/backgroundLocationTask';
+
 import React, { ReactNode } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'react-native';
@@ -23,6 +26,11 @@ import '@/global.css';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
+// 2. Keep your existing named imports here
+import {
+  registerBackgroundTask,
+  unregisterBackgroundTask,
+} from './src/app/utils/backgroundLocationTask';
 
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
@@ -32,7 +40,9 @@ configureReanimatedLogger({
 const queryClient = createQueryClientWithPersistence();
 
 // Wrapper to ensure app initialization happens INSIDE providers
-const AppInitializationWrapper: React.FC<{ children: ReactNode }> = ({ children }) => {
+const AppInitializationWrapper: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   useAppInitialization();
   return <>{children}</>;
 };

@@ -83,7 +83,6 @@ class NotificationService {
   // Send like notification (matches backend LikeNotificationDTO)
   async sendLikeNotification(request: LikeNotificationDTO): Promise<boolean> {
     try {
-      // console.log('[NotificationService] Sending like notification:', request);
       await apiUtils.post(`${ENDPOINTS.NOTIFICATIONS.BASE}/send-like`, request);
       return true;
     } catch (error) {
@@ -97,10 +96,6 @@ class NotificationService {
     request: CommentNotificationDTO
   ): Promise<boolean> {
     try {
-      // console.log(
-      //   '[NotificationService] Sending comment notification:',
-      //   request
-      // );
       await apiUtils.post(
         `${ENDPOINTS.NOTIFICATIONS.BASE}/send-comment`,
         request
@@ -116,10 +111,6 @@ class NotificationService {
   async sendRequestNotification(
     request: RequestNotificationDTO
   ): Promise<{ success: boolean; recipients: number[] }> {
-    // console.log(
-    //   '[NotificationService] Sending request notification:',
-    //   request
-    // );
     // Propagate error instead of returning null - let the caller handle it
     return await apiUtils.post<{
       success: boolean;
@@ -132,10 +123,6 @@ class NotificationService {
     request: ResponseNotificationDTO
   ): Promise<{ success: boolean; recipients: number[] } | null> {
     try {
-      // console.log(
-      //   '[NotificationService] Sending response notification:',
-      //   request
-      // );
       return await apiUtils.post<{
         success: boolean;
         recipients: number[];
@@ -151,10 +138,6 @@ class NotificationService {
     userId: string
   ): Promise<{ success: boolean; updatedCount: number } | null> {
     try {
-      // console.log(
-      //   '[NotificationService] Marking all notifications as seen for user:',
-      //   userId
-      // );
       return await apiUtils.patch<{
         success: boolean;
         updatedCount: number;
@@ -168,10 +151,6 @@ class NotificationService {
   // Mark notification as read
   async markAsRead(notificationId: number): Promise<NotificationDTO | null> {
     try {
-      // console.log(
-      //   '[NotificationService] Marking notification as read:',
-      //   notificationId
-      // );
       return await apiUtils.patch<NotificationDTO>(
         `${ENDPOINTS.NOTIFICATIONS.BASE}/${notificationId}/read`
       );
@@ -184,10 +163,6 @@ class NotificationService {
   // Delete notification
   async deleteNotification(notificationId: number): Promise<boolean> {
     try {
-      // console.log(
-      //   '[NotificationService] Deleting notification:',
-      //   notificationId
-      // );
       await apiUtils.delete(
         `${ENDPOINTS.NOTIFICATIONS.BASE}/${notificationId}`
       );
