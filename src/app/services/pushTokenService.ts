@@ -57,19 +57,17 @@ class PushTokenService {
         return null;
       }
 
-      // Get push token based on platform
-      let pushTokenString: string;
-      if (Platform.OS === 'ios') {
-        pushTokenString = (
-          await Notifications.getExpoPushTokenAsync({
-            projectId: Constants?.expoConfig?.extra?.eas.projectId,
-          })
-        ).data;
-      } else {
-        pushTokenString = (await Notifications.getDevicePushTokenAsync()).data;
-      }
+      // FIX: Both iOS and Android should use getExpoPushTokenAsync()
+      // getDevicePushTokenAsync() returns a raw FCM token (not an Expo push token)
+      // and cannot be used with Expo's push notification service.
+      const pushTokenString = (
+        await Notifications.getExpoPushTokenAsync({ projectId })
+      ).data;
 
-      // console.log('[PushTokenService] Successfully obtained push token');
+      console.log(
+        '[PushTokenService] Successfully obtained push token:',
+        pushTokenString
+      );
       this.currentToken = pushTokenString;
       return pushTokenString;
     } catch (error) {
@@ -84,19 +82,12 @@ class PushTokenService {
   async savePushTokenToBackend(userId: string): Promise<boolean> {
     try {
       if (!this.currentToken) {
-        // console.log('[PushTokenService] No current token to save');
         return false;
       }
 
-      // console.log(
-      //   '[PushTokenService] Saving push token to backend for user:',
-      //   userId
-      // );
       const success = await userService.addPushToken(userId, this.currentToken);
 
       if (success) {
-        // console.log('[PushTokenService] Push token saved successfully');
-        // Update user store
         const { setCurrentPushToken } = useUserStore.getState();
         setCurrentPushToken(this.currentToken);
       } else {
@@ -121,22 +112,15 @@ class PushTokenService {
   async removePushTokenFromBackend(userId: string): Promise<boolean> {
     try {
       if (!this.currentToken) {
-        // console.log('[PushTokenService] No current token to remove');
         return true; // Nothing to remove
       }
 
-      // console.log(
-      //   '[PushTokenService] Removing push token from backend for user:',
-      //   userId
-      // );
       const success = await userService.removePushToken(
         userId,
         this.currentToken
       );
 
       if (success) {
-        // console.log('[PushTokenService] Push token removed successfully');
-        // Clear from user store
         const { setCurrentPushToken } = useUserStore.getState();
         setCurrentPushToken(null);
         this.currentToken = null;
@@ -161,14 +145,10 @@ class PushTokenService {
    */
   async initialize(userId?: string): Promise<string | null> {
     try {
-      // console.log('[PushTokenService] Initializing push token service');
-
       // Check if user already has a push token stored
       const { currentPushToken } = useUserStore.getState();
       if (currentPushToken) {
-        // User already has a push token, use it instead of fetching a new one
         this.currentToken = currentPushToken;
-        // console.log('[PushTokenService] Using existing push token:', currentPushToken);
         return currentPushToken;
       }
 
