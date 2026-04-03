@@ -8,6 +8,9 @@ import { API_CONFIG, ENDPOINTS } from '../config/api';
 
 export const BACKGROUND_LOCATION_TASK = 'background-location-task';
 
+const MIN_UPDATE_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
+let lastUpdateTimestamp = 0;
+
 // Must be defined in global scope, outside any component
 if (Platform.OS === 'android') {
   TaskManager.defineTask(
@@ -21,6 +24,12 @@ if (Platform.OS === 'android') {
       const locations: Location.LocationObject[] = data?.locations;
       if (!locations?.length) return;
 
+      const now = Date.now();
+      if (now - lastUpdateTimestamp < MIN_UPDATE_INTERVAL_MS) {
+        return;
+      }
+      lastUpdateTimestamp = now;
+
       const { latitude, longitude } = locations[0].coords;
       console.log(
         '[BG Location] Got location:',
@@ -29,13 +38,10 @@ if (Platform.OS === 'android') {
         new Date().toISOString()
       );
 
-      // Skip if fake location is active
       if (useLocationStore.getState().useFakeLocation) return;
 
-      // Update store
       useLocationStore.getState().setLocation({ latitude, longitude });
 
-      // Sync to backend
       const userId = useUserStore.getState().userData?.id?.toString();
       if (!userId) return;
 
@@ -70,15 +76,17 @@ export async function registerBackgroundTask(): Promise<void> {
 
   console.log('ABRAKADABRA');
   await Location.startLocationUpdatesAsync(BACKGROUND_LOCATION_TASK, {
-    accuracy: Location.Accuracy.BestForNavigation,
-    timeInterval: 120000, // ms — minimum time between updates
-    showsBackgroundLocationIndicator: true,
-    foregroundService: {
-      notificationTitle: 'Location active',
-      notificationBody: 'Your location is being tracked.',
-      notificationColor: '#000000',
-    },
+    accuracy: Location.Accuracy.High,
+    timeInterval: 15 * 60 * 1000, // 15 minutes
+    distanceInterval: 100,
+    deferredUpdatesInterval: 15 * 60 * 1000,
+    deferredUpdatesDistance: 100,
     pausesUpdatesAutomatically: false,
+    foregroundService: {
+      notificationTitle: 'Location Active',
+      notificationBody: 'Tracking your location in the background.',
+      notificationColor: '#ffffff',
+    },
   });
 
   console.log('[BG Location] Foreground service started');

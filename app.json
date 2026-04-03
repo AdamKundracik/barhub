@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Barhub",
-    "slug": "baruj-app",
+    "slug": "barhub-app",
     "version": "1.2.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

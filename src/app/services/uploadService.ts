@@ -92,14 +92,18 @@ class UploadService {
         console.log('  - senderToken:', postData.senderToken);
       }
 
-      const response = await axiosClient
-        .getInstance()
-        .post(ENDPOINTS.POSTS.UPLOAD, formData, {
+      console.log('data', formData);
+
+      const response = await axiosClient.post(
+        ENDPOINTS.POSTS.UPLOAD,
+        formData,
+        {
           headers: {
             // Explicitly set Content-Type to undefined to force axios to set multipart/form-data with boundary
-            'Content-Type': undefined,
+            'Content-Type': 'multipart/form-data',
           },
-        });
+        }
+      );
 
       console.log('✅ [UPLOAD DEBUG] Upload successful!');
       console.log('✅ [UPLOAD DEBUG] Response status:', response.status);
