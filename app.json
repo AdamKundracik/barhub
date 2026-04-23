@@ -1,8 +1,8 @@
 {
   "expo": {
     "name": "Barhub",
-    "slug": "barhub-app",
-    "version": "1.2.2",
+    "slug": "baruj-app",
+    "version": "1.2.4",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -126,6 +126,26 @@
               "scheme": "https",
               "host": "www.barhubapp.com",
               "pathPrefix": "/post"
+            },
+            {
+              "scheme": "https",
+              "host": "barhubapp.com",
+              "pathPrefix": "/verify-email"
+            },
+            {
+              "scheme": "https",
+              "host": "www.barhubapp.com",
+              "pathPrefix": "/verify-email"
+            },
+            {
+              "scheme": "https",
+              "host": "barhubapp.com",
+              "pathPrefix": "/reset-password"
+            },
+            {
+              "scheme": "https",
+              "host": "www.barhubapp.com",
+              "pathPrefix": "/reset-password"
             }
           ],
           "category": [
