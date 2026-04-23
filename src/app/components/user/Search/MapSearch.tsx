@@ -1,6 +1,6 @@
-import React, { useCallback, useRef, useState } from 'react';
-import MapView, { Circle, Marker, Region } from 'react-native-maps';
-import MapViewCluster from 'react-native-map-clustering';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Circle, Marker, Region } from 'react-native-maps';
+import MapView from 'react-native-map-clustering';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -20,6 +20,7 @@ import { usePlaceStore } from '../../../utils/store/placesStore';
 import { fetchNearbyPlaces } from '../../../utils/api/fetchPlacesAPI';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import BackgroundGeolocation from 'react-native-background-geolocation';
 import {
   GEOFENCE_CONFIG,
   isLocationWithinPerimeter,
@@ -37,7 +38,7 @@ import { BlurView } from 'expo-blur';
 
 const LATITUDE_DELTA = 0.0035;
 const LONGITUDE_DELTA = 0.0035;
-const DEBOUNCE_DELAY = 100;
+const DEBOUNCE_DELAY = 500;
 
 type LayoutProps = {
   setIsMapShown: (isSearching: boolean) => void;
@@ -46,23 +47,33 @@ type LayoutProps = {
 export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp<UserStackList>>();
-  const { location } = useLocationStore();
+  const { location, useFakeLocation, fakeLocation } = useLocationStore();
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const { setPlaceId, setPlaceName, setPlaceAddress } = usePlaceStore();
 
-  const mapRef = useRef<MapView>(null);
+  // Get the effective location (fake location if travel mode is on, otherwise real location)
+  const effectiveLocation =
+    useFakeLocation && fakeLocation ? fakeLocation : location;
+
+  const mapRef = useRef<any>(null);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+  const userMovedMapRef = useRef<boolean>(false);
+  const lastLocationRef = useRef<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const lastUseFakeLocationRef = useRef<boolean>(useFakeLocation);
 
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [loading, setLoading] = useState(false);
   const [places, setPlaces] = useState<Place[]>([]);
-  const [region, setRegion] = useState<Region>({
+  const [region, setRegion] = useState<Region>(() => ({
     latitudeDelta: LATITUDE_DELTA,
     longitudeDelta: LONGITUDE_DELTA,
-    latitude: location?.latitude ?? 0,
-    longitude: location?.longitude ?? 0,
-  });
+    latitude: effectiveLocation?.latitude ?? 0,
+    longitude: effectiveLocation?.longitude ?? 0,
+  }));
 
   const closeMap = useCallback(() => {
     setIsMapShown(false);
@@ -70,19 +81,6 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
 
   const pickPlace = useCallback(() => {
     if (!selectedPlace) return;
-
-    console.log('=== PLACE CONFIRMED/SELECTED ===');
-    console.log('Place Details:', JSON.stringify(selectedPlace, null, 2));
-    console.log('ID:', selectedPlace.id);
-    console.log('Display Name:', selectedPlace.displayName.text);
-    console.log('Formatted Address:', selectedPlace.formattedAddress);
-    console.log('Location:', {
-      latitude: selectedPlace.location.latitude,
-      longitude: selectedPlace.location.longitude,
-    });
-    console.log('Types:', selectedPlace.types);
-    console.log('================================');
-
     const placePrediction = mapPlaceToPlacePrediction(selectedPlace);
     setPlaceId(placePrediction.placeId);
     setPlaceName(placePrediction.structuredFormat.mainText.text);
@@ -101,13 +99,12 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
   const handleSearchSurrounding = useCallback(async () => {
     if (loading) return;
 
-    // Check if current map region is within 30km from user's actual location
     const regionLocation = {
       latitude: region.latitude,
       longitude: region.longitude,
     };
 
-    if (!isLocationWithinPerimeter(regionLocation, location)) {
+    if (!isLocationWithinPerimeter(regionLocation, effectiveLocation)) {
       alert(
         t('outside-allowed-area') ||
           'You moved too far from your location. Maximum 30km allowed.'
@@ -126,7 +123,7 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
     } finally {
       setLoading(false);
     }
-  }, [loading, region, location, t]);
+  }, [loading, region, effectiveLocation, t]);
 
   const onRegionChangeComplete = useCallback((newRegion: Region) => {
     if (debounceTimeout.current) {
@@ -136,43 +133,157 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
     debounceTimeout.current = setTimeout(() => {
       setRegion(newRegion);
       setSelectedPlace(null);
+      // Mark that user manually moved the map
+      userMovedMapRef.current = true;
     }, DEBOUNCE_DELAY);
   }, []);
 
-  const centerMapOnUserLocation = useCallback(() => {
-    if (!location || !mapRef.current) return;
+  const centerMapOnUserLocation = useCallback(async () => {
+    if (!mapRef.current) return;
 
-    mapRef.current.animateToRegion(
-      {
-        latitude: location.latitude,
-        longitude: location.longitude,
-        latitudeDelta: LATITUDE_DELTA,
-        longitudeDelta: LONGITUDE_DELTA,
-      },
-      500
-    );
-  }, [location]);
+    // Check if using fake location
+    const storeState = useLocationStore.getState();
+    if (storeState.useFakeLocation && storeState.fakeLocation) {
+      userMovedMapRef.current = false;
+      mapRef.current.animateToRegion(
+        {
+          latitude: storeState.fakeLocation.latitude,
+          longitude: storeState.fakeLocation.longitude,
+          latitudeDelta: LATITUDE_DELTA,
+          longitudeDelta: LONGITUDE_DELTA,
+        },
+        500
+      );
+      return;
+    }
+
+    // Get current position directly from BackgroundGeolocation
+    try {
+      const location = await BackgroundGeolocation.getCurrentPosition({
+        timeout: 10,
+        maximumAge: 5000,
+        desiredAccuracy: 10,
+        samples: 1,
+      });
+
+      if (location?.coords?.latitude && location?.coords?.longitude) {
+        // Update store with latest location
+        useLocationStore.getState().setLocation({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        });
+
+        userMovedMapRef.current = false;
+        mapRef.current.animateToRegion(
+          {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+            latitudeDelta: LATITUDE_DELTA,
+            longitudeDelta: LONGITUDE_DELTA,
+          },
+          500
+        );
+      }
+    } catch (error) {
+      console.error('Error getting current position:', error);
+      // Fallback to store location
+      const storeLocation = storeState.location;
+      if (storeLocation) {
+        userMovedMapRef.current = false;
+        mapRef.current.animateToRegion(
+          {
+            latitude: storeLocation.latitude,
+            longitude: storeLocation.longitude,
+            latitudeDelta: LATITUDE_DELTA,
+            longitudeDelta: LONGITUDE_DELTA,
+          },
+          500
+        );
+      }
+    }
+  }, []);
+
+  const handleMarkerPress = useCallback((place: Place) => {
+    setSelectedPlace(place);
+  }, []);
+
+  // Update map when location changes or travel mode is toggled
+  useEffect(() => {
+    if (!effectiveLocation || !mapRef.current) return;
+
+    const travelModeChanged =
+      lastUseFakeLocationRef.current !== useFakeLocation;
+    const lastLocation = lastLocationRef.current;
+    const isFirstLocation = !lastLocation;
+
+    // Calculate distance in meters (rough approximation: 1 degree ≈ 111km)
+    const distanceChanged = lastLocation
+      ? Math.sqrt(
+          Math.pow(effectiveLocation.latitude - lastLocation.latitude, 2) +
+            Math.pow(effectiveLocation.longitude - lastLocation.longitude, 2)
+        ) *
+          111000 >
+        10
+      : false;
+
+    const shouldUpdate =
+      travelModeChanged ||
+      isFirstLocation ||
+      (!userMovedMapRef.current && distanceChanged);
+
+    if (shouldUpdate) {
+      if (travelModeChanged) {
+        lastUseFakeLocationRef.current = useFakeLocation;
+        userMovedMapRef.current = false;
+      }
+
+      mapRef.current.animateToRegion(
+        {
+          latitude: effectiveLocation.latitude,
+          longitude: effectiveLocation.longitude,
+          latitudeDelta: region.latitudeDelta,
+          longitudeDelta: region.longitudeDelta,
+        },
+        travelModeChanged || isFirstLocation ? 500 : 1000
+      );
+
+      lastLocationRef.current = {
+        latitude: effectiveLocation.latitude,
+        longitude: effectiveLocation.longitude,
+      };
+    }
+  }, [
+    effectiveLocation,
+    useFakeLocation,
+    region.latitudeDelta,
+    region.longitudeDelta,
+  ]);
 
   return (
     <View style={styles.container}>
-      <MapViewCluster
+      <MapView
         style={styles.map}
-        region={region}
-        ref={mapRef}
+        initialRegion={region}
+        mapRef={(ref: any) => {
+          mapRef.current = ref;
+        }}
         onRegionChangeComplete={onRegionChangeComplete}
-        showsMyLocationButton={false}
         showsCompass={false}
+        showsUserLocation={true}
+        showsMyLocationButton={false}
+        clusteringEnabled={true}
+        moveOnMarkerPress={false}
         clusterColor={primaryColor}
         clusterTextColor={primaryBgColor}
       >
         {/* User's perimeter circle - 30km max range */}
-        {location && (
+        {effectiveLocation && (
           <Circle
             center={{
-              latitude: location.latitude,
-              longitude: location.longitude,
+              latitude: effectiveLocation.latitude,
+              longitude: effectiveLocation.longitude,
             }}
-            radius={GEOFENCE_CONFIG.maxRadiusKm * 1000} // Convert km to meters
+            radius={GEOFENCE_CONFIG.maxRadiusKm * 1000}
             strokeColor="rgba(255, 165, 0, 0.5)"
             fillColor="rgba(255, 165, 0, 0.05)"
             strokeWidth={2}
@@ -192,25 +303,12 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
         {!loading &&
           places.map(place => (
             <Marker
-              key={`${place.location.latitude}-${place.location.longitude}-${place.id}`}
+              key={`${place.id}-${selectedPlace?.id === place.id ? 'selected' : 'unselected'}`}
               coordinate={{
                 latitude: place.location.latitude,
                 longitude: place.location.longitude,
               }}
-              onPress={() => {
-                console.log('=== PLACE SELECTED ===');
-                console.log('Place Details:', JSON.stringify(place, null, 2));
-                console.log('ID:', place.id);
-                console.log('Display Name:', place.displayName.text);
-                console.log('Formatted Address:', place.formattedAddress);
-                console.log('Location:', {
-                  latitude: place.location.latitude,
-                  longitude: place.location.longitude,
-                });
-                console.log('Types:', place.types);
-                console.log('====================');
-                setSelectedPlace(place);
-              }}
+              onPress={() => handleMarkerPress(place)}
             >
               <View style={styles.markerContainer}>
                 <FontAwesomeIcon
@@ -221,7 +319,7 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
               </View>
             </Marker>
           ))}
-      </MapViewCluster>
+      </MapView>
 
       {/* Center marker */}
       <View style={styles.centerMarker}>
@@ -232,7 +330,7 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
         <View style={styles.centerMarkerShadow} />
       </View>
 
-      {/* Enhanced header with place info when selected */}
+      {/* Header */}
       <BlurView
         intensity={80}
         tint="dark"
@@ -271,7 +369,7 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
         </TouchableOpacity>
       </BlurView>
 
-      {/* Bottom action buttons with better styling */}
+      {/* Bottom actions */}
       <View
         style={[
           styles.bottomActions,
@@ -318,7 +416,7 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
         )}
       </View>
 
-      {/* Full screen loading overlay */}
+      {/* Loading overlay */}
       {loading && (
         <View style={styles.loadingOverlay}>
           <BlurView
@@ -343,8 +441,6 @@ const styles = StyleSheet.create({
   map: {
     ...StyleSheet.absoluteFillObject,
   },
-
-  // Center marker
   centerMarker: {
     position: 'absolute',
     top: '50%',
@@ -367,8 +463,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     transform: [{ scaleX: 1.5 }],
   },
-
-  // Place markers
   markerContainer: {
     backgroundColor: primaryBgColor,
     borderRadius: 20,
@@ -381,8 +475,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-
-  // Enhanced header with place info
   header: {
     position: 'absolute',
     left: 20,
@@ -434,8 +526,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
   },
-
-  // Bottom actions with consistent styling
   bottomActions: {
     position: 'absolute',
     left: 20,
@@ -481,8 +571,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
-
-  // Loading
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',

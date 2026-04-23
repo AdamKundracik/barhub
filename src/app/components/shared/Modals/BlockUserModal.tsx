@@ -1,16 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Dimensions,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Dimensions,
 } from 'react-native';
 import {
   BottomSheetBackdrop,
   BottomSheetModal,
-  BottomSheetScrollView,
+  BottomSheetView,
 } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -22,12 +22,14 @@ import {
   warningColor,
 } from '@/src/app/utils/styles/colors';
 
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
 type BlockUserModalProps = {
   visible: boolean;
   onClose: () => void;
   onConfirm: () => Promise<void> | void;
   userName?: string;
-  isBlocked?: boolean; // true if user is already blocked (for unblock action)
+  isBlocked?: boolean;
 };
 
 export const BlockUserModal = ({
@@ -40,13 +42,6 @@ export const BlockUserModal = ({
   const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [loading, setLoading] = useState(false);
-  
-  // Get screen height for responsive snap points
-  const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-  const isSmallDevice = SCREEN_HEIGHT < 700;
-  
-  // Calculate dynamic snap points based on device size
-  const snapPoints = isSmallDevice ? ['75%'] : ['60%'];
 
   useEffect(() => {
     if (visible) {
@@ -97,21 +92,27 @@ export const BlockUserModal = ({
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
-      snapPoints={snapPoints}
+      // Replaces the isSmallDevice branch — dynamic sizing measures the
+      // actual content height instead of guessing based on screen size.
+      // The manual approach was also recalculating snapPoints on every
+      // render since Dimensions.get() and the ternary were inline.
+      enableDynamicSizing
+      maxDynamicContentSize={SCREEN_HEIGHT * 0.75}
       backdropComponent={renderBackdrop}
       onDismiss={onClose}
       backgroundStyle={styles.container}
       handleIndicatorStyle={styles.handleIndicator}
       enablePanDownToClose
-      android_keyboardInputMode="adjustResize"
-      keyboardBehavior="extend"
-      keyboardBlurBehavior="restore"
     >
-      <BottomSheetScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
+      {/*
+        BottomSheetView instead of BottomSheetScrollView:
+        - This sheet has no TextInput and fixed content that never overflows,
+          so a ScrollView adds no value here
+        - More importantly, flexGrow: 1 on the ScrollView's contentContainerStyle
+          was telling the content to fill all available space, which prevents
+          dynamic sizing from measuring the true content height correctly
+      */}
+      <BottomSheetView style={styles.content}>
         <View style={styles.iconContainer}>
           <FontAwesomeIcon
             icon={isBlocked ? Icons.CheckCircle : Icons.Ban}
@@ -128,7 +129,6 @@ export const BlockUserModal = ({
           <TouchableOpacity
             style={[
               styles.button,
-              styles.confirmButton,
               isBlocked ? styles.unblockButton : styles.blockButton,
             ]}
             onPress={handleConfirm}
@@ -151,7 +151,7 @@ export const BlockUserModal = ({
             </Text>
           </TouchableOpacity>
         </View>
-      </BottomSheetScrollView>
+      </BottomSheetView>
     </BottomSheetModal>
   );
 };
@@ -164,10 +164,9 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 24,
-    paddingVertical: 20,
-    paddingBottom: 40, // Extra padding for small devices
+    paddingTop: 20,
+    paddingBottom: 40,
     alignItems: 'center',
-    flexGrow: 1,
   },
   iconContainer: {
     width: 64,
@@ -192,7 +191,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 32,
     paddingHorizontal: 8,
-    flexShrink: 1,
   },
   buttonContainer: {
     width: '100%',
@@ -205,14 +203,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 52,
   },
-  confirmButton: {
-    backgroundColor: warningColor,
-  },
   blockButton: {
-    backgroundColor: '#FF3B30', // Red for block action
+    backgroundColor: '#FF3B30',
   },
   unblockButton: {
-    backgroundColor: '#34C759', // Green for unblock action
+    backgroundColor: '#34C759',
   },
   confirmButtonText: {
     color: '#fff',

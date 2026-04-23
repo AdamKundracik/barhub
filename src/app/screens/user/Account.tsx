@@ -14,7 +14,11 @@ import {
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '../../utils/icons/icons';
-import { NavigationProp, useNavigation, useFocusEffect } from '@react-navigation/native';
+import {
+  NavigationProp,
+  useFocusEffect,
+  useNavigation,
+} from '@react-navigation/native';
 import { UserStackList } from '../../utils/types/screen-types';
 import {
   primaryBgColor,
@@ -44,8 +48,12 @@ import { HighlightedPostsGrid } from '@/src/app/components/user/Profile/Highligh
 import BioEditModal from '@/src/app/components/shared/Modals/BioEditModal';
 import { DeleteAccountConfirmModal } from '@/src/app/components/shared/Modals/DeleteAccountConfirmModal';
 import { PremiumHelpers } from '@/src/app/config/premiumConfig';
-import { addCacheBuster, createImageKey } from '../../utils/cache/imageCacheUtils';
+import {
+  addCacheBuster,
+  createImageKey,
+} from '../../utils/cache/imageCacheUtils';
 import { reportService } from '@/src/app/services/reportService';
+import BackgroundGeolocation from 'react-native-background-geolocation';
 
 interface ActionButtonProps {
   icon: any;
@@ -209,12 +217,15 @@ export const Account = () => {
 
   // Get reports count for badge (Admin/Moderator only)
   // No cache - always fetch fresh data for accurate badge count
-  const { data: reports, isLoading: isLoadingReports, refetch: refetchReports } = useQuery(
+  const {
+    data: reports,
+    isLoading: isLoadingReports,
+    refetch: refetchReports,
+  } = useQuery(
     ['reports', 'count'],
     async () => {
       if (!isAdmin && !isModerator) return [];
       const allReports = await reportService.getAllReports();
-      console.log('[Account] Reports loaded:', allReports?.length || 0);
       return allReports || [];
     },
     {
@@ -227,23 +238,15 @@ export const Account = () => {
   );
 
   const reportsCount = reports?.length || 0;
-  
+
   // Refetch reports when screen comes into focus (e.g., returning from ReportsManagement)
   useFocusEffect(
     React.useCallback(() => {
       if ((isAdmin || isModerator) && refetchReports) {
-        console.log('[Account] Screen focused, refetching reports...');
         refetchReports();
       }
     }, [isAdmin, isModerator, refetchReports])
   );
-
-  // Debug log
-  React.useEffect(() => {
-    if (isAdmin || isModerator) {
-      console.log('[Account] Reports count for badge:', reportsCount, 'isLoading:', isLoadingReports);
-    }
-  }, [reportsCount, isLoadingReports, isAdmin, isModerator]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -269,6 +272,15 @@ export const Account = () => {
       setRefreshing(false);
     }
   };
+
+  function handleSendEmailLog() {
+    BackgroundGeolocation.logger
+      .emailLog('adam.kundracik@gmail.com')
+      .then(success => {})
+      .catch(error => {
+        console.log('[emailLog] ERROR: ', error);
+      });
+  }
 
   const handleBioSave = async (newBio: string) => {
     setIsUpdatingBio(true);
@@ -351,7 +363,6 @@ export const Account = () => {
       // First remove push token from backend (before account deletion)
       if (currentPushToken && userData?.id) {
         try {
-          // // console.log('[Account] Removing push token before account deletion');
           await userService.removePushToken(
             userData.id.toString(),
             currentPushToken
@@ -636,6 +647,15 @@ export const Account = () => {
                     variant="default"
                   />
                 )}
+                {(isModerator || isAdmin) && (
+                  <ActionButton
+                    icon={Icons.Debug}
+                    title={t('Debug')}
+                    description={t('Debug')}
+                    onPress={() => handleSendEmailLog()}
+                    variant="default"
+                  />
+                )}
               </View>
             </View>
           </BlurView>
@@ -686,7 +706,6 @@ export const Account = () => {
                 description={t('blockedUsers.description')}
                 onPress={() => navigation.navigate('BlockedUsers')}
               />
-
             </View>
           </View>
         </BlurView>

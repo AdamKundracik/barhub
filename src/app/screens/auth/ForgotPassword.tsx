@@ -1,12 +1,4 @@
-import {
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { formStyles } from '../../utils/styles/styles';
 import * as React from 'react';
 import { useState } from 'react';
@@ -40,6 +32,7 @@ import * as Icons from '@fortawesome/free-solid-svg-icons';
 import { useForgotPasswordAPI } from '../../hooks/useForgotPasswordAPI';
 import { useCustomToast } from '@/src/app/components/shared/Toaster';
 import { AlertCircleIcon } from '@/components/ui/icon';
+import AuthLayout from '../../components/auth/AuthLayout';
 
 type InputFieldType = 'email';
 
@@ -79,17 +72,8 @@ export const ForgotPassword = ({ navigation }: any) => {
 
   if (emailSent) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{ flex: 1 }}
-        >
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.container}>
+      <AuthLayout pageTitle={t('forgot-password')}>
+        <View style={styles.container}>
               {/* Success Icon */}
               <Center style={styles.iconContainer}>
                 <View style={styles.successIconCircle}>
@@ -199,24 +183,13 @@ export const ForgotPassword = ({ navigation }: any) => {
                 </HStack>
               </Button>
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+        </AuthLayout>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.container}>
+    <AuthLayout pageTitle={t('forgot-password')}>
+      <View style={styles.container}>
             {/* Back Button */}
             <TouchableOpacity
               onPress={() => navigation.goBack()}
@@ -341,22 +314,11 @@ export const ForgotPassword = ({ navigation }: any) => {
               </TouchableOpacity>
             </Center>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+    </AuthLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#020213',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingTop: 20,
-    paddingBottom: 40,
-  },
   container: {
     flex: 1,
     padding: 20,

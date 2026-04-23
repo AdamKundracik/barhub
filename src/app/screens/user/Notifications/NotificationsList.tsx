@@ -37,24 +37,19 @@ const NotificationsList: React.FC = () => {
   const { isPremium } = useUserStore();
   const { data: storeData, markAllAsSeen } = useNotificationsStore();
 
-  const { data: queryData, isLoading, refetch, isFetching, isError, error } = useNotificationsQuery();
+  const {
+    data: queryData,
+    isLoading,
+    refetch,
+    isFetching,
+    isError,
+    error,
+  } = useNotificationsQuery();
   const [isScrollEnabled, setIsScrollEnabled] = useState(true);
   const [showAllRead, setShowAllRead] = useState(false);
 
   // Use queryData (which has fallback to storeData) as the primary source
   const notificationsData = queryData || storeData;
-
-  // Debug logging
-  console.log('[NotificationsList] Component state:', {
-    queryDataExists: !!queryData,
-    storeDataExists: !!storeData,
-    notificationsDataExists: !!notificationsData,
-    notificationsCount: notificationsData?.notifications?.length || 0,
-    isLoading,
-    isFetching,
-    isError,
-    errorMessage: error?.message
-  });
 
   // React Query automatically handles fetching based on refetchOnMount and staleTime
   // No manual useEffect needed - cleaner and more performant
@@ -109,7 +104,7 @@ const NotificationsList: React.FC = () => {
   // Only show loading if we're actually loading AND don't have any cached data
   // This prevents infinite loading when query fails or returns empty data
   const shouldShowLoading = isLoading && !notificationsData && !isError;
-  
+
   if (shouldShowLoading) {
     return (
       <ScreenLayout
@@ -235,13 +230,17 @@ const NotificationsList: React.FC = () => {
                   />
                 </View>
                 <Text style={styles.emptyTitle}>
-                  {isError ? t('error-loading-notifications') || 'Error loading notifications' : t('no-notifications')}
+                  {isError
+                    ? t('error-loading-notifications') ||
+                      'Error loading notifications'
+                    : t('no-notifications')}
                 </Text>
                 <Text style={styles.emptySubtitle}>
-                  {isError 
-                    ? (error?.message || t('try-again-later') || 'Please try again later')
-                    : t('notifications-will-appear-here')
-                  }
+                  {isError
+                    ? error?.message ||
+                      t('try-again-later') ||
+                      'Please try again later'
+                    : t('notifications-will-appear-here')}
                 </Text>
                 {isError && (
                   <Pressable

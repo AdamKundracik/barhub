@@ -1,19 +1,16 @@
-import { Pressable, StyleSheet, Text, View, Animated } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { useRequestStore } from '@/src/app/utils/store/requestStore';
+import { usePlaceStore } from '@/src/app/utils/store/placesStore';
 import {
+  primaryBgColor,
   primaryLightGrey,
+  primaryTextColor,
   separatorColor,
   warningColor,
-  primaryColor,
-  primaryBgColor,
-  primaryTextColor,
-  primaryDeepColor,
-} from '../../../../utils/styles/colors';
-import Svg, { Path } from 'react-native-svg';
-import { commonAppStyles } from '../../../../utils/styles/styles';
-import React, { useRef, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { usePlaceStore } from '../../../../utils/store/placesStore';
-import { useRequestStore } from '../../../../utils/store/requestStore';
+} from '@/src/app/utils/styles/colors';
 
 type Props = {
   requestPhoto: () => void;
@@ -24,25 +21,6 @@ const PostOldInfo = (props: Props) => {
   const { placeId } = usePlaceStore();
   const { addRequest, canRequest } = useRequestStore();
   const isDisabled = !canRequest(placeId ?? '');
-  
-  // Animation for subtle entrance effect
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.95)).current;
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [fadeAnim, scaleAnim]);
 
   const handlePress = () => {
     if (isDisabled) return;
@@ -51,15 +29,7 @@ const PostOldInfo = (props: Props) => {
   };
 
   return (
-    <Animated.View
-      style={[
-        styles.container,
-        {
-          opacity: fadeAnim,
-          transform: [{ scale: scaleAnim }],
-        },
-      ]}
-    >
+    <View style={styles.container}>
       {/* Icon container with improved positioning */}
       <View style={styles.iconContainer}>
         <View style={styles.iconBackground}>
@@ -79,9 +49,7 @@ const PostOldInfo = (props: Props) => {
       {/* Content section */}
       <View style={styles.contentContainer}>
         <Text style={styles.titleText}>{t('older-photo-info')}</Text>
-        <Text style={styles.subtitleText}>
-          {t('request-photo-info')}
-        </Text>
+        <Text style={styles.subtitleText}>{t('request-photo-info')}</Text>
       </View>
 
       {/* Enhanced button */}
@@ -95,7 +63,9 @@ const PostOldInfo = (props: Props) => {
         ]}
         accessibilityRole="button"
         accessibilityLabel={t('request-photo')}
-        accessibilityHint={isDisabled ? "Button is disabled" : "Tap to request a new photo"}
+        accessibilityHint={
+          isDisabled ? 'Button is disabled' : 'Tap to request a new photo'
+        }
       >
         {({ pressed }) => (
           <Text
@@ -109,7 +79,7 @@ const PostOldInfo = (props: Props) => {
           </Text>
         )}
       </Pressable>
-    </Animated.View>
+    </View>
   );
 };
 
@@ -120,7 +90,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: primaryBgColor,
     borderWidth: 1.5,
-    borderColor: `${warningColor}40`, // 25% opacity
+    borderColor: `${warningColor}40`,
     padding: 16,
     shadowColor: warningColor,
     shadowOffset: {
@@ -139,11 +109,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: `${warningColor}20`, // 12% opacity
+    backgroundColor: `${warningColor}20`,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: `${warningColor}60`, // 37% opacity
+    borderColor: `${warningColor}60`,
   },
   contentContainer: {
     marginBottom: 14,
@@ -164,7 +134,7 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   button: {
-    backgroundColor: `${warningColor}15`, // 8% opacity
+    backgroundColor: `${warningColor}15`,
     borderRadius: 10,
     borderWidth: 1.5,
     borderColor: warningColor,
@@ -190,7 +160,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   buttonDisabled: {
-    backgroundColor: `${separatorColor}10`, // 6% opacity
+    backgroundColor: `${separatorColor}10`,
     borderColor: separatorColor,
     shadowOpacity: 0,
     elevation: 0,
@@ -210,4 +180,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default React.memo(PostOldInfo);
+export default PostOldInfo;

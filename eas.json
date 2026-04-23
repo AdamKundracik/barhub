@@ -5,6 +5,7 @@
   },
   "build": {
     "development": {
+      "node": "18.18.0",
       "developmentClient": true,
       "distribution": "internal",
       "ios": {
@@ -13,21 +14,29 @@
       }
     },
     "preview": {
+      "node": "18.18.0",
       "distribution": "internal",
       "env": {
+        "EXPO_PUBLIC_API_URL": "https://localhost:8080/api",
         "EXPO_PUBLIC_ANDROID_ADMOB_BANNER_ID": "ca-app-pub-2698936582690038/7536391110",
         "EXPO_PUBLIC_IOS_ADMOB_BANNER_ID": "ca-app-pub-2698936582690038/3468319444"
       }
     },
     "production": {
+      "node": "18.18.0",
       "android": {
         "buildType": "app-bundle",
-        "gradleCommand": ":app:assembleRelease",
         "env": {
+          "EXPO_PUBLIC_API_URL": "https://api.barhubapp.com/api",
           "EXPO_ANDROID_MIN_SDK_VERSION": "24",
-          "EXPO_PUBLIC_ANDROID_ADMOB_BANNER_ID": "ca-app-pub-2698936582690038/7536391110"
+          "EXPO_PUBLIC_ANDROID_ADMOB_BANNER_ID": "ca-app-pub-2698936582690038/7536391110",
+          "EXPO_PUBLIC_GOOGLE_API_KEY": "AIzaSyAMoNX-aQzrjpnZ0KjYegeyhV47C8rRBVU",
+          "EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID": "995791421821-tedjmv2vuu6coprv5ij6h5dje9io5rls.apps.googleusercontent.com",
+          "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "995791421821-fjmj5qmj8j48e4s13nktbiqkt6gq83jb.apps.googleusercontent.com",
+          "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "995791421821-tedjmv2vuu6coprv5ij6h5dje9io5rls.apps.googleusercontent.com"
         }
       },
+
       "ios": {
         "env": {
           "EXPO_PUBLIC_IOS_ADMOB_BANNER_ID": "ca-app-pub-2698936582690038/3468319444"

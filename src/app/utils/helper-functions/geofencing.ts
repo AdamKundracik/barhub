@@ -70,26 +70,3 @@ export function isLocationWithinPerimeter(
 
   return distance <= GEOFENCE_CONFIG.maxRadiusKm;
 }
-
-/**
- * Get distance between target location and user's current location
- * @param targetLocation Target location (e.g., map center)
- * @param userLocation User's current GPS location
- * @returns Distance in kilometers, or null if no location
- */
-export function getDistanceFromUserLocation(
-  targetLocation: LocationType | null,
-  userLocation: LocationType | null
-): number | null {
-  if (!targetLocation || !userLocation) {
-    return null;
-  }
-
-  return calculateDistance(
-    targetLocation.latitude,
-    targetLocation.longitude,
-    userLocation.latitude,
-    userLocation.longitude
-  );
-}
-

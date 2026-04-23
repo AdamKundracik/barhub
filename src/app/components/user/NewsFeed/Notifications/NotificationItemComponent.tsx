@@ -40,8 +40,6 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
 
-  // console.log('[NotificationItemComponent] item.sender:', item.sender);
-
   const navigation = useNavigation<NavigationProp<UserStackList>>();
   const { t, i18n } = useTranslation();
   const locales = useLocales();
@@ -61,7 +59,7 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
   const notificationConfig = useMemo(() => {
     // Use "Someone" if sender name is not available
     const senderName = item.sender?.name || t('someone');
-    
+
     const configs = {
       [NotificationType.LIKE]: {
         label: t('new-like'),
@@ -142,13 +140,21 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
           return t('just-now') || 'práve teraz';
         } else if (diffInMinutes < 60) {
           // Special handling for Spanish, Slovak, and German - "hace/pred/vor X min" instead of "X min hace/dozadu/vor"
-          if (i18n.language === 'es' || i18n.language === 'sk' || i18n.language === 'de') {
+          if (
+            i18n.language === 'es' ||
+            i18n.language === 'sk' ||
+            i18n.language === 'de'
+          ) {
             return `${t('ago')} ${diffInMinutes} min`;
           }
           return `${diffInMinutes} min ${t('ago')}`;
         } else {
           // Special handling for Spanish, Slovak, and German - "hace/pred/vor Xh" instead of "Xh hace/dozadu/vor"
-          if (i18n.language === 'es' || i18n.language === 'sk' || i18n.language === 'de') {
+          if (
+            i18n.language === 'es' ||
+            i18n.language === 'sk' ||
+            i18n.language === 'de'
+          ) {
             return `${t('ago')} ${diffInHours}h`;
           }
           return `${diffInHours}h ${t('ago')}`;
@@ -248,12 +254,19 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
         await openCamera(item.placeId, item.senderToken, navigation, item.id);
       } else if (
         item.notificationType === NotificationType.RESPONSE ||
-        item.notificationType === NotificationType.LIKE ||
-        item.notificationType === NotificationType.COMMENT
+        item.notificationType === NotificationType.LIKE
       ) {
-        // Navigate to PostDetail for response/like/comment notifications
+        // Navigate to PostDetail for response/like notifications
         if (item.postId) {
           (navigation as any).navigate('PostDetail', { postId: item.postId });
+        }
+      } else if (item.notificationType === NotificationType.COMMENT) {
+        // Navigate to PostDetail with openComments flag for comment notifications
+        if (item.postId) {
+          (navigation as any).navigate('PostDetail', {
+            postId: item.postId,
+            openComments: true,
+          });
         }
       }
     } catch (error) {

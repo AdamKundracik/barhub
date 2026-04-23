@@ -139,12 +139,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(userData);
       setAuthState('authenticated');
 
-      // Vypíš currentUser data pri autentifikácii
-      console.log(
-        '[AUTH] Current user data on authentication:',
-        JSON.stringify(userData, null, 2)
-      );
-
       // Initialize user-related services in background
       Promise.allSettled([
         initializeUserStores(userData),
@@ -258,7 +252,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // This is the ONLY source of truth for authentication
       const isValid = await authService.isAuthenticated();
 
-
       if (!isValid) {
         // Check if this is due to a temporary SecureStore error
         const hasTemporaryError = tokenManager.hasTemporarySecureStoreError();
@@ -325,7 +318,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         const hasValidSession = await authService.isAuthenticated();
 
-
         if (!hasValidSession) {
           // No valid session = not authenticated, clear everything
           clearAuthState();
@@ -364,7 +356,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = useCallback(
     async (credentials: LoginCredentials) => {
-
       try {
         setAuthState('loading');
 
@@ -396,7 +387,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = useCallback(
     async (credentials: RegisterCredentials) => {
-
       try {
         setAuthState('loading');
 
@@ -419,7 +409,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const registerWithPhoto = useCallback(
     async (credentials: RegisterCredentials, photoUri: string) => {
-
       try {
         setAuthState('loading');
 
@@ -444,7 +433,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   );
 
   const signInWithGoogle = useCallback(async () => {
-
     try {
       setAuthState('loading');
 
@@ -485,7 +473,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [setAuthenticatedState, clearAuthState, authState, isAuthenticated]);
 
   const signInWithApple = useCallback(async () => {
-
     try {
       setAuthState('loading');
 
@@ -534,7 +521,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [setAuthenticatedState, clearAuthState, authState, isAuthenticated]);
 
   const logout = useCallback(async () => {
-
     try {
       setAuthState('loading');
 
@@ -565,7 +551,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [user, clearAuthState, authState, isAuthenticated]);
 
   const refreshUser = useCallback(async () => {
-
     if (!isAuthenticated) {
       return;
     }
@@ -610,12 +595,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('[AUTH] Authentication initialization complete');
 
         // Vypíš currentUser data pri spustení appky
-        if (user) {
-          console.log(
-            '[AUTH] Current user data on app start:',
-            JSON.stringify(user, null, 2)
-          );
-        } else {
+        if (!user) {
           console.log('[AUTH] No current user - user is not authenticated');
         }
       } catch (error) {
@@ -646,7 +626,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           hadTemporaryErrorRef.current ||
           tokenManager.hasTemporarySecureStoreError()
         ) {
-
           // Reset the flag
           hadTemporaryErrorRef.current = false;
 
@@ -662,8 +641,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               clearAuthState();
             }
             // If there's still a temporary error, we'll try again next time
-          } catch (error) {
-          }
+          } catch (error) {}
         }
       }
 

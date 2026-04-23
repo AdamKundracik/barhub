@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
-  KeyboardAvoidingView,
-  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -26,6 +24,7 @@ import {
   BottomSheetModal,
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 interface BioEditModalProps {
   visible: boolean;
@@ -112,7 +111,7 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
     // - Common punctuation and symbols
     // - Emojis and other Unicode symbols
     const permissiveUnicodePattern = /^[\p{L}\p{N}\p{M}\p{S}\p{P}\s\n\r]*$/u;
-    
+
     // Check if string contains only valid Unicode characters (including emojis)
     return permissiveUnicodePattern.test(text);
   };
@@ -177,8 +176,7 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
 
   const handleBioChange = (text: string) => {
     // Filter out problematic characters that could bypass validation
-    let filteredText = text
-      .replace(/[\t]/g, ' '); // Replace tabs with spaces
+    let filteredText = text.replace(/[\t]/g, ' '); // Replace tabs with spaces
 
     // Limit consecutive spaces to 3
     filteredText = filteredText.replace(/\s{4,}/g, '   ');
@@ -227,12 +225,13 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
       backgroundStyle={styles.modalBackground}
       handleIndicatorStyle={styles.handleIndicator}
     >
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-      >
-        <BottomSheetView style={styles.content}>
+      <BottomSheetView style={styles.content}>
+        <KeyboardAwareScrollView
+          style={styles.keyboardAvoidingView}
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+          bottomOffset={20}
+        >
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>
@@ -293,7 +292,8 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
                     <Text
                       style={[styles.qualityIndicator, styles.qualityWarning]}
                     >
-                      {t('bio.consider-adding-more') || '⚠ Consider adding more details'}
+                      {t('bio.consider-adding-more') ||
+                        '⚠ Consider adding more details'}
                     </Text>
                   )}
                 </View>
@@ -340,8 +340,8 @@ const BioEditModal: React.FC<BioEditModalProps> = ({
               )}
             </TouchableOpacity>
           </View>
-        </BottomSheetView>
-      </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
+      </BottomSheetView>
     </BottomSheetModal>
   );
 };

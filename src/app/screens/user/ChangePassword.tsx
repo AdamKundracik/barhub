@@ -1,11 +1,5 @@
 import React, { useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import {
   postBgColor,
@@ -43,6 +37,7 @@ import { Icons } from '@/src/app/utils/icons/icons';
 import { useChangePasswordAPI } from '../../hooks/useChangePasswordAPI';
 import { Text } from '@/components/ui/text';
 import { buttonStyles } from '../../utils/styles/buttonStyles';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 type InputField = 'oldPassword' | 'newPassword' | 'confirmPassword';
 
@@ -184,16 +179,13 @@ export const PasswordChangeScreen = () => {
 
   return (
     <ScreenLayout onBackPress={() => navigation.goBack()} showBackButton>
-      <KeyboardAvoidingView
+      <KeyboardAwareScrollView
         style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        bottomOffset={64}
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
           {/* Header */}
           <Center style={styles.headerContainer}>
             <Box style={styles.headerIconContainer}>
@@ -242,8 +234,7 @@ export const PasswordChangeScreen = () => {
               )}
             </Button>
           </VStack>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
     </ScreenLayout>
   );
 };

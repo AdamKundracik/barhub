@@ -4,8 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import * as Icons from '@fortawesome/free-solid-svg-icons';
 import { useTranslation } from 'react-i18next';
 import { primaryColor, secondaryTextColor } from '../../../utils/styles/colors';
-import { getGeolocationPermissionStatus } from '../../../utils/services/permission.service';
-import { usePermissionsContext } from '../../../providers/PermissionsProvider';
+import { getGeolocationPermissionStatus, requestGeolocationPermission } from '../../../utils/services/permission.service';
 
 interface LocationRequiredStateProps {
   requestPhoto: () => void;
@@ -15,7 +14,6 @@ const LocationRequiredState: React.FC<LocationRequiredStateProps> = ({
   requestPhoto,
 }) => {
   const { t } = useTranslation();
-  const { requestPermission, permissions, checkAllPermissions } = usePermissionsContext();
   const [canRequestPermission, setCanRequestPermission] = useState(false);
   const [isRequesting, setIsRequesting] = useState(false);
 
@@ -32,7 +30,6 @@ const LocationRequiredState: React.FC<LocationRequiredStateProps> = ({
       if (nextAppState === 'active') {
         // Re-check permission status when app becomes active
         console.log('[LocationRequiredState] App became active, re-checking permissions...');
-        checkAllPermissions(); // This will update the permissions context
         checkPermissionStatus();
       }
     };
@@ -42,30 +39,17 @@ const LocationRequiredState: React.FC<LocationRequiredStateProps> = ({
     return () => {
       subscription?.remove();
     };
-  }, [checkAllPermissions]);
-  
-  // Also listen to permissions changes from context
-  useEffect(() => {
-    console.log('[LocationRequiredState] Permissions changed:', permissions);
-    if (permissions.geolocation) {
-      // Permission was granted, component will unmount as FeedContent will show different UI
-      console.log('[LocationRequiredState] Location permission granted!');
-    } else {
-      // Re-check if we can request permission
-      const recheckStatus = async () => {
-        const status = await getGeolocationPermissionStatus();
-        setCanRequestPermission(status.canRequest);
-      };
-      recheckStatus();
-    }
-  }, [permissions.geolocation]);
+  }, []);
 
   const handleRequestPermission = async () => {
     if (!canRequestPermission || isRequesting) return;
     
     setIsRequesting(true);
     try {
-      await requestPermission('geolocation');
+      await requestGeolocationPermission();
+      // Re-check status after requesting
+      const status = await getGeolocationPermissionStatus();
+      setCanRequestPermission(status.canRequest);
     } catch (error) {
       console.error('Error requesting location permission:', error);
     } finally {

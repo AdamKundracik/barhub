@@ -2,19 +2,17 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
+  Dimensions,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import {
   BottomSheetBackdrop,
   BottomSheetModal,
-  BottomSheetView,
+  BottomSheetScrollView,
+  BottomSheetTextInput,
 } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { ReportReason } from '@/src/app/utils/types/Feed/PostTypes';
@@ -22,12 +20,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { Icons } from '@/src/app/utils/icons/icons';
 import { bottomModalBgColor } from '@/src/app/utils/styles/colors';
 
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
 type UserReportModalProps = {
   visible: boolean;
   onClose: () => void;
   onSave: (reason: ReportReason, customReason?: string) => Promise<void> | void;
-  onBlockUser?: () => Promise<void> | void; // Optional callback for direct blocking user after report
-  userName?: string; // User name for display in block option
+  onBlockUser?: () => Promise<void> | void;
+  userName?: string;
 };
 
 export const UserReportModal = ({
@@ -87,7 +87,6 @@ export const UserReportModal = ({
             try {
               setLoading(true);
               await onSave(reason, undefined);
-              // Show success screen with block option if callback is provided
               if (onBlockUser) {
                 setShowSuccessWithBlock(true);
               } else {
@@ -95,7 +94,6 @@ export const UserReportModal = ({
               }
             } catch (error) {
               console.error('Error submitting report:', error);
-              // Modal sa zatvorí automaticky cez parent handleReportUser pri chybe
             } finally {
               setLoading(false);
             }
@@ -123,7 +121,6 @@ export const UserReportModal = ({
             try {
               setLoading(true);
               await onSave(ReportReason.OTHER, customReason.trim());
-              // Show success screen with block option if callback is provided
               if (onBlockUser) {
                 setShowSuccessWithBlock(true);
               } else {
@@ -131,7 +128,6 @@ export const UserReportModal = ({
               }
             } catch (error) {
               console.error('Error submitting report:', error);
-              // Modal sa zatvorí automaticky cez parent handleReportUser pri chybe
             } finally {
               setLoading(false);
             }
@@ -149,23 +145,16 @@ export const UserReportModal = ({
 
   const handleBlockAndClose = async () => {
     if (!onBlockUser) return;
-    
     try {
       setLoading(true);
-      await onBlockUser(); // Direct blocking without opening BlockUserModal
-      onClose(); // Close modal after successful blocking
+      await onBlockUser();
+      onClose();
     } catch (error) {
       console.error('Error blocking user:', error);
-      // Error handling is done in the parent function
     } finally {
       setLoading(false);
     }
   };
-
-  const handleSkipBlock = () => {
-    onClose();
-  };
-
 
   const reasons = [
     { value: ReportReason.SPAM, label: t('reportUser.spam') },
@@ -180,156 +169,179 @@ export const UserReportModal = ({
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
-      snapPoints={showCustomReason ? ['90%'] : ['60%']}
+      // snapPoints removed — was conflicting with enableDynamicSizing on the
+      // previous modals; here it was also toggling between '60%'/'90%' causing
+      // a jarring snap on state change. Dynamic sizing handles this smoothly.
+      enableDynamicSizing
+      maxDynamicContentSize={SCREEN_HEIGHT * 0.9}
       backdropComponent={renderBackdrop}
       onDismiss={onClose}
       backgroundStyle={styles.container}
       handleIndicatorStyle={styles.handleIndicator}
       enablePanDownToClose
+      // Sheet handles keyboard avoidance — no KeyboardAvoidingView needed
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
       android_keyboardInputMode="adjustResize"
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+      {/*
+        BottomSheetScrollView instead of BottomSheetView + KeyboardAvoidingView:
+        - Handles overflow when keyboard is open
+        - keyboardShouldPersistTaps="handled" ensures button taps fire
+          before the keyboard dismisses (critical for the submit/back buttons)
+      */}
+      <BottomSheetScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        <BottomSheetView style={styles.content}>
-          {showSuccessWithBlock ? (
-            <>
-              <View style={styles.successIconContainer}>
-                <FontAwesomeIcon
-                  icon={Icons.CheckCircle}
-                  size={32}
-                  color="#34C759"
-                />
-              </View>
-              
-              <Text style={styles.successTitle}>
-                {t('reportUser.successTitle') || 'Report Submitted'}
-              </Text>
-              
-              <Text style={styles.successMessage}>
-                {t('reportUser.successDescription') || 'Thank you for your report. We will review it shortly.'}
-              </Text>
+        {showSuccessWithBlock ? (
+          // ── View 3: Post-report success + optional block prompt ──────────
+          <>
+            <View style={styles.successIconContainer}>
+              <FontAwesomeIcon
+                icon={Icons.CheckCircle}
+                size={32}
+                color="#34C759"
+              />
+            </View>
 
-              <Text style={styles.blockPrompt}>
-                {t('reportUser.blockPrompt', { userName }) || `Would you also like to block ${userName}? You won't see their posts and they won't be able to interact with your content.`}
-              </Text>
+            <Text style={styles.successTitle}>
+              {t('reportUser.successTitle') || 'Report Submitted'}
+            </Text>
 
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={[styles.button, styles.blockButton]}
-                  onPress={handleBlockAndClose}
-                  disabled={loading}
-                >
+            <Text style={styles.successMessage}>
+              {t('reportUser.successDescription') ||
+                'Thank you for your report. We will review it shortly.'}
+            </Text>
+
+            <Text style={styles.blockPrompt}>
+              {t('reportUser.blockPrompt', { userName }) ||
+                `Would you also like to block ${userName}? You won't see their posts and they won't be able to interact with your content.`}
+            </Text>
+
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.button, styles.blockButton]}
+                onPress={handleBlockAndClose}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
                   <Text style={styles.blockButtonText}>
                     {t('blockUser.block') || 'Block User'}
                   </Text>
-                </TouchableOpacity>
+                )}
+              </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={[styles.button, styles.skipButton]}
-                  onPress={handleSkipBlock}
-                  disabled={loading}
-                >
-                  <Text style={styles.skipButtonText}>
-                    {t('reportUser.skipBlock') || 'Skip'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          ) : showCustomReason ? (
-            <>
-              <Text style={styles.title}>
-                {t('reportUser.customReasonTitle')}
-              </Text>
-
-              <TextInput
-                style={[
-                  styles.textInput,
-                  customReasonError ? styles.textInputError : null,
-                ]}
-                placeholder={t('reportUser.customReasonPlaceholder')}
-                placeholderTextColor="#666"
-                value={customReason}
-                onChangeText={text => {
-                  setCustomReason(text);
-                  if (customReasonError) setCustomReasonError('');
-                }}
-                multiline
-                numberOfLines={4}
-                maxLength={500}
-                editable={!loading}
-                autoFocus
-                returnKeyType="done"
-                blurOnSubmit={true}
-                onSubmitEditing={() => Keyboard.dismiss()}
-              />
-
-              {customReasonError ? (
-                <Text style={styles.errorText}>{customReasonError}</Text>
-              ) : null}
-
-              <Text style={styles.characterCount}>
-                {customReason.length}/500
-              </Text>
-
-              {/* Buttons inside content */}
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={[styles.button, styles.submitButton]}
-                  onPress={handleCustomReasonSubmit}
-                  disabled={loading || !customReason.trim()}
-                >
-                  <Text style={styles.submitButtonText}>
-                    {t('reportUser.submit')}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.button, styles.cancelButton]}
-                  onPress={handleBackToReasons}
-                  disabled={loading}
-                >
-                  <Text style={styles.cancelButtonText}>{t('go-back')}</Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          ) : (
-            <>
-              <Text style={styles.title}>{t('reportUser.title')}</Text>
-              <Text style={styles.subtitle}>
-                {t('reportUser.chooseReason')}
-              </Text>
-
-              {reasons.map(r => (
-                <TouchableOpacity
-                  key={r.value}
-                  style={styles.option}
-                  activeOpacity={0.7}
-                  onPress={() => handleSelect(r.value, r.label)}
-                  disabled={loading}
-                >
-                  <View style={styles.optionRow}>
-                    <Text style={styles.optionText}>{r.label}</Text>
-                    <FontAwesomeIcon
-                      icon={Icons.ChevronRight}
-                      size={16}
-                      color={'white'}
-                    />
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </>
-          )}
-
-          {loading && (
-            <View style={styles.loaderOverlay}>
-              <ActivityIndicator size="large" color="#fff" />
+              <TouchableOpacity
+                style={[styles.button, styles.skipButton]}
+                onPress={onClose}
+                disabled={loading}
+              >
+                <Text style={styles.skipButtonText}>
+                  {t('reportUser.skipBlock') || 'Skip'}
+                </Text>
+              </TouchableOpacity>
             </View>
-          )}
-        </BottomSheetView>
-      </KeyboardAvoidingView>
+          </>
+        ) : showCustomReason ? (
+          // ── View 2: Custom reason input ───────────────────────────────────
+          <>
+            <Text style={styles.title}>
+              {t('reportUser.customReasonTitle')}
+            </Text>
+
+            {/*
+              BottomSheetTextInput instead of plain TextInput:
+              - Integrates with the sheet's gesture/keyboard handling
+              - Prevents the sheet from dismissing on input focus
+            */}
+            <BottomSheetTextInput
+              style={[
+                styles.textInput,
+                customReasonError ? styles.textInputError : undefined,
+              ]}
+              placeholder={t('reportUser.customReasonPlaceholder')}
+              placeholderTextColor="#666"
+              value={customReason}
+              onChangeText={text => {
+                setCustomReason(text);
+                if (customReasonError) setCustomReasonError('');
+              }}
+              multiline
+              numberOfLines={4}
+              maxLength={500}
+              editable={!loading}
+              autoFocus
+              returnKeyType="done"
+              blurOnSubmit
+            />
+
+            {customReasonError ? (
+              <Text style={styles.errorText}>{customReasonError}</Text>
+            ) : null}
+
+            <Text style={styles.characterCount}>{customReason.length}/500</Text>
+
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  styles.submitButton,
+                  (!customReason.trim() || loading) &&
+                    styles.submitButtonDisabled,
+                ]}
+                onPress={handleCustomReasonSubmit}
+                disabled={loading || !customReason.trim()}
+              >
+                <Text style={styles.submitButtonText}>
+                  {t('reportUser.submit')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={handleBackToReasons}
+                disabled={loading}
+              >
+                <Text style={styles.cancelButtonText}>{t('go-back')}</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        ) : (
+          // ── View 1: Reason selection list ─────────────────────────────────
+          <>
+            <Text style={styles.title}>{t('reportUser.title')}</Text>
+            <Text style={styles.subtitle}>{t('reportUser.chooseReason')}</Text>
+
+            {reasons.map(r => (
+              <TouchableOpacity
+                key={r.value}
+                style={styles.option}
+                activeOpacity={0.7}
+                onPress={() => handleSelect(r.value, r.label)}
+                disabled={loading}
+              >
+                <View style={styles.optionRow}>
+                  <Text style={styles.optionText}>{r.label}</Text>
+                  <FontAwesomeIcon
+                    icon={Icons.ChevronRight}
+                    size={16}
+                    color="white"
+                  />
+                </View>
+              </TouchableOpacity>
+            ))}
+          </>
+        )}
+
+        {loading && (
+          <View style={styles.loaderOverlay}>
+            <ActivityIndicator size="large" color="#fff" />
+          </View>
+        )}
+      </BottomSheetScrollView>
     </BottomSheetModal>
   );
 };
@@ -343,6 +355,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 20,
     paddingVertical: 10,
+    paddingBottom: 32,
   },
   title: {
     color: 'white',
@@ -377,7 +390,6 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   buttonContainer: {
-    paddingHorizontal: 0,
     gap: 12,
     marginTop: 16,
   },
@@ -389,22 +401,17 @@ const styles = StyleSheet.create({
   submitButton: {
     backgroundColor: '#007AFF',
   },
+  submitButtonDisabled: {
+    backgroundColor: '#004999',
+    opacity: 0.6,
+  },
   submitButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
   cancelButton: {
-    marginTop: 12,
-    borderRadius: 12,
     backgroundColor: '#222',
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  cancelText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '500',
   },
   cancelButtonText: {
     color: '#fff',
@@ -494,5 +501,3 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 });
-
-

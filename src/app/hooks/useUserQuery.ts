@@ -23,7 +23,6 @@ export const useUserQuery = () => {
   return useQuery({
     queryKey: USER_QUERY_KEYS.userData,
     queryFn: async (): Promise<ClientDTO | null> => {
-      console.log(' [USER QUERY DEBUG] Fetching user data...');
       const userData = await userService.getCurrentUser();
 
       // Update Zustand store with fetched data
@@ -207,7 +206,7 @@ export const usePhotoMutations = () => {
     onSettled: () => {
       // Update image cache buster to force all profile images to reload
       updateImageCacheBuster();
-      
+
       queryClient.invalidateQueries(USER_QUERY_KEYS.userData);
       // Also invalidate posts cache to update user photos in posts
       queryClient.invalidateQueries(['posts']);
@@ -250,7 +249,7 @@ export const usePhotoMutations = () => {
     onSettled: () => {
       // Update image cache buster to force all profile images to reload
       updateImageCacheBuster();
-      
+
       queryClient.invalidateQueries(USER_QUERY_KEYS.userData);
       // Also invalidate posts cache to update user photos in posts
       queryClient.invalidateQueries(['posts']);

@@ -2,10 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Keyboard,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -36,6 +33,7 @@ import { Icons } from '../../utils/icons/icons';
 import { primaryColor, primaryDeepColor } from '../../utils/styles/colors';
 import { useUserFavorites } from '@/src/app/hooks/useUserFavorites';
 import { PremiumHelpers } from '@/src/app/config/premiumConfig';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 // Constants
 const MAX_FAVORITE_PLACES = 10;
@@ -526,11 +524,6 @@ export const PlaceSearch: React.FC = () => {
       showTopBar={false}
     >
       <View style={styles.container}>
-        <KeyboardAvoidingView
-          style={styles.keyboardContainer}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-        >
           <View style={styles.content}>
             {/* Header */}
             <View style={styles.header}>
@@ -557,13 +550,14 @@ export const PlaceSearch: React.FC = () => {
 
             {/* Results */}
             <View style={styles.scrollView}>
-              <ScrollView
+              <KeyboardAwareScrollView
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={true}
                 bounces={true}
                 alwaysBounceVertical={false}
                 nestedScrollEnabled={true}
                 removeClippedSubviews={false}
+                bottomOffset={20}
                 contentContainerStyle={[
                   styles.scrollContent,
                   {
@@ -577,10 +571,9 @@ export const PlaceSearch: React.FC = () => {
                 ]}
               >
                 {renderContent()}
-              </ScrollView>
+              </KeyboardAwareScrollView>
             </View>
           </View>
-        </KeyboardAvoidingView>
       </View>
     </Layout>
   );

@@ -1,15 +1,15 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import {
+  Dimensions,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Dimensions,
 } from 'react-native';
 import {
   BottomSheetBackdrop,
   BottomSheetModal,
-  BottomSheetScrollView,
+  BottomSheetView,
 } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -23,18 +23,13 @@ import {
 import { useModalsStore } from '@/src/app/utils/store/modalsStore';
 import { useLocationStore } from '@/src/app/utils/store/locationStore';
 
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
 export const TravelModeModal = () => {
   const { t } = useTranslation();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const { isTravelModeOpen, closeTravelMode, toggleFilter } = useModalsStore();
   const { setUseFakeLocation } = useLocationStore();
-
-  // Get screen height for responsive snap points
-  const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-  const isSmallDevice = SCREEN_HEIGHT < 700;
-
-  // Calculate dynamic snap points based on device size
-  const snapPoints = isSmallDevice ? ['70%'] : ['65%'];
 
   useEffect(() => {
     if (isTravelModeOpen) {
@@ -69,36 +64,35 @@ export const TravelModeModal = () => {
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
-      snapPoints={snapPoints}
+      // Replaces the isSmallDevice ternary ('70%' vs '65%') —
+      // dynamic sizing measures actual content height instead of
+      // approximating based on screen size, and recalculating
+      // Dimensions.get() + the ternary on every render
+      enableDynamicSizing
+      maxDynamicContentSize={SCREEN_HEIGHT * 0.75}
       backdropComponent={renderBackdrop}
       onDismiss={closeTravelMode}
       backgroundStyle={styles.container}
       handleIndicatorStyle={styles.handleIndicator}
       enablePanDownToClose
     >
-      <BottomSheetScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Icon Container */}
+      {/*
+        BottomSheetView instead of BottomSheetScrollView:
+        - This sheet has fixed content (icon, 2 texts, 2 buttons) that
+          never overflows — a ScrollView adds no value here
+        - flexGrow: 1 on the contentContainerStyle was telling the scroll
+          content to stretch to fill all available space, which prevents
+          dynamic sizing from measuring the true content height correctly
+      */}
+      <BottomSheetView style={styles.content}>
         <View style={styles.iconContainer}>
-          <FontAwesomeIcon
-            icon={Icons.Plane}
-            size={40}
-            color={primaryColor}
-          />
+          <FontAwesomeIcon icon={Icons.Plane} size={40} color={primaryColor} />
         </View>
 
-        {/* Title */}
         <Text style={styles.title}>{t('travel-mode')}</Text>
-
-        {/* Status */}
         <Text style={styles.status}>{t('travel-mode-active')}</Text>
-
-        {/* Description */}
         <Text style={styles.message}>{t('travel-mode-description')}</Text>
 
-        {/* Buttons */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[styles.button, styles.primaryButton]}
@@ -118,7 +112,7 @@ export const TravelModeModal = () => {
             <Text style={styles.secondaryButtonText}>{t('settings')}</Text>
           </TouchableOpacity>
         </View>
-      </BottomSheetScrollView>
+      </BottomSheetView>
     </BottomSheetModal>
   );
 };
@@ -131,10 +125,11 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 24,
-    paddingVertical: 24,
+    paddingTop: 24,
     paddingBottom: 40,
     alignItems: 'center',
-    flexGrow: 1,
+    // flexGrow: 1 removed — it told content to fill all available space,
+    // which broke dynamic sizing's height measurement
   },
   iconContainer: {
     width: 80,
@@ -181,10 +176,7 @@ const styles = StyleSheet.create({
     minHeight: 56,
     width: '100%',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
@@ -217,5 +209,3 @@ const styles = StyleSheet.create({
     marginVertical: 12,
   },
 });
-
-
