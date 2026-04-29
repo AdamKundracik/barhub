@@ -245,12 +245,29 @@ class TokenManager {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const expirationTime = payload.exp * 1000;
       const currentTime = Date.now();
-      const bufferTime = 5 * 60 * 1000; // 5 minutes buffer
+      // 30s buffer — covers clock skew + network latency without falsely
+      // flagging short-lived tokens (e.g. 60s test tokens) as already expired.
+      const bufferTime = 30 * 1000;
       const isExpired = currentTime >= expirationTime - bufferTime;
       return isExpired;
     } catch (error) {
       console.error('[TOKEN] Error parsing token:', error);
       return true; // If we can't parse, consider it expired
+    }
+  }
+
+  /**
+   * Read the JWT `exp` claim (seconds since epoch) from an access token.
+   * Returns null if the token can't be decoded. Used to feed
+   * BackgroundGeolocation's `authorization.expires` so the plugin can
+   * refresh proactively instead of reacting to a 401.
+   */
+  getTokenExpirationSeconds(token: string): number | null {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return typeof payload.exp === 'number' ? payload.exp : null;
+    } catch {
+      return null;
     }
   }
 

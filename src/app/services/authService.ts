@@ -258,12 +258,8 @@ class AuthService {
           }
         }
 
-        // Verify the new token is valid before returning
-        if (
-          !authResponse.token ||
-          tokenManager.isTokenExpired(authResponse.token)
-        ) {
-          console.error('❌ [REFRESH] Received invalid token from server');
+        if (!authResponse.token) {
+          console.error('❌ [REFRESH] Refresh response missing access token');
           await tokenManager.clearTokens();
           return null;
         }

@@ -5,6 +5,7 @@ import * as Location from 'expo-location';
 import { useLocationStore } from '../store/locationStore';
 import { useUserStore } from '../store/userStore';
 import { tokenManager } from '../api/tokenManager';
+import { axiosClient } from '../api/axiosClient';
 import { API_CONFIG, ENDPOINTS } from '../../config/api';
 import {
   registerBackgroundTask,
@@ -15,15 +16,10 @@ type Coords = { latitude: number; longitude: number };
 
 async function syncToBackend(userId: string, coords: Coords) {
   try {
-    const token = await tokenManager.getAccessToken();
-    await fetch(`${API_CONFIG.BASE_URL}${ENDPOINTS.USERS.LOCATION(userId)}`, {
-      method: 'PATCH',
-      headers: {
-        ...(token && { Authorization: `Bearer ${token}` }),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(coords),
-    });
+    // axiosClient runs the 401 → refresh → retry interceptor; the raw fetch()
+    // path used to bypass it, which is why expired tokens caused dropped
+    // location updates in production.
+    await axiosClient.patch(ENDPOINTS.USERS.LOCATION(userId), coords);
   } catch (err) {
     console.error('[Location] syncToBackend failed:', err);
   }
@@ -61,6 +57,9 @@ export function useLocation() {
       try {
         const token = await tokenManager.getAccessToken();
         const refreshToken = await tokenManager.getRefreshToken();
+        const expiresAt = token
+          ? tokenManager.getTokenExpirationSeconds(token)
+          : null;
 
         subs.current.push(
           BackgroundGeolocation.onLocation(e => {
@@ -91,15 +90,13 @@ export function useLocation() {
                 const newRefreshToken: string | undefined = source.refreshToken;
 
                 if (newAccessToken && newRefreshToken) {
+                  // Mirror to JS-side storage only. The plugin already
+                  // updated its native auth state via the internal refreshUrl
+                  // flow — calling setConfig here would replace the whole
+                  // `authorization` block and drop refreshUrl/refreshPayload,
+                  // which broke subsequent refreshes ("nepodporovaná URL").
                   await tokenManager.setTokens(newAccessToken, newRefreshToken);
-                  await BackgroundGeolocation.setConfig({
-                    authorization: {
-                      strategy: 'JWT',
-                      accessToken: newAccessToken,
-                      refreshToken: newRefreshToken,
-                    },
-                  });
-                  console.log('[BGGeo] Tokens synced after refresh');
+                  console.log('[BGGeo] Tokens mirrored to JS storage');
                 } else {
                   console.warn('[BGGeo] Auth success but no tokens in payload');
                 }
@@ -112,13 +109,16 @@ export function useLocation() {
           }),
 
           BackgroundGeolocation.onHttp(event => {
-            if (!event.success) {
-              console.error(
-                '[BGGeo] HTTP error:',
-                event.status,
-                event.responseText
-              );
-            }
+            if (event.success) return;
+            // 401s are handled by the plugin's internal refreshUrl flow,
+            // which then fires onAuthorization to sync new tokens to JS.
+            // Doing a parallel JS refresh here races that flow and can
+            // wipe valid tokens, so we only log.
+            console.error(
+              '[BGGeo] HTTP error:',
+              event.status,
+              event.responseText
+            );
           })
         );
 
@@ -145,7 +145,10 @@ export function useLocation() {
             refreshToken: refreshToken ?? '',
             refreshUrl: `${API_CONFIG.BASE_URL}${ENDPOINTS.AUTH.REFRESH}`,
             refreshPayload: { refreshToken: '{refreshToken}' },
-            expires: -1,
+            // Real exp (seconds) so the plugin refreshes proactively instead
+            // of only reacting to a 401. -1 fallback if the token can't be
+            // decoded (plugin then falls back to 401-driven refresh).
+            expires: expiresAt ?? -1,
           },
         });
 

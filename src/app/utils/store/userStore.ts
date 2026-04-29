@@ -1,5 +1,10 @@
 import { create } from 'zustand';
-import { subscribeWithSelector } from 'zustand/middleware';
+import {
+  createJSONStorage,
+  persist,
+  subscribeWithSelector,
+} from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ClientDTO,
   RoleEnum,
@@ -59,13 +64,15 @@ interface UserStore {
 }
 
 export const useUserStore = create<UserStore>()(
-  subscribeWithSelector((set, get) => {
-    // Set up callback for authService to update user data
-    authService.setUserDataUpdateCallback((userData: ClientDTO | null) => {
-      set({ userData });
-    });
+  subscribeWithSelector(
+    persist(
+      (set, get) => {
+        // Set up callback for authService to update user data
+        authService.setUserDataUpdateCallback((userData: ClientDTO | null) => {
+          set({ userData });
+        });
 
-    return {
+        return {
       // Initial state
       userData: null,
       isUserDataLoading: false,
@@ -288,9 +295,19 @@ export const useUserStore = create<UserStore>()(
           console.error('Failed to load blocked users:', error);
           set({ blockedUsers: new Set() });
         }
+          },
+        };
       },
-    };
-  })
+      {
+        name: 'user-store',
+        storage: createJSONStorage(() => AsyncStorage),
+        // Persist only what background tasks need to identify the user after
+        // a kill+wake (Android foreground-service location task fires before
+        // the React tree mounts and re-fetches /users/me).
+        partialize: state => ({ userData: state.userData }),
+      }
+    )
+  )
 );
 
 // Selectors for easy access

@@ -45,6 +45,15 @@ export const requestNotificationPermission = async () => {
 
 export const requestGeolocationPermission = async () => {
   try {
+    // Android tracking uses expo-location (transistorsoft has no license here
+    // and would show its license popup). useLocation.ts already requests
+    // foreground+background permission via expo-location on Android, so on
+    // that platform we just report current state via expo-location too.
+    if (Platform.OS === 'android') {
+      const { status } = await Location.getForegroundPermissionsAsync();
+      return status === 'granted';
+    }
+
     const authStatus = await BackgroundGeolocation.requestPermission();
     return (
       authStatus === BackgroundGeolocation.AUTHORIZATION_STATUS_WHEN_IN_USE ||
@@ -173,20 +182,23 @@ export const getGeolocationPermissionStatus = async () => {
       expoStatus.status
     );
 
-    // Also check BackgroundGeolocation for additional info
+    // Also check BackgroundGeolocation for additional info (iOS only —
+    // calling it on Android would trigger transistorsoft's license popup).
     let bgStatus = null;
-    try {
-      const bgState = await BackgroundGeolocation.getProviderState();
-      bgStatus = bgState.accuracyAuthorization;
-      console.log(
-        '[getGeolocationPermissionStatus] BackgroundGeolocation authorization:',
-        bgStatus
-      );
-    } catch (bgError) {
-      console.warn(
-        '[getGeolocationPermissionStatus] BackgroundGeolocation check failed:',
-        bgError
-      );
+    if (Platform.OS === 'ios') {
+      try {
+        const bgState = await BackgroundGeolocation.getProviderState();
+        bgStatus = bgState.accuracyAuthorization;
+        console.log(
+          '[getGeolocationPermissionStatus] BackgroundGeolocation authorization:',
+          bgStatus
+        );
+      } catch (bgError) {
+        console.warn(
+          '[getGeolocationPermissionStatus] BackgroundGeolocation check failed:',
+          bgError
+        );
+      }
     }
 
     const result = {

@@ -3,8 +3,8 @@ import * as Location from 'expo-location';
 import { Platform } from 'react-native';
 import { useLocationStore } from './store/locationStore';
 import { useUserStore } from './store/userStore';
-import { tokenManager } from './api/tokenManager';
-import { API_CONFIG, ENDPOINTS } from '../config/api';
+import { axiosClient } from './api/axiosClient';
+import { ENDPOINTS } from '../config/api';
 
 export const BACKGROUND_LOCATION_TASK = 'background-location-task';
 
@@ -42,22 +42,28 @@ if (Platform.OS === 'android') {
 
       useLocationStore.getState().setLocation({ latitude, longitude });
 
+      // After kill+wake, the foreground-service callback fires before React
+      // mounts and re-fetches /users/me. Wait for the persisted userData to
+      // hydrate from AsyncStorage before reading the user id.
+      if (!useUserStore.persist.hasHydrated()) {
+        await new Promise<void>(resolve => {
+          const unsub = useUserStore.persist.onFinishHydration(() => {
+            unsub();
+            resolve();
+          });
+        });
+      }
+
       const userId = useUserStore.getState().userData?.id?.toString();
       if (!userId) return;
 
       try {
-        const token = await tokenManager.getAccessToken();
-        await fetch(
-          `${API_CONFIG.BASE_URL}${ENDPOINTS.USERS.LOCATION(userId)}`,
-          {
-            method: 'PATCH',
-            headers: {
-              ...(token && { Authorization: `Bearer ${token}` }),
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ latitude, longitude }),
-          }
-        );
+        // Use axiosClient so the 401 → refresh → retry interceptor runs
+        // while the foreground service fires this task in the background.
+        await axiosClient.patch(ENDPOINTS.USERS.LOCATION(userId), {
+          latitude,
+          longitude,
+        });
       } catch (err) {
         console.error('[BG Location] Sync failed:', err);
       }
@@ -71,10 +77,8 @@ export async function registerBackgroundTask(): Promise<void> {
   const isRegistered = await TaskManager.isTaskRegisteredAsync(
     BACKGROUND_LOCATION_TASK
   );
-  console.log('TASK ALREADY REGISTERED', isRegistered);
   if (isRegistered) return;
 
-  console.log('ABRAKADABRA');
   await Location.startLocationUpdatesAsync(BACKGROUND_LOCATION_TASK, {
     accuracy: Location.Accuracy.High,
     timeInterval: 15 * 60 * 1000, // 15 minutes

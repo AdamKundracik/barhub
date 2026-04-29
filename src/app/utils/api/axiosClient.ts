@@ -4,7 +4,6 @@ import axios, {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from 'axios';
-import { AppState, AppStateStatus } from 'react-native';
 import { API_CONFIG } from '../../config/api';
 import { tokenManager } from './tokenManager';
 
@@ -90,15 +89,11 @@ class AxiosClient {
             return Promise.reject(error);
           }
 
-          // Check if app is in foreground - SecureStore requires user interaction
-          const appState = AppState.currentState;
-          if (appState !== 'active') {
-            console.warn('⚠️ [AUTH] App not in foreground, skipping token refresh', appState);
-
-            // Return original error - don't logout, just fail the request
-            // User can retry when app comes to foreground
-            return Promise.reject(error);
-          }
+          // NOTE: previously we blocked refresh when AppState !== 'active' to
+          // avoid SecureStore "User interaction is not allowed" errors. Tokens
+          // use AFTER_FIRST_UNLOCK and are cached in memory, and the Android
+          // foreground-service location task runs while AppState is 'background'
+          // — so blocking here was the root cause of dropped location updates.
 
           // If refresh already running → queue this request
           if (this.isRefreshing) {

@@ -3,11 +3,13 @@ import { Circle, Marker, Region } from 'react-native-maps';
 import MapView from 'react-native-map-clustering';
 import {
   ActivityIndicator,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import * as Location from 'expo-location';
 import { Place } from '../../../utils/types/types';
 import { useTranslation } from 'react-i18next';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -157,14 +159,20 @@ export const MapSearch = ({ setIsMapShown }: LayoutProps) => {
       return;
     }
 
-    // Get current position directly from BackgroundGeolocation
+    // Get current position. On Android we use expo-location to avoid
+    // triggering transistorsoft's unlicensed-build popup.
     try {
-      const location = await BackgroundGeolocation.getCurrentPosition({
-        timeout: 10,
-        maximumAge: 5000,
-        desiredAccuracy: 10,
-        samples: 1,
-      });
+      const location =
+        Platform.OS === 'ios'
+          ? await BackgroundGeolocation.getCurrentPosition({
+              timeout: 10,
+              maximumAge: 5000,
+              desiredAccuracy: 10,
+              samples: 1,
+            })
+          : await Location.getCurrentPositionAsync({
+              accuracy: Location.Accuracy.High,
+            });
 
       if (location?.coords?.latitude && location?.coords?.longitude) {
         // Update store with latest location

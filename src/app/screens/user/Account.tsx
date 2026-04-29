@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   Pressable,
   RefreshControl,
   SafeAreaView,
@@ -274,6 +275,9 @@ export const Account = () => {
   };
 
   function handleSendEmailLog() {
+    // transistorsoft logger only ships on iOS in this app — calling it on
+    // Android pops the unlicensed-build alert.
+    if (Platform.OS !== 'ios') return;
     BackgroundGeolocation.logger
       .emailLog('adam.kundracik@gmail.com')
       .then(success => {})
